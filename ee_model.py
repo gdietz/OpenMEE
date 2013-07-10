@@ -7,75 +7,99 @@ Created on Jul 8, 2013
 from PyQt4 import QtCore, QtGui
 from PyQt4.Qt import *
 
-from sets import Set
+
 import pdb
 import string
 
+# handrolled
+from ee_dataset import EEDataSet
+
 # Some constants
 ADDITIONAL_ROWS = 100
-ADDITIONAL_COLS = 20
+ADDITIONAL_COLS = 40
 
 class EETableModel(QAbstractTableModel):
-    def __init__(self, filename=QString()):
+    def __init__(self):
         super(EETableModel, self).__init__()
         
-        self.filename = filename
+        self.dataset = EEDataSet()
+        
+        ###self.filename = filename
         self.dirty = False
         
         self.default_headers = self._generate_header_string(ADDITIONAL_COLS)
         
+        # For each variable name, store its type and its column location
+    
+
         
-        self.custom_headers = {}
-        self.data_table = Table()
+        # mapping from row #s (indexed from zero) to studies
+        self.rows_2_studies = self._make_arbitrary_mapping_of_rows_to_studies()
+        self.cols_2_vars = self._make_arbitrary_mapping_of_cols_to_variables()
+        
+    def _make_arbitrary_mapping_of_rows_to_studies(self):
+        studies = self.dataset.get_all_studies()
+        return dict(enumerate(studies))
+
+
+    def _make_arbitrary_mapping_of_cols_to_variables(self):
+        variable_names = self.dataset.get_all_variable_names(),
+        cols2vars = {0:'label'}
+        cols2vars.update(enumerate(variable_names, start=1))
+        return cols2vars
+        
         
     def rowCount(self, index=QModelIndex()):
-        max_occupied_row = self.data_table.get_max_row()
+        occupied_rows = self.rows_2_studies.keys()
+        max_occupied_row = max(occupied_rows) if occupied_rows is not None else None
         if max_occupied_row is None:
             return ADDITIONAL_ROWS
         return max_occupied_row + ADDITIONAL_ROWS
     
-    def columnCount(self, index=QModelIndex()):
-        max_occupied_col = self.data_table.get_max_col()
-        if max_occupied_col is None:
-            return ADDITIONAL_COLS
-        return max_occupied_col + ADDITIONAL_COLS
+#    def columnCount(self, index=QModelIndex()):
+#        max_occupied_col = self.data_table.get_max_col()
+#        if max_occupied_col is None:
+#            return ADDITIONAL_COLS
+#        return max_occupied_col + ADDITIONAL_COLS
     
-    def data(self, index, role=Qt.DisplayRole):        
-        if not index.isValid() or not (0 <= index.row() < self.rowCount()):
-            return QVariant()
+#    def data(self, index, role=Qt.DisplayRole):
+#        if not index.isValid() or not (0 <= index.row() < self.data_table.get_max_row()):
+#            return QVariant()
+#        
+#        if role == Qt.DisplayRole:
+#            datum = self.data_table.get_item(index.row(), index.column())
+#            if datum is None:
+#                return QVariant()
+#            return QVariant(QString(datum))
+#        return QVariant()
+    
+#    def headerData(self, section, orientation, role=Qt.DisplayRole):
+#        if role != Qt.DisplayRole:
+#            return QVariant()
+#        if orientation == Qt.Horizontal:
+#            return QVariant(self._get_default_header(int(section)))
+#        elif orientation == Qt.Vertical:
+#            return QVariant(int(section + 1))
         
-        if role == Qt.DisplayRole:
-            datum = self.data_table.get_item(index.row() + 1, index.column() + 1)
-            if datum is None:
-                return QVariant()
-            return QVariant(QString(datum))
-        return QVariant()
-    
-    def headerData(self, section, orientation, role=Qt.DisplayRole):
-        if role != Qt.DisplayRole:
-            return QVariant()
-        if orientation == Qt.Horizontal:
-            
-            return QVariant(self._get_default_header(int(section)))
-        elif orientation == Qt.Vertical:
-            return QVariant(int(section + 1))
+#    def setData(self, index, value, role=Qt.EditRole):
+#        if index.isValid() and 0 <= index.row() < self.data_table.get_max_row():
+#            if self.data_table.get_item(index.row(), index.column()).toString() != value.toString():
+#                self.data_table.set_item(index, col, value)
+#            return True
+#        return False
 
-    #########################################################################
-    # inspired by: http://thinkpython.blogspot.com/2006/10/working-with-excel-column-labels.html" '''
-    def _letters(self):
-        ''' yields each character in sequence from the english alphabet '''
+    def flags(self, index):
+        if not index.isValid():
+            return Qt.ItemIsEnabled
+        return Qt.ItemFlags(QAbstractTableModel.flags(self, index)|
+                            Qt.ItemIsEditable)
         
-        alphabet = string.ascii_uppercase
-        for x in alphabet:
-            yield x
-    
-    def _excel_column_letters(self):
-        for x in self._letters():
-            yield x
-        for exCh in self._excel_column_letters():
-            for x in self._letters():
-                yield exCh + x
-    #########################################################################
+        
+        
+    #def insertRows()
+    #def removeRows()
+
+
     
     def _get_default_header(self, col):
         if col > len(self.default_headers):
@@ -83,82 +107,29 @@ class EETableModel(QAbstractTableModel):
         return self.default_headers[col]
     
     def _generate_header_string(self, length):
-        self.default_headers = ""
-        for i,label in zip(range(length), self._excel_column_letters()):
-            self.default_headers += label
-        self.default_headers = QString(self.default_headers)
+        self.default_headers = []
+        for i,label in zip(range(length), excel_column_headers()):
+            self.default_headers.append(QString(label))
         return self.default_headers
         
-    #def headerData(self):
 ##generate_blank_list = lambda length: [None for x in range(length)]
 
-class Table:
-    # Implementation of a Table indexed from 1, not zero
-    # Interface: Get and set data at row, column indices
-    #
-    # Invariant: Nones are implied, not stored
-    # Invariant: self.rows is a set of rows (row indices) with data,
-    #            self.cols is a set of cols (col indices) with data
-    def __init__(self):
-        self.data = {}
-        
-        # Set of rows that have data, Set of columns that have data
-        self.rows = Set()
-        self.cols = Set()
-        
-    def _verify_index(self, row, col):
-        ''' Raises KeyError if index is invalid '''
-        
-        index_error_msg = "Indices must be integers greater than or equal to 1"
-        if (type(row) != int) or (type(col) != int):
-            raise ValueError(index_error_msg)
-        if not (row,col) >= (1,1):
-            raise KeyError(index_error_msg)
-        
-    def get_item(self, row, col):
-        self._verify_index(row, col)
-        
-        try:
-            return self.data[(row,col)]
-        except KeyError:
-            return None
-        
-    def set_item(self, row, col, value):
-        self._verify_index(row, col)
-        
-        key = (row,col)
-        self.data[key] = value
-        
-        # housekeeping
-        self.rows.add(row)
-        self.cols.add(col)
-        
-        # Delete the reference to the None value and remove the row and/or col
-        # from the self.rows and self.cols sets if the corresponding row
-        # and/or col is now empty
-        if value is None:
-            del self.data[key]
-            if self._row_empty(row):
-                self.rows.discard(row)
-            if self._col_empty(col):
-                self.cols.discard(col)
 
-    def _row_empty(self, row):
-        row_values = [self.get_item(row, col) for col in self.cols]
-        row_empty = not any(row_values)
-        
-    def _col_empty(self, col):
-        col_values = [self.get_item(row, col) for row in self.rows]
-        col_empty = not any(col_values)
-            
-            
-    def get_max_row(self):
-        if len(self.rows) == 0:
-            return None
-        return max(self.rows)
+########### Generate Excel-style default headers ########################
+# inspired by: http://thinkpython.blogspot.com/2006/10/working-with-excel-column-labels.html" '''
+#def _letters():
+#    ''' yields each character in sequence from the english alphabet '''
+#    
+#    alphabet = string.ascii_uppercase
+#    for x in alphabet:
+#        yield x
+
+def excel_column_headers():
+    alphabet = string.ascii_uppercase
     
-    def get_max_col(self):
-        if len(self.cols) == 0:
-            return None
-        return max(self.cols)        
-        
+    for x in alphabet:
+        yield x
+    for exCh in excel_column_headers():
+        for x in alphabet:
+            yield exCh + x
+#########################################################################
