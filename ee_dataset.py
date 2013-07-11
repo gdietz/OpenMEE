@@ -24,8 +24,9 @@ class EEDataSet():
         
         
     ############## Methods for manipulating studies ###################
-    def add_study(self, label=None, **variables):
-        self.study_collection.add_study(label=label, **variables)
+    def make_study(self, label=None, **variables):
+        ''' Returns a reference to the newly created study '''
+        return self.study_collection.make_study(label=label, **variables)
         
     def remove_study(self, study):
         self.study_collection.remove_study(study)
@@ -44,6 +45,9 @@ class EEDataSet():
     
     def get_all_studies(self):
         return self.study_collection.get_all_studies()
+    
+    def get_all_study_labels(self):
+        return self.study_collection.get_all_study_labels()
     ########### End methods for manipulating studies ##################
     
     ############### Methods for manipulating variables #################
@@ -79,7 +83,7 @@ class EEDataSet():
         old_type = self.get_variable_type(var_name)
         for study in self.get_studies_with_data_for_var(var_name):
             value = study.get_var(var_name)
-            converted_value = self._convert_var_value_to_type(old_type, new_type, value, precision)
+            converted_value = self.convert_var_value_to_type(old_type, new_type, value, precision)
             study.set_var(var_name, converted_value)
         
         # change variable type in self.variable_info
@@ -102,7 +106,7 @@ class EEDataSet():
                 return False
         return True
             
-    def _convert_var_value_to_type(self, old_type, new_type, value,
+    def convert_var_value_to_type(self, old_type, new_type, value,
                                    precision=DEFAULT_PRECISION):
         ''' Converts a variable of type old_type to a variable of type new_type
         Doesn't do any verification (assume this has already been done) '''
@@ -111,7 +115,7 @@ class EEDataSet():
             if old_type == CONTINUOUS:
                 fmt_str = "{:.%df}" % precision
                 return fmt_str.format(value)
-            else:  # is an INTEGER
+            else:
                 return str(value)
         elif new_type == CONTINUOUS:
             return float(value)
@@ -141,10 +145,10 @@ class EEDataSet():
         if var_name not in self.variable_info.keys():
             raise ValueError("Attempted to delete non-existing variable")
         
-        old_type = self.get_variable_type(var_name)
-        
         for study in self.get_studies_with_data_for_var(var_name):
             study.remove_variable(var_name)
+        del self.variable_info[var_name]
+        
 
 
     def change_variable_name(self, old_name, new_name):
@@ -165,6 +169,72 @@ class EEDataSet():
     
     def get_all_variable_names(self):
         return self.variable_info.keys()
+    
+    
+    def __str__(self):
+        return self._get_studies_summary()
+        
+        
+    def _get_variables_summary(self):
+        ''' Retuns a string summarizing info about the variables '''
+        
+        variables_summary_str = "Summary of Variables:\n"
+        variables_summary = ["Variable","Type"]
+        
+        sorted_variable_names = sorted(self.get_all_variable_names())
+        types = [VARIABLE_TYPE_STRING_REPS[self.variable_info[var_name]['type']] for var_name in sorted_variable_names]
+        names_types = zip(sorted_variable_names,types)
+        variables_summary.extend([(var_name, var_type) for var_name,var_type in names_types])
+        
+        # convert to string
+        variables_summary = self._table_as_str(variables_summary)
+        variables_summary_str += variables_summary
+        
+        return variables_summary_str
+        
+    def _get_studies_summary(self):
+        ''' Returns a string summarizing info about the studies '''
+        
+        sorted_study_ids = sorted(self.study_collection.get_study_ids())
+        sorted_studies = [self.get_study_by_id(study_id) for study_id in sorted_study_ids]
+        
+        sorted_variable_names = sorted(self.get_all_variable_names())
+        sorted_variable_types = [VARIABLE_TYPE_STRING_REPS[self.variable_info[var_name]['type']] for var_name in sorted_variable_names]
+        
+        studies_summary_str = "Summary of Studies:\n"
+        
+        summary_table_header0 = ["",""]
+        summary_table_header0.extend(sorted_variable_types)
+        summary_table_header1 = ['study id','study label']
+        summary_table_header1.extend(sorted_variable_names)
+        summary_table_header1 = tuple(summary_table_header1)
+        
+        study_summaries = [summary_table_header0, summary_table_header1]
+        for study in sorted_studies:
+            info = [study.get_id(), study.get_label()]
+            info.extend([study.get_var(var_name) for var_name in sorted_variable_names])
+            info = [str(x) for x in info]
+            study_summaries.append(info)
+        
+        studies_summary_str += self._table_as_str(study_summaries)
+        return studies_summary_str
+    
+    
+    def _table_as_str(self, table):
+        ''' Returns a string formatted as a pretty table. 'table' is a list of
+        tuples, one tuple per row '''
+        
+        if len(table) == 0:
+            raise ValueError("Table cannot be empty")
+        
+        output_str = ""
+        num_cols = len(table[0])
+        row_fmt = "{:>15}"*num_cols
+        row_fmt += "\n"
+        for row in table:
+            output_str += row_fmt.format(*row)
+        return output_str
+    
         
     ####### End methods for manipulating variables ##########
     
@@ -177,10 +247,11 @@ class ConversionError(Exception):
     def __init__(self, arg):
         self.args = arg
     
-class Study():
+class Study:
     # Study holds a collection of variables
     # Invariant: 'None' as variable values are not stored, just implied
-    def __init__(self, study_id=None, label="UNNAMED STUDY"):
+    #            "" i.e. empty strings are not stored
+    def __init__(self, study_id=None, label=None):
         if study_id is None:
             return ValueError("Study MUST have an id")
         self.study_id = study_id
@@ -209,12 +280,21 @@ class Study():
     
     def set_var(self, var_name, var_value):
         self.variables[var_name] = var_value
-        if var_value is None: # implied Nones, not explicit Nones
+        if var_value in [None,""]: # implied Nones, not explicit Nones
             del self.variables[var_name]
     
     def remove_variable(self, var_name):
         # Trying to set value to None removes the reference to the variable
         self.set_var(var_name, None)
+        
+    def __str__(self):
+        var_names = self.variables.keys()
+        var_names = sorted(var_names)
+        header = ["",""] + var_names
+        info = [self.get_id(), self.get_label()]
+        info.extend([self.get_var(var_name) for var_name in var_names])
+        info = [str(x) for x in info]
+        return "\n".join([header,info])
     
 
 class StudyCollection:
@@ -290,8 +370,15 @@ class StudyCollection:
     
     def get_all_studies(self):
         return self.studies
+    
+    def get_all_study_labels(self):
+        # Exclude None labels
+        labels = [study.get_label() for study in self.studies if study.get_label() is not None]
+        return labels
 
-    def add_study(self, label=None, **variables):
+    def make_study(self, label=None, **variables):
+        ''' Makes a new study  and returns reference to newly created study '''
+        
         # creates new study_id and add it to the set of used study_ids
         new_study_id = self._acquire_unique_id()
         
@@ -303,6 +390,12 @@ class StudyCollection:
         # assign variables
         for var_name, var_val in variables.items():
             study.set_var(var_name, var_val)
+            
+        # Add the study to the collection
+        self.studies.add(study)
+        
+        return study
+        
     
     def remove_study(self, study):
         # Just need to remove the study id from the pool of used ids
