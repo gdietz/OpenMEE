@@ -67,7 +67,7 @@ class EETableModel(QAbstractTableModel):
     def _make_arbitrary_mapping_of_cols_to_variables(self):
         variable_names = self.dataset.get_all_variable_names()
         labeled_studies_present = len(self.dataset.get_all_study_labels()) != 0
-        
+
         cols2vars = {}
         # just set the first column as label if there are labeled studies
         if labeled_studies_present:
@@ -78,6 +78,9 @@ class EETableModel(QAbstractTableModel):
             label_column = None
             cols2vars.update(enumerate(variable_names, start=0))
         return (cols2vars, label_column)
+    
+    def get_label_column(self):
+        return self.label_column
         
         
     def rowCount(self, index=QModelIndex()):
@@ -110,9 +113,14 @@ class EETableModel(QAbstractTableModel):
         
         # change name in dataset and in the mapping from column names to
         # variable names
+        self.beginResetModel()
         column = self._get_column_assigned_to_variable(old_name)
         self.dataset.change_variable_name(old_name, new_name)
         self.cols_2_vars[column] = new_name
+        self.endResetModel()
+        
+        print("After changing variable %s to %s:" % (old_name,new_name))
+        print(self)
 
 
     def _get_column_assigned_to_variable(self, var_name):
@@ -151,12 +159,25 @@ class EETableModel(QAbstractTableModel):
         
         self.rows_2_studies[self.label_column] = new_name
         
-    def _get_column_name(self, column_index):
+    def get_column_name(self, column_index):
         ''' Returns the column name if we store a reference to it,
             raises an error otherwise'''
         
-        return self.col_2_vars[column_index]
+        return self.cols_2_vars[column_index]
+    
+    def get_variable_type(self, var_name):
+        return self.dataset.get_variable_type(var_name)
+    
+    def can_convert_variable_to_type(self, var_name, new_type):
+        return self.dataset.can_convert_variable_to_type(var_name, new_type)
+    
+    def change_variable_type(self, var_name, new_type, precision):
+        self.beginResetModel()
+        self.dataset.change_variable_type(var_name, new_type, precision)
+        self.endResetModel()
         
+    def get_all_variable_names(self):
+        return self.dataset.get_all_variable_names()
         
     def mark_column_as_label(self, column_index):
         ''' Sets the contents of this column as the labels for the studies in the column '''
@@ -166,7 +187,7 @@ class EETableModel(QAbstractTableModel):
             raise Exception("Only one column can be set as the label column at a time")
         
         
-        variable_name = self._get_column_name(column_index)
+        variable_name = self.get_column_name(column_index)
         
         # Set values from column to be the study labels
         # Delete references to that column in the studies
@@ -188,7 +209,7 @@ class EETableModel(QAbstractTableModel):
             raise Exception("This is not the label column!")
         
         # Add new variable with 'categorical' type (the most general)
-        variable_name = self._get_column_name(column_index)
+        variable_name = self.get_column_name(column_index)
         self.dataset.add_variable(variable_name, CATEGORICAL)
         
         # Set values from label column to be the values of the variable
@@ -209,7 +230,11 @@ class EETableModel(QAbstractTableModel):
         variable values '''
         
         self.precision = new_precision
-
+        
+        
+    def get_precision(self):
+        return self.precision
+        
         
     def _var_value_for_display(self, value, var_type):
         ''' Converts the variable value to a suitable string representation
@@ -247,7 +272,7 @@ class EETableModel(QAbstractTableModel):
                     return QVariant()
                 return QVariant(QString(label))
             else: # is a variable column
-                if not self._col_assigned_to_variable(col):
+                if not self.column_assigned_to_variable(col):
                     return QVariant()
                 
                 # the column is assigned to a variable
@@ -262,7 +287,7 @@ class EETableModel(QAbstractTableModel):
 
     def _variable_exists(self, var_name):
         return var_name in self.cols_2_vars.values()
-    def _col_assigned_to_variable(self, column_index):
+    def column_assigned_to_variable(self, column_index):
         return column_index in self.cols_2_vars.keys()
 
     def headerData(self, section, orientation, role=Qt.DisplayRole):
@@ -273,7 +298,7 @@ class EETableModel(QAbstractTableModel):
             #default case
             unassigned_column = section not in self.cols_2_vars
             if unassigned_column:
-                return QVariant(self._get_default_header(int(section)))
+                return QVariant(self.get_default_header(int(section)))
             
             # there is a study label or variable assignment to the column
             is_label_col = section == self.label_column
@@ -324,11 +349,11 @@ class EETableModel(QAbstractTableModel):
             else:
                 return False
         else: # we are in a variable column (initialized or not)
-            make_new_variable = not self._col_assigned_to_variable(col)
+            make_new_variable = not self.column_assigned_to_variable(col)
             if make_new_variable: # make a new variable and give it the default column header name
                 if value_blank:
                     return False
-                new_var_name = str(self._get_default_header(col))
+                new_var_name = str(self.get_default_header(col))
                 self._make_new_variable(new_var_name, col)
             
             var_name = self.cols_2_vars[col]
@@ -377,10 +402,13 @@ class EETableModel(QAbstractTableModel):
 
 
     
-    def _get_default_header(self, col):
+    def get_default_header(self, col):
         if col > len(self.default_headers):
             self._generate_header_string(col*2)
         return self.default_headers[col]
+    
+    def get_default_header_string(self):
+        return self.default_headers
     
     def _generate_header_string(self, length):
         self.default_headers = []

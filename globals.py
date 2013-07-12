@@ -1,7 +1,7 @@
 
 # The different types of data that can be associated with studies
 CATEGORICAL, CONTINUOUS, INTEGER = range(3)
-VARIABLE_TYPES = [CATEGORICAL, CONTINUOUS, INTEGER]
+VARIABLE_TYPES = (CATEGORICAL, CONTINUOUS, INTEGER)
 
 # How variable types are represented as short string (for header labels)
 VARIABLE_TYPE_SHORT_STRING_REPS = {CATEGORICAL:"cat",

@@ -101,7 +101,7 @@ class EEDataSet():
                 return False
         elif new_type == INTEGER:
             try:
-                int(value)
+                int(float(value))
             except ValueError:
                 return False
         return True
@@ -138,6 +138,7 @@ class EEDataSet():
             # verification
             if not self._can_convert_var_value_to_type(new_type, value):
                 return False
+        return True
 
 
     def remove_variable(self, var_name):
@@ -161,15 +162,20 @@ class EEDataSet():
         2. changes the variable name in self.varable_info
         '''
         
+        var_type = self.get_variable_type(old_name)
+        
         #verification
         if new_name in self.variable_info.keys():
             raise ValueError("Cannot change to name to existing variable name")
         
-        for study in self.get_studies_with_data_for_var(old_name):
+        for study in self.get_studies_with_data_for_var(old_name)[:]:
             value = study.get_var(old_name)
             study.set_var(new_name, value) # create entry for new name
             study.remove_variable(old_name)  # remove entry for old name
-            
+        
+        # adjust info in self.variable_info
+        self.add_variable(new_name, var_type)
+        self.remove_variable(old_name)
     
     def get_all_variable_names(self):
         return self.variable_info.keys()
