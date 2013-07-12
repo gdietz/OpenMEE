@@ -359,9 +359,14 @@ class EETableModel(QAbstractTableModel):
             var_name = self.cols_2_vars[col]
             var_type = self.dataset.get_variable_type(var_name)
             
-            
+            value_as_string = str(value.toString())
             # Set value in study for variable
-            formatted_value = self._convert_input_value_to_correct_type_for_assignment(str(value.toString()), var_type)
+            can_convert_value_to_desired_type = self.dataset.can_convert_var_value_to_type(var_type, value_as_string)
+            # TODO: finish this when a value that doesn't match the type of the variable is entered
+            #if not can_convert_value_to_desired_type:
+            #    emit(SIGNAL("WrongDataType"), 
+            
+            formatted_value = self._convert_input_value_to_correct_type_for_assignment(value_as_string, var_type)
             study.set_var(var_name, formatted_value)
             
             # TODO:

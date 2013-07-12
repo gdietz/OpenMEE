@@ -89,7 +89,7 @@ class EEDataSet():
         # change variable type in self.variable_info
         self.variable_info[var_name]['type'] = new_type
     
-    def _can_convert_var_value_to_type(self, new_type, value):
+    def can_convert_var_value_to_type(self, new_type, value):
         # TODO: remember to warn user if converting to integer from continuous that they will lose precision
         
         if new_type == CATEGORICAL:
@@ -124,7 +124,7 @@ class EEDataSet():
         elif new_type == CONTINUOUS:
             return float(value)
         elif new_type == INTEGER:
-            return int(value)
+            return int(float(value))
         
     def can_convert_variable_to_type(self, var_name, new_type):
         '''
@@ -136,7 +136,7 @@ class EEDataSet():
         for study in self.get_studies_with_data_for_var(var_name):
             value = study.get_var(var_name)
             # verification
-            if not self._can_convert_var_value_to_type(new_type, value):
+            if not self.can_convert_var_value_to_type(new_type, value):
                 return False
         return True
 
