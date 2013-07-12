@@ -111,6 +111,10 @@ class EEDataSet():
         ''' Converts a variable of type old_type to a variable of type new_type
         Doesn't do any verification (assume this has already been done) '''
         
+        
+        if value is None:
+            return None
+        
         if new_type == CATEGORICAL:
             if old_type == CONTINUOUS:
                 fmt_str = "{:.%df}" % precision
@@ -213,7 +217,8 @@ class EEDataSet():
         for study in sorted_studies:
             info = [study.get_id(), study.get_label()]
             info.extend([study.get_var(var_name) for var_name in sorted_variable_names])
-            info = [str(x) for x in info]
+            f = lambda x: str(x) if x is not None else ""
+            info = [f(x) for x in info]
             study_summaries.append(info)
         
         studies_summary_str += self._table_as_str(study_summaries)

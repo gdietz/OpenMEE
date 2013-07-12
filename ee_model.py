@@ -45,6 +45,19 @@ class EETableModel(QAbstractTableModel):
         #    is not really a variable
         self.rows_2_studies = self._make_arbitrary_mapping_of_rows_to_studies()
         (self.cols_2_vars, self.label_column) = self._make_arbitrary_mapping_of_cols_to_variables()
+        
+    def __str__(self):
+        rows_2_study_ids = dict([(row, study.get_id()) for (row, study) in self.rows_2_studies.items()])
+        
+        
+        summary_str = "Dataset Info: %s\n" % str(self.dataset)
+        model_info = "  ".join(["Model Info:\n",
+                                "Precision: %d\n" % self.precision,
+                                "Dirty: %s\n" % str(self.dirty),
+                                "Label Column: %s\n" % self.label_column,
+                                "Rows-to-study ids: %s\n" % str(rows_2_study_ids),
+                                "Columns to variables: %s\n" % str(self.cols_2_vars)])
+        return summary_str + model_info
     
     
     def _make_arbitrary_mapping_of_rows_to_studies(self):
@@ -212,7 +225,7 @@ class EETableModel(QAbstractTableModel):
         if not index.isValid():
             return QVariant()
         max_occupied_row = self._get_max_occupied_row()
-        if max_occupied_row and not (0 <= index.row() < max_occupied_row):
+        if max_occupied_row and not (0 <= index.row() <= max_occupied_row):
             return QVariant()
         
         row, col = index.row(), index.column()
@@ -221,16 +234,12 @@ class EETableModel(QAbstractTableModel):
         
         
         
-        if role == Qt.DisplayRole:
+        if role == Qt.DisplayRole:         
             if not is_study_row: # no study for this row, no info to display
                 return QVariant()
             
             # Get the study this to which this row refers
-
             study = self.rows_2_studies[row]
-            
-            if row==1 and col ==0: # FOR DEBUGGING
-                print(study)
             
             if is_label_col:
                 label = study.get_label()
@@ -245,6 +254,8 @@ class EETableModel(QAbstractTableModel):
                 var_name = self.cols_2_vars[col]
                 var_type = self.dataset.get_variable_type(var_name)
                 var_value = study.get_var(var_name)
+                if var_value is None: # don't display Nones
+                    return QVariant()
                 return QVariant(QString(self._var_value_for_display(var_value, var_type)))
             
         return QVariant()
@@ -313,8 +324,10 @@ class EETableModel(QAbstractTableModel):
             else:
                 return False
         else: # we are in a variable column (initialized or not)
-            new_variable = not self._col_assigned_to_variable(col)
-            if new_variable: # make a new variable and give it the default column header name
+            make_new_variable = not self._col_assigned_to_variable(col)
+            if make_new_variable: # make a new variable and give it the default column header name
+                if value_blank:
+                    return False
                 new_var_name = str(self._get_default_header(col))
                 self._make_new_variable(new_var_name, col)
             
@@ -326,7 +339,8 @@ class EETableModel(QAbstractTableModel):
             formatted_value = self._convert_input_value_to_correct_type_for_assignment(str(value.toString()), var_type)
             study.set_var(var_name, formatted_value)
             
-            # TODO: check if variables and label for this study are all blank
+            # TODO:
+            # 1. check if variables and label for this study are all blank
             # if so, remove the study from the dataset
                 
         
@@ -336,7 +350,7 @@ class EETableModel(QAbstractTableModel):
                   index, index)
         
         # Let's see what the dataset looks like now FOR DEBUGGING purposes
-        print(self.dataset) ######
+        print(self) ######
         
         return True
         
