@@ -24,9 +24,12 @@ class EEDataSet():
         
         
     ############## Methods for manipulating studies ###################
-    def make_study(self, label=None, **variables):
+    def make_study(self, label=None, study_id=None, **variables):
         ''' Returns a reference to the newly created study '''
-        return self.study_collection.make_study(label=label, **variables)
+        return self.study_collection.make_study(label=label, study_id=study_id, **variables)
+    
+    def add_existing_study(self, study):
+        return self.study_collection.add_existing_study(study)
         
     def remove_study(self, study):
         self.study_collection.remove_study(study)
@@ -197,7 +200,7 @@ class EEDataSet():
         variables_summary.extend([(var_name, var_type) for var_name,var_type in names_types])
         
         # convert to string
-        variables_summary = self._table_as_str(variables_summary)
+        variables_summary = table_as_str(variables_summary)
         variables_summary_str += variables_summary
         
         return variables_summary_str
@@ -227,28 +230,29 @@ class EEDataSet():
             info = [f(x) for x in info]
             study_summaries.append(info)
         
-        studies_summary_str += self._table_as_str(study_summaries)
+        studies_summary_str += table_as_str(study_summaries)
         return studies_summary_str
     
     
-    def _table_as_str(self, table):
-        ''' Returns a string formatted as a pretty table. 'table' is a list of
-        tuples, one tuple per row '''
-        
-        if len(table) == 0:
-            raise ValueError("Table cannot be empty")
-        
-        output_str = ""
-        num_cols = len(table[0])
-        row_fmt = "{:>15}"*num_cols
-        row_fmt += "\n"
-        for row in table:
-            output_str += row_fmt.format(*row)
-        return output_str
+
     
         
     ####### End methods for manipulating variables ##########
+
+def table_as_str(table):
+    ''' Returns a string formatted as a pretty table. 'table' is a list of
+    tuples, one tuple per row '''
     
+    if len(table) == 0:
+        raise ValueError("Table cannot be empty")
+    
+    output_str = ""
+    num_cols = len(table[0])
+    row_fmt = "{:>15}"*num_cols
+    row_fmt += "\n"
+    for row in table:
+        output_str += row_fmt.format(*row)
+    return output_str
 
 class DuplicateItemError(Exception):
     def __init__(self, arg):
@@ -291,7 +295,7 @@ class Study:
     
     def set_var(self, var_name, var_value):
         self.variables[var_name] = var_value
-        if var_value in [None,""]: # implied Nones, not explicit Nones
+        if var_value in [None,""]: # we do implied Nones, not explicit Nones
             del self.variables[var_name]
     
     def remove_variable(self, var_name):
@@ -299,13 +303,23 @@ class Study:
         self.set_var(var_name, None)
         
     def __str__(self):
+        indentation_level = 2
         var_names = self.variables.keys()
         var_names = sorted(var_names)
-        header = ["",""] + var_names
-        info = [self.get_id(), self.get_label()]
-        info.extend([self.get_var(var_name) for var_name in var_names])
-        info = [str(x) for x in info]
-        return "\n".join([header,info])
+        output = ["Study info:",]
+        study_summary = ["id: %s" % str(self.get_id()),
+         "label: %s" % str(self.get_label()),
+         "Variables"]
+        study_summary = [" "*indentation_level + x for x in study_summary]
+        var_info = [" "*2*indentation_level + "%s: %s" % (var_name, self.get_var(var_name)) for var_name in var_names]
+        
+        output.extend(study_summary)
+        output.extend(var_info)
+        
+        return "\n".join(output)
+         
+        
+    
     
 
 class StudyCollection:
@@ -387,11 +401,12 @@ class StudyCollection:
         labels = [study.get_label() for study in self.studies if study.get_label() is not None]
         return labels
 
-    def make_study(self, label=None, **variables):
+    def make_study(self, label=None, new_study_id=None, **variables):
         ''' Makes a new study  and returns reference to newly created study '''
         
-        # creates new study_id and add it to the set of used study_ids
-        new_study_id = self._acquire_unique_id()
+        if new_study_id is None:
+            # creates new study_id and add it to the set of used study_ids
+            new_study_id = self._acquire_unique_id()
         
         if label:
             study = Study(study_id=new_study_id, label=label)
@@ -406,10 +421,33 @@ class StudyCollection:
         self.studies.add(study)
         
         return study
+    
+    def add_existing_study(self, study):
+        ''' Adds a study object that was created elsewhere to the collection
+            (i.e. from an Undo Command) '''
+        
+        study_id = study.get_id()
+        # verification
+        if study is None:
+            raise Exception("Study is None!")
+        if study_id is None:
+            raise Exception("Study must have an id!")
+        if study in self.studies:
+            raise Exception("Study already in collection of studies!")
+        if study_id in self.study_ids:
+            raise Exception("Study id already in collection of study ids!")
+        
+        # Add the study to the set of studies and to the set of study ids
+        self.studies.add(study)
+        self.study_ids.add(study_id)
+        return study
+        
+        
         
     
     def remove_study(self, study):
-        # Just need to remove the study id from the pool of used ids
+        # Just need to remove the study itself and then the study id from the
+        # pool of used ids
         study_id = study.get_id()
         self.studies.remove(study)
         self.study_ids.remove(study_id)

@@ -19,26 +19,51 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
         super(MainForm, self).__init__(parent)
         self.setupUi(self)
         
-        self.model = ee_model.EETableModel()
+        self.undo_stack = QUndoStack(self)
+        
+
+        
+        self.model = ee_model.EETableModel(undo_stack=self.undo_stack)
         self.tableView.setModel(self.model)
+        
+        #### Display undo stack
+        self.undo_view_form = useful_dialogs.UndoViewForm(undo_stack=self.undo_stack, model=self.model, parent=self)
+        self.undo_view_form.show()
+        self.undo_view_form.raise_()
         
         self.statusBar().showMessage(QString("This is a test message"), 1000)
 
-        self._setup_connections()
+        self.setup_menus()
+        self.setup_connections()
         
         horizontal_header = self.tableView.horizontalHeader()
         horizontal_header.setContextMenuPolicy(Qt.CustomContextMenu)
         horizontal_header.customContextMenuRequested.connect(self.make_header_context_menu)
         
+        
+        
 
-    def _setup_connections(self):
-        #self.connect(header, SIGNAL("sectionClicked(int)"),
-        #                 self.sortTable)
-        #self.connect(addShipButton, SIGNAL("clicked()"), self.addShip)
-        #self.connect(removeShipButton, SIGNAL("clicked()"),
-        #             self.removeShip)
-        #self.connect(quitButton, SIGNAL("clicked()"), self.accept)
+    def setup_menus(self):
+        QObject.connect(self.actionUndo, SIGNAL("triggered()"), self.undo)
+        self.actionUndo.setShortcut(QKeySequence(QKeySequence.Undo))  
+        
+        QObject.connect(self.actionRedo, SIGNAL("triggered()"), self.redo)
+        self.actionRedo.setShortcut(QKeySequence.Redo)
+        
+    
+    def setup_connections(self):
         pass
+        
+        
+  
+    ##### Undo / redo
+    def undo(self):
+        #print("Undo action triggered")
+        self.undo_stack.undo()
+        
+    def redo(self):
+        #print("Redo action triggered")
+        self.undo_stack.redo()
     
     def make_header_context_menu(self, pos):
         ''' Makes the context menu for column headers when user right-clicks '''

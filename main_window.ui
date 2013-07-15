@@ -137,11 +137,6 @@
     <string>CSV</string>
    </property>
   </action>
-  <action name="actionBanan">
-   <property name="text">
-    <string>banan</string>
-   </property>
-  </action>
   <action name="actionCopy">
    <property name="text">
     <string>Copy</string>

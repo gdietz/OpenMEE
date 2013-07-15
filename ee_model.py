@@ -28,10 +28,13 @@ FORBIDDEN_VARIABLE_NAMES = [LABEL_PREFIX_MARKER,]
 # * Add options to mark/unmark column as label ----> categorical
 
 class EETableModel(QAbstractTableModel):
-    def __init__(self):
+    def __init__(self, undo_stack):
         super(EETableModel, self).__init__()
         
+        # Give model access to undo_stack
+        self.undo_stack = undo_stack
         self.dataset = EEDataSet()
+        
         
         ###self.filename = filename
         self.precision = DEFAULT_PRECISION
@@ -59,6 +62,8 @@ class EETableModel(QAbstractTableModel):
                                 "Columns to variables: %s\n" % str(self.cols_2_vars)])
         return summary_str + model_info
     
+    def get_study_by_id(self, study_id):
+        return self.dataset.get_study_by_id(study_id)
     
     def _make_arbitrary_mapping_of_rows_to_studies(self):
         studies = self.dataset.get_all_studies()
@@ -312,21 +317,14 @@ class EETableModel(QAbstractTableModel):
             
         elif orientation == Qt.Vertical:
             return QVariant(int(section + 1))
+        
 
-    def _make_new_study(self, row):
-        ''' make a new study and assigns it to the row '''
-        
-        study = self.dataset.make_study()
-        self.rows_2_studies[row] = study
-        
-    def _make_new_variable(self, var_name, col, var_type=CATEGORICAL):
-        ''' Makes a new variable and assigns it to the column '''
-        
-        self.dataset.add_variable(var_name, var_type)
-        self.cols_2_vars[col] = var_name
 
     def setData(self, index, value, role=Qt.EditRole):
         if not index.isValid() and not (0 <= index.row() < self.columnCount()):
+            return False
+        if role != Qt.EditRole:
+            print("No implementation written when role != Qt.EditRole")
             return False
         
         row, col = index.row(), index.column()
@@ -334,27 +332,46 @@ class EETableModel(QAbstractTableModel):
         is_label_col = col == self.label_column
         
         value_blank = value is None or str(value.toString()) == ""
-                    
+        
+        def cancel_macro_creation_and_revert_state():
+            ''' Ends creation of macro (in progress) and reverts the state of
+            the model to before the macro began to be created '''
+            
+            #print("Cancelling macro creation and reverting")
+            self.undo_stack.endMacro()
+            self.undo_stack.undo()
+        
+        # For doing/undoing all the sub_actions in one go
+        # The emit data changed is so that it will be called LAST when the
+        # macro is undone
+        self.undo_stack.beginMacro(QString("SetDataMacro: (%d,%d), value: '%s'" % (row,col, value.toString())))
+        self.undo_stack.push(EmitDataChangedCommand(model=self, index=index))
+        
         if not row_has_study: # no study on this row yet, we will make one
             if value_blank:
+                cancel_macro_creation_and_revert_state()
                 return False
-            self._make_new_study(row)
+            self.undo_stack.push(MakeStudyCommand(model=self, row=row))
+            
         study = self.rows_2_studies[row]
         
         if is_label_col:
             existing_label = study.get_label()
             proposed_label = str(value.toString())
             if proposed_label != existing_label:
-                study.set_label(proposed_label)
+                self.undo_stack.push(SetStudyLabelCommand(study=study, new_label=proposed_label))
             else:
+                cancel_macro_creation_and_revert_state()
                 return False
         else: # we are in a variable column (initialized or not)
             make_new_variable = not self.column_assigned_to_variable(col)
             if make_new_variable: # make a new variable and give it the default column header name
                 if value_blank:
+                    cancel_macro_creation_and_revert_state()
                     return False
                 new_var_name = str(self.get_default_header(col))
-                self._make_new_variable(new_var_name, col)
+                self.undo_stack.push(MakeNewVariableCommand(model=self, var_name=new_var_name, col=col))
+
             
             var_name = self.cols_2_vars[col]
             var_type = self.dataset.get_variable_type(var_name)
@@ -367,22 +384,25 @@ class EETableModel(QAbstractTableModel):
             #    emit(SIGNAL("WrongDataType"), 
             
             formatted_value = self._convert_input_value_to_correct_type_for_assignment(value_as_string, var_type)
-            study.set_var(var_name, formatted_value)
+            self.undo_stack.push(SetVariableValueCommand(study=study, variable_name=var_name, value=formatted_value))
             
             # TODO:
             # 1. check if variables and label for this study are all blank
             # if so, remove the study from the dataset
-                
         
+        # End of the macro for undo/redo
+        self.undo_stack.push(EmitDataChangedCommand(model=self, index=index))
+        self.undo_stack.endMacro()
         
         self.dirty = True
         self.emit(SIGNAL("dataChanged(QModelIndex,QModelIndex)"),
                   index, index)
         
-        # Let's see what the dataset looks like now FOR DEBUGGING purposes
-        print(self) ######
-        
         return True
+    
+    def _emitdatachanged(self, model, index):
+        model.emit(SIGNAL("dataChanged(QModelIndex,QModelIndex)"),
+                  index, index)
         
     def _convert_input_value_to_correct_type_for_assignment(self, value, var_type):
         ''' Converts input value (assumged to a be a string) to the correct type
@@ -420,25 +440,130 @@ class EETableModel(QAbstractTableModel):
         for i,label in zip(range(length), excel_column_headers()):
             self.default_headers.append(QString(label))
         return self.default_headers
+    
+    
         
 ##generate_blank_list = lambda length: [None for x in range(length)]
-
-
-########### Generate Excel-style default headers ########################
+########### Generate Excel-style default headers #############################
 # inspired by: http://thinkpython.blogspot.com/2006/10/working-with-excel-column-labels.html" '''
-#def _letters():
-#    ''' yields each character in sequence from the english alphabet '''
-#    
-#    alphabet = string.ascii_uppercase
-#    for x in alphabet:
-#        yield x
-
 def excel_column_headers():
     alphabet = string.ascii_uppercase
-    
     for x in alphabet:
         yield x
     for exCh in excel_column_headers():
         for x in alphabet:
             yield exCh + x
-#########################################################################
+##############################################################################
+
+
+############################# Undo Command Classes ###########################
+class MakeStudyCommand(QUndoCommand):
+    ''' Makes a new study at the specified row in the model'''
+    
+    def __init__(self, model, row):
+        super(MakeStudyCommand, self).__init__()
+        
+        self.setText(QString("MakeStudy @ Row %d" % row))
+        
+        self.model = model
+        self.row = row
+        
+        self.study = None
+        
+        
+        
+    def redo(self):
+        model = self.model
+        if self.study is None: # this should only execute once
+            self.study = model.dataset.make_study()
+        else:            # we should always be here on subsequent runs of redo
+            model.dataset.add_existing_study(self.study)
+        model.rows_2_studies[self.row] = self.study
+        
+    
+    def undo(self):
+        ''' Remove study at the specified row in the model '''
+        
+        model = self.model
+        model.dataset.remove_study(self.study)
+        del model.rows_2_studies[self.row]
+        
+class SetStudyLabelCommand(QUndoCommand):
+    ''' Sets/unsets the label of the given study '''
+    
+    def __init__(self, study, new_label):
+        super(SetStudyLabelCommand, self).__init__()
+        self.study = study
+        self.new_label = new_label
+        self.old_label = study.get_label()
+        
+        self.setText(QString("set study label from '%s' to '%s" % (self.old_label, self.new_label)))
+        
+    def redo(self):
+        self.study.set_label(self.new_label)
+        
+    def undo(self):
+        self.study.set_label(self.old_label)
+        
+
+class MakeNewVariableCommand(QUndoCommand):
+    ''' Creates/Deletes a new variable and assigns it to the given column '''
+    
+    def __init__(self, model, var_name, col, var_type=CATEGORICAL):
+        super(MakeNewVariableCommand, self).__init__()
+        
+        self.model = model
+        self.var_name = var_name
+        self.col = col
+        self.var_type = var_type
+        
+        self.setText(QString("Created variable '%s'" % self.var_name))
+        
+        
+    def redo(self):
+        self.model.dataset.add_variable(self.var_name, self.var_type)
+        self.model.cols_2_vars[self.col] = self.var_name
+        
+    def undo(self):
+        self.model.dataset.remove_variable(self.var_name)
+        del self.model.cols_2_vars[self.col]
+        
+
+class SetVariableValueCommand(QUndoCommand):
+    ''' Sets/unsets the value of the variable for the given study'''
+    
+    def __init__(self, study, variable_name, value):
+        super(SetVariableValueCommand, self).__init__()
+        
+        self.study = study
+        self.variable_name = variable_name
+        self.new_value = value
+        self.old_value = self.study.get_var(variable_name)
+        
+        self.setText(QString("Set '%s' from '%s' to '%s' for a study" % (self.variable_name, str(self.old_value), str(self.new_value))))
+        
+    def redo(self):
+        self.study.set_var(self.variable_name, self.new_value)
+
+    def undo(self):
+        self.study.set_var(self.variable_name, self.old_value)
+
+class EmitDataChangedCommand(QUndoCommand):
+    ''' Not really a command, just the last thing called @ the end of the macro
+    in setData in order to notify the view that the model has changed '''
+    
+    def __init__(self, model, index):
+        super(EmitDataChangedCommand, self).__init__()
+        
+        self.model = model
+        self.index = index
+        
+        self.setText(QString("Data changed emission"))
+    
+    def undo(self):
+        self.model.emit(SIGNAL("dataChanged(QModelIndex,QModelIndex)"),
+          self.index, self.index)
+        
+    def redo(self):
+        self.model.emit(SIGNAL("dataChanged(QModelIndex,QModelIndex)"),
+          self.index, self.index)
