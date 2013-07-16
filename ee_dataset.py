@@ -302,6 +302,18 @@ class Study:
         # Trying to set value to None removes the reference to the variable
         self.set_var(var_name, None)
         
+        
+    def is_totally_blank(self):
+        ''' returns True if the study contains no information i.e. if the label
+        is blank, and it stores no data for any variables '''
+        
+        if self.get_label():
+            return False
+        if len(self.variables) > 0:
+            return False
+        return True
+        
+        
     def __str__(self):
         indentation_level = 2
         var_names = self.variables.keys()
@@ -317,6 +329,7 @@ class Study:
         output.extend(var_info)
         
         return "\n".join(output)
+    
          
         
     

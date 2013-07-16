@@ -191,7 +191,6 @@ class EETableModel(QAbstractTableModel):
         if self.label_column:
             raise Exception("Only one column can be set as the label column at a time")
         
-        
         variable_name = self.get_column_name(column_index)
         
         # Set values from column to be the study labels
@@ -262,9 +261,7 @@ class EETableModel(QAbstractTableModel):
         is_study_row = row in self.rows_2_studies
         is_label_col = col == self.label_column
         
-        
-        
-        if role == Qt.DisplayRole:         
+        if role == Qt.DisplayRole or role == Qt.EditRole:         
             if not is_study_row: # no study for this row, no info to display
                 return QVariant()
             
@@ -380,15 +377,19 @@ class EETableModel(QAbstractTableModel):
             # Set value in study for variable
             can_convert_value_to_desired_type = self.dataset.can_convert_var_value_to_type(var_type, value_as_string)
             # TODO: finish this when a value that doesn't match the type of the variable is entered
-            #if not can_convert_value_to_desired_type:
-            #    emit(SIGNAL("WrongDataType"), 
-            
+            if not can_convert_value_to_desired_type:
+                self.emit(SIGNAL("DataError"), QString("Impossible Data Conversion"), QString("Cannot convert '%s' to %s data type" % (value_as_string, VARIABLE_TYPE_STRING_REPS[var_type])))
+                cancel_macro_creation_and_revert_state()
+                return False
+                
             formatted_value = self._convert_input_value_to_correct_type_for_assignment(value_as_string, var_type)
             self.undo_stack.push(SetVariableValueCommand(study=study, variable_name=var_name, value=formatted_value))
             
-            # TODO:
-            # 1. check if variables and label for this study are all blank
-            # if so, remove the study from the dataset
+            # If variables and label for this study are all blank, remove the
+            # study from the dataset
+            if study.is_totally_blank():
+                self.undo_stack.push(RemoveStudyCommand(model=self, row=row))
+            
         
         # End of the macro for undo/redo
         self.undo_stack.push(EmitDataChangedCommand(model=self, index=index))
@@ -428,7 +429,7 @@ class EETableModel(QAbstractTableModel):
 
     
     def get_default_header(self, col):
-        if col > len(self.default_headers):
+        if col > len(self.default_headers) - 1:
             self._generate_header_string(col*2)
         return self.default_headers[col]
     
@@ -467,9 +468,7 @@ class MakeStudyCommand(QUndoCommand):
         
         self.model = model
         self.row = row
-        
         self.study = None
-        
         
         
     def redo(self):
@@ -479,7 +478,7 @@ class MakeStudyCommand(QUndoCommand):
         else:            # we should always be here on subsequent runs of redo
             model.dataset.add_existing_study(self.study)
         model.rows_2_studies[self.row] = self.study
-        
+    
     
     def undo(self):
         ''' Remove study at the specified row in the model '''
@@ -487,6 +486,27 @@ class MakeStudyCommand(QUndoCommand):
         model = self.model
         model.dataset.remove_study(self.study)
         del model.rows_2_studies[self.row]
+        
+
+class RemoveStudyCommand(QUndoCommand):
+    ''' Removes / unremoves study at the specified row in the model '''
+    def __init__(self, model, row):
+        super(RemoveStudyCommand, self).__init__()
+        
+        self.setText(QString("Remove study @ row %d" % row))
+        
+        self.model = model
+        self.row = row
+        self.study = self.model.rows_2_studies[self.row]
+        
+    def redo(self):
+        self.model.dataset.remove_study(self.study)
+        del self.model.rows_2_studies[self.row]
+        
+    def undo(self):
+        self.model.dataset.add_existing_study(self.study)
+        self.model.rows_2_studies[self.row]=self.study
+
         
 class SetStudyLabelCommand(QUndoCommand):
     ''' Sets/unsets the label of the given study '''
