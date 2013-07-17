@@ -10,10 +10,12 @@ from PyQt4.Qt import *
 
 import pdb
 import string
+from sets import Set
 
 # handrolled
-from ee_dataset import EEDataSet
+from dataset.ee_dataset import EEDataSet
 from globals import *
+
 
 # Some constants
 ADDITIONAL_ROWS = 100
@@ -48,6 +50,7 @@ class EETableModel(QAbstractTableModel):
         #    is not really a variable
         self.rows_2_studies = self._make_arbitrary_mapping_of_rows_to_studies()
         (self.cols_2_vars, self.label_column) = self._make_arbitrary_mapping_of_cols_to_variables()
+        self.label_column_name_label = "Study Labels"
         
     def __str__(self):
         rows_2_study_ids = dict([(row, study.get_id()) for (row, study) in self.rows_2_studies.items()])
@@ -62,26 +65,22 @@ class EETableModel(QAbstractTableModel):
                                 "Columns to variables: %s\n" % str(self.cols_2_vars)])
         return summary_str + model_info
     
-    def get_study_by_id(self, study_id):
-        return self.dataset.get_study_by_id(study_id)
-    
     def _make_arbitrary_mapping_of_rows_to_studies(self):
-        studies = self.dataset.get_all_studies()
+        studies = self.dataset.get_studies()
         return dict(enumerate(studies))
 
     def _make_arbitrary_mapping_of_cols_to_variables(self):
-        variable_names = self.dataset.get_all_variable_names()
-        labeled_studies_present = len(self.dataset.get_all_study_labels()) != 0
+        variables = self.dataset.get_variables()
+        labeled_studies_present = len(self.dataset.get_study_labels()) != 0
 
         cols2vars = {}
         # just set the first column as label if there are labeled studies
         if labeled_studies_present:
             label_column = 0
-            cols2vars[0] = "Study Labels"
-            cols2vars.update(enumerate(variable_names, start=1))
+            cols2vars.update(enumerate(variables, start=1))
         else:
             label_column = None
-            cols2vars.update(enumerate(variable_names, start=0))
+            cols2vars.update(enumerate(variables, start=0))
         return (cols2vars, label_column)
     
     def get_label_column(self):
@@ -96,7 +95,9 @@ class EETableModel(QAbstractTableModel):
     
     
     def columnCount(self, index=QModelIndex()):
-        occupied_cols = self.cols_2_vars.keys()
+        occupied_cols = Set(self.cols_2_vars.keys())
+        if self.label_column is not None:
+            occupied_cols.add(self.label_column)
         max_occupied_col = max(occupied_cols) if len(occupied_cols) != 0 else None
         if max_occupied_col is None:
             return ADDITIONAL_COLS
@@ -113,26 +114,19 @@ class EETableModel(QAbstractTableModel):
             return max(occupied_rows)
 
 
-    def change_variable_name(self, old_name, new_name):
+    def change_variable_name(self, var, new_name):
         ''' Change the name of a variable '''
         
-        # change name in dataset and in the mapping from column names to
-        # variable names
         self.beginResetModel()
-        column = self._get_column_assigned_to_variable(old_name)
-        self.dataset.change_variable_name(old_name, new_name)
-        self.cols_2_vars[column] = new_name
+        var.set_label(new_name)
         self.endResetModel()
-        
-        print("After changing variable %s to %s:" % (old_name,new_name))
-        print(self)
 
 
-    def _get_column_assigned_to_variable(self, var_name):
+    def _get_column_assigned_to_variable(self, var):
         ''' Returns the index of the column assigned to the variable with name
         var_name '''
         
-        return self._get_key_for_value(self.cols_2_vars, var_name)
+        return self._get_key_for_value(self.cols_2_vars, var)
     
         
     def _get_key_for_value(self, adict, value):
@@ -154,8 +148,8 @@ class EETableModel(QAbstractTableModel):
         else:
             return keylist
             
-        
     
+###### CONTINUE FROM HERE
     def change_label_column_name(self, new_name):
         ''' Changes the name of the label column '''
         

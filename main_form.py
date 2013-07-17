@@ -181,11 +181,12 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
             return False
         
         # We will proceed with the renaming
-        redo = partial(self.model.change_variable_name, old_name=var_name, new_name=proposed_name)
-        undo = partial(self.model.change_variable_name, old_name=proposed_name, new_name=var_name)
+        redo = partial(self.model.change_variable_name, new_name=proposed_name)
+        undo = partial(self.model.change_variable_name, new_name=var_name)
         rename_variable_command = GenericUndoCommand(redo_fn=redo, undo_fn=undo, description="Renamed variable '%s' to '%s'" % (var_name, proposed_name))
         self.undo_stack.push(rename_variable_command)
-        #self.model.change_variable_name(var_name, proposed_name)
+        
+
     
     def _get_set_of_disallowed_new_variable_names(self, col):
         '''
