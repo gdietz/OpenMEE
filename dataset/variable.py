@@ -10,7 +10,7 @@ class Variable:
     def __init__(self, var_id, var_label, var_type=CATEGORICAL):
         if var_id is None:
             raise ValueError("variable MUST have an id")
-        self.item_id =var_id
+        self.var_id = var_id
         self.label = var_label
         
         self.set_type(var_type) # self.var_type

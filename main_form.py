@@ -53,6 +53,15 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
     
     def setup_connections(self):
         QObject.connect(self.model, SIGNAL("DataError"), self.warning_msg)
+        QObject.connect(self.model, SIGNAL("dataChanged(QModelIndex, QModelIndex)"), self.change_index_after_data_edited)
+        
+    def change_index_after_data_edited(self, index_top_left, index_bottom_right):
+        row, col = index_top_left.row(), index_top_left.column()
+        row += 1
+        if row < self.model.rowCount():
+            self.tableView.setFocus()
+            new_index = self.model.createIndex(row,col)
+            self.tableView.setCurrentIndex(new_index)
         
     def warning_msg(self, title="mystery warning", msg="a mysterious warning"):
         warning_box = QMessageBox(self)
@@ -90,7 +99,7 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
         
         ''' Actions                                     |  base |  w/undoredo
         change format of column                         |  [X]  |  [X]
-        rename column                                   |  [X]  |  [X]
+        rename column <--- ADD provsions for dealing with label column   [ ]  |  [X]  |  [X]
         mark column as label (only for categorical cols)|  [X]  |  [X]
         unmark column as label (only for label columns) |  [X]  |  [X]
         delete variable (label or variable)             |  [ ]  |  [ ]
@@ -101,35 +110,40 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
         is_variable_column = self.model.column_assigned_to_variable(column_clicked)
         context_menu = QMenu(self.tableView)
     
-        variable_name = self.model.get_column_name(column_clicked)
         if column_clicked != label_column:
             if is_variable_column:
-                variable_type = self.model.dataset.get_variable_type(variable_name)
+                variable = self.model.get_variable_assigned_to_column(column_clicked)
                 
                 # Change format of column
-                change_format_menu = context_menu.addMenu("Change format")
+                change_format_menu = QMenu("Change format", parent=context_menu)
                 self.add_choices_to_change_format_menu(change_format_menu, column_clicked)
+                if len(change_format_menu.actions()) > 0:
+                    context_menu.addMenu(change_format_menu)
                 
                 # Rename column
                 rename_action = context_menu.addAction("Rename variable")
                 QAction.connect(rename_action, SIGNAL("triggered()"), lambda: self.rename_variable(column_clicked))
                 
                 # Mark column as label
-                if variable_type == CATEGORICAL:
+                if label_column is None and variable.get_type() == CATEGORICAL:
                     mark_as_label_action = context_menu.addAction("Mark as label column")
-                    QAction.connect(mark_as_label_action, SIGNAL("triggered()"), partial(self.mark_column_as_label, variable_name, column_clicked))
-        else:                                       #  column is label column
+                    QAction.connect(mark_as_label_action, SIGNAL("triggered()"),
+                                    partial(self.mark_column_as_label, column_clicked))
+        else:     #  column is label column
             # Unmark column as label
             unmark_as_label_action = context_menu.addAction("Unmark as label column")
-            QAction.connect(unmark_as_label_action, SIGNAL("triggered()"), partial(self.unmark_column_as_label, variable_name, column_clicked))
+            QAction.connect(unmark_as_label_action, SIGNAL("triggered()"),
+                            partial(self.unmark_column_as_label, column_clicked))
             
         
         context_menu.popup(QCursor.pos())
     
-    def mark_column_as_label(self, variable_name, col):
+    def mark_column_as_label(self, col):
         ''' Should only occur for columns of CATEGORICAL type and only for a
         column which is not already the label column
         (the check happens elsewhere) '''
+        
+        variable_name = self.model.get_variable_assigned_to_column(col).get_label()
          
         # build up undo command 
         redo = lambda: self.model.mark_column_as_label(col)
@@ -142,8 +156,10 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
         self.undo_stack.push(mark_column_as_label_cmd)
         
         
-    def unmark_column_as_label(self, variable_name, col):
+    def unmark_column_as_label(self, col):
         ''' Unmarks column as label and makes it a CATEGORICAL variable '''
+        
+        label_column_name = self.model.label_column_name_label
         
         # build up undo command
         redo = lambda: self.model.unmark_column_as_label(col)
@@ -152,16 +168,16 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
         on_exit = lambda: self.model.endResetModel()
         unmark_column_as_label_cmd = GenericUndoCommand(redo_fn=redo, undo_fn=undo,
                                               on_entry=on_entry, on_exit=on_exit,
-                                              description="Unmark column '%s' as label" % variable_name)
+                                              description="Unmark column '%s' as label" % label_column_name)
         self.undo_stack.push(unmark_column_as_label_cmd)
         
     
     def rename_variable(self, col):
         ''' Renames a variable_column. Should never be called on the label column '''
         
-        var_name = self.model.get_column_name(col)
+        var = self.model.get_variable_assigned_to_column(col)
         rename_variable_dlg = useful_dialogs.InputForm(message="Please enter a new variable name",
-                                                       initial_text=var_name,
+                                                       initial_text=var.get_label(),
                                                        parent=self)
         # Open dialog to rename variable
         if not rename_variable_dlg.exec_():
@@ -170,37 +186,27 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
         # Dialog exited by hitting 'ok'
         proposed_name = str(rename_variable_dlg.get_text())
         
-        # get set of disallowed variables names
-        disallowed_names = self._get_set_of_disallowed_new_variable_names(col)
-        
-        if proposed_name in disallowed_names:
-            QMessageBox.information(self, "Cannot Rename Variable", "You cannot rename a variable to an existing column name.")
-            return False
-        
-        if var_name == proposed_name:
+        if var.get_label() == proposed_name:
             return False
         
         # We will proceed with the renaming
-        redo = partial(self.model.change_variable_name, new_name=proposed_name)
-        undo = partial(self.model.change_variable_name, new_name=var_name)
-        rename_variable_command = GenericUndoCommand(redo_fn=redo, undo_fn=undo, description="Renamed variable '%s' to '%s'" % (var_name, proposed_name))
+        redo = partial(self.model.change_variable_name, var, new_name=proposed_name)
+        undo = partial(self.model.change_variable_name, var, new_name=var.get_label())
+        rename_variable_command = GenericUndoCommand(redo_fn=redo, undo_fn=undo, description="Renamed variable '%s' to '%s'" % (var.get_label(), proposed_name))
         self.undo_stack.push(rename_variable_command)
-        
-
     
-    def _get_set_of_disallowed_new_variable_names(self, col):
-        '''
-        construct set of disallowed names:
-          None of the already used header labels or default header labels
-          allowed except for the default label for this particular column
-        '''
-        default_header_name = str(self.model.get_default_header(col))
-        default_header_string = [str(x) for x in self.model.get_default_header_string()]
-        disallowed_names = Set(default_header_string)
-        used_variable_names = [str(x) for x in self.model.cols_2_vars.values()]
-        disallowed_names.update(used_variable_names)
-        disallowed_names.discard(default_header_name)
-        return disallowed_names # this is a set
+# TODO: continue from here, handle renaming variable and label column here
+#    def rename_column(self, col):
+#        
+#        
+#        
+#        
+#        
+#        
+#        if col == self.model.label_column:
+#            dfdfd
+#        else:
+            
         
     
     def add_choices_to_change_format_menu(self, change_format_menu, col):
@@ -210,17 +216,17 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
         * Should not be here if the clicked column was the label column
         '''
         
-        var_name = self.model.get_column_name(col)
-        var_type = self.model.get_variable_type(var_name)
+        var = self.model.get_variable_assigned_to_column(col)
         
         possible_target_conversions = []
         other_variable_types = list(VARIABLE_TYPES)
-        other_variable_types.remove(var_type)
+        other_variable_types.remove(var.get_type())
         
-        # Make list of targets for conversion for example, shoudn't see integer
-        # here if one of the elements in the table is real text
+        # Make list of targets for conversion
+        #   For example: shoudn't see integer here if one of the elements in
+        #                the table is real text
         for vtype in other_variable_types:
-            if self.model.can_convert_variable_to_type(var_name, vtype):
+            if self.model.can_convert_variable_to_type(var, vtype):
                 possible_target_conversions.append(vtype)
         
         # sort possible_target_conversions list alphabetically
@@ -234,11 +240,11 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
             #convert_to_target = partial(self.model.change_variable_type, var_name, target_conversion, self.model.get_precision())
             convert_to_target = ChangeVariableFormatCommand(
                                     model=self.model,
-                                    var_name=var_name,
+                                    variable=var,
                                     target_type=target_conversion,
                                     precision=self.model.get_precision(),
-                                    description="Change format of '%s' from '%s' to '%s'" % (var_name,
-                                                                                             VARIABLE_TYPE_STRING_REPS[var_type],
+                                    description="Change format of '%s' from '%s' to '%s'" % (var.get_label(),
+                                                                                             VARIABLE_TYPE_STRING_REPS[var.get_type()],
                                                                                              VARIABLE_TYPE_STRING_REPS[target_conversion]))
             
             action = change_format_menu.addAction("--> %s" % variable_type_str)
@@ -286,35 +292,35 @@ class GenericUndoCommand(QUndoCommand):
 class ChangeVariableFormatCommand(QUndoCommand):
     ''' Changes the format of a variable '''
     
-    def __init__(self, model, var_name, target_type, precision, description="Change variable format"):
+    def __init__(self, model, variable, target_type, precision, description="Change variable format"):
         super(ChangeVariableFormatCommand, self).__init__()
         
         self.setText(QString(description))
         
         self.model = model
-        self.var_name = var_name
+        self.variable=variable
         self.target_type = target_type
         self.precision = precision
         
-        self.original_var_type = self.model.dataset.get_variable_type(self.var_name)
+        self.original_var_type = variable.get_type()
         # dictionary mapping studies to their original values for the given variable
         self.orignal_vals = {}
         
     def redo(self):
         self._store_original_data_values_for_variable()
-        self.model.change_variable_type(self.var_name, self.target_type, self.precision)
+        self.model.change_variable_type(self.variable, self.target_type, self.precision)
         
     def undo(self):
-        self.model.change_variable_type(self.var_name, self.original_var_type, self.precision)
+        self.model.change_variable_type(self.variable, self.original_var_type, self.precision)
         self._restore_orignal_data_values_for_variable()
         
     def _store_original_data_values_for_variable(self):
-        for study in self.model.dataset.get_all_studies():
-            self.orignal_vals[study] = study.get_var(self.var_name)
+        for study in self.model.dataset.get_studies():
+            self.orignal_vals[study] = study.get_var(self.variable)
     
     def _restore_orignal_data_values_for_variable(self):
         for study, value in self.orignal_vals.items():
-            study.set_var(self.var_name, value)
+            study.set_var(self.variable, value)
 
 
         

@@ -16,6 +16,7 @@ from sets import Set
 from dataset.ee_dataset import EEDataSet
 from globals import *
 
+DEBUG = False
 
 # Some constants
 ADDITIONAL_ROWS = 100
@@ -51,6 +52,10 @@ class EETableModel(QAbstractTableModel):
         self.rows_2_studies = self._make_arbitrary_mapping_of_rows_to_studies()
         (self.cols_2_vars, self.label_column) = self._make_arbitrary_mapping_of_cols_to_variables()
         self.label_column_name_label = "Study Labels"
+        
+        # for rowCount() and colCount()
+        self.rowlimit = ADDITIONAL_ROWS
+        self.collimit = ADDITIONAL_COLS
         
     def __str__(self):
         rows_2_study_ids = dict([(row, study.get_id()) for (row, study) in self.rows_2_studies.items()])
@@ -88,20 +93,38 @@ class EETableModel(QAbstractTableModel):
         
         
     def rowCount(self, index=QModelIndex()):
+        return self.rowlimit
+
+        
+        
+    def change_row_count_if_needed(self):
+        old_rowlimit = self.rowlimit
         max_occupied_row = self._get_max_occupied_row()
         if max_occupied_row is None:
-            return ADDITIONAL_ROWS
-        return max_occupied_row + ADDITIONAL_ROWS
-    
+            new_row_limit = ADDITIONAL_ROWS
+        else:
+            nearest_row_increment = int(round(float(max_occupied_row)/ADDITIONAL_ROWS) * ADDITIONAL_ROWS)
+            new_rowlimit = nearest_row_increment + ADDITIONAL_ROWS
+        if new_rowlimit != old_rowlimit:
+            self.rowlimit = new_rowlimit
+            self.beginResetModel()
+            self.endResetModel()
+            
+    def change_column_count_if_needed(self):
+        old_collimit = self.collimit
+        max_occupied_col = self._get_max_occupied_col()
+        if max_occupied_col is None:
+            new_col_limit = ADDITIONAL_COLS
+        else:
+            nearest_col_increment = int(round(float(max_occupied_col)/ADDITIONAL_COLS) * ADDITIONAL_COLS)
+            new_collimit = nearest_col_increment + ADDITIONAL_COLS
+        if new_collimit != old_collimit:
+            self.collimit = new_collimit
+            self.beginResetModel()
+            self.endResetModel()
     
     def columnCount(self, index=QModelIndex()):
-        occupied_cols = Set(self.cols_2_vars.keys())
-        if self.label_column is not None:
-            occupied_cols.add(self.label_column)
-        max_occupied_col = max(occupied_cols) if len(occupied_cols) != 0 else None
-        if max_occupied_col is None:
-            return ADDITIONAL_COLS
-        return max_occupied_col + ADDITIONAL_COLS
+        return self.collimit
     
     def _get_max_occupied_row(self):
         ''' Returns the highest numbered row index of the occupied rows
@@ -112,7 +135,13 @@ class EETableModel(QAbstractTableModel):
             return None
         else:
             return max(occupied_rows)
-
+        
+    def _get_max_occupied_col(self):
+        occupied_cols = Set(self.cols_2_vars.keys())
+        if self.label_column is not None:
+            occupied_cols.add(self.label_column)
+        max_occupied_col = max(occupied_cols) if len(occupied_cols) != 0 else None
+        return max_occupied_col
 
     def change_variable_name(self, var, new_name):
         ''' Change the name of a variable '''
@@ -127,6 +156,9 @@ class EETableModel(QAbstractTableModel):
         var_name '''
         
         return self._get_key_for_value(self.cols_2_vars, var)
+    
+    def get_variable_assigned_to_column(self, col):
+        return self.cols_2_vars[col]
     
         
     def _get_key_for_value(self, adict, value):
@@ -149,34 +181,29 @@ class EETableModel(QAbstractTableModel):
             return keylist
             
     
-###### CONTINUE FROM HERE
     def change_label_column_name(self, new_name):
         ''' Changes the name of the label column '''
         
-        if new_name in self.dataset.get_all_variable_names():
-            raise Exception("Cannot change label column name to existing variable column name")
-        
-        self.rows_2_studies[self.label_column] = new_name
+        self.label_column_name_label = new_name
         
     def get_column_name(self, column_index):
         ''' Returns the column name if we store a reference to it,
             raises an error otherwise'''
         
-        return self.cols_2_vars[column_index]
+        # handle case that this is the label column
+        if column_index == self.label_column:
+            return self.label_column_name_label
+        
+        return self.cols_2_vars[column_index].get_label()
     
-    def get_variable_type(self, var_name):
-        return self.dataset.get_variable_type(var_name)
+    def can_convert_variable_to_type(self, var, new_type):
+        return self.dataset.can_convert_variable_to_type(var, new_type)
     
-    def can_convert_variable_to_type(self, var_name, new_type):
-        return self.dataset.can_convert_variable_to_type(var_name, new_type)
-    
-    def change_variable_type(self, var_name, new_type, precision):
+    def change_variable_type(self, var, new_type, precision):
         self.beginResetModel()
-        self.dataset.change_variable_type(var_name, new_type, precision)
+        self.dataset.change_variable_type(var, new_type, precision)
         self.endResetModel()
         
-    def get_all_variable_names(self):
-        return self.dataset.get_all_variable_names()
         
     def mark_column_as_label(self, column_index):
         ''' Sets the contents of this column as the labels for the studies in the column '''
@@ -185,17 +212,58 @@ class EETableModel(QAbstractTableModel):
         if self.label_column:
             raise Exception("Only one column can be set as the label column at a time")
         
-        variable_name = self.get_column_name(column_index)
+        var = self.get_variable_assigned_to_column(column_index)
         
         # Set values from column to be the study labels
-        # Delete references to that column in the studies
-        # Mark the column as the label column
-        studies = self.dataset.get_all_studies()
+        studies = self.dataset.get_studies()
         for study in studies:
-            label = str(study.get_var(variable_name))
-            study.set_label(label)
-        self.dataset.remove_variable(variable_name)
+            label = study.get_var(var)
+            if label is not None:
+                study.set_label(str(label))
+            else:
+                study.set_label(None)
+        
+        # Set label column label to the name of the variable
+        self.label_column_name_label = var.get_label()
+            
+        # Delete references to that column in the studies and remove it from the variable collection
+        self.remove_variable(var)
+        
+        # Mark the column as the label column
         self.label_column = column_index
+        
+    
+    def remove_variable(self, var):
+        ''' Deletes a variable from the collection and removes it from the
+        mapping of columns to variables '''
+        
+        col = self._get_column_assigned_to_variable(var)
+        
+        self.dataset.remove_variable(var)
+        del self.cols_2_vars[col]
+    
+#    def remove_column(self, col):
+#        
+#        
+#        var = self.get_variable_assigned_to_column(col)
+#        self.remove_variable(var)
+
+
+
+
+
+#insertRows()       beginInsertRows()      endInsertRows()        
+#insertColumns()    beginInsertColumns()   endInsertColumns()     
+#removeRows()       beginRemoveRows()      endRemoveRows()        
+#removeColumns()    beginRemoveColumns()   and endRemoveColumns() 
+
+   # def insertRows(self, ):
+
+
+
+
+
+
          
     def unmark_column_as_label(self, column_index):
         '''
@@ -207,20 +275,24 @@ class EETableModel(QAbstractTableModel):
             raise Exception("This is not the label column!")
         
         # Add new variable with 'categorical' type (the most general)
-        variable_name = self.get_column_name(column_index)
-        self.dataset.add_variable(variable_name, CATEGORICAL)
+        variable_name = self.label_column_name_label
+        new_var = self.dataset.make_new_variable(label=variable_name, var_type=CATEGORICAL)
+        # Assign the variable to the column
+        self.cols_2_vars[column_index] = new_var
         
         # Set values from label column to be the values of the variable
-        # Set labels to None
-        # Un-mark label column
-        studies = self.dataset.get_all_studies()
+        # Set labels to None in studies
+        studies = self.dataset.get_studies()
         for study in studies:
             value = study.get_label()
             # converts the value from a string to a string (overkill but whatever)
             value = self.dataset.convert_var_value_to_type(CATEGORICAL, CATEGORICAL, value)
-            study.set_var(variable_name, value)
+            study.set_var(new_var, value)
             study.set_label(None)
+        
+        # Un-mark label column
         self.label_column = None
+        self.label_column_name_label = None
         
         
     def set_precision(self, new_precision):
@@ -272,18 +344,17 @@ class EETableModel(QAbstractTableModel):
                     return QVariant()
                 
                 # the column is assigned to a variable
-                var_name = self.cols_2_vars[col]
-                var_type = self.dataset.get_variable_type(var_name)
-                var_value = study.get_var(var_name)
+                var = self.cols_2_vars[col]
+                var_value = study.get_var(var)
                 if var_value is None: # don't display Nones
                     return QVariant()
-                return QVariant(QString(self._var_value_for_display(var_value, var_type)))
+                return QVariant(QString(self._var_value_for_display(var_value, var.get_type())))
             
         return QVariant()
-
-    def _variable_exists(self, var_name):
-        return var_name in self.cols_2_vars.values()
+    
     def column_assigned_to_variable(self, column_index):
+        ''' Is the column assigned to a variable? '''
+        
         return column_index in self.cols_2_vars.keys()
 
     def headerData(self, section, orientation, role=Qt.DisplayRole):
@@ -292,17 +363,18 @@ class EETableModel(QAbstractTableModel):
         
         if orientation == Qt.Horizontal:
             #default case
-            unassigned_column = section not in self.cols_2_vars
+            unassigned_column = section not in self.cols_2_vars and section != self.label_column
             if unassigned_column:
                 return QVariant(self.get_default_header(int(section)))
             
             # there is a study label or variable assignment to the column
             is_label_col = section == self.label_column
-            col_name = self.cols_2_vars[section]
             if is_label_col:
+                col_name = self.label_column_name_label
                 suffix = " (label)"
             else: # is a variable column
-                var_type = self.dataset.get_variable_type(col_name)
+                col_name = self.cols_2_vars[section].get_label()
+                var_type = self.cols_2_vars[section].get_type()
                 suffix = " (%s)" % VARIABLE_TYPE_SHORT_STRING_REPS[var_type]
             return QVariant(QString(col_name + suffix))
             
@@ -317,6 +389,7 @@ class EETableModel(QAbstractTableModel):
         if role != Qt.EditRole:
             print("No implementation written when role != Qt.EditRole")
             return False
+        
         
         row, col = index.row(), index.column()
         row_has_study = row in self.rows_2_studies
@@ -363,21 +436,20 @@ class EETableModel(QAbstractTableModel):
                 new_var_name = str(self.get_default_header(col))
                 self.undo_stack.push(MakeNewVariableCommand(model=self, var_name=new_var_name, col=col))
 
-            
-            var_name = self.cols_2_vars[col]
-            var_type = self.dataset.get_variable_type(var_name)
+            var = self.cols_2_vars[col]
+            var_name = var.get_label()
+            var_type = var.get_type()
             
             value_as_string = str(value.toString())
             # Set value in study for variable
             can_convert_value_to_desired_type = self.dataset.can_convert_var_value_to_type(var_type, value_as_string)
-            # TODO: finish this when a value that doesn't match the type of the variable is entered
             if not can_convert_value_to_desired_type:
                 self.emit(SIGNAL("DataError"), QString("Impossible Data Conversion"), QString("Cannot convert '%s' to %s data type" % (value_as_string, VARIABLE_TYPE_STRING_REPS[var_type])))
                 cancel_macro_creation_and_revert_state()
                 return False
                 
             formatted_value = self._convert_input_value_to_correct_type_for_assignment(value_as_string, var_type)
-            self.undo_stack.push(SetVariableValueCommand(study=study, variable_name=var_name, value=formatted_value))
+            self.undo_stack.push(SetVariableValueCommand(study=study, variable=var, value=formatted_value))
             
             # If variables and label for this study are all blank, remove the
             # study from the dataset
@@ -390,10 +462,12 @@ class EETableModel(QAbstractTableModel):
         self.undo_stack.endMacro()
         
         self.dirty = True
+        self.change_row_count_if_needed()
+        self.change_column_count_if_needed()
         self.emit(SIGNAL("dataChanged(QModelIndex,QModelIndex)"),
                   index, index)
-        
         return True
+    
     
     def _emitdatachanged(self, model, index):
         model.emit(SIGNAL("dataChanged(QModelIndex,QModelIndex)"),
@@ -415,13 +489,6 @@ class EETableModel(QAbstractTableModel):
         return Qt.ItemFlags(QAbstractTableModel.flags(self, index)|
                             Qt.ItemIsEditable)
         
-        
-        
-    #def insertRows()
-    #def removeRows()
-
-
-    
     def get_default_header(self, col):
         if col > len(self.default_headers) - 1:
             self._generate_header_string(col*2)
@@ -466,9 +533,10 @@ class MakeStudyCommand(QUndoCommand):
         
         
     def redo(self):
+        if DEBUG: print("redo: make new study_command")
         model = self.model
         if self.study is None: # this should only execute once
-            self.study = model.dataset.make_study()
+            self.study = model.dataset.make_new_study()
         else:            # we should always be here on subsequent runs of redo
             model.dataset.add_existing_study(self.study)
         model.rows_2_studies[self.row] = self.study
@@ -477,6 +545,7 @@ class MakeStudyCommand(QUndoCommand):
     def undo(self):
         ''' Remove study at the specified row in the model '''
         
+        if DEBUG: print("undo: make new study_command")
         model = self.model
         model.dataset.remove_study(self.study)
         del model.rows_2_studies[self.row]
@@ -494,10 +563,12 @@ class RemoveStudyCommand(QUndoCommand):
         self.study = self.model.rows_2_studies[self.row]
         
     def redo(self):
+        if DEBUG: print("redo: remove study")
         self.model.dataset.remove_study(self.study)
         del self.model.rows_2_studies[self.row]
         
     def undo(self):
+        if DEBUG: print("undo: remove study")
         self.model.dataset.add_existing_study(self.study)
         self.model.rows_2_studies[self.row]=self.study
 
@@ -514,9 +585,11 @@ class SetStudyLabelCommand(QUndoCommand):
         self.setText(QString("set study label from '%s' to '%s" % (self.old_label, self.new_label)))
         
     def redo(self):
+        if DEBUG: print("redo: set study label")
         self.study.set_label(self.new_label)
         
     def undo(self):
+        if DEBUG: print("undo: set study label")
         self.study.set_label(self.old_label)
         
 
@@ -531,36 +604,48 @@ class MakeNewVariableCommand(QUndoCommand):
         self.col = col
         self.var_type = var_type
         
+        self.var = None # this is where the new variable will be kept
+        
         self.setText(QString("Created variable '%s'" % self.var_name))
         
         
     def redo(self):
-        self.model.dataset.add_variable(self.var_name, self.var_type)
-        self.model.cols_2_vars[self.col] = self.var_name
+        if DEBUG: print("redo: make new variable_command")
+        if self.var is None:
+            self.var = self.model.dataset.make_new_variable(label=self.var_name, var_type=self.var_type)
+        else:
+            self.model.dataset.add_existing_variable(self.var)
+        self.model.cols_2_vars[self.col] = self.var
         
     def undo(self):
-        self.model.dataset.remove_variable(self.var_name)
-        del self.model.cols_2_vars[self.col]
+        if DEBUG: print("undo: make new variable_command")
+        #self.model.dataset.remove_variable(self.var)
+        #del self.model.cols_2_vars[self.col]
+        
+        #self.model.r
+        self.model.remove_variable(self.var)
         
 
 class SetVariableValueCommand(QUndoCommand):
     ''' Sets/unsets the value of the variable for the given study'''
     
-    def __init__(self, study, variable_name, value):
+    def __init__(self, study, variable, value):
         super(SetVariableValueCommand, self).__init__()
         
         self.study = study
-        self.variable_name = variable_name
+        self.variable = variable
         self.new_value = value
-        self.old_value = self.study.get_var(variable_name)
+        self.old_value = self.study.get_var(variable)
         
-        self.setText(QString("Set '%s' from '%s' to '%s' for a study" % (self.variable_name, str(self.old_value), str(self.new_value))))
+        self.setText(QString("Set '%s' from '%s' to '%s' for a study" % (self.variable.get_label(), str(self.old_value), str(self.new_value))))
         
     def redo(self):
-        self.study.set_var(self.variable_name, self.new_value)
+        if DEBUG: print("redo: set variable value command")
+        self.study.set_var(self.variable, self.new_value)
 
     def undo(self):
-        self.study.set_var(self.variable_name, self.old_value)
+        if DEBUG: print("undo: set variable value command")
+        self.study.set_var(self.variable, self.old_value)
 
 class EmitDataChangedCommand(QUndoCommand):
     ''' Not really a command, just the last thing called @ the end of the macro
@@ -575,9 +660,11 @@ class EmitDataChangedCommand(QUndoCommand):
         self.setText(QString("Data changed emission"))
     
     def undo(self):
+        if DEBUG: print("undo: emit data changed")
         self.model.emit(SIGNAL("dataChanged(QModelIndex,QModelIndex)"),
           self.index, self.index)
         
     def redo(self):
+        if DEBUG: print("redo: emit data changed")
         self.model.emit(SIGNAL("dataChanged(QModelIndex,QModelIndex)"),
           self.index, self.index)

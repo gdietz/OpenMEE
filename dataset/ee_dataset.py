@@ -67,8 +67,10 @@ class EEDataSet():
     def get_variable_labels(self):
         return self.variable_collection.get_labels()
 
-    def make_new_variable(self, label=None):
-        return self.variable_collection.make_item(label)
+    def make_new_variable(self, label=None, var_type=CATEGORICAL):
+        var = self.variable_collection.make_item(label)
+        var.set_type(var_type)
+        return var
     
     ################# End methods for manipulating variables #################
     
@@ -165,13 +167,21 @@ class EEDataSet():
     
     
     def __str__(self):
-        return self._get_studies_summary()
+        return self._get_studies_summary() + "\n" + self._get_variables_summary()
+    
+    def _get_variables_summary(self):
+        output_str = "Variables Summary:\n"
+        variables_summary = [["ID:","Label:", "Type:"],]
+        
+        for var in self.variable_collection.get_items():
+            variables_summary.append([str(var.get_id()), str(var.get_label()), str(var.get_type())])
+        return output_str+table_as_str(variables_summary)
         
     def _get_studies_summary(self):
         ''' Returns a string summarizing info about the studies '''
         
         sorted_study_ids = sorted(self.study_collection.get_ids())
-        sorted_studies = [self.get_item_by_id(study_id) for study_id in sorted_study_ids]
+        sorted_studies = [self.study_collection.get_item_by_id(study_id) for study_id in sorted_study_ids]
                 
         sorted_variables = sorted(self.variable_collection.get_items(), key=lambda var: var.get_label())
         sorted_variable_names = [var.get_label() for var in self.variable_collection.get_items()]

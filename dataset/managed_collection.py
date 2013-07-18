@@ -94,13 +94,13 @@ class ManagedCollection(object):
         Also updates the set of used item ids'''
         
         # creates new study_id and add it to the set of used study_ids
-        new_study_id = self._acquire_unique_id()
+        new_item_id = self._acquire_unique_id()
         
         # Create the new item
-        item = self.item_class(study_id=new_study_id, label=label)
+        item = self.item_class(new_item_id, label)
             
         # Add the study to the collection
-        self.ids_to_items[new_study_id] = item
+        self.ids_to_items[new_item_id] = item
         
         return item
     
