@@ -11,6 +11,7 @@ from PyQt4.Qt import *
 import pdb
 import string
 from sets import Set
+from functools import partial
 
 # handrolled
 from dataset.ee_dataset import EEDataSet
@@ -184,7 +185,9 @@ class EETableModel(QAbstractTableModel):
     def change_label_column_name(self, new_name):
         ''' Changes the name of the label column '''
         
+        self.beginResetModel()
         self.label_column_name_label = new_name
+        self.endResetModel()
         
     def get_column_name(self, column_index):
         ''' Returns the column name if we store a reference to it,
@@ -242,14 +245,48 @@ class EETableModel(QAbstractTableModel):
         self.dataset.remove_variable(var)
         del self.cols_2_vars[col]
     
-#    def remove_column(self, col):
-#        
-#        
-#        var = self.get_variable_assigned_to_column(col)
-#        self.remove_variable(var)
+    
+    def removeColumns(self, column, count=1, index=QModelIndex()):
+        # Deletes variable at the column's location and shifts columns left
+        
+        self.undo_stack.beginMacro(QString("removeColumns %d though %d" % (column, column + count-1)))
+        
+        # self.beginRemoveColumns(QModelIndex(), column, column + count - 1)
+        redof = partial(self.beginRemoveColumns, QModelIndex(), column, column + count - 1)
+        undof = partial(self.endRemoveColumns)
+        begin_remove_columns_cmd = GenericUndoCommand(redo_fn=redof, undo_fn=undof, description="begin_remove_columns")
+        self.undo_stack.push(begin_remove_columns_cmd)
+        
+        
+        
+        # Delete variables in columns
+        for col in range(column, column+count):
+            if col == self.label_column: # turn label column in to a variable
+                self.unmark_column_as_label(col)
+            # remove variable
+            if self.column_assigned_to_variable(col):
+                var = self.get_variable_assigned_to_column(col)
+                self.remove_variable(var)
+        
+        # Shift columns beyond column+count-1 to the left by count columns
+        cols_to_shift = []
+        for col in self.cols_2_vars.keys():
+            if col > column+count-1:
+                cols_to_shift.append(col)
+        cols_to_shift.sort() # sort in ascending order
+        for col in cols_to_shift:
+            # col in col-count should be free now
+            if (col-count) in self.cols_2_vars:
+                raise KeyError("Column %d shouldn't be present after removal" % (col-count))
+            # shift column over
+            self.cols_2_vars[col-count] = self.cols_2_vars[col]
+            del self.cols_2_vars[col]
+    
+        self.endRemoveColumns()
+        return True
+    
 
-
-
+        
 
 
 #insertRows()       beginInsertRows()      endInsertRows()        
@@ -619,10 +656,6 @@ class MakeNewVariableCommand(QUndoCommand):
         
     def undo(self):
         if DEBUG: print("undo: make new variable_command")
-        #self.model.dataset.remove_variable(self.var)
-        #del self.model.cols_2_vars[self.col]
-        
-        #self.model.r
         self.model.remove_variable(self.var)
         
 
@@ -668,3 +701,70 @@ class EmitDataChangedCommand(QUndoCommand):
         if DEBUG: print("redo: emit data changed")
         self.model.emit(SIGNAL("dataChanged(QModelIndex,QModelIndex)"),
           self.index, self.index)
+        
+        
+class RemoveColumnsCommand(QUndoCommand):
+    ''' Removes columns from the model spreadsheet: used in reimplemented
+    removeColumns function'''
+    
+    # column is the start column
+    def __init__(self, model, column, count, description="Remove columns"):
+        super(RemoveColumnsCommand, self).__init__()
+        
+        self.setText(QString(description))
+        
+        self.model = model
+        self.column = column
+        self.count = count
+        
+        #self.original_var_type = variable.get_type()
+        # dictionary mapping studies to their original values for the given variable
+        #self.orignal_vals = {}
+        
+        self.label_column = None
+        self.label_column_label = None
+        self.studies_2_labels = {}
+        
+        self.removed_cols_2_vars = {}  # dictionary of variables and their mappings to columns that have been removed
+        
+        # Save info from cols that will be removed
+        for col in self.model.cols_2_vars.keys():
+            if col == self.label_column:
+                self.save_label_column_info(col)
+            
+        # CONTINUE FROM HERE
+                
+    def save_label_column_info(self, col):
+        self.label_column = col
+        self.label_column_label = self.model.label_column_name_label
+        for study in self.model.dataset.get_studies():
+            self.studies_2_labels[study] = study.get_label()
+        
+    def redo(self):
+        #self._store_original_data_values_for_variable()
+        #self.model.change_variable_type(self.variable, self.target_type, self.precision)
+        self.model.beginRemoveColumns(QModelIndex(), self.column, self.column + self.count - 1)
+        
+        
+        
+        self.model.endRemoveColumns()
+        
+        
+    def undo(self):
+        #self.model.change_variable_type(self.variable, self.original_var_type, self.precision)
+        #self._restore_orignal_data_values_for_variable()
+        
+        
+        self.model.beginInsertColumns(QModelIndex(), self.column, self.column + self.count - 1)
+        
+        
+        
+        self.model.endInsertColumns()
+        
+    def _store_original_data_values_for_variable(self):
+        for study in self.model.dataset.get_studies():
+            self.orignal_vals[study] = study.get_var(self.variable)
+    
+    def _restore_orignal_data_values_for_variable(self):
+        for study, value in self.orignal_vals.items():
+            study.set_var(self.variable, value)

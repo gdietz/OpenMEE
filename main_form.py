@@ -99,7 +99,7 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
         
         ''' Actions                                     |  base |  w/undoredo
         change format of column                         |  [X]  |  [X]
-        rename column <--- ADD provsions for dealing with label column   [ ]  |  [X]  |  [X]
+        rename column                                   |  [X]  |  [X]
         mark column as label (only for categorical cols)|  [X]  |  [X]
         unmark column as label (only for label columns) |  [X]  |  [X]
         delete variable (label or variable)             |  [ ]  |  [ ]
@@ -110,6 +110,9 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
         is_variable_column = self.model.column_assigned_to_variable(column_clicked)
         context_menu = QMenu(self.tableView)
     
+        if not (column_clicked == label_column or is_variable_column):
+            return False
+        
         if column_clicked != label_column:
             if is_variable_column:
                 variable = self.model.get_variable_assigned_to_column(column_clicked)
@@ -121,19 +124,27 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
                     context_menu.addMenu(change_format_menu)
                 
                 # Rename column
-                rename_action = context_menu.addAction("Rename variable")
-                QAction.connect(rename_action, SIGNAL("triggered()"), lambda: self.rename_variable(column_clicked))
+                #rename_action = context_menu.addAction("Rename variable")
+                #QAction.connect(rename_action, SIGNAL("triggered()"), lambda: self.rename_column(column_clicked))
                 
                 # Mark column as label
                 if label_column is None and variable.get_type() == CATEGORICAL:
                     mark_as_label_action = context_menu.addAction("Mark as label column")
                     QAction.connect(mark_as_label_action, SIGNAL("triggered()"),
                                     partial(self.mark_column_as_label, column_clicked))
+                    
+                # Remove column:
+                remove_column_action = context_menu.addAction("Remove column")
+                QAction.connect(remove_column_action, SIGNAL("triggered()"), lambda: self.model.removeColumn(column_clicked))
         else:     #  column is label column
             # Unmark column as label
             unmark_as_label_action = context_menu.addAction("Unmark as label column")
             QAction.connect(unmark_as_label_action, SIGNAL("triggered()"),
                             partial(self.unmark_column_as_label, column_clicked))
+        
+        # rename label column
+        rename_column_action = context_menu.addAction("Rename %s" % ('variable' if is_variable_column else 'label column')) 
+        QAction.connect(rename_column_action, SIGNAL("triggered()"), lambda: self.rename_column(column_clicked))
             
         
         context_menu.popup(QCursor.pos())
@@ -151,7 +162,8 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
         on_entry = lambda: self.model.beginResetModel()
         on_exit = lambda: self.model.endResetModel()
         mark_column_as_label_cmd = GenericUndoCommand(redo_fn=redo, undo_fn=undo,
-                                                  on_entry=on_entry, on_exit=on_exit,
+                                                  on_redo_entry=on_entry, on_redo_exit=on_exit,
+                                                  on_undo_entry=on_entry, on_undo_exit=on_exit,
                                                   description="Mark column '%s' as label" % variable_name)
         self.undo_stack.push(mark_column_as_label_cmd)
         
@@ -166,48 +178,48 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
         undo = lambda: self.model.mark_column_as_label(col)
         on_entry = lambda: self.model.beginResetModel()
         on_exit = lambda: self.model.endResetModel()
-        unmark_column_as_label_cmd = GenericUndoCommand(redo_fn=redo, undo_fn=undo,
-                                              on_entry=on_entry, on_exit=on_exit,
-                                              description="Unmark column '%s' as label" % label_column_name)
+        unmark_column_as_label_cmd = GenericUndoCommand(
+                                            redo_fn=redo, undo_fn=undo,
+                                            on_redo_entry=on_entry, on_redo_exit=on_exit,
+                                            on_undo_entry=on_entry, on_undo_exit=on_exit,
+                                            description="Unmark column '%s' as label" % label_column_name)
         self.undo_stack.push(unmark_column_as_label_cmd)
-        
+
     
-    def rename_variable(self, col):
-        ''' Renames a variable_column. Should never be called on the label column '''
+    def rename_column(self, col):
+        is_label_column = col == self.model.label_column
         
-        var = self.model.get_variable_assigned_to_column(col)
-        rename_variable_dlg = useful_dialogs.InputForm(message="Please enter a new variable name",
-                                                       initial_text=var.get_label(),
-                                                       parent=self)
-        # Open dialog to rename variable
-        if not rename_variable_dlg.exec_():
+        if is_label_column:
+            initial_name = self.model.label_column_name_label
+        else: #variable column
+            var = self.model.get_variable_assigned_to_column(col)
+            initial_name = var.get_label()
+        
+        rename_column_dlg = useful_dialogs.InputForm(message="Please enter a new %s name" % 'column' if is_label_column else 'variable',
+                                                     initial_text=initial_name,
+                                                     parent=self)
+        
+        # Open dialog to rename column
+        if not rename_column_dlg.exec_():
             return False # cancelled out
         
         # Dialog exited by hitting 'ok'
-        proposed_name = str(rename_variable_dlg.get_text())
+        proposed_name = str(rename_column_dlg.get_text())
         
-        if var.get_label() == proposed_name:
+        if initial_name == proposed_name:
             return False
         
-        # We will proceed with the renaming
-        redo = partial(self.model.change_variable_name, var, new_name=proposed_name)
-        undo = partial(self.model.change_variable_name, var, new_name=var.get_label())
-        rename_variable_command = GenericUndoCommand(redo_fn=redo, undo_fn=undo, description="Renamed variable '%s' to '%s'" % (var.get_label(), proposed_name))
-        self.undo_stack.push(rename_variable_command)
-    
-# TODO: continue from here, handle renaming variable and label column here
-#    def rename_column(self, col):
-#        
-#        
-#        
-#        
-#        
-#        
-#        if col == self.model.label_column:
-#            dfdfd
-#        else:
-            
-        
+        # We will proceed with the nenaming
+        if is_label_column:
+            redo = partial(self.model.change_label_column_name, proposed_name)
+            undo = partial(self.model.change_label_column_name, initial_name)
+            rename_column_command = GenericUndoCommand(redo_fn=redo, undo_fn=undo, description="Renamed label column '%s' to '%s'" % (initial_name, proposed_name))
+        else:
+            redo = partial(self.model.change_variable_name, var, new_name=proposed_name)
+            undo = partial(self.model.change_variable_name, var, new_name=initial_name)
+            rename_column_command = GenericUndoCommand(redo_fn=redo, undo_fn=undo, description="Renamed variable '%s' to '%s'" % (initial_name, proposed_name))
+        self.undo_stack.push(rename_column_command)
+
     
     def add_choices_to_change_format_menu(self, change_format_menu, col):
         '''
@@ -256,37 +268,10 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
     def status_from_action(self, action):
         self.statusBar().showMessage(action.text(), 2000)
 
-def do_nothing():
-    'A very useful function indeed'
-    pass
+
     
     
-class GenericUndoCommand(QUndoCommand):
-    ''' Generic undo command if the undo/redo is REALLY simple i.e. running
-        redo/undo doesn't change the state for future executions
-        
-        on_entry and on_exit are functions that happen before and after the undo/redo
-        '''
-    
-    def __init__(self, redo_fn, undo_fn, on_entry=do_nothing, on_exit=do_nothing, description="GenericUndo"):
-        super(GenericUndoCommand, self).__init__()
-        
-        self.redo_fn = redo_fn
-        self.undo_fn = undo_fn
-        
-        self.on_entry = on_entry
-        self.on_exit = on_exit
-        self.setText(QString(description))
-        
-    def redo(self):
-        self.on_entry()
-        self.redo_fn()
-        self.on_exit()
-    
-    def undo(self):
-        self.on_entry()
-        self.undo_fn()
-        self.on_exit()
+
 
 
 class ChangeVariableFormatCommand(QUndoCommand):
