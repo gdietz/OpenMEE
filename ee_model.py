@@ -161,6 +161,12 @@ class EETableModel(QAbstractTableModel):
     def get_variable_assigned_to_column(self, col):
         return self.cols_2_vars[col]
     
+    def get_study_assigned_to_row(self, row):
+        return self.rows_2_studies[row]
+    
+    def get_row_assigned_to_study(self, study):
+        return self._get_key_for_value(self.rows_2_studies, study)
+    
         
     def _get_key_for_value(self, adict, value):
         '''
@@ -190,24 +196,18 @@ class EETableModel(QAbstractTableModel):
         Raising exception if new column assignment is already assigned to a
         variable '''
         
-        columns = list(columns)
-        if shift_amount >= 0:
-            columns.sort(reverse=True) # descending order
-        else:
-            columns.sort() # ascending order
+        shift_col = lambda col: col if col not in columns else col+shift_amount
+        self.cols_2_vars = dict([(shift_col(col),var) for col,var in self.cols_2_vars.items()])
         
-        for col in columns:
-            new_col = col + shift_amount
-            
-            # new_col should be free now
-            if (new_col) in self.cols_2_vars:
-                raise KeyError("Column %d shouldn't be present after removal" % (new_col))
-            # shift column over
-            self.cols_2_vars[new_col] = self.cols_2_vars[col]
-            del self.cols_2_vars[col]
+
+
+    def shift_row_assignments(self, rows, shift_amount):
+        ''' Shifts the study row assignments of the rows given in rows down
+        by 'shift_amount' rows if shift_amount is +ve, up if -ve '''
         
-        
-            
+        shift_row = lambda row: row if row not in rows else row+shift_amount
+        self.rows_2_studies = dict([(shift_row(row),study) for row,study in self.rows_2_studies.items()])
+
     
     def change_label_column_name(self, new_name):
         ''' Changes the name of the label column '''
@@ -271,6 +271,17 @@ class EETableModel(QAbstractTableModel):
         
         self.dataset.remove_variable(var)
         del self.cols_2_vars[col]
+        
+    def remove_study(self, study):
+        row = self.get_row_assigned_to_study(study)
+        
+        self.dataset.remove_study(study)
+        del self.rows_2_studies[row]
+        
+    def remove_study_by_row(self, row):
+        study = self.rows_2_studies[row]
+        self.dataset.remove_study(study)
+        del self.rows_2_studies[row]
     
     
     def removeColumns(self, column, count=1, index=QModelIndex()):
@@ -282,14 +293,35 @@ class EETableModel(QAbstractTableModel):
                                                   description="Remove columns %d to %d" % (column, column+count-1)))
         return True
     
-
+    
+    def removeRows(self, row, count=1, index=QModelIndex()):
+        ''' Deletes study the column's location and shifts rows up '''
+    
+        self.undo_stack.push(RemoveRowsCommand(model=self,
+                                               row=row,
+                                               count=count,
+                                               description="Remove studies at rows %d to %d" % (row, row+count-1)))
+        return True
+    
+    
+    def insertRows(self, row, count=1, index=QModelIndex()):
+        ''' Insert rows above selected row (just shifts studies down)'''
         
-
-
-#insertRows()       beginInsertRows()      endInsertRows()         [ ]
-#insertColumns()    beginInsertColumns()   endInsertColumns()      [ ]
-#removeRows()       beginRemoveRows()      endRemoveRows()         [ ]
-#removeColumns()    beginRemoveColumns()   and endRemoveColumns()  [X]
+        self.undo_stack.push(InsertRowsCommand(model=self, 
+                                               row=row,
+                                               count=count,
+                                               description="Insert %d rows before row %d" % (count, row)))
+        return True
+    
+    
+    def insertColumns(self, column, count=1, index=QModelIndex()):
+        ''' Inserts columns before selected column (just shifts variables right) '''
+        
+        self.undo_stack.push(InsertColumnsCommand(model=self,
+                                                  column=column,
+                                                  count=count,
+                                                  description="Insert %d columns before column %d" % (count, column)))
+        return True
 
 
 
@@ -386,8 +418,11 @@ class EETableModel(QAbstractTableModel):
     
     def column_assigned_to_variable(self, column_index):
         ''' Is the column assigned to a variable? '''
-        
-        return column_index in self.cols_2_vars.keys()
+        return column_index in self.cols_2_vars
+    
+    def row_assigned_to_study(self, row_index):
+        ''' Is the row assigned to a study? '''
+        return row_index in self.rows_2_studies
 
     def headerData(self, section, orientation, role=Qt.DisplayRole):
         if role != Qt.DisplayRole:
@@ -728,9 +763,6 @@ class RemoveColumnsCommand(QUndoCommand):
             # col is a variable column
             if self.model.column_assigned_to_variable(col):
                 self._store_variable_column_data(col) # variable index, variable data in studies
-            
-        # CONTINUE FROM HERE
-                
 
         
     def redo(self):
@@ -814,3 +846,131 @@ class RemoveColumnsCommand(QUndoCommand):
             study.set_var(var, value)
         
         
+class RemoveRowsCommand(QUndoCommand):
+    ''' Removes rows (studies) from the model: used in reimplemented
+    removeRows function '''
+    
+    def __init__(self, model, row, count, description="Remove Rows"):
+        super(RemoveRowsCommand, self).__init__()
+        
+        self.setText(QString(description))
+        
+        self.model = model
+        self.row = row
+        self.count = count
+        
+        self.removed_rows_2_studies = {}
+        # Save studies that will be removed
+        for row in range(self.row, self.row+self.count):
+            # row is an assigned row
+            if row in self.model.rows_2_studies:
+                study = self.model.rows_2_studies[row]
+                self.removed_rows_2_studies[row] = study
+                
+    def redo(self):
+        self.model.beginRemoveRows(QModelIndex(), self.row, self.row+self.count-1)
+        
+        # remove studies on rows we are removing
+        for row in self.removed_rows_2_studies.keys():
+            self.model.remove_study_by_row(row)
+            
+        # shift rows beyond row + count-1 up by count rows
+        self.rows_to_shift = []
+        for row in self.model.rows_2_studies.keys():
+            if row > self.row + self.count - 1:
+                self.rows_to_shift.append(row)
+        self.model.shift_row_assignments(self.rows_to_shift, -self.count)
+            
+        
+        self.model.endRemoveRows()
+        
+    def undo(self):
+        self.model.beginInsertRows(QModelIndex(), self.row, self.row+self.count-1)
+        
+        # shift rows down (reclaiming space for the deleted rows)
+        rows_to_shift_down = [row-self.count for row in self.rows_to_shift]
+        self.model.shift_row_assignments(rows_to_shift_down, self.count)
+        
+        
+        # restore studies to rows and in dataset
+        for row, study in self.removed_rows_2_studies.items():
+            self.model.dataset.add_existing_study(study)
+            self.model.rows_2_studies[row] = study
+        
+        self.model.endInsertRows()
+        
+        
+
+class InsertRowsCommand(QUndoCommand):
+    ''' Inserts rows at the requested location: used in reimplemented
+    insertRows function '''
+    
+    def __init__(self, model, row, count, description="Insert Rows"):
+        super(InsertRowsCommand, self).__init__()
+        
+        self.setText(QString(description))
+        
+        self.model = model
+        self.row = row
+        self.count = count
+        
+    def redo(self):
+        self.model.beginInsertRows(QModelIndex(), self.row, self.row+self.count-1)
+        
+        # shift rows down making space for more studies
+        self.rows_to_shift_down = [row for row in self.model.rows_2_studies.keys() if row >= self.row]
+        self.model.shift_row_assignments(self.rows_to_shift_down, self.count)
+        
+        
+        self.model.endInsertRows()
+        
+        
+        
+    def undo(self):
+        self.model.beginRemoveRows(QModelIndex(), self.row, self.row+self.count-1)
+        
+        # shift rows back up
+        rows_to_shift_up = [row+self.count for row in self.rows_to_shift_down]
+        self.model.shift_row_assignments(rows_to_shift_up, -self.count)
+        
+        self.model.endRemoveRows()
+        
+        
+class InsertColumnsCommand(QUndoCommand):
+    ''' Inserts columns at the requested location: used in reimplemented
+    insertColumns function '''
+    
+    def __init__(self, model, column, count, description="Insert Columns"):
+        super(InsertColumnsCommand, self).__init__()
+        
+        self.setText(QString(description))
+        
+        self.model = model
+        self.column = column
+        self.count = count
+        
+        self.label_column_was_shifted = None
+        
+    def redo(self):
+        self.model.beginInsertColumns(QModelIndex(), self.column, self.column + self.count - 1)
+        
+        self.variable_columns_to_shift_right = [col for col in self.model.cols_2_vars.keys() if col >= self.column]
+        self.model.shift_column_assignments(self.variable_columns_to_shift_right, self.count)
+        if self.model.label_column >= self.column:
+            self.model.label_column = self.model.label_column + self.count
+        
+        
+        self.model.endInsertColumns()
+        
+    def undo(self):
+        self.model.beginRemoveColumns(QModelIndex(), self.column, self.column + self.count - 1)
+        
+        # shift columns back (left)
+        cols_to_shift_left = [col+self.count for col in self.variable_columns_to_shift_right]
+        self.model.shift_column_assignments(cols_to_shift_left, -self.count)
+        
+        # was label was shifted in redo/step?
+        if self.model.label_column >= self.column + self.count:
+            self.model.label_column -= self.count # if so, shift it back
+        
+        self.model.endRemoveColumns()

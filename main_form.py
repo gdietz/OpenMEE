@@ -12,7 +12,7 @@ import useful_dialogs
 
 from globals import *
 
-DEBUG = False #True
+DEBUG = False
 
 class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
     def __init__(self, parent=None):
@@ -38,7 +38,11 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
         
         horizontal_header = self.tableView.horizontalHeader()
         horizontal_header.setContextMenuPolicy(Qt.CustomContextMenu)
-        horizontal_header.customContextMenuRequested.connect(self.make_header_context_menu)
+        horizontal_header.customContextMenuRequested.connect(self.make_horizontal_header_context_menu)
+        
+        vertical_header = self.tableView.verticalHeader()
+        vertical_header.setContextMenuPolicy(Qt.CustomContextMenu)
+        vertical_header.customContextMenuRequested.connect(self.make_vertical_header_context_menu)
         
         
         
@@ -78,33 +82,55 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
     def redo(self):
         #print("Redo action triggered")
         self.undo_stack.redo()
+      
+    def make_vertical_header_context_menu(self, pos):
+        ''' makes the context menu for the row headers when user right-clicks '''
+        
+        '''Actions:
+        Insert row 
+        delete study (row)
+        '''
+        
+        row_clicked = self.tableView.rowAt(pos.y())
+        
+        is_study_row = self.model.row_assigned_to_study(row_clicked)
+        if not is_study_row:
+            return False
+        
+        context_menu = QMenu(self.tableView)
+        
+        # Delete a row(study)
+        delete_row_action = context_menu.addAction("Remove row")
+        QAction.connect(delete_row_action, SIGNAL("triggered()"), lambda: self.model.removeRow(row_clicked))
 
-#    TODO: write vertical row header context menu       
-#    def make_vertical_header_context_menu(self, pos):
-#        ''' makes the context menu for the row headers when user right-clicks '''
-#        
-#        '''Actions:
-#        Insert study (row)
-#        delete study (row)
-#        '''
+        
+        # Insert a row
+        insert_row_action = context_menu.addAction("Insert row")
+        QAction.connect(insert_row_action, SIGNAL("triggered()"), lambda: self.model.insertRow(row_clicked))
+        
+        context_menu.popup(QCursor.pos())
+        
+        
+        
         
     
-    def make_header_context_menu(self, pos):
-        ''' Makes the context menu for column headers when user right-clicks '''
+    def make_horizontal_header_context_menu(self, pos):
+        '''
+        Makes the context menu for column headers when user right-clicks:
+        Possible actions:
+            change format of column (only for variable columns)
+            rename column
+            mark column as label (only for categorical cols)
+            unmark column as label (only for label column)
+            delete column
+            insert column
+        '''
+            
         
         column_clicked = self.tableView.columnAt(pos.x())
         
         if DEBUG:
             print("Right clicked column %d" % column_clicked)
-        
-        ''' Actions                                     |  base |  w/undoredo
-        change format of column                         |  [X]  |  [X]
-        rename column                                   |  [X]  |  [X]
-        mark column as label (only for categorical cols)|  [X]  |  [X]
-        unmark column as label (only for label columns) |  [X]  |  [X]
-        delete variable (label or variable)             |  [ ]  |  [ ]
-        insert column                                   |  [ ]  |  [ ]
-        '''
             
         label_column = self.model.get_label_column()
         is_variable_column = self.model.column_assigned_to_variable(column_clicked)
@@ -123,19 +149,12 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
                 if len(change_format_menu.actions()) > 0:
                     context_menu.addMenu(change_format_menu)
                 
-                # Rename column
-                #rename_action = context_menu.addAction("Rename variable")
-                #QAction.connect(rename_action, SIGNAL("triggered()"), lambda: self.rename_column(column_clicked))
-                
                 # Mark column as label
                 if label_column is None and variable.get_type() == CATEGORICAL:
                     mark_as_label_action = context_menu.addAction("Mark as label column")
                     QAction.connect(mark_as_label_action, SIGNAL("triggered()"),
                                     partial(self.mark_column_as_label, column_clicked))
-                    
-#                # Remove column:
-#                remove_column_action = context_menu.addAction("Remove column")
-#                QAction.connect(remove_column_action, SIGNAL("triggered()"), lambda: self.model.removeColumn(column_clicked))
+        
         else:     #  column is label column
             # Unmark column as label
             unmark_as_label_action = context_menu.addAction("Unmark as label column")
@@ -148,8 +167,11 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
         
         # delete column
         delete_column_action = context_menu.addAction("Remove %s" % ('variable' if is_variable_column else 'label column'))
-        QAction.connect(delete_column_action, SIGNAL("triggered()"), lambda: self.model.removeColumn(column_clicked, parent=QModelIndex()))
-            
+        QAction.connect(delete_column_action, SIGNAL("triggered()"), lambda: self.model.removeColumn(column_clicked))
+        
+        # insert column
+        insert_column_action = context_menu.addAction("Insert column")
+        QAction.connect(insert_column_action, SIGNAL("triggered()"), lambda: self.model.insertColumn(column_clicked))
         
         context_menu.popup(QCursor.pos())
     
