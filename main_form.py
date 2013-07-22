@@ -133,9 +133,9 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
                     QAction.connect(mark_as_label_action, SIGNAL("triggered()"),
                                     partial(self.mark_column_as_label, column_clicked))
                     
-                # Remove column:
-                remove_column_action = context_menu.addAction("Remove column")
-                QAction.connect(remove_column_action, SIGNAL("triggered()"), lambda: self.model.removeColumn(column_clicked))
+#                # Remove column:
+#                remove_column_action = context_menu.addAction("Remove column")
+#                QAction.connect(remove_column_action, SIGNAL("triggered()"), lambda: self.model.removeColumn(column_clicked))
         else:     #  column is label column
             # Unmark column as label
             unmark_as_label_action = context_menu.addAction("Unmark as label column")
@@ -145,6 +145,10 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
         # rename label column
         rename_column_action = context_menu.addAction("Rename %s" % ('variable' if is_variable_column else 'label column')) 
         QAction.connect(rename_column_action, SIGNAL("triggered()"), lambda: self.rename_column(column_clicked))
+        
+        # delete column
+        delete_column_action = context_menu.addAction("Remove %s" % ('variable' if is_variable_column else 'label column'))
+        QAction.connect(delete_column_action, SIGNAL("triggered()"), lambda: self.model.removeColumn(column_clicked, parent=QModelIndex()))
             
         
         context_menu.popup(QCursor.pos())
