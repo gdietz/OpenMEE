@@ -3,24 +3,60 @@ from PyQt4 import QtCore, QtGui
 from PyQt4.Qt import *
 
 # The different types of data that can be associated with studies
-CATEGORICAL, CONTINUOUS, INTEGER = range(3)
-VARIABLE_TYPES = (CATEGORICAL, CONTINUOUS, INTEGER)
+CATEGORICAL, CONTINUOUS, COUNT = range(3)
+VARIABLE_TYPES = (CATEGORICAL, CONTINUOUS, COUNT)
 
 # How variable types are represented as short string (for header labels)
 VARIABLE_TYPE_SHORT_STRING_REPS = {CATEGORICAL:"cat",
                                    CONTINUOUS:"cont",
-                                   INTEGER:"int",}
+                                   COUNT:"count",}
 
 # How variable types are represented as normal length strings
 VARIABLE_TYPE_STRING_REPS = {CATEGORICAL:"Categorical",
                              CONTINUOUS:"Continuous",
-                             INTEGER:"Integer",}
+                             COUNT:"Count",}
 
 # Default # of digits for representing floating point numbers
 DEFAULT_PRECISION = 4
 
 # Default variable type
 DEFAULT_VAR_TYPE = CATEGORICAL
+
+
+# Meta Analysis data type enumerations
+(MEANS_AND_STD_DEVS,
+ TWO_BY_TWO_CONTINGENCY_TABLE,
+ CORRELATION_COEFFICIENTS) = range(3)
+
+# Data type names mapping data types ---> pretty names
+DATA_TYPE_TEXT = {MEANS_AND_STD_DEVS:"Means and Stand. Devs",
+                  TWO_BY_TWO_CONTINGENCY_TABLE:"2x2 Contingency Table", 
+                  CORRELATION_COEFFICIENTS: "Correlation Coefficients",}
+
+# Metric enumerations
+(HEDGES_D, LN_RESPONSE_RATIO,
+ODDS_RATIO, RATE_DIFFERENCE, RELATIVE_RATE,
+FISHER_Z_TRANSFORM) = range(6)
+
+# Mapping of metrics ---> pretty names
+METRIC_TEXT = {HEDGES_D:"Hedges' d",
+               LN_RESPONSE_RATIO:"ln Response Ratio",
+               ODDS_RATIO:"Odds Ratio",
+               RATE_DIFFERENCE:"Rate Difference",
+               RELATIVE_RATE:"Relative Rate",
+               FISHER_Z_TRANSFORM:"Fisher's Z-transform",
+               }
+
+
+
+# dictionary mapping data types to available metrics
+DATA_TYPE_TO_METRICS = {MEANS_AND_STD_DEVS: [HEDGES_D, LN_RESPONSE_RATIO],
+                        TWO_BY_TWO_CONTINGENCY_TABLE: [ODDS_RATIO, RATE_DIFFERENCE, RELATIVE_RATE],
+                        CORRELATION_COEFFICIENTS: [FISHER_Z_TRANSFORM,],
+                        }
+
+
+
 
 ###################### CUSTOM EXCEPTIONS ##################################
 
@@ -83,3 +119,19 @@ class GenericUndoCommand(QUndoCommand):
         self.on_undo_entry()
         self.undo_fn()
         self.on_undo_exit()
+        
+ 
+#http://www.riverbankcomputing.com/pipermail/pyqt/2009-November/025214.html
+def unfill_layout(layout2clear):
+    ''' Unfills a layout and any sub-layouts '''
+    
+    def deleteItems(layout):
+        if layout is not None:
+            while layout.count():
+                item = layout.takeAt(0)
+                widget = item.widget()
+                if widget is not None:
+                    widget.deleteLater()
+                else:
+                    deleteItems(item.layout())
+    deleteItems(layout2clear)

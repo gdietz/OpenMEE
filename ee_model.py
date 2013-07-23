@@ -71,6 +71,27 @@ class EETableModel(QAbstractTableModel):
                                 "Columns to variables: %s\n" % str(self.cols_2_vars)])
         return summary_str + model_info
     
+    
+    ################ Get columns of a particular type ########################
+    def get_catergorical_columns(self):
+        return self._get_columns_of_type(CATEGORICAL)
+    
+    def get_continuous_columns(self):
+        
+        ''' returns a list of column indices with variables that have continuous data'''
+        return self._get_columns_of_type(CONTINUOUS)
+    
+    def get_count_columns(self):
+        return self._get_columns_of_type(COUNT)
+    
+    def _get_columns_of_type(self, var_type):
+        ''' returns a list of column indices with variables of the desired type '''
+        
+        return sorted([col for col,var in self.cols_2_vars.items() if var.get_type()==var_type])
+    
+    ################# END get columns of a particular type ###################
+    
+    
     def _make_arbitrary_mapping_of_rows_to_studies(self):
         studies = self.dataset.get_studies()
         return dict(enumerate(studies))

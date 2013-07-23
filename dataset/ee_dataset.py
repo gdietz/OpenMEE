@@ -106,7 +106,7 @@ class EEDataSet():
                 float(value)
             except ValueError:
                 return False
-        elif new_type == INTEGER:
+        elif new_type == COUNT:
             try:
                 int(float(value))
             except ValueError:
@@ -129,7 +129,7 @@ class EEDataSet():
                 return str(value)
         elif new_type == CONTINUOUS:
             return float(value)
-        elif new_type == INTEGER:
+        elif new_type == COUNT:
             return int(float(value))
         
     def can_convert_variable_to_type(self, var, new_type):

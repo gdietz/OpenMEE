@@ -90,6 +90,7 @@
     <property name="title">
      <string>Analysis</string>
     </property>
+    <addaction name="actionCalculate_Effect_Size"/>
    </widget>
    <addaction name="menuFile"/>
    <addaction name="menuEdit"/>
@@ -230,6 +231,11 @@
   <action name="actionRedo">
    <property name="text">
     <string>Redo</string>
+   </property>
+  </action>
+  <action name="actionCalculate_Effect_Size">
+   <property name="text">
+    <string>Calculate Effect Size</string>
    </property>
   </action>
  </widget>

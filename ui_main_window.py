@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'main_window.ui'
 #
-# Created: Mon Jul  8 14:58:22 2013
+# Created: Mon Jul 22 17:52:39 2013
 #      by: PyQt4 UI code generator 4.10.1
 #
 # WARNING! All changes made in this file will be lost!
@@ -70,8 +70,6 @@ class Ui_MainWindow(object):
         self.actionSave_As.setObjectName(_fromUtf8("actionSave_As"))
         self.actionCSV = QtGui.QAction(MainWindow)
         self.actionCSV.setObjectName(_fromUtf8("actionCSV"))
-        self.actionBanan = QtGui.QAction(MainWindow)
-        self.actionBanan.setObjectName(_fromUtf8("actionBanan"))
         self.actionCopy = QtGui.QAction(MainWindow)
         self.actionCopy.setObjectName(_fromUtf8("actionCopy"))
         self.actionPaste = QtGui.QAction(MainWindow)
@@ -110,6 +108,8 @@ class Ui_MainWindow(object):
         self.actionUndo.setObjectName(_fromUtf8("actionUndo"))
         self.actionRedo = QtGui.QAction(MainWindow)
         self.actionRedo.setObjectName(_fromUtf8("actionRedo"))
+        self.actionCalculate_Effect_Size = QtGui.QAction(MainWindow)
+        self.actionCalculate_Effect_Size.setObjectName(_fromUtf8("actionCalculate_Effect_Size"))
         self.menuImport.addAction(self.actionCSV)
         self.menuExport.addAction(self.actionAs_CSV)
         self.menuFile.addAction(self.actionNew)
@@ -142,6 +142,7 @@ class Ui_MainWindow(object):
         self.menuTable.addAction(self.actionUnmark_Column_as_Label)
         self.menuTable.addSeparator()
         self.menuTable.addAction(self.actionTable_Preferences)
+        self.menuAnalysis.addAction(self.actionCalculate_Effect_Size)
         self.menubar.addAction(self.menuFile.menuAction())
         self.menubar.addAction(self.menuEdit.menuAction())
         self.menubar.addAction(self.menuTable.menuAction())
@@ -166,7 +167,6 @@ class Ui_MainWindow(object):
         self.actionExit.setText(_translate("MainWindow", "Exit", None))
         self.actionSave_As.setText(_translate("MainWindow", "Save As...", None))
         self.actionCSV.setText(_translate("MainWindow", "CSV", None))
-        self.actionBanan.setText(_translate("MainWindow", "banan", None))
         self.actionCopy.setText(_translate("MainWindow", "Copy", None))
         self.actionPaste.setText(_translate("MainWindow", "Paste", None))
         self.actionClear_Selected_Cells.setText(_translate("MainWindow", "Clear Selected Cells", None))
@@ -186,4 +186,5 @@ class Ui_MainWindow(object):
         self.actionAs_CSV.setText(_translate("MainWindow", "As CSV", None))
         self.actionUndo.setText(_translate("MainWindow", "Undo", None))
         self.actionRedo.setText(_translate("MainWindow", "Redo", None))
+        self.actionCalculate_Effect_Size.setText(_translate("MainWindow", "Calculate Effect Size", None))
 
