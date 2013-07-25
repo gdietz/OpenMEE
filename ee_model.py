@@ -58,6 +58,10 @@ class EETableModel(QAbstractTableModel):
         self.rowlimit = ADDITIONAL_ROWS
         self.collimit = ADDITIONAL_COLS
         
+    def get_studies_in_current_order(self):
+        studies = [self.rows_2_studies[row] for row in sorted(self.rows_2_studies.keys())]
+        return studies
+        
     def __str__(self):
         rows_2_study_ids = dict([(row, study.get_id()) for (row, study) in self.rows_2_studies.items()])
         
@@ -590,6 +594,50 @@ class EETableModel(QAbstractTableModel):
         for i,label in zip(range(length), excel_column_headers()):
             self.default_headers.append(QString(label))
         return self.default_headers
+    
+    
+    def add_effect_sizes_to_model(self, metric, effect_sizes):
+    
+        studies = self.get_studies_in_current_order()
+        last_occupied_col = sorted(self.cols_2_vars.keys(), reverse=True)[0]
+        yi_col = last_occupied_col+1
+        vi_col = yi_col+1
+        
+    
+        self.undo_stack.beginMacro(QString("Adding effect size to spreadsheet"))
+        
+        start_cmd = GenericUndoCommand(redo_fn=self.beginResetModel,
+                                      undo_fn=self.endResetModel)
+        self.undo_stack.push(start_cmd)
+        ##################################################################
+        # Make new variables to hold the effect size calculations
+        add_vi_cmd = MakeNewVariableCommand(model=self,
+                                            var_name=METRIC_TEXT_SHORT[metric],
+                                            col=yi_col,
+                                            var_type=CONTINUOUS)
+        add_yi_cmd = MakeNewVariableCommand(model=self,
+                                            var_name="Var(%s)" % METRIC_TEXT_SHORT[metric],
+                                            col=vi_col,
+                                            var_type=CONTINUOUS)
+        self.undo_stack.push(add_vi_cmd)
+        self.undo_stack.push(add_yi_cmd)
+        
+        variable_yi = self.get_variable_assigned_to_column(yi_col)
+        variable_vi = self.get_variable_assigned_to_column(vi_col)
+        
+        for study, val_yi, val_vi in zip(studies, effect_sizes['yi'], effect_sizes['vi']):
+            set_vi_cmd = SetVariableValueCommand(study, variable_yi, val_yi)
+            set_yi_cmd = SetVariableValueCommand(study, variable_vi, val_vi)
+            self.undo_stack.push(set_vi_cmd)
+            self.undo_stack.push(set_yi_cmd)
+            
+        ##################################################################
+        end_cmd = GenericUndoCommand(redo_fn=self.endResetModel,
+                                     undo_fn=self.beginResetModel)
+        self.undo_stack.push(end_cmd)
+        
+        
+        self.undo_stack.endMacro()
     
     
         

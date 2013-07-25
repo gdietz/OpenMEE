@@ -44,7 +44,6 @@ class ChooseEffectSizePage(QWizardPage, ui_choose_effect_size_page.Ui_choose_eff
         
         self.wizard().adjustSize()
         
-        
     def _update_data_type_selection(self, state, data_type):
         if state:
             self.selected_data_type = data_type

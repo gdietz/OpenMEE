@@ -9,7 +9,7 @@ import python_to_R
 import main_form
 import icons_rc
 
-SPLASH_DISPLAY_TIME = 2
+SPLASH_DISPLAY_TIME = 0
 
 def load_R_libraries(app, splash=None):
     ''' Loads the R libraries while updating the splash screen'''
@@ -30,6 +30,7 @@ def start():
     splash_pixmap = QPixmap(":/splash/splash.jpg")
     splash = QSplashScreen(splash_pixmap)
     splash.show()
+    splash.raise_()
     splash_starttime = time.time()
     
     load_R_libraries(app, splash)
@@ -40,6 +41,7 @@ def start():
     if time_elapsed < SPLASH_DISPLAY_TIME: # seconds
         print("Going to sleep for %f seconds" % float(SPLASH_DISPLAY_TIME-time_elapsed))
         QThread.sleep(int(SPLASH_DISPLAY_TIME-time_elapsed))
+        print("woke up")
 
     form = main_form.MainForm()
     splash.finish(form)

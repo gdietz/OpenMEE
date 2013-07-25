@@ -41,12 +41,25 @@ FISHER_Z_TRANSFORM) = range(6)
 # Mapping of metrics ---> pretty names
 METRIC_TEXT = {HEDGES_D:"Hedges' d",
                LN_RESPONSE_RATIO:"ln Response Ratio",
-               ODDS_RATIO:"Odds Ratio",
+               ODDS_RATIO:"Log Odds Ratio",
                RATE_DIFFERENCE:"Rate Difference",
-               RELATIVE_RATE:"Relative Rate",
+               RELATIVE_RATE:"Log Relative Rate",
                FISHER_Z_TRANSFORM:"Fisher's Z-transform",
                }
-
+METRIC_TEXT_SHORT = {HEDGES_D:"d",
+                     LN_RESPONSE_RATIO:"ln Resp.R",
+                     ODDS_RATIO:"ln OR",
+                     RATE_DIFFERENCE:"RD",
+                     RELATIVE_RATE:"ln RR",
+                     FISHER_Z_TRANSFORM:"Zr",
+                     }
+METRIC_TO_ESCALC_MEASURE = {HEDGES_D: "SMD",
+                            #LN_RESPONSE_RATIO: None, # ln RR not in escalc
+                            ODDS_RATIO:"OR",
+                            RATE_DIFFERENCE:"RD",
+                            RELATIVE_RATE:"RR",
+                            FISHER_Z_TRANSFORM:"ZCOR",
+                            }
 
 
 # dictionary mapping data types to available metrics
@@ -55,7 +68,7 @@ DATA_TYPE_TO_METRICS = {MEANS_AND_STD_DEVS: [HEDGES_D, LN_RESPONSE_RATIO],
                         CORRELATION_COEFFICIENTS: [FISHER_Z_TRANSFORM,],
                         }
 
-
+EFFECT_SIZE_KEYS = ('yi','vi')
 
 
 ###################### CUSTOM EXCEPTIONS ##################################
@@ -63,6 +76,16 @@ DATA_TYPE_TO_METRICS = {MEANS_AND_STD_DEVS: [HEDGES_D, LN_RESPONSE_RATIO],
 class DuplicateItemError(Exception):
     def __init__(self, arg):
         self.args = arg
+        
+class CrazyRError(Exception):
+    def __init__(self, msg, R_error=None):
+        self.msg = msg
+        self.R_error = R_error
+    
+    def __str__(self):
+        return self.msg + ": " + str(self.R_error)
+        
+        
 
 ############################# Helper functions #############################
 

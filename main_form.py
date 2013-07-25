@@ -7,8 +7,10 @@ from functools import partial
 from sets import Set
 
 import ui_main_window
+import calculate_effect_sizes_wizard
 import ee_model
 import useful_dialogs
+import python_to_R
 
 from globals import *
 
@@ -58,7 +60,38 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
     def setup_connections(self):
         QObject.connect(self.model, SIGNAL("DataError"), self.warning_msg)
         QObject.connect(self.model, SIGNAL("dataChanged(QModelIndex, QModelIndex)"), self.change_index_after_data_edited)
+        QObject.connect(self.actionCalculate_Effect_Size, SIGNAL("triggered()"), self.calculate_effect_size)
+    
+    def calculate_effect_size(self):
+        ''' Opens the calculate effect size wizard form and then calculates the new
+        effect size. Places the new calculated effect + variance in the 2
+        columns beyond the most recently occupied one as new continuous
+        variables '''
         
+        wizard = calculate_effect_sizes_wizard.CalculateEffectSizeWizard(self.model)
+        
+        if wizard.exec_():
+            data_type = wizard.selected_data_type
+            metric = wizard.selected_metric
+            data_location = wizard.data_location
+            
+            data = python_to_R.gather_data(self.model, data_location)
+            try:
+                effect_sizes = python_to_R.effect_size(metric, data_type, data)
+            except CrazyRError as e:
+                QMessageBox.critical(self, QString("R error"), QString(str(e)))
+                return False
+            # effect sizes is just yi and vi
+            self.model.add_effect_sizes_to_model(metric, effect_sizes)
+            print("Computed these effect sizes: %s" % str(effect_sizes))
+            
+        
+    
+    
+
+        
+        
+    
     def change_index_after_data_edited(self, index_top_left, index_bottom_right):
         row, col = index_top_left.row(), index_top_left.column()
         row += 1
@@ -340,4 +373,5 @@ if __name__ == '__main__':
     app = QApplication(sys.argv)
     form = MainForm()
     form.show()
+    
     app.exec_()

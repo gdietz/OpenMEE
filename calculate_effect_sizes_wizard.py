@@ -20,6 +20,7 @@ class CalculateEffectSizeWizard(QtGui.QWizard):
         
         self.selected_data_type = None
         self.selected_metric = None
+        self.data_location = None
         
         QObject.connect(self, SIGNAL("currentIdChanged(int)"), self._change_size)
     
