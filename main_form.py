@@ -3,8 +3,11 @@ from PyQt4.Qt import *
 
 import sys
 import pdb
+import os
 from functools import partial
-from sets import Set
+#from sets import Set
+from collections import deque
+import pickle
 
 import ui_main_window
 import calculate_effect_sizes_wizard
@@ -16,14 +19,34 @@ from globals import *
 
 DEBUG = False
 
+# TODO: Handle setting the dirty bit more correctly in undo/redo
+# right now just set it all the time during redo but don't bother unsetting it
+
+
+class RecentFilesManager:
+    def __init__(self):
+        self.recent_files = deque(maxlen=MAX_RECENT_FILES)
+    
+    def add_file(self, fpath):
+        # add a new file to the front of the deque
+        # move existing file to the front of the deque
+        
+        if fpath in [None, ""]:
+            return False
+        
+        if fpath in self.recent_files: #file already in deque so move to front
+            self.recent_files.remove(fpath)
+        self.recent_files.appendleft(fpath)
+        
+    def get_list(self):
+        return list(self.recent_files)
+
 class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
     def __init__(self, parent=None):
         super(MainForm, self).__init__(parent)
         self.setupUi(self)
         
         self.undo_stack = QUndoStack(self)
-        
-
         
         self.model = ee_model.EETableModel(undo_stack=self.undo_stack)
         self.tableView.setModel(self.model)
@@ -37,6 +60,8 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
 
         self.setup_menus()
         self.setup_connections()
+        self.load_user_prefs()
+        self.outpath = None
         
         horizontal_header = self.tableView.horizontalHeader()
         horizontal_header.setContextMenuPolicy(Qt.CustomContextMenu)
@@ -46,8 +71,44 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
         vertical_header.setContextMenuPolicy(Qt.CustomContextMenu)
         vertical_header.customContextMenuRequested.connect(self.make_vertical_header_context_menu)
         
+        self.set_window_title()
         
+    def set_window_title(self):
+        if self.outpath is None:
+            filename = DEFAULT_FILENAME
+        else:
+            filename = os.path.basename(self.outpath)
+        self.setWindowTitle(' - '.join([PROGRAM_NAME, filename]))
+    
+    def set_model(self, state):
+        '''
+        Used when loading a picked model. Take note we clear the undo
+        stack here
+        '''
+        self.disconnect_model_connections()
         
+        self.undo_stack.clear()
+        self.model = ee_model.EETableModel(undo_stack=self.undo_stack,
+                                           model_state=state)
+        self.model.dirty = False
+        self.tableView.setModel(self.model)
+        
+        self.make_model_connections()
+        
+    def load_user_prefs(self, filename=USER_PREFERENCES_FILENAME):
+        try:
+            with open(filename, 'rb') as f:
+                self.user_prefs = pickle.load(f)
+        except IOError: # file doesn't exist
+            # make default preferences
+            self.user_prefs = {'recent_files': RecentFilesManager(),}
+            
+        
+        self.populate_recent_datasets()
+        
+    def save_user_prefs(self, filename=USER_PREFERENCES_FILENAME):
+        with open(filename, 'wb') as f:
+            pickle.dump(self.user_prefs, f)
 
     def setup_menus(self):
         QObject.connect(self.actionUndo, SIGNAL("triggered()"), self.undo)
@@ -55,12 +116,31 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
         
         QObject.connect(self.actionRedo, SIGNAL("triggered()"), self.redo)
         self.actionRedo.setShortcut(QKeySequence.Redo)
-        
     
     def setup_connections(self):
+        self.make_model_connections()
+        
+        QObject.connect(self.actionCalculate_Effect_Size, SIGNAL("triggered()"), self.calculate_effect_size)
+        QObject.connect(self.actionSave   , SIGNAL("triggered()"), self.save)
+        QObject.connect(self.actionSave_As, SIGNAL("triggered()"), lambda: self.save(save_as=True))
+        QObject.connect(self.actionOpen   , SIGNAL("triggered()"), self.open)
+        QObject.connect(self.actionNew    , SIGNAL("triggered()"), self.new_dataset)
+        
+    def populate_recent_datasets(self):
+        self.menuRecent_Data.clear()
+        
+        for fpath in self.user_prefs['recent_files'].get_list():
+            action = self.menuRecent_Data.addAction("Load %s" % fpath)
+            QObject.connect(action, SIGNAL("triggered()"), partial(self.open, file_path=fpath))
+            
+        
+    def disconnect_model_connections(self):
+        QObject.disconnect(self.model, SIGNAL("DataError"), self.warning_msg)
+        QObject.disconnect(self.model, SIGNAL("dataChanged(QModelIndex, QModelIndex)"), self.change_index_after_data_edited)
+        
+    def make_model_connections(self):
         QObject.connect(self.model, SIGNAL("DataError"), self.warning_msg)
         QObject.connect(self.model, SIGNAL("dataChanged(QModelIndex, QModelIndex)"), self.change_index_after_data_edited)
-        QObject.connect(self.actionCalculate_Effect_Size, SIGNAL("triggered()"), self.calculate_effect_size)
     
     def calculate_effect_size(self):
         ''' Opens the calculate effect size wizard form and then calculates the new
@@ -83,6 +163,7 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
                 return False
             # effect sizes is just yi and vi
             self.model.add_effect_sizes_to_model(metric, effect_sizes)
+            
             print("Computed these effect sizes: %s" % str(effect_sizes))
             
         
@@ -225,7 +306,7 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
                                                   on_undo_entry=on_entry, on_undo_exit=on_exit,
                                                   description="Mark column '%s' as label" % variable_name)
         self.undo_stack.push(mark_column_as_label_cmd)
-        
+        self.model._set_dirty_bit()
         
     def unmark_column_as_label(self, col):
         ''' Unmarks column as label and makes it a CATEGORICAL variable '''
@@ -243,7 +324,7 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
                                             on_undo_entry=on_entry, on_undo_exit=on_exit,
                                             description="Unmark column '%s' as label" % label_column_name)
         self.undo_stack.push(unmark_column_as_label_cmd)
-
+        self.model._set_dirty_bit()
     
     def rename_column(self, col):
         is_label_column = col == self.model.label_column
@@ -278,7 +359,111 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
             undo = partial(self.model.change_variable_name, var, new_name=initial_name)
             rename_column_command = GenericUndoCommand(redo_fn=redo, undo_fn=undo, description="Renamed variable '%s' to '%s'" % (initial_name, proposed_name))
         self.undo_stack.push(rename_column_command)
+        self.model._set_dirty_bit()
+        
+    def prompt_user_about_unsaved_data(self):
+        ''' Prompts user to save if data as has changed. Returns true if user
+        chose to save or discard their changes to the data, False if cancelled'''
+        
+        # If nothing has changed, just leave
+        if not self.model.dirty:
+            return True
+        
+        choice = QMessageBox.warning(self, "Warning",
+                        "Changes have been made to the data. Do you want to save your changes, discard them, or cancel?",
+                        QMessageBox.Save | QMessageBox.Discard | QMessageBox.Cancel)
+        if choice == QMessageBox.Save:
+            self.save()
+            return True
+        
+        return choice != QMessageBox.Cancel
+        
 
+    def open(self, file_path=None):
+        ''' Prompts user to open a file and then opens it (picked data model) '''
+        
+        # If user pressed cancel do nothing
+        if not self.prompt_user_about_unsaved_data():
+            return False
+        
+        # prompt the user if no file_name is provided
+        if file_path is None:
+            file_path = unicode(QFileDialog.getOpenFileName(parent=self, caption=QString("Open File"), filter="OpenMEE files (*.ome)"))
+        
+        # Leave if they didn't choose anything
+        if file_path == "":
+            return False
+        
+
+        
+        print("Loading %s ..." % str(file_path))
+        try:
+            with open(file_path, 'rb') as f:
+                state = pickle.load(f)
+        except Exception as e:
+            msg = "Could not open %s, the error is: %s" % (str(file_path),str(e))
+            QMessageBox.critical(self, "Oops", msg)
+            return False
+        
+        print("Opened %s" % file_path)
+        
+        # add to collection of recent files
+        self.user_prefs['recent_files'].add_file(file_path)
+        self.save_user_prefs()
+        self.populate_recent_datasets()
+        
+        # Rebuilds model from state,
+        #  sets model,
+        #  clears undo stack,
+        #  unsets dirty bit
+        #  disconnects old model and establishes connections for new model
+        self.set_model(state)
+        
+        # Store filename for when we want to save again
+        self.outpath = file_path
+        self.set_window_title()
+        
+        # reset undo view form
+        self.undo_view_form.set_stack_and_model(self.undo_stack, self.model)
+        
+        return True
+    
+    def new_dataset(self):
+        self.prompt_user_about_unsaved_data()
+        
+        self.undo_stack.clear()
+        self.model = ee_model.EETableModel(undo_stack=self.undo_stack)
+        self.model.dirty = False
+        self.tableView.setModel(self.model)
+        
+    def save(self, save_as=False):
+        if self.outpath is None or save_as:
+            out_fpath = os.path.join('.', DEFAULT_FILENAME)
+            out_fpath = unicode(QFileDialog.getSaveFileName(self, "OpenMEE - Save File",
+                                                         out_fpath, "OpenMEE files: (.ome)"))
+            if out_fpath in ["", None]:
+                return False
+            else:
+                self.outpath = out_fpath
+        
+        # pickle the 'state' of the model which contains the dataset, etc
+        try:
+            with open(self.outpath, 'wb') as f:
+                pickle.dump(self.model.get_state(), f)
+        except Exception as e:
+            QMessageBox.critical(self, "Oops", "Something bad happened when trying to save: %s" % str(e))
+            return False
+        
+        # add to collection of recent files
+        self.user_prefs['recent_files'].add_file(self.outpath)
+        self.save_user_prefs()
+        self.populate_recent_datasets()
+        
+        print("Saved %s" % self.outpath)
+        self.set_window_title()
+        
+        return True
+            
     
     def add_choices_to_change_format_menu(self, change_format_menu, col):
         '''
@@ -309,7 +494,7 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
             # Construct undo/redo command
             # TODO: warn user about permanent loss of precision upon converting a double to an int
             #convert_to_target = partial(self.model.change_variable_type, var_name, target_conversion, self.model.get_precision())
-            convert_to_target = ChangeVariableFormatCommand(
+            convert_to_target = ee_model.ChangeVariableFormatCommand(
                                     model=self.model,
                                     variable=var,
                                     target_type=target_conversion,
@@ -333,38 +518,7 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
 
 
 
-class ChangeVariableFormatCommand(QUndoCommand):
-    ''' Changes the format of a variable '''
-    
-    def __init__(self, model, variable, target_type, precision, description="Change variable format"):
-        super(ChangeVariableFormatCommand, self).__init__()
-        
-        self.setText(QString(description))
-        
-        self.model = model
-        self.variable=variable
-        self.target_type = target_type
-        self.precision = precision
-        
-        self.original_var_type = variable.get_type()
-        # dictionary mapping studies to their original values for the given variable
-        self.orignal_vals = {}
-        
-    def redo(self):
-        self._store_original_data_values_for_variable()
-        self.model.change_variable_type(self.variable, self.target_type, self.precision)
-        
-    def undo(self):
-        self.model.change_variable_type(self.variable, self.original_var_type, self.precision)
-        self._restore_orignal_data_values_for_variable()
-        
-    def _store_original_data_values_for_variable(self):
-        for study in self.model.dataset.get_studies():
-            self.orignal_vals[study] = study.get_var(self.variable)
-    
-    def _restore_orignal_data_values_for_variable(self):
-        for study, value in self.orignal_vals.items():
-            study.set_var(self.variable, value)
+
 
 
         

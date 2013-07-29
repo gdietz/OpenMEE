@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'main_window.ui'
 #
-# Created: Wed Jul 24 10:34:07 2013
+# Created: Mon Jul 29 15:06:40 2013
 #      by: PyQt4 UI code generator 4.10.1
 #
 # WARNING! All changes made in this file will be lost!
@@ -44,6 +44,8 @@ class Ui_MainWindow(object):
         self.menuImport.setObjectName(_fromUtf8("menuImport"))
         self.menuExport = QtGui.QMenu(self.menuFile)
         self.menuExport.setObjectName(_fromUtf8("menuExport"))
+        self.menuRecent_Data = QtGui.QMenu(self.menuFile)
+        self.menuRecent_Data.setObjectName(_fromUtf8("menuRecent_Data"))
         self.menuEdit = QtGui.QMenu(self.menubar)
         self.menuEdit.setObjectName(_fromUtf8("menuEdit"))
         self.menuTable = QtGui.QMenu(self.menubar)
@@ -62,8 +64,6 @@ class Ui_MainWindow(object):
         self.actionSave.setObjectName(_fromUtf8("actionSave"))
         self.actionClose = QtGui.QAction(MainWindow)
         self.actionClose.setObjectName(_fromUtf8("actionClose"))
-        self.actionRecent_Data = QtGui.QAction(MainWindow)
-        self.actionRecent_Data.setObjectName(_fromUtf8("actionRecent_Data"))
         self.actionExit = QtGui.QAction(MainWindow)
         self.actionExit.setObjectName(_fromUtf8("actionExit"))
         self.actionSave_As = QtGui.QAction(MainWindow)
@@ -110,6 +110,8 @@ class Ui_MainWindow(object):
         self.actionRedo.setObjectName(_fromUtf8("actionRedo"))
         self.actionCalculate_Effect_Size = QtGui.QAction(MainWindow)
         self.actionCalculate_Effect_Size.setObjectName(_fromUtf8("actionCalculate_Effect_Size"))
+        self.actionNone = QtGui.QAction(MainWindow)
+        self.actionNone.setObjectName(_fromUtf8("actionNone"))
         self.menuImport.addAction(self.actionCSV)
         self.menuExport.addAction(self.actionAs_CSV)
         self.menuFile.addAction(self.actionNew)
@@ -119,7 +121,7 @@ class Ui_MainWindow(object):
         self.menuFile.addAction(self.menuImport.menuAction())
         self.menuFile.addAction(self.menuExport.menuAction())
         self.menuFile.addSeparator()
-        self.menuFile.addAction(self.actionRecent_Data)
+        self.menuFile.addAction(self.menuRecent_Data.menuAction())
         self.menuFile.addSeparator()
         self.menuFile.addAction(self.actionExit)
         self.menuEdit.addAction(self.actionUndo)
@@ -156,6 +158,7 @@ class Ui_MainWindow(object):
         self.menuFile.setTitle(_translate("MainWindow", "File", None))
         self.menuImport.setTitle(_translate("MainWindow", "Import", None))
         self.menuExport.setTitle(_translate("MainWindow", "Export", None))
+        self.menuRecent_Data.setTitle(_translate("MainWindow", "Recent Data...", None))
         self.menuEdit.setTitle(_translate("MainWindow", "Edit", None))
         self.menuTable.setTitle(_translate("MainWindow", "Table", None))
         self.menuAnalysis.setTitle(_translate("MainWindow", "Analysis", None))
@@ -163,7 +166,6 @@ class Ui_MainWindow(object):
         self.actionOpen.setText(_translate("MainWindow", "Open", None))
         self.actionSave.setText(_translate("MainWindow", "Save", None))
         self.actionClose.setText(_translate("MainWindow", "Close", None))
-        self.actionRecent_Data.setText(_translate("MainWindow", "Recent Data...", None))
         self.actionExit.setText(_translate("MainWindow", "Exit", None))
         self.actionSave_As.setText(_translate("MainWindow", "Save As...", None))
         self.actionCSV.setText(_translate("MainWindow", "CSV", None))
@@ -187,4 +189,5 @@ class Ui_MainWindow(object):
         self.actionUndo.setText(_translate("MainWindow", "Undo", None))
         self.actionRedo.setText(_translate("MainWindow", "Redo", None))
         self.actionCalculate_Effect_Size.setText(_translate("MainWindow", "Calculate Effect Size", None))
+        self.actionNone.setText(_translate("MainWindow", "None", None))
 

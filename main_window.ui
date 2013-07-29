@@ -45,6 +45,11 @@
      </property>
      <addaction name="actionAs_CSV"/>
     </widget>
+    <widget class="QMenu" name="menuRecent_Data">
+     <property name="title">
+      <string>Recent Data...</string>
+     </property>
+    </widget>
     <addaction name="actionNew"/>
     <addaction name="actionOpen"/>
     <addaction name="actionSave"/>
@@ -52,7 +57,7 @@
     <addaction name="menuImport"/>
     <addaction name="menuExport"/>
     <addaction name="separator"/>
-    <addaction name="actionRecent_Data"/>
+    <addaction name="menuRecent_Data"/>
     <addaction name="separator"/>
     <addaction name="actionExit"/>
    </widget>
@@ -116,11 +121,6 @@
   <action name="actionClose">
    <property name="text">
     <string>Close</string>
-   </property>
-  </action>
-  <action name="actionRecent_Data">
-   <property name="text">
-    <string>Recent Data...</string>
    </property>
   </action>
   <action name="actionExit">
@@ -236,6 +236,11 @@
   <action name="actionCalculate_Effect_Size">
    <property name="text">
     <string>Calculate Effect Size</string>
+   </property>
+  </action>
+  <action name="actionNone">
+   <property name="text">
+    <string>None</string>
    </property>
   </action>
  </widget>

@@ -139,10 +139,11 @@ def effect_size(metric, data_type, data):
     else:
         raise Exception("Data type not recognized")
     
-    print("Executing in R: r_str")
+    print("Executing in R: %s" % r_str)
     
     
     escalc_result = try_n_run(lambda: ro.r(r_str))
+    
     
     result = dataframe_to_pydict(escalc_result) #yi, vi
     return result

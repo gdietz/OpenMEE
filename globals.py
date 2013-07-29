@@ -70,6 +70,11 @@ DATA_TYPE_TO_METRICS = {MEANS_AND_STD_DEVS: [HEDGES_D, LN_RESPONSE_RATIO],
 
 EFFECT_SIZE_KEYS = ('yi','vi')
 
+MAX_RECENT_FILES = 10
+USER_PREFERENCES_FILENAME = "user_prefs.dict"
+DEFAULT_FILENAME = "untited_dataset.ome"
+
+PROGRAM_NAME = "OpenMEE"
 
 ###################### CUSTOM EXCEPTIONS ##################################
 

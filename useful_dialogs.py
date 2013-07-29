@@ -60,6 +60,9 @@ class UndoViewForm(QDialog):
     def _print_model_info(self):
         print(self.model)
         
+    def set_stack_and_model(self, stack, model):
+        self.undoView.setStack(stack)
+        self.model = model
         
         
         

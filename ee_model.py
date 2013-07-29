@@ -12,6 +12,7 @@ import pdb
 import string
 from sets import Set
 from functools import partial
+import copy
 
 # handrolled
 from dataset.ee_dataset import EEDataSet
@@ -31,32 +32,68 @@ FORBIDDEN_VARIABLE_NAMES = [LABEL_PREFIX_MARKER,]
 # * Don't show option to change the format of a column marked as label
 # * Add options to mark/unmark column as label ----> categorical
 
+class ModelState:
+    def __init__(self, dataset, precision, dirty, rows_2_studies, cols_2_vars,
+                 label_column, label_column_name_label):
+        self.dataset   = dataset
+        self.precision = precision
+        self.dirty     = dirty
+        self.rows_2_studies = rows_2_studies
+        self.cols_2_vars    = cols_2_vars
+        self.label_column   = label_column
+        self.label_column_name_label = label_column_name_label
+        
+
 class EETableModel(QAbstractTableModel):
-    def __init__(self, undo_stack):
+    def __init__(self, undo_stack, model_state=None):
         super(EETableModel, self).__init__()
         
         # Give model access to undo_stack
         self.undo_stack = undo_stack
-        self.dataset = EEDataSet()
         
+        if model_state is None:
+            self.dataset = EEDataSet()
+            self.precision = DEFAULT_PRECISION
+            self.dirty = False
+            
+            # mapping rows to studies
+            self.rows_2_studies = self._make_arbitrary_mapping_of_rows_to_studies()
+            # For each variable name, store its column location
+            (self.cols_2_vars, self.label_column) = self._make_arbitrary_mapping_of_cols_to_variables()
+            self.label_column_name_label = "Study Labels"
+        else:
+            self.load_model_state(model_state)
         
-        ###self.filename = filename
-        self.precision = DEFAULT_PRECISION
-        self.dirty = False
         
         self.default_headers = self._generate_header_string(ADDITIONAL_COLS)
-    
-        # mapping rows to studies
-        # For each variable name, store its column location
-        #    the label column (if it exists) is included here even though it
-        #    is not really a variable
-        self.rows_2_studies = self._make_arbitrary_mapping_of_rows_to_studies()
-        (self.cols_2_vars, self.label_column) = self._make_arbitrary_mapping_of_cols_to_variables()
-        self.label_column_name_label = "Study Labels"
-        
         # for rowCount() and colCount()
         self.rowlimit = ADDITIONAL_ROWS
         self.collimit = ADDITIONAL_COLS
+        self.change_column_count_if_needed()
+        self.change_row_count_if_needed()
+    
+    def get_state(self):
+        ''' returns a class representing the model's state '''
+        
+        return ModelState(dataset   = self.dataset,
+                          precision = self.precision, 
+                          dirty     = self.dirty,
+                          rows_2_studies = self.rows_2_studies, 
+                          cols_2_vars    = self.cols_2_vars,
+                          label_column   = self.label_column,
+                          label_column_name_label = self.label_column_name_label)
+        
+    def load_model_state(self, state):
+        self.dataset        = state.dataset
+        self.precision      = state.precision
+        self.dirty          = state.dirty
+        self.rows_2_studies = state.rows_2_studies
+        self.cols_2_vars    = state.cols_2_vars
+        self.label_column   = state.label_column
+        self.label_column_name_label = state.label_column_name_label
+        
+    def set_undo_stack(self, undo_stack):
+        self.undo_stack = undo_stack
         
     def get_studies_in_current_order(self):
         studies = [self.rows_2_studies[row] for row in sorted(self.rows_2_studies.keys())]
@@ -124,28 +161,28 @@ class EETableModel(QAbstractTableModel):
         
         
     def change_row_count_if_needed(self):
-        old_rowlimit = self.rowlimit
+        old_row_limit = self.rowlimit
         max_occupied_row = self._get_max_occupied_row()
         if max_occupied_row is None:
             new_row_limit = ADDITIONAL_ROWS
         else:
             nearest_row_increment = int(round(float(max_occupied_row)/ADDITIONAL_ROWS) * ADDITIONAL_ROWS)
-            new_rowlimit = nearest_row_increment + ADDITIONAL_ROWS
-        if new_rowlimit != old_rowlimit:
-            self.rowlimit = new_rowlimit
+            new_row_limit = nearest_row_increment + ADDITIONAL_ROWS
+        if new_row_limit != old_row_limit:
+            self.rowlimit = new_row_limit
             self.beginResetModel()
             self.endResetModel()
             
     def change_column_count_if_needed(self):
-        old_collimit = self.collimit
+        old_col_limit = self.collimit
         max_occupied_col = self._get_max_occupied_col()
         if max_occupied_col is None:
             new_col_limit = ADDITIONAL_COLS
         else:
             nearest_col_increment = int(round(float(max_occupied_col)/ADDITIONAL_COLS) * ADDITIONAL_COLS)
-            new_collimit = nearest_col_increment + ADDITIONAL_COLS
-        if new_collimit != old_collimit:
-            self.collimit = new_collimit
+            new_col_limit = nearest_col_increment + ADDITIONAL_COLS
+        if new_col_limit != old_col_limit:
+            self.collimit = new_col_limit
             self.beginResetModel()
             self.endResetModel()
     
@@ -595,6 +632,8 @@ class EETableModel(QAbstractTableModel):
             self.default_headers.append(QString(label))
         return self.default_headers
     
+    def _set_dirty_bit(self, state=True):
+        self.dirty = state
     
     def add_effect_sizes_to_model(self, metric, effect_sizes):
     
@@ -607,7 +646,7 @@ class EETableModel(QAbstractTableModel):
         self.undo_stack.beginMacro(QString("Adding effect size to spreadsheet"))
         
         start_cmd = GenericUndoCommand(redo_fn=self.beginResetModel,
-                                      undo_fn=self.endResetModel)
+                                      undo_fn=self.endResetModel,)
         self.undo_stack.push(start_cmd)
         ##################################################################
         # Make new variables to hold the effect size calculations
@@ -666,6 +705,7 @@ class MakeStudyCommand(QUndoCommand):
         self.model = model
         self.row = row
         self.study = None
+        self.model.dirty = True
         
         
     def redo(self):
@@ -697,6 +737,8 @@ class RemoveStudyCommand(QUndoCommand):
         self.model = model
         self.row = row
         self.study = self.model.rows_2_studies[self.row]
+        
+        self.model.dirty = True
         
     def redo(self):
         if DEBUG: print("redo: remove study")
@@ -743,6 +785,7 @@ class MakeNewVariableCommand(QUndoCommand):
         self.var = None # this is where the new variable will be kept
         
         self.setText(QString("Created variable '%s'" % self.var_name))
+        self.model.dirty = True
         
         
     def redo(self):
@@ -832,6 +875,8 @@ class RemoveColumnsCommand(QUndoCommand):
             # col is a variable column
             if self.model.column_assigned_to_variable(col):
                 self._store_variable_column_data(col) # variable index, variable data in studies
+                
+        self.model.dirty = True
 
         
     def redo(self):
@@ -935,6 +980,8 @@ class RemoveRowsCommand(QUndoCommand):
             if row in self.model.rows_2_studies:
                 study = self.model.rows_2_studies[row]
                 self.removed_rows_2_studies[row] = study
+        
+        self.model.dirty = True
                 
     def redo(self):
         self.model.beginRemoveRows(QModelIndex(), self.row, self.row+self.count-1)
@@ -982,6 +1029,7 @@ class InsertRowsCommand(QUndoCommand):
         self.model = model
         self.row = row
         self.count = count
+        self.model.dirty = True
         
     def redo(self):
         self.model.beginInsertRows(QModelIndex(), self.row, self.row+self.count-1)
@@ -1020,7 +1068,10 @@ class InsertColumnsCommand(QUndoCommand):
         
         self.label_column_was_shifted = None
         
+        self.model.dirty = True
+        
     def redo(self):
+        
         self.model.beginInsertColumns(QModelIndex(), self.column, self.column + self.count - 1)
         
         self.variable_columns_to_shift_right = [col for col in self.model.cols_2_vars.keys() if col >= self.column]
@@ -1043,3 +1094,38 @@ class InsertColumnsCommand(QUndoCommand):
             self.model.label_column -= self.count # if so, shift it back
         
         self.model.endRemoveColumns()
+        
+
+class ChangeVariableFormatCommand(QUndoCommand):
+    ''' Changes the format of a variable '''
+    
+    def __init__(self, model, variable, target_type, precision, description="Change variable format"):
+        super(ChangeVariableFormatCommand, self).__init__()
+        
+        self.setText(QString(description))
+        
+        self.model = model
+        self.variable=variable
+        self.target_type = target_type
+        self.precision = precision
+        
+        self.original_var_type = variable.get_type()
+        # dictionary mapping studies to their original values for the given variable
+        self.orignal_vals = {}
+        
+    def redo(self):
+        self._store_original_data_values_for_variable()
+        self.model.change_variable_type(self.variable, self.target_type, self.precision)
+        self.model.dirty = True
+        
+    def undo(self):
+        self.model.change_variable_type(self.variable, self.original_var_type, self.precision)
+        self._restore_orignal_data_values_for_variable()
+        
+    def _store_original_data_values_for_variable(self):
+        for study in self.model.dataset.get_studies():
+            self.orignal_vals[study] = study.get_var(self.variable)
+    
+    def _restore_orignal_data_values_for_variable(self):
+        for study, value in self.orignal_vals.items():
+            study.set_var(self.variable, value)
