@@ -24,9 +24,9 @@ DEFAULT_VAR_TYPE = CATEGORICAL
 
 
 # Meta Analysis data type enumerations
-(MEANS_AND_STD_DEVS,
- TWO_BY_TWO_CONTINGENCY_TABLE,
- CORRELATION_COEFFICIENTS) = range(3)
+(MEANS_AND_STD_DEVS,                  # continuous (OMA)
+ TWO_BY_TWO_CONTINGENCY_TABLE,        # binary (OMA)
+ CORRELATION_COEFFICIENTS) = range(3) # continuous(OMA)
 
 # Data type names mapping data types ---> pretty names
 DATA_TYPE_TEXT = {MEANS_AND_STD_DEVS:"Means and Stand. Devs",
@@ -163,3 +163,13 @@ def unfill_layout(layout2clear):
                 else:
                     deleteItems(item.layout())
     deleteItems(layout2clear)
+    
+################ Useful Node class ###########################################
+
+#class Node:
+#    def __init__(self, aText=None, aParent=None):
+#        self.aText=aText
+#        self.aParent=aParent
+#        self.children = [] # List of nodes as children
+#        
+#    def data(self):

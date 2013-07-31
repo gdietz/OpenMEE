@@ -11,6 +11,7 @@ import pickle
 
 import ui_main_window
 import calculate_effect_sizes_wizard
+import ma_wizard
 import ee_model
 import useful_dialogs
 import python_to_R
@@ -56,7 +57,7 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
         self.undo_view_form.show()
         self.undo_view_form.raise_()
         
-        self.statusBar().showMessage(QString("This is a test message"), 1000)
+        self.statusBar().showMessage("Welcome to OpenMEE")
 
         self.setup_menus()
         self.setup_connections()
@@ -92,7 +93,7 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
                                            model_state=state)
         self.model.dirty = False
         self.tableView.setModel(self.model)
-        
+        self.tableView.resizeColumnsToContents()
         self.make_model_connections()
         
     def load_user_prefs(self, filename=USER_PREFERENCES_FILENAME):
@@ -111,20 +112,49 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
             pickle.dump(self.user_prefs, f)
 
     def setup_menus(self):
+        # File Menu
+        QObject.connect(self.actionNew    , SIGNAL("triggered()"), self.new_dataset)
+        self.actionNew.setShortcut(QKeySequence.New)
+        
+        QObject.connect(self.actionOpen   , SIGNAL("triggered()"), self.open)
+        self.actionOpen.setShortcut(QKeySequence.Open)
+        
+        QObject.connect(self.actionSave   , SIGNAL("triggered()"), self.save)
+        self.actionSave.setShortcut(QKeySequence.Save)
+        
+        QObject.connect(self.actionSave_As, SIGNAL("triggered()"), lambda: self.save(save_as=True))
+        self.actionSave_As.setShortcut(QKeySequence.SaveAs)
+        
+        # Edit Menu
         QObject.connect(self.actionUndo, SIGNAL("triggered()"), self.undo)
         self.actionUndo.setShortcut(QKeySequence(QKeySequence.Undo))  
         
         QObject.connect(self.actionRedo, SIGNAL("triggered()"), self.redo)
         self.actionRedo.setShortcut(QKeySequence.Redo)
+        
+        # TODO: implement these menu item actions
+        self.actionCut.setShortcut(QKeySequence.Cut)
+        self.actionCopy.setShortcut(QKeySequence.Copy)
+        self.actionPaste.setShortcut(QKeySequence.Paste)
+        
+        # Analysis Menu
+        QObject.connect(self.actionCalculate_Effect_Size, SIGNAL("triggered()"), self.calculate_effect_size)
+        QObject.connect(self.actionStandard_Meta_Analysis, SIGNAL("triggered()"), self.meta_analysis)
+        
+        
+        
+        
+        
     
     def setup_connections(self):
         self.make_model_connections()
         
-        QObject.connect(self.actionCalculate_Effect_Size, SIGNAL("triggered()"), self.calculate_effect_size)
-        QObject.connect(self.actionSave   , SIGNAL("triggered()"), self.save)
-        QObject.connect(self.actionSave_As, SIGNAL("triggered()"), lambda: self.save(save_as=True))
-        QObject.connect(self.actionOpen   , SIGNAL("triggered()"), self.open)
-        QObject.connect(self.actionNew    , SIGNAL("triggered()"), self.new_dataset)
+
+        
+        
+        
+        
+        
         
     def populate_recent_datasets(self):
         self.menuRecent_Data.clear()
@@ -137,10 +167,12 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
     def disconnect_model_connections(self):
         QObject.disconnect(self.model, SIGNAL("DataError"), self.warning_msg)
         QObject.disconnect(self.model, SIGNAL("dataChanged(QModelIndex, QModelIndex)"), self.change_index_after_data_edited)
+        QObject.disconnect(self.model, SIGNAL("dataChanged(QModelIndex, QModelIndex)"), self.tableView.resizeColumnsToContents)
         
     def make_model_connections(self):
         QObject.connect(self.model, SIGNAL("DataError"), self.warning_msg)
         QObject.connect(self.model, SIGNAL("dataChanged(QModelIndex, QModelIndex)"), self.change_index_after_data_edited)
+        QObject.connect(self.model, SIGNAL("dataChanged(QModelIndex, QModelIndex)"), self.tableView.resizeColumnsToContents)
     
     def calculate_effect_size(self):
         ''' Opens the calculate effect size wizard form and then calculates the new
@@ -148,7 +180,7 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
         columns beyond the most recently occupied one as new continuous
         variables '''
         
-        wizard = calculate_effect_sizes_wizard.CalculateEffectSizeWizard(self.model)
+        wizard = calculate_effect_sizes_wizard.CalculateEffectSizeWizard(model=self.model, parent=self)
         
         if wizard.exec_():
             data_type = wizard.selected_data_type
@@ -166,7 +198,14 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
             
             print("Computed these effect sizes: %s" % str(effect_sizes))
             
+    def meta_analysis(self):
         
+        wizard = ma_wizard.MetaAnalysisWizard(model=self.model, parent=self)
+        
+        if wizard.exec_():
+            data_type = wizard.selected_data_type
+            metric = wizard.selected_metric
+            data_location = wizard.data_location
     
     
 
@@ -404,9 +443,7 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
             msg = "Could not open %s, the error is: %s" % (str(file_path),str(e))
             QMessageBox.critical(self, "Oops", msg)
             return False
-        
-        print("Opened %s" % file_path)
-        
+
         # add to collection of recent files
         self.user_prefs['recent_files'].add_file(file_path)
         self.save_user_prefs()
@@ -423,6 +460,10 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
         self.outpath = file_path
         self.set_window_title()
         
+        # display status
+        print("Opened %s" % self.outpath)
+        self.statusbar.showMessage("Opened %s" % self.outpath)
+        
         # reset undo view form
         self.undo_view_form.set_stack_and_model(self.undo_stack, self.model)
         
@@ -434,7 +475,10 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
         self.undo_stack.clear()
         self.model = ee_model.EETableModel(undo_stack=self.undo_stack)
         self.model.dirty = False
+        self.outpath = None
         self.tableView.setModel(self.model)
+        
+        self.statusbar.showMessage("Created a new dataset")
         
     def save(self, save_as=False):
         if self.outpath is None or save_as:
@@ -460,6 +504,7 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
         self.populate_recent_datasets()
         
         print("Saved %s" % self.outpath)
+        self.statusbar.showMessage("Saved %s" % self.outpath)
         self.set_window_title()
         
         return True

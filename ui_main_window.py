@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'main_window.ui'
 #
-# Created: Mon Jul 29 15:06:40 2013
+# Created: Tue Jul 30 14:07:33 2013
 #      by: PyQt4 UI code generator 4.10.1
 #
 # WARNING! All changes made in this file will be lost!
@@ -52,6 +52,8 @@ class Ui_MainWindow(object):
         self.menuTable.setObjectName(_fromUtf8("menuTable"))
         self.menuAnalysis = QtGui.QMenu(self.menubar)
         self.menuAnalysis.setObjectName(_fromUtf8("menuAnalysis"))
+        self.menuMeta_Analysis = QtGui.QMenu(self.menuAnalysis)
+        self.menuMeta_Analysis.setObjectName(_fromUtf8("menuMeta_Analysis"))
         MainWindow.setMenuBar(self.menubar)
         self.statusbar = QtGui.QStatusBar(MainWindow)
         self.statusbar.setObjectName(_fromUtf8("statusbar"))
@@ -110,8 +112,16 @@ class Ui_MainWindow(object):
         self.actionRedo.setObjectName(_fromUtf8("actionRedo"))
         self.actionCalculate_Effect_Size = QtGui.QAction(MainWindow)
         self.actionCalculate_Effect_Size.setObjectName(_fromUtf8("actionCalculate_Effect_Size"))
-        self.actionNone = QtGui.QAction(MainWindow)
-        self.actionNone.setObjectName(_fromUtf8("actionNone"))
+        self.actionStandard_Meta_Analysis = QtGui.QAction(MainWindow)
+        self.actionStandard_Meta_Analysis.setObjectName(_fromUtf8("actionStandard_Meta_Analysis"))
+        self.actionCumulative = QtGui.QAction(MainWindow)
+        self.actionCumulative.setObjectName(_fromUtf8("actionCumulative"))
+        self.actionLeave_one_out = QtGui.QAction(MainWindow)
+        self.actionLeave_one_out.setObjectName(_fromUtf8("actionLeave_one_out"))
+        self.actionSubgroup = QtGui.QAction(MainWindow)
+        self.actionSubgroup.setObjectName(_fromUtf8("actionSubgroup"))
+        self.actionMeta_Regression = QtGui.QAction(MainWindow)
+        self.actionMeta_Regression.setObjectName(_fromUtf8("actionMeta_Regression"))
         self.menuImport.addAction(self.actionCSV)
         self.menuExport.addAction(self.actionAs_CSV)
         self.menuFile.addAction(self.actionNew)
@@ -144,7 +154,13 @@ class Ui_MainWindow(object):
         self.menuTable.addAction(self.actionUnmark_Column_as_Label)
         self.menuTable.addSeparator()
         self.menuTable.addAction(self.actionTable_Preferences)
+        self.menuMeta_Analysis.addAction(self.actionStandard_Meta_Analysis)
+        self.menuMeta_Analysis.addAction(self.actionCumulative)
+        self.menuMeta_Analysis.addAction(self.actionLeave_one_out)
+        self.menuMeta_Analysis.addAction(self.actionSubgroup)
         self.menuAnalysis.addAction(self.actionCalculate_Effect_Size)
+        self.menuAnalysis.addAction(self.menuMeta_Analysis.menuAction())
+        self.menuAnalysis.addAction(self.actionMeta_Regression)
         self.menubar.addAction(self.menuFile.menuAction())
         self.menubar.addAction(self.menuEdit.menuAction())
         self.menubar.addAction(self.menuTable.menuAction())
@@ -162,6 +178,7 @@ class Ui_MainWindow(object):
         self.menuEdit.setTitle(_translate("MainWindow", "Edit", None))
         self.menuTable.setTitle(_translate("MainWindow", "Table", None))
         self.menuAnalysis.setTitle(_translate("MainWindow", "Analysis", None))
+        self.menuMeta_Analysis.setTitle(_translate("MainWindow", "Meta-Analysis", None))
         self.actionNew.setText(_translate("MainWindow", "New", None))
         self.actionOpen.setText(_translate("MainWindow", "Open", None))
         self.actionSave.setText(_translate("MainWindow", "Save", None))
@@ -189,5 +206,9 @@ class Ui_MainWindow(object):
         self.actionUndo.setText(_translate("MainWindow", "Undo", None))
         self.actionRedo.setText(_translate("MainWindow", "Redo", None))
         self.actionCalculate_Effect_Size.setText(_translate("MainWindow", "Calculate Effect Size", None))
-        self.actionNone.setText(_translate("MainWindow", "None", None))
+        self.actionStandard_Meta_Analysis.setText(_translate("MainWindow", "Standard Meta-Analysis", None))
+        self.actionCumulative.setText(_translate("MainWindow", "Cumulative analysis", None))
+        self.actionLeave_one_out.setText(_translate("MainWindow", "Leave-one-out analysis", None))
+        self.actionSubgroup.setText(_translate("MainWindow", "Subgroup analysis", None))
+        self.actionMeta_Regression.setText(_translate("MainWindow", "Meta-Regression", None))
 

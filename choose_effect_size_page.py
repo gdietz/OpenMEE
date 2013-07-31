@@ -10,10 +10,11 @@ import ui_choose_effect_size_page
 
 
 class ChooseEffectSizePage(QWizardPage, ui_choose_effect_size_page.Ui_choose_effect_size_page):
-    def __init__(self, parent=None):
+    def __init__(self, parent=None, add_generic_effect=False):
         super(ChooseEffectSizePage, self).__init__(parent)
         self.setupUi(self)
         
+        self.add_generic_effect = add_generic_effect
         self.selected_data_type = None
         self.selected_metric = None
         
@@ -36,12 +37,12 @@ class ChooseEffectSizePage(QWizardPage, ui_choose_effect_size_page.Ui_choose_eff
         # clear groupbox first
         self._unfill(layout)
         
-        for data_type in DATA_TYPE_TO_METRICS.keys():
+        for data_type in DATA_TYPE_TO_METRICS.keys():            
             dt_btn = QRadioButton(DATA_TYPE_TEXT[data_type])
             layout.addWidget(dt_btn)
             # the btn ids will simply be the enumerated data type ids
             QObject.connect(dt_btn, SIGNAL("clicked(bool)"), partial(self._update_data_type_selection, data_type=data_type))
-        
+
         self.wizard().adjustSize()
         
     def _update_data_type_selection(self, state, data_type):
@@ -63,8 +64,7 @@ class ChooseEffectSizePage(QWizardPage, ui_choose_effect_size_page.Ui_choose_eff
         
         # clear groupbox layout first
         self._unfill(layout)
-        
-        
+
         metrics = DATA_TYPE_TO_METRICS[self.selected_data_type]
         
         for effect_size in metrics:
@@ -73,6 +73,13 @@ class ChooseEffectSizePage(QWizardPage, ui_choose_effect_size_page.Ui_choose_eff
             # the buttons ids are simply the effect size ids
             QObject.connect(btn, SIGNAL("clicked(bool)"), partial(self._update_effect_size_selection, effect_size=effect_size))
        
+        # add generic effect option
+        if self.add_generic_effect:
+            if self.selected_data_type == MEANS_AND_STD_DEVS:
+                btn = QRadioButton("Generic Effect")
+                layout.addWidget(btn)
+                QObject.connect(btn, SIGNAL("clicked(bool)"), partial(self._update_effect_size_selection, effect_size=None))
+           
     
     def _update_effect_size_selection(self, state, effect_size):
         if state:

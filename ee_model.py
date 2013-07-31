@@ -114,7 +114,7 @@ class EETableModel(QAbstractTableModel):
     
     
     ################ Get columns of a particular type ########################
-    def get_catergorical_columns(self):
+    def get_categorical_columns(self):
         return self._get_columns_of_type(CATEGORICAL)
     
     def get_continuous_columns(self):

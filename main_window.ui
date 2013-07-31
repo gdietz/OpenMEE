@@ -95,7 +95,18 @@
     <property name="title">
      <string>Analysis</string>
     </property>
+    <widget class="QMenu" name="menuMeta_Analysis">
+     <property name="title">
+      <string>Meta-Analysis</string>
+     </property>
+     <addaction name="actionStandard_Meta_Analysis"/>
+     <addaction name="actionCumulative"/>
+     <addaction name="actionLeave_one_out"/>
+     <addaction name="actionSubgroup"/>
+    </widget>
     <addaction name="actionCalculate_Effect_Size"/>
+    <addaction name="menuMeta_Analysis"/>
+    <addaction name="actionMeta_Regression"/>
    </widget>
    <addaction name="menuFile"/>
    <addaction name="menuEdit"/>
@@ -238,9 +249,29 @@
     <string>Calculate Effect Size</string>
    </property>
   </action>
-  <action name="actionNone">
+  <action name="actionStandard_Meta_Analysis">
    <property name="text">
-    <string>None</string>
+    <string>Standard Meta-Analysis</string>
+   </property>
+  </action>
+  <action name="actionCumulative">
+   <property name="text">
+    <string>Cumulative analysis</string>
+   </property>
+  </action>
+  <action name="actionLeave_one_out">
+   <property name="text">
+    <string>Leave-one-out analysis</string>
+   </property>
+  </action>
+  <action name="actionSubgroup">
+   <property name="text">
+    <string>Subgroup analysis</string>
+   </property>
+  </action>
+  <action name="actionMeta_Regression">
+   <property name="text">
+    <string>Meta-Regression</string>
    </property>
   </action>
  </widget>
