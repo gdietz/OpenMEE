@@ -18,8 +18,6 @@ import python_to_R
 
 from globals import *
 
-DEBUG = False
-
 # TODO: Handle setting the dirty bit more correctly in undo/redo
 # right now just set it all the time during redo but don't bother unsetting it
 
@@ -282,7 +280,7 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
         
         column_clicked = self.tableView.columnAt(pos.x())
         
-        if DEBUG:
+        if DEBUG_MODE:
             print("Right clicked column %d" % column_clicked)
             
         label_column = self.model.get_label_column()

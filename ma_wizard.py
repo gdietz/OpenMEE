@@ -12,6 +12,11 @@ class MetaAnalysisWizard(QtGui.QWizard):
     def __init__(self, model, parent=None):
         super(MetaAnalysisWizard, self).__init__(parent)
         
+        self.selected_data_type = None
+        self.selected_metric = None
+        self.data_location = None
+        self.studies_included_table = None # dict mapping studies to if their inclusion state
+        
         self.setPage(Page_ChooseEffectSize, ChooseEffectSizePage(add_generic_effect=True))
         self.setPage(Page_DataLocation, DataLocationPage(model=model, enable_ma_wizard_options=True))
         self.setPage(Page_RefineStudies, RefineStudiesPage(model=model))
@@ -19,10 +24,7 @@ class MetaAnalysisWizard(QtGui.QWizard):
         self.setStartId(Page_ChooseEffectSize)
         self.setWizardStyle(QWizard.ClassicStyle)
         
-        self.selected_data_type = None
-        self.selected_metric = None
-        self.data_location = None
-        self.included_studies = []
+
         
         QObject.connect(self, SIGNAL("currentIdChanged(int)"), self._change_size)
     

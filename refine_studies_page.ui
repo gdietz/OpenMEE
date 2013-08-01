@@ -34,7 +34,13 @@
            <number>0</number>
           </property>
           <item>
-           <widget class="QTreeWidget" name="cat_treeWidget"/>
+           <widget class="QTreeWidget" name="cat_treeWidget">
+            <column>
+             <property name="text">
+              <string notr="true">1</string>
+             </property>
+            </column>
+           </widget>
           </item>
          </layout>
         </widget>
@@ -68,7 +74,7 @@
         </widget>
        </item>
        <item>
-        <layout class="QHBoxLayout" name="horizontalLayout">
+        <layout class="QHBoxLayout" name="refine_studies_btn_layout">
          <item>
           <spacer name="horizontalSpacer_2">
            <property name="orientation">

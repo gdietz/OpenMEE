@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'refine_studies_page.ui'
 #
-# Created: Wed Jul 31 16:32:50 2013
+# Created: Thu Aug  1 10:28:40 2013
 #      by: PyQt4 UI code generator 4.10.1
 #
 # WARNING! All changes made in this file will be lost!
@@ -42,6 +42,7 @@ class Ui_WizardPage(object):
         self.verticalLayout_5.setObjectName(_fromUtf8("verticalLayout_5"))
         self.cat_treeWidget = QtGui.QTreeWidget(self.cat_group_box)
         self.cat_treeWidget.setObjectName(_fromUtf8("cat_treeWidget"))
+        self.cat_treeWidget.headerItem().setText(0, _fromUtf8("1"))
         self.verticalLayout_5.addWidget(self.cat_treeWidget)
         self.verticalLayout_2.addWidget(self.cat_group_box)
         self.tabWidget.addTab(self.refine_categories_tab, _fromUtf8(""))
@@ -63,21 +64,21 @@ class Ui_WizardPage(object):
         self.refine_studies_list_widget.setObjectName(_fromUtf8("refine_studies_list_widget"))
         self.verticalLayout_4.addWidget(self.refine_studies_list_widget)
         self.verticalLayout_3.addWidget(self.groupBox)
-        self.horizontalLayout = QtGui.QHBoxLayout()
-        self.horizontalLayout.setObjectName(_fromUtf8("horizontalLayout"))
+        self.refine_studies_btn_layout = QtGui.QHBoxLayout()
+        self.refine_studies_btn_layout.setObjectName(_fromUtf8("refine_studies_btn_layout"))
         spacerItem = QtGui.QSpacerItem(40, 20, QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Minimum)
-        self.horizontalLayout.addItem(spacerItem)
+        self.refine_studies_btn_layout.addItem(spacerItem)
         self.select_all_btn = QtGui.QPushButton(self.refine_studies_tab)
         self.select_all_btn.setObjectName(_fromUtf8("select_all_btn"))
-        self.horizontalLayout.addWidget(self.select_all_btn)
+        self.refine_studies_btn_layout.addWidget(self.select_all_btn)
         spacerItem1 = QtGui.QSpacerItem(40, 20, QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Minimum)
-        self.horizontalLayout.addItem(spacerItem1)
+        self.refine_studies_btn_layout.addItem(spacerItem1)
         self.deselect_all_btn = QtGui.QPushButton(self.refine_studies_tab)
         self.deselect_all_btn.setObjectName(_fromUtf8("deselect_all_btn"))
-        self.horizontalLayout.addWidget(self.deselect_all_btn)
+        self.refine_studies_btn_layout.addWidget(self.deselect_all_btn)
         spacerItem2 = QtGui.QSpacerItem(40, 20, QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Minimum)
-        self.horizontalLayout.addItem(spacerItem2)
-        self.verticalLayout_3.addLayout(self.horizontalLayout)
+        self.refine_studies_btn_layout.addItem(spacerItem2)
+        self.verticalLayout_3.addLayout(self.refine_studies_btn_layout)
         self.tabWidget.addTab(self.refine_studies_tab, _fromUtf8(""))
         self.verticalLayout.addWidget(self.tabWidget)
 

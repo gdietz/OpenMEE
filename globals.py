@@ -1,3 +1,5 @@
+# Enables additional elements of the program useful in debugging
+DEBUG_MODE = True
 
 from PyQt4 import QtCore, QtGui
 from PyQt4.Qt import *

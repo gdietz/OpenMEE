@@ -18,8 +18,6 @@ import copy
 from dataset.ee_dataset import EEDataSet
 from globals import *
 
-DEBUG = False
-
 # Some constants
 ADDITIONAL_ROWS = 100
 ADDITIONAL_COLS = 40
@@ -709,7 +707,7 @@ class MakeStudyCommand(QUndoCommand):
         
         
     def redo(self):
-        if DEBUG: print("redo: make new study_command")
+        if DEBUG_MODE: print("redo: make new study_command")
         model = self.model
         if self.study is None: # this should only execute once
             self.study = model.dataset.make_new_study()
@@ -721,7 +719,7 @@ class MakeStudyCommand(QUndoCommand):
     def undo(self):
         ''' Remove study at the specified row in the model '''
         
-        if DEBUG: print("undo: make new study_command")
+        if DEBUG_MODE: print("undo: make new study_command")
         model = self.model
         model.dataset.remove_study(self.study)
         del model.rows_2_studies[self.row]
@@ -741,12 +739,12 @@ class RemoveStudyCommand(QUndoCommand):
         self.model.dirty = True
         
     def redo(self):
-        if DEBUG: print("redo: remove study")
+        if DEBUG_MODE: print("redo: remove study")
         self.model.dataset.remove_study(self.study)
         del self.model.rows_2_studies[self.row]
         
     def undo(self):
-        if DEBUG: print("undo: remove study")
+        if DEBUG_MODE: print("undo: remove study")
         self.model.dataset.add_existing_study(self.study)
         self.model.rows_2_studies[self.row]=self.study
 
@@ -763,11 +761,11 @@ class SetStudyLabelCommand(QUndoCommand):
         self.setText(QString("set study label from '%s' to '%s" % (self.old_label, self.new_label)))
         
     def redo(self):
-        if DEBUG: print("redo: set study label")
+        if DEBUG_MODE: print("redo: set study label")
         self.study.set_label(self.new_label)
         
     def undo(self):
-        if DEBUG: print("undo: set study label")
+        if DEBUG_MODE: print("undo: set study label")
         self.study.set_label(self.old_label)
         
 
@@ -789,7 +787,7 @@ class MakeNewVariableCommand(QUndoCommand):
         
         
     def redo(self):
-        if DEBUG: print("redo: make new variable_command")
+        if DEBUG_MODE: print("redo: make new variable_command")
         if self.var is None:
             self.var = self.model.dataset.make_new_variable(label=self.var_name, var_type=self.var_type)
         else:
@@ -797,7 +795,7 @@ class MakeNewVariableCommand(QUndoCommand):
         self.model.cols_2_vars[self.col] = self.var
         
     def undo(self):
-        if DEBUG: print("undo: make new variable_command")
+        if DEBUG_MODE: print("undo: make new variable_command")
         self.model.remove_variable(self.var)
         
 
@@ -815,11 +813,11 @@ class SetVariableValueCommand(QUndoCommand):
         self.setText(QString("Set '%s' from '%s' to '%s' for a study" % (self.variable.get_label(), str(self.old_value), str(self.new_value))))
         
     def redo(self):
-        if DEBUG: print("redo: set variable value command")
+        if DEBUG_MODE: print("redo: set variable value command")
         self.study.set_var(self.variable, self.new_value)
 
     def undo(self):
-        if DEBUG: print("undo: set variable value command")
+        if DEBUG_MODE: print("undo: set variable value command")
         self.study.set_var(self.variable, self.old_value)
 
 class EmitDataChangedCommand(QUndoCommand):
@@ -835,12 +833,12 @@ class EmitDataChangedCommand(QUndoCommand):
         self.setText(QString("Data changed emission"))
     
     def undo(self):
-        if DEBUG: print("undo: emit data changed")
+        if DEBUG_MODE: print("undo: emit data changed")
         self.model.emit(SIGNAL("dataChanged(QModelIndex,QModelIndex)"),
           self.index, self.index)
         
     def redo(self):
-        if DEBUG: print("redo: emit data changed")
+        if DEBUG_MODE: print("redo: emit data changed")
         self.model.emit(SIGNAL("dataChanged(QModelIndex,QModelIndex)"),
           self.index, self.index)
         
