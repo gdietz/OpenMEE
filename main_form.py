@@ -49,6 +49,7 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
         
         self.model = ee_model.EETableModel(undo_stack=self.undo_stack)
         self.tableView.setModel(self.model)
+        self.tableView.resizeColumnsToContents()
         
         #### Display undo stack
         self.undo_view_form = useful_dialogs.UndoViewForm(undo_stack=self.undo_stack, model=self.model, parent=self)
@@ -204,9 +205,59 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
             data_type = wizard.selected_data_type
             metric = wizard.selected_metric
             data_location = wizard.data_location
+            
     
     
 
+    def run_ma(self):
+        ###
+        # first, let's fire up a progress bar
+        bar = MetaProgress(self)
+        bar.show()
+        result = None
+        
+        # this method is defined statically, below
+        add_plot_params(self)
+
+        # also add the metric to the parameters
+        # -- this is for scaling
+
+        if not self.data_type == "diagnostic":
+            self.current_param_vals["measure"] = self.model.current_effect 
+        
+        # dispatch on type; build an R object, then run the analysis
+        if self.data_type == "binary":
+            # note that this call creates a tmp object in R called
+            # tmp_obj (though you can pass in whatever var name
+            # you'd like)
+            python_to_R.dataset_to_simple_binary_robj(self.model)
+            if self.meta_f_str is None:
+                result = python_to_R.run_binary_ma(self.current_method, self.current_param_vals)
+                #pass
+            else:
+                result = python_to_R.run_meta_method(self.meta_f_str, self.current_method, self.current_param_vals)
+                
+            #_writeout_test_data(self.meta_f_str, self.current_method, self.current_param_vals, result) # FOR MAKING TESTS
+        elif self.data_type == "continuous":
+            python_to_R.dataset_to_simple_continuous_robj(self.model)
+            if self.meta_f_str is None:
+                # run standard meta-analysis
+                result = python_to_R.run_continuous_ma(self.current_method, self.current_param_vals)
+            else:
+                # get meta!
+                result = python_to_R.run_meta_method(self.meta_f_str, self.current_method, self.current_param_vals)
+            
+            #_writeout_test_data(self.meta_f_str, self.current_method, self.current_param_vals, result) # FOR MAKING TESTS
+
+        bar.hide()
+
+        # update the user_preferences object for the selected method
+        # with the values selected for this run
+        current_dict = self.parent().get_user_method_params_d()
+        current_dict[self.current_method] = self.current_param_vals
+        self.parent().update_user_prefs("method_params", current_dict)
+        self.parent().analysis(result)
+        self.accept()
         
         
     
@@ -559,7 +610,13 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
     
     
 
-
+# simple progress bar
+import forms.ui_running
+class MetaProgress(QDialog, forms.ui_running.Ui_running):
+    
+    def __init__(self, parent=None):
+        super(MetaProgress, self).__init__(parent)
+        self.setupUi(self)
 
 
 

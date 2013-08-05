@@ -441,6 +441,8 @@ class EETableModel(QAbstractTableModel):
         return self.dataset.convert_var_value_to_type(old_type, CATEGORICAL, value, precision=self.precision)
             
     def data(self, index, role=Qt.DisplayRole):
+        PLACEHOLDER_FOR_DISPLAY = "    "
+        
         if not index.isValid():
             return QVariant()
         max_occupied_row = self._get_max_occupied_row()
@@ -453,7 +455,10 @@ class EETableModel(QAbstractTableModel):
         
         if role == Qt.DisplayRole or role == Qt.EditRole:         
             if not is_study_row: # no study for this row, no info to display
-                return QVariant()
+                if role == Qt.DisplayRole:
+                    return QVariant(PLACEHOLDER_FOR_DISPLAY)
+                else:
+                    return QVariant()
             
             # Get the study this to which this row refers
             study = self.rows_2_studies[row]
@@ -461,17 +466,26 @@ class EETableModel(QAbstractTableModel):
             if is_label_col:
                 label = study.get_label()
                 if label is None: # no label
-                    return QVariant()
+                    if role == Qt.DisplayRole:
+                        return QVariant(PLACEHOLDER_FOR_DISPLAY)
+                    else:
+                        return QVariant()
                 return QVariant(QString(label))
             else: # is a variable column
                 if not self.column_assigned_to_variable(col):
-                    return QVariant()
+                    if role == Qt.DisplayRole:
+                        return QVariant(PLACEHOLDER_FOR_DISPLAY)
+                    else:
+                        return QVariant()
                 
                 # the column is assigned to a variable
                 var = self.cols_2_vars[col]
                 var_value = study.get_var(var)
                 if var_value is None: # don't display Nones
-                    return QVariant()
+                    if role==Qt.DisplayRole:
+                        return QVariant(PLACEHOLDER_FOR_DISPLAY) # display placeholder
+                    else:
+                        return QVariant()
                 return QVariant(QString(self._var_value_for_display(var_value, var.get_type())))
             
         return QVariant()

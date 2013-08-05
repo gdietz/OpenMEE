@@ -6,8 +6,9 @@ from globals import *
 from choose_effect_size_page import ChooseEffectSizePage
 from data_location_page import DataLocationPage
 from refine_studies_page import RefineStudiesPage
+from methods_and_parameters_page import MethodsAndParametersPage
 
-Page_ChooseEffectSize, Page_DataLocation, Page_RefineStudies = range(3)
+Page_ChooseEffectSize, Page_DataLocation, Page_RefineStudies, Page_MethodsAndParameters = range(4)
 class MetaAnalysisWizard(QtGui.QWizard):
     def __init__(self, model, parent=None):
         super(MetaAnalysisWizard, self).__init__(parent)
@@ -18,8 +19,9 @@ class MetaAnalysisWizard(QtGui.QWizard):
         self.studies_included_table = None # dict mapping studies to if their inclusion state
         
         self.setPage(Page_ChooseEffectSize, ChooseEffectSizePage(add_generic_effect=True))
-        self.setPage(Page_DataLocation, DataLocationPage(model=model, enable_ma_wizard_options=True))
-        self.setPage(Page_RefineStudies, RefineStudiesPage(model=model))
+        self.setPage(Page_DataLocation,     DataLocationPage(model=model, enable_ma_wizard_options=True))
+        self.setPage(Page_RefineStudies,    RefineStudiesPage(model=model))
+        self.setPage(Page_MethodsAndParameters, MethodsAndParametersPage(model=model))
         
         self.setStartId(Page_ChooseEffectSize)
         self.setWizardStyle(QWizard.ClassicStyle)
@@ -31,14 +33,16 @@ class MetaAnalysisWizard(QtGui.QWizard):
     def _change_size(self, pageid):
         print("changing size")
         self.adjustSize()
-        
-    
+
+
     def nextId(self):
         if self.currentId() == Page_ChooseEffectSize:
             return Page_DataLocation
         elif self.currentId() == Page_DataLocation:
             return Page_RefineStudies
         elif self.currentId() == Page_RefineStudies:
+            return Page_MethodsAndParameters
+        elif self.currentId() == Page_MethodsAndParameters:
             return -1
         
 

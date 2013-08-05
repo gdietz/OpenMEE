@@ -1,3 +1,5 @@
+import os
+
 # Enables additional elements of the program useful in debugging
 DEBUG_MODE = True
 
@@ -29,6 +31,11 @@ DEFAULT_VAR_TYPE = CATEGORICAL
 (MEANS_AND_STD_DEVS,                  # continuous (OMA)
  TWO_BY_TWO_CONTINGENCY_TABLE,        # binary (OMA)
  CORRELATION_COEFFICIENTS) = range(3) # continuous(OMA)
+ 
+# Datatype OMA convention strings
+OMA_CONVENTION = {MEANS_AND_STD_DEVS:'continuous',
+                  TWO_BY_TWO_CONTINGENCY_TABLE:'binary',
+                  CORRELATION_COEFFICIENTS:'continuous'}
 
 # Data type names mapping data types ---> pretty names
 DATA_TYPE_TEXT = {MEANS_AND_STD_DEVS:"Means and Stand. Devs",
@@ -77,6 +84,8 @@ USER_PREFERENCES_FILENAME = "user_prefs.dict"
 DEFAULT_FILENAME = "untited_dataset.ome"
 
 PROGRAM_NAME = "OpenMEE"
+
+BASE_PATH = str(os.path.abspath(os.getcwd()))
 
 ###################### CUSTOM EXCEPTIONS ##################################
 
