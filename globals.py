@@ -3,8 +3,8 @@ import os
 ###### SWITCHES #######
 # Enables additional elements of the program useful in debugging
 DEBUG_MODE = True
-
 SHOW_UNDO_VIEW = False
+SHOW_PSEUDO_CONSOLE_IN_RESULTS_WINDOW = False
 ###### END SWITCHES ######
 
 from PyQt4 import QtCore, QtGui
@@ -94,6 +94,10 @@ BASE_PATH = str(os.path.abspath(os.getcwd()))
 METHODS_WITH_NO_FOREST_PLOT = [] # leftover from OMA
 
 DEFAULT_CONFIDENCE_LEVEL = 95
+
+# this is the (local) path to a (pickled) dictionary containing
+# user preferences
+PREFS_PATH = "user_prefs.dict"
 
 ###################### CUSTOM EXCEPTIONS ##################################
 

@@ -72,6 +72,25 @@ def set_conf_level_in_R(conf_lev):
     
     return conf_lev
 
+def generate_forest_plot(file_path, side_by_side=False, params_name="plot.data"):
+    if side_by_side:
+        print "generating a side-by-side forest plot..."
+        ro.r("two.forest.plots(%s, '%s')" % (params_name, file_path))
+    else:
+        print("generating a forest plot....")
+        ro.r("forest.plot(%s, '%s')" % (params_name, file_path))
+        
+def evaluate_in_r(r_str):
+    res = ro.r(r_str)
+    return str(res)
+
+def load_in_R(fpath):
+    ''' loads what is presumed to be .Rdata into the R environment '''
+    ro.r("load('%s')" % fpath)
+    
+def generate_reg_plot(file_path, params_name="plot.data"): 
+    ro.r("meta.regression.plot(%s, '%s')" % (params_name, file_path))
+
 def gather_data(model, data_location):
     ''' Gathers the relevant data in one convenient location for the purpose
     of sending to R '''

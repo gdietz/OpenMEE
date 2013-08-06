@@ -15,6 +15,7 @@ import ma_wizard
 import ee_model
 import useful_dialogs
 import python_to_R
+import results_window
 
 from globals import *
 
@@ -51,9 +52,9 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
         self.tableView.setModel(self.model)
         self.tableView.resizeColumnsToContents()
         
-        #### Display undo stack
+        #### Display undo stack (if we want to...)
+        self.undo_view_form = useful_dialogs.UndoViewForm(undo_stack=self.undo_stack, model=self.model, parent=self)
         if SHOW_UNDO_VIEW:
-            self.undo_view_form = useful_dialogs.UndoViewForm(undo_stack=self.undo_stack, model=self.model, parent=self)
             self.undo_view_form.show()
             self.undo_view_form.raise_()
         
@@ -81,7 +82,11 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
         else:
             filename = os.path.basename(self.outpath)
         self.setWindowTitle(' - '.join([PROGRAM_NAME, filename]))
-    
+
+
+
+
+
     def set_model(self, state):
         '''
         Used when loading a picked model. Take note we clear the undo
@@ -97,20 +102,20 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
         self.tableView.resizeColumnsToContents()
         self.make_model_connections()
         
-    def load_user_prefs(self, filename=USER_PREFERENCES_FILENAME):
-        try:
-            with open(filename, 'rb') as f:
-                self.user_prefs = pickle.load(f)
-        except IOError: # file doesn't exist
-            # make default preferences
-            self.user_prefs = {'recent_files': RecentFilesManager(),}
-            
-        
-        self.populate_recent_datasets()
-        
-    def save_user_prefs(self, filename=USER_PREFERENCES_FILENAME):
-        with open(filename, 'wb') as f:
-            pickle.dump(self.user_prefs, f)
+#    def load_user_prefs(self, filename=USER_PREFERENCES_FILENAME):
+#        try:
+#            with open(filename, 'rb') as f:
+#                self.user_prefs = pickle.load(f)
+#        except IOError: # file doesn't exist
+#            # make default preferences
+#            self.user_prefs = {'recent_files': RecentFilesManager(),}
+#            
+#        
+#        self.populate_recent_datasets()
+       
+#    def save_user_prefs(self, filename=USER_PREFERENCES_FILENAME):
+#        with open(filename, 'wb') as f:
+#            pickle.dump(self.user_prefs, f)
 
     def setup_menus(self):
         # File Menu
@@ -229,8 +234,6 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
 
         # also add the metric to the parameters
         # -- this is for scaling
-#        if not self.data_type == "diagnostic":
-#            current_param_vals["measure"] = self.model.current_effect
         current_param_vals["measure"] = METRIC_TO_ESCALC_MEASURE[metric]
     
         
@@ -264,12 +267,17 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
 
         # update the user_preferences object for the selected method
         # with the values selected for this run
-        current_dict = self.parent().get_user_method_params_d()
-        current_dict[self.current_method] = self.current_param_vals
-        self.parent().update_user_prefs("method_params", current_dict)
-        self.parent().analysis(result)
-        self.accept()
+        current_dict = self.get_user_method_params_d()
+        current_dict[chosen_method] = current_param_vals
+        self.update_user_prefs("method_params", current_dict)
+        self.analysis(result)
         
+    def analysis(self, results):
+        if results is None:
+            return # analysis failed
+        else: # analysis succeeded
+            form = results_window.ResultsWindow(results, parent=self)
+            form.show()
         
     
     def change_index_after_data_edited(self, index_top_left, index_bottom_right):
@@ -506,7 +514,7 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
 
         # add to collection of recent files
         self.user_prefs['recent_files'].add_file(file_path)
-        self.save_user_prefs()
+        self._save_user_prefs()
         self.populate_recent_datasets()
         
         # Rebuilds model from state,
@@ -560,7 +568,7 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
         
         # add to collection of recent files
         self.user_prefs['recent_files'].add_file(self.outpath)
-        self.save_user_prefs()
+        self._save_user_prefs()
         self.populate_recent_datasets()
         
         print("Saved %s" % self.outpath)
@@ -617,7 +625,55 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
     def status_from_action(self, action):
         self.statusBar().showMessage(action.text(), 2000)
 
+### HANDLE USER PREFERENCES
+    def update_user_prefs(self, field, value):
+        self.user_prefs[field] = value
+        self._save_user_prefs()
+            
+    def get_user_method_params_d(self):
+        return self.user_prefs["method_params"]
 
+    def _save_user_prefs(self):
+        try:
+            fout = open(globals.PREFS_PATH, 'wb')
+            pickle.dump(self.user_prefs, fout)
+            fout.close()
+        except:
+            print "failed to write preferences data!"
+        
+    def _default_user_prefs(self):       
+        return {"splash":True,
+                "digits":3,
+                'recent_files': RecentFilesManager(),
+                "method_params":{},
+                }
+
+    def load_user_prefs(self):
+        '''
+        Attempts to read a local dictionary of preferences
+        ('user_prefs.dict'). If not such file exists, this file
+        is created with defaults.
+        '''
+        
+        self.user_prefs = {}
+        if os.path.exists(PREFS_PATH):
+            try:
+                with open(PREFS_PATH, 'rb') as f:
+                    self.user_prefs = pickle.load(f)
+            except:
+                print "preferences dictionary is corrupt! using defaults"
+                self.user_prefs = self._default_user_prefs()
+        else:
+            self.user_prefs = self._default_user_prefs()
+
+        # for backwards-compatibility
+        if not "method_params" in self.user_prefs:
+            self.user_prefs["method_params"] = {}
+
+        self._save_user_prefs()
+        print "loaded user preferences: %s" % self.user_prefs
+        
+################ END HANDLE USER PREFS ######################
     
     
 
