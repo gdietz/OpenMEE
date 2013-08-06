@@ -52,9 +52,10 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
         self.tableView.resizeColumnsToContents()
         
         #### Display undo stack
-        self.undo_view_form = useful_dialogs.UndoViewForm(undo_stack=self.undo_stack, model=self.model, parent=self)
-        self.undo_view_form.show()
-        self.undo_view_form.raise_()
+        if SHOW_UNDO_VIEW:
+            self.undo_view_form = useful_dialogs.UndoViewForm(undo_stack=self.undo_stack, model=self.model, parent=self)
+            self.undo_view_form.show()
+            self.undo_view_form.raise_()
         
         self.statusBar().showMessage("Welcome to OpenMEE")
 
@@ -72,6 +73,7 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
         vertical_header.customContextMenuRequested.connect(self.make_vertical_header_context_menu)
         
         self.set_window_title()
+        python_to_R.set_conf_level_in_R(DEFAULT_CONFIDENCE_LEVEL)
         
     def set_window_title(self):
         if self.outpath is None:
@@ -194,60 +196,69 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
                 return False
             # effect sizes is just yi and vi
             self.model.add_effect_sizes_to_model(metric, effect_sizes)
+            self.tableView.resizeColumnsToContents()
             
             print("Computed these effect sizes: %s" % str(effect_sizes))
             
     def meta_analysis(self):
         
+        
         wizard = ma_wizard.MetaAnalysisWizard(model=self.model, parent=self)
         
         if wizard.exec_():
+            meta_f_str = wizard.meta_f_str
             data_type = wizard.selected_data_type
             metric = wizard.selected_metric
             data_location = wizard.data_location
+            included_studies = wizard.get_included_studies_in_proper_order()
+            current_param_vals = wizard.get_plot_params()
+            chosen_method = wizard.get_current_method()
             
-    
+            self.run_ma(included_studies, data_type, metric, data_location,
+                        current_param_vals, chosen_method, meta_f_str)
     
 
-    def run_ma(self):
+    def run_ma(self, included_studies, data_type, metric, data_location,
+               current_param_vals, chosen_method, meta_f_str):
         ###
         # first, let's fire up a progress bar
         bar = MetaProgress(self)
         bar.show()
         result = None
         
-        # this method is defined statically, below
-        add_plot_params(self)
 
         # also add the metric to the parameters
         # -- this is for scaling
-
-        if not self.data_type == "diagnostic":
-            self.current_param_vals["measure"] = self.model.current_effect 
+#        if not self.data_type == "diagnostic":
+#            current_param_vals["measure"] = self.model.current_effect
+        current_param_vals["measure"] = METRIC_TO_ESCALC_MEASURE[metric]
+    
         
         # dispatch on type; build an R object, then run the analysis
-        if self.data_type == "binary":
+        if OMA_CONVENTION[data_type] == "binary":
             # note that this call creates a tmp object in R called
             # tmp_obj (though you can pass in whatever var name
             # you'd like)
-            python_to_R.dataset_to_simple_binary_robj(self.model)
-            if self.meta_f_str is None:
-                result = python_to_R.run_binary_ma(self.current_method, self.current_param_vals)
+            python_to_R.dataset_to_simple_binary_robj(model=self.model,
+                                                      included_studies=included_studies,
+                                                      data_location=data_location)
+            if meta_f_str is None:
+                result = python_to_R.run_binary_ma(chosen_method, current_param_vals)
                 #pass
             else:
-                result = python_to_R.run_meta_method(self.meta_f_str, self.current_method, self.current_param_vals)
+                result = python_to_R.run_meta_method(meta_f_str, chosen_method, current_param_vals)
                 
-            #_writeout_test_data(self.meta_f_str, self.current_method, self.current_param_vals, result) # FOR MAKING TESTS
-        elif self.data_type == "continuous":
+            #_writeout_test_data(meta_f_str, self.current_method, current_param_vals, result) # FOR MAKING TESTS
+        elif OMA_CONVENTION[data_type] == "continuous":
             python_to_R.dataset_to_simple_continuous_robj(self.model)
-            if self.meta_f_str is None:
+            if meta_f_str is None:
                 # run standard meta-analysis
-                result = python_to_R.run_continuous_ma(self.current_method, self.current_param_vals)
+                result = python_to_R.run_continuous_ma(chosen_method, current_param_vals)
             else:
                 # get meta!
-                result = python_to_R.run_meta_method(self.meta_f_str, self.current_method, self.current_param_vals)
+                result = python_to_R.run_meta_method(meta_f_str, chosen_method, current_param_vals)
             
-            #_writeout_test_data(self.meta_f_str, self.current_method, self.current_param_vals, result) # FOR MAKING TESTS
+            #_writeout_test_data(meta_f_str, self.current_method, current_param_vals, result) # FOR MAKING TESTS
 
         bar.hide()
 
@@ -611,8 +622,8 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
     
 
 # simple progress bar
-import forms.ui_running
-class MetaProgress(QDialog, forms.ui_running.Ui_running):
+import ui_running
+class MetaProgress(QDialog, ui_running.Ui_running):
     
     def __init__(self, parent=None):
         super(MetaProgress, self).__init__(parent)

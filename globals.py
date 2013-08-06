@@ -1,7 +1,11 @@
 import os
 
+###### SWITCHES #######
 # Enables additional elements of the program useful in debugging
 DEBUG_MODE = True
+
+SHOW_UNDO_VIEW = False
+###### END SWITCHES ######
 
 from PyQt4 import QtCore, QtGui
 from PyQt4.Qt import *
@@ -86,6 +90,10 @@ DEFAULT_FILENAME = "untited_dataset.ome"
 PROGRAM_NAME = "OpenMEE"
 
 BASE_PATH = str(os.path.abspath(os.getcwd()))
+
+METHODS_WITH_NO_FOREST_PLOT = [] # leftover from OMA
+
+DEFAULT_CONFIDENCE_LEVEL = 95
 
 ###################### CUSTOM EXCEPTIONS ##################################
 
@@ -175,12 +183,60 @@ def unfill_layout(layout2clear):
                     deleteItems(item.layout())
     deleteItems(layout2clear)
     
-################ Useful Node class ###########################################
 
-#class Node:
-#    def __init__(self, aText=None, aParent=None):
-#        self.aText=aText
-#        self.aParent=aParent
-#        self.children = [] # List of nodes as children
-#        
-#    def data(self):
+
+############### FOR DEALING WITH PLOT-MAKING ###############################
+###
+# the following methods are defined statically because
+# they are also used by the forest plot editing window,
+# which isn't really a 'child' of ma_specs, so inheritance
+# didn't feel appropriate
+###
+def add_plot_params(specs_form):
+    specs_form.current_param_vals["fp_show_col1"] = specs_form.show_1.isChecked()
+    specs_form.current_param_vals["fp_col1_str"] = unicode(specs_form.col1_str_edit.text().toUtf8(), "utf-8")
+    specs_form.current_param_vals["fp_show_col2"] = specs_form.show_2.isChecked()
+    specs_form.current_param_vals["fp_col2_str"] = unicode(specs_form.col2_str_edit.text().toUtf8(), "utf-8")
+    specs_form.current_param_vals["fp_show_col3"] = specs_form.show_3.isChecked()
+    specs_form.current_param_vals["fp_col3_str"] = unicode(specs_form.col3_str_edit.text().toUtf8(), "utf-8")
+    specs_form.current_param_vals["fp_show_col4"] = specs_form.show_4.isChecked()
+    specs_form.current_param_vals["fp_col4_str"] = unicode(specs_form.col4_str_edit.text().toUtf8(), "utf-8")
+    specs_form.current_param_vals["fp_xlabel"] = unicode(specs_form.x_lbl_le.text().toUtf8(), "utf-8")
+    specs_form.current_param_vals["fp_outpath"] = unicode(specs_form.image_path.text().toUtf8(), "utf-8")
+    
+    plot_lb = unicode(specs_form.plot_lb_le.text().toUtf8(), "utf-8")
+    specs_form.current_param_vals["fp_plot_lb"] = "[default]"
+    if plot_lb != "[default]" and check_plot_bound(plot_lb):
+        specs_form.current_param_vals["fp_plot_lb"] = plot_lb
+
+    plot_ub = unicode(specs_form.plot_ub_le.text().toUtf8(), "utf-8")
+    specs_form.current_param_vals["fp_plot_ub"] = "[default]"
+    if plot_ub != "[default]" and check_plot_bound(plot_ub):
+        specs_form.current_param_vals["fp_plot_ub"] = plot_ub
+
+    xticks = unicode(specs_form.x_ticks_le.text().toUtf8(), "utf-8")
+    specs_form.current_param_vals["fp_xticks"] = "[default]"
+    if xticks != "[default]" and seems_sane(xticks):
+        specs_form.current_param_vals["fp_xticks"] = xticks
+    
+    specs_form.current_param_vals["fp_show_summary_line"] = specs_form.show_summary_line.isChecked()
+    
+def check_plot_bound(bound):
+    try:
+        # errrm... this might cause a problem if 
+        # bound is 0... 
+        return float(bound) 
+    except:
+        return False
+    
+def seems_sane(xticks):
+    num_list = xticks.split(",")
+    if len(num_list) == 1:
+        return False
+    try:
+        num_list = [eval(x) for x in num_list]
+    except:
+        return False
+    return True
+    
+################### END OF PLOT HELPER FUNCTIONS ################################

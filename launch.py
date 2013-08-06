@@ -20,9 +20,17 @@ def load_R_libraries(app, splash=None):
     app.processEvents()
     rloader.load_metafor()
     
-#    splash.showMessage("Loading openmetar\n........")
-#    app.processEvents()
-#    rloader.load_openmetar()
+    splash.showMessage("Loading openmetar\n........")
+    app.processEvents()
+    rloader.load_openmetar()
+    
+    splash.showMessage("Loading igraph\n............")
+    app.processEvents()
+    rloader.load_igraph()
+    
+    splash.showMessage("Loading grid\n................")
+    app.processEvents()
+    rloader.load_grid()
     
 def start():
     app = QtGui.QApplication(sys.argv)

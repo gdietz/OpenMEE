@@ -13,10 +13,19 @@ from rpy2 import robjects as ro
 class RlibLoader:
     def __init__(self):
         print("R Libary loader (RlibLoader) initialized...")
+        
     def load_metafor(self):
         return self._load_r_lib("metafor")
-#    def load_openmetar(self):
-#        return self._load_r_lib("openmetar")
+    
+    def load_openmetar(self):
+        return self._load_r_lib("openmetar")
+    
+    def load_igraph(self):
+        return self._load_r_lib("igraph")
+    
+    def load_grid(self):
+        return self._load_r_lib("grid")
+    
     def _load_r_lib(self, name):
         try:
             ro.r("library(%s)" % name)
@@ -46,7 +55,22 @@ def reset_Rs_working_dir():
     print("about to execute: %s" % r_str)
 
     # Executing r call with escaped backslashes
-    ro.r(r_str) 
+    ro.r(r_str)
+    
+def set_conf_level_in_R(conf_lev):
+    
+    invalid_conf_lev_msg = "Confidence level needs to be a number between 0 and 100"
+    if conf_lev is None:
+        raise ValueError(invalid_conf_lev_msg)
+    elif not (0 < conf_lev < 100):
+        raise ValueError(invalid_conf_lev_msg)
+
+
+    r_str = "set.global.conf.level("+str(float(conf_lev))+")"
+    new_cl_in_R = ro.r(r_str)[0]
+    print("Set confidence level in R to: %f" % new_cl_in_R)
+    
+    return conf_lev
 
 def gather_data(model, data_location):
     ''' Gathers the relevant data in one convenient location for the purpose
@@ -242,7 +266,7 @@ def dataset_to_simple_continuous_robj(model, included_studies, data_location,
                                       covs_to_include=None, one_arm=False):
     r_str = None
     
-    study_ids = [study.get_id() for study in included_studies]
+    #study_ids = [study.get_id() for study in included_studies]
     
     study_names = ", ".join(["'" + study.get_label() + "'" for study in included_studies])
     none_to_str = lambda n : str(n) if n is not None else "" # this will produce NA ints
@@ -289,21 +313,19 @@ def dataset_to_simple_continuous_robj(model, included_studies, data_location,
         means2_var = model.get_variable_assigned_to_column(means2_col)
         SDs2_var   = model.get_variable_assigned_to_column(SDs2_col)
         
-        Ns1    = 
-        means1 = 
-        SDs1   = 
-        Ns2    = 
-        means2 = 
-        SDs2   = 
+        Ns1    = [study.get_var(Ns1_var) for study in included_studies]
+        means1 = [study.get_var(means1_var) for study in included_studies]
+        SDs1   = [study.get_var(SDs1_var) for study in included_studies]
+        Ns2    = [study.get_var(Ns2_var) for study in included_studies]
+        means2 = [study.get_var(means2_var) for study in included_studies]
+        SDs2   = [study.get_var(SDs2_var) for study in included_studies]
         
-        
-        
-        Ns1_str    = _get_str(raw_data, 0)
-        means1_str = _get_str(raw_data, 1)
-        SDs1_str   = _get_str(raw_data, 2)
-        Ns2_str    = _get_str(raw_data, 3)
-        means2_str = _get_str(raw_data, 4)
-        SDs2_str   = _get_str(raw_data, 5)
+        Ns1_str    = ", ".join(_to_strs(Ns1))
+        means1_str = ", ".join(_to_strs(means1))
+        SDs1_str   = ", ".join(_to_strs(SDs1))
+        Ns2_str    = ", ".join(_to_strs(Ns2))
+        means2_str = ", ".join(_to_strs(means2))
+        SDs2_str   = ", ".join(_to_strs(SDs2))
 
         r_str = "%s <- new('ContinuousData', \
                                      N1=c(%s), mean1=c(%s), sd1=c(%s), \
@@ -699,7 +721,18 @@ def run_meta_method(meta_function_name, function_name, params, \
     # parse out text field(s). note that "plot names" is 'reserved', i.e., it's
     # a special field which is assumed to contain the plot variable names
     # in R (for graphics manipulation).
-    return parse_out_results(result) 
+    return parse_out_results(result)
+
+def get_method_description(method_name):
+    pretty_names_f = "%s.pretty.names" % method_name
+    method_list = ro.r("lsf.str('package:openmetar')")
+    description = "None provided."
+    if pretty_names_f in method_list:
+        try:
+            description = ro.r("%s()$description" % pretty_names_f)[0]
+        except:
+            pass
+    return description
 
 
 ###### R data structure tools #############

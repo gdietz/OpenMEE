@@ -4,3 +4,5 @@
 unused/
 user_prefs.dict
 .settings/
+.DS_Store
+r_tmp/
