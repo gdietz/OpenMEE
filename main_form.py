@@ -173,12 +173,12 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
     def disconnect_model_connections(self):
         QObject.disconnect(self.model, SIGNAL("DataError"), self.warning_msg)
         QObject.disconnect(self.model, SIGNAL("dataChanged(QModelIndex, QModelIndex)"), self.change_index_after_data_edited)
-        QObject.disconnect(self.model, SIGNAL("dataChanged(QModelIndex, QModelIndex)"), self.tableView.resizeColumnsToContents)
+        #QObject.disconnect(self.model, SIGNAL("dataChanged(QModelIndex, QModelIndex)"), self.tableView.resizeColumnsToContents)
         
     def make_model_connections(self):
         QObject.connect(self.model, SIGNAL("DataError"), self.warning_msg)
         QObject.connect(self.model, SIGNAL("dataChanged(QModelIndex, QModelIndex)"), self.change_index_after_data_edited)
-        QObject.connect(self.model, SIGNAL("dataChanged(QModelIndex, QModelIndex)"), self.tableView.resizeColumnsToContents)
+        #QObject.connect(self.model, SIGNAL("dataChanged(QModelIndex, QModelIndex)"), self.tableView.resizeColumnsToContents) # was making responsiveness of tableView slow
     
     def calculate_effect_size(self):
         ''' Opens the calculate effect size wizard form and then calculates the new
@@ -253,7 +253,11 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
                 
             #_writeout_test_data(meta_f_str, self.current_method, current_param_vals, result) # FOR MAKING TESTS
         elif OMA_CONVENTION[data_type] == "continuous":
-            python_to_R.dataset_to_simple_continuous_robj(self.model)
+            python_to_R.dataset_to_simple_continuous_robj(model=self.model,
+                                                          included_studies=included_studies,
+                                                          data_location=data_location,
+                                                          data_type=data_type, 
+                                                          var_name="tmp_obj")
             if meta_f_str is None:
                 # run standard meta-analysis
                 result = python_to_R.run_continuous_ma(chosen_method, current_param_vals)

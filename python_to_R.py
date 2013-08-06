@@ -694,8 +694,10 @@ def make_weights_list(text_n,text):
         #study_years = R_parse_tools.R_iterable_to_pylist(summary_dict['MAResults']['study.years'])
         study_weights = R_parse_tools.R_iterable_to_pylist(summary_dict['MAResults']['study.weights'])
         
-        max_len = max([len(name) for name in study_names])
-        weights_txt = unicode("studies" + " "*(max_len-1) + "weights\n")
+        max_len_name = max([len(name) for name in study_names])
+        max_len = max([max_len_name,len("studies")])
+        
+        weights_txt = unicode("studies" + " "*(max_len-len("studies")+1) + "weights\n")
         
         for name,weight in zip(study_names, study_weights):
             weights_txt += unicode("{0:{name_width}} {1:4.1f}%\n").format(name, weight*100, name_width=max_len)
