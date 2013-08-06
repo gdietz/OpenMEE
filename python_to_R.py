@@ -416,7 +416,7 @@ def effect_size(metric, data_type, data):
         m1i  = [None_to_NA(x, float) for x in m1i]
         sd1i = [None_to_NA(x, float) for x in sd1i]
         n1i  = [None_to_NA(x, int) for x in n1i]
-        m2i  = [None_to_NA(x, float) for x in m1i]
+        m2i  = [None_to_NA(x, float) for x in m2i]
         sd2i = [None_to_NA(x, float) for x in sd2i]
         n2i  = [None_to_NA(x, int) for x in n2i]
         
