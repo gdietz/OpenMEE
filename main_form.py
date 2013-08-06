@@ -635,7 +635,7 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
 
     def _save_user_prefs(self):
         try:
-            fout = open(globals.PREFS_PATH, 'wb')
+            fout = open(PREFS_PATH, 'wb')
             pickle.dump(self.user_prefs, fout)
             fout.close()
         except:
@@ -672,6 +672,8 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
 
         self._save_user_prefs()
         print "loaded user preferences: %s" % self.user_prefs
+        
+        self.populate_recent_datasets()
         
 ################ END HANDLE USER PREFS ######################
     

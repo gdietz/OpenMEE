@@ -49,7 +49,7 @@ def reset_Rs_working_dir():
     print("resetting R working dir")
 
     # Fix paths issue in windows
-    r_str = "setwd('%s')" % globals.BASE_PATH
+    r_str = "setwd('%s')" % BASE_PATH
     print("before replacement r_string: %s" % r_str)
     r_str = r_str.replace("\\","\\\\")
     print("about to execute: %s" % r_str)
@@ -691,14 +691,14 @@ def make_weights_list(text_n,text):
         key_name = key_name.strip()
         
         study_names = R_parse_tools.R_iterable_to_pylist(summary_dict['MAResults']['study.names'])
-        study_years = R_parse_tools.R_iterable_to_pylist(summary_dict['MAResults']['study.years'])
+        #study_years = R_parse_tools.R_iterable_to_pylist(summary_dict['MAResults']['study.years'])
         study_weights = R_parse_tools.R_iterable_to_pylist(summary_dict['MAResults']['study.weights'])
         
         max_len = max([len(name) for name in study_names])
         weights_txt = unicode("studies" + " "*(max_len-1) + "weights\n")
         
-        for name,year,weight in zip(study_names, study_years, study_weights):
-            weights_txt += unicode("{0:{name_width}} {1} {2:4.1f}%\n").format(name, year, weight*100, name_width=max_len)
+        for name,weight in zip(study_names, study_weights):
+            weights_txt += unicode("{0:{name_width}} {1:4.1f}%\n").format(name, weight*100, name_width=max_len)
         return (key_name, weights_txt)
     else:
         print("study.names not found")
