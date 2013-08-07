@@ -444,11 +444,17 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
         if is_label_column:
             redo = partial(self.model.change_label_column_name, proposed_name)
             undo = partial(self.model.change_label_column_name, initial_name)
+            description = "Renamed label column '%s' to '%s'" % (initial_name, proposed_name)
             rename_column_command = GenericUndoCommand(redo_fn=redo, undo_fn=undo, description="Renamed label column '%s' to '%s'" % (initial_name, proposed_name))
         else:
             redo = partial(self.model.change_variable_name, var, new_name=proposed_name)
             undo = partial(self.model.change_variable_name, var, new_name=initial_name)
-            rename_column_command = GenericUndoCommand(redo_fn=redo, undo_fn=undo, description="Renamed variable '%s' to '%s'" % (initial_name, proposed_name))
+            description = "Renamed variable '%s' to '%s'" % (initial_name, proposed_name)
+        
+        
+        rename_column_command = GenericUndoCommand(redo_fn=redo, undo_fn=undo,
+                                                   on_redo_exit=self.tableView.resizeColumnsToContents,
+                                                   description=description)
         self.undo_stack.push(rename_column_command)
         self.model._set_dirty_bit()
         

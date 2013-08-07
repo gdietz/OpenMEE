@@ -512,11 +512,11 @@ class EETableModel(QAbstractTableModel):
             is_label_col = section == self.label_column
             if is_label_col:
                 col_name = self.label_column_name_label
-                suffix = " (label)"
+                suffix = "\n(label)"
             else: # is a variable column
                 col_name = self.cols_2_vars[section].get_label()
                 var_type = self.cols_2_vars[section].get_type()
-                suffix = " (%s)" % VARIABLE_TYPE_SHORT_STRING_REPS[var_type]
+                suffix = "\n(%s)" % VARIABLE_TYPE_SHORT_STRING_REPS[var_type]
             return QVariant(QString(col_name + suffix))
             
         elif orientation == Qt.Vertical:
