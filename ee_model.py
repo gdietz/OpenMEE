@@ -1141,3 +1141,4 @@ class ChangeVariableFormatCommand(QUndoCommand):
     def _restore_orignal_data_values_for_variable(self):
         for study, value in self.orignal_vals.items():
             study.set_var(self.variable, value)
+            

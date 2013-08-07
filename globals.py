@@ -244,3 +244,9 @@ def seems_sane(xticks):
     return True
     
 ################### END OF PLOT HELPER FUNCTIONS ################################
+
+
+# COPY & PASTE
+# normalizing new lines, e.g., for pasting
+# use QRegExp to manipulate QStrings (rather than re)
+newlines_re  = QRegExp('(\r\n|\r|\r)')

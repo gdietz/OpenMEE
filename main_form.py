@@ -138,9 +138,13 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
         QObject.connect(self.actionRedo, SIGNAL("triggered()"), self.redo)
         self.actionRedo.setShortcut(QKeySequence.Redo)
         
-        # TODO: implement these menu item actions
-        self.actionCut.setShortcut(QKeySequence.Cut)
+        # TODO: implement cut menu action
+        self.actionCut.setShortcut(QKeySequence.Cut)    
+        
+        QObject.connect(self.actionCopy, SIGNAL("triggered()"), self.copy)
         self.actionCopy.setShortcut(QKeySequence.Copy)
+        
+        QObject.connect(self.actionPaste, SIGNAL("triggered()"), self.paste)
         self.actionPaste.setShortcut(QKeySequence.Paste)
         
         # Analysis Menu
@@ -148,19 +152,9 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
         QObject.connect(self.actionStandard_Meta_Analysis, SIGNAL("triggered()"), self.meta_analysis)
         
         
-        
-        
-        
     
     def setup_connections(self):
         self.make_model_connections()
-        
-
-        
-        
-        
-        
-        
         
     def populate_recent_datasets(self):
         self.menuRecent_Data.clear()
@@ -680,7 +674,188 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
         self.populate_recent_datasets()
         
 ################ END HANDLE USER PREFS ######################
+
+############### COPY & PASTE ###############################
+    def copy(self):
+        # copy/paste: these only happen if at least one cell is selected
+        selected_indexes = self.tableView.selectionModel().selectedIndexes()
+        upper_left_index  = self._upper_left(selected_indexes)
+        lower_right_index = self._lower_right(selected_indexes)  
+        self.copy_contents_in_range(upper_left_index, lower_right_index,
+                                    to_clipboard=True)   
+                                                                                    
+    def paste(self):
+        # copy/paste: these only happen if at least one cell is selected
+        selected_indexes = self.tableView.selectionModel().selectedIndexes()
+        upper_left_index  = self._upper_left(selected_indexes)
+        if upper_left_index is None:
+            print("No selection")
+            return False
+
+        self.paste_from_clipboard(upper_left_index)     
+        
+    def _matrix_to_str(self, m, col_delimiter="\t", row_delimiter="\n", append_new_line =False):
+        ''' takes a matrix of data (i.e., a nested list) and converts to a string representation '''
+        m_str = []
+        for row in m:
+            m_str.append(col_delimiter.join(row))
+        return_str = row_delimiter.join(m_str)
+        if append_new_line:
+            return_str += row_delimiter
+        return return_str
     
+    def _str_to_matrix(self, text, col_delimiter="\t", row_delimiter="\n"):
+        ''' transforms raw text (e.g., from the clipboard) to a structured matrix '''
+        m = []
+        rows  = text.split(row_delimiter)
+        for row in rows:
+            cur_row = row.split(col_delimiter)
+            m.append(cur_row)
+        return m
+
+    def _upper_left(self, indexes):
+        ''' returns the upper most index object in the indexes list.'''
+        if len(indexes) > 0:
+            upper_left = indexes[0]
+            for index in indexes[1:]:
+                if index.row() < upper_left.row() or index.column() < upper_left.column():
+                    upper_left = index
+            return upper_left
+        return None
+
+    def _lower_right(self, indexes):
+        if len(indexes) > 0:
+            lower_right = indexes[0]
+            for index in indexes[1:]:
+                if index.row() > lower_right.row() or index.column() > lower_right.column():
+                    lower_right = index
+            return lower_right
+        return None
+    
+    def _print_index(self, index):
+        print "(%s, %s)" % (index.row(), index.column())
+    
+    def copy_contents_in_range(self, upper_left_index, lower_right_index, to_clipboard):
+        '''
+        copy the (textual) content of the cells in provided cell_range -- the copied contents will be
+        cast to python Unicode strings and returned. If the to_clipboard flag is true, the contents will
+        also be copied to the system clipboard
+        '''
+        print "upper left index: %s, upper right index: %s" % \
+                (self._print_index(upper_left_index), self._print_index(lower_right_index))
+        text_matrix = []
+
+        # +1s are because range() is right interval exclusive
+        for row in range(upper_left_index.row(), lower_right_index.row()+1):
+            current_row = []
+            for col in range(upper_left_index.column(), lower_right_index.column()+1):
+                cur_index = self.model.createIndex(row, col)
+                cur_data = self.model.data(cur_index)
+                if cur_data is not None:
+                    # this looks redundant, but in fact the toString method
+                    # converts the string into a QString
+                    cur_str = str(cur_data.toString())
+                    current_row.append(cur_str)
+                else:
+                    current_row.append("")
+            text_matrix.append(current_row)
+
+        copied_str = self._matrix_to_str(text_matrix)
+
+        if to_clipboard:
+            clipboard = QApplication.clipboard()
+            clipboard.setText(copied_str)
+        print "copied str: %s" % copied_str
+        return copied_str
+
+
+
+    def paste_contents(self, upper_left_index, source_content):
+        '''
+        paste the content in source_content into the matrix starting at the upper_left_coord
+        cell. new rows will be added as needed; existing data will be overwritten
+        '''
+        origin_row, origin_col = upper_left_index.row(), upper_left_index.column()
+
+        if isinstance(source_content[-1], QtCore.QStringList) and \
+                             len(str(source_content[-1].join(" ")))==0:
+            # then there's a blank line; Excel has a habit
+            # of appending blank lines (\ns) to copied
+            # text -- we get rid of it here
+            source_content = source_content[:-1]
+
+        def cancel_macro_creation_and_revert_state(self):
+            ''' Ends creation of macro (in progress) and reverts the state of
+            the model to before the macro began to be created '''
+            
+            #print("Cancelling macro creation and reverting")
+            self.undo_stack.endMacro()
+            self.undo_stack.undo()
+            self.model.blockSignals(False)
+            
+            self.tableView.resizeColumnsToContents()
+            
+
+
+
+        # temporarily disable sorting to prevent automatic sorting of pasted data.
+        # (note: this is consistent with Excel's approach.)
+        self.model.blockSignals(True)
+        self.undo_stack.beginMacro(QString("Pasting"))
+        self.undo_stack.push(GenericUndoCommand(redo_fn=do_nothing,
+                                                undo_fn=self.tableView.resizeColumnsToContents))
+        
+        for src_row in range(len(source_content)):
+            for src_col in range(len(source_content[0])):
+                try:
+                    # note that we treat all of the data pasted as
+                    # one event; i.e., when undo is called, it undos the
+                    # whole paste
+                    index = self.model.createIndex(origin_row+src_row, origin_col+src_col)
+                    setdata_ok = self.model.setData(index, QVariant(source_content[src_row][src_col]))
+                    if not setdata_ok:
+                        cancel_macro_creation_and_revert_state()
+                except Exception, e:
+                    print "whoops, exception while pasting: %s" % e
+                    
+        self.undo_stack.push(GenericUndoCommand(redo_fn=self.tableView.resizeColumnsToContents,
+                                                undo_fn=do_nothing))
+        self.undo_stack.endMacro()
+
+        self.model.blockSignals(False)
+        self.model.reset()
+        
+    def _is_blank_row(self, r):
+        return len(r) == 1 and r[0] == ""
+        
+    def _normalize_newlines(self, qstr_text):
+        return qstr_text.replace(newlines_re, "\n")
+        
+    def paste_from_clipboard(self, upper_left_index):
+        ''' pastes the data in the clipboard starting at the currently selected cell.'''
+
+        clipboard = QApplication.clipboard()
+        clipboard_text = clipboard.text()
+
+        # fix for issue #169 (in OMA).
+        # excel for mac, insanely, appends \r instead of
+        # \n for new lines (rows).
+        clipboard_text = self._normalize_newlines(clipboard_text)
+
+        new_content = self._str_to_matrix(clipboard_text)
+
+        # fix for issue #64 (in OMA). excel likes to append a blank row
+        # to copied data -- we drop that here
+        if self._is_blank_row(new_content[-1]):
+            new_content = new_content[:-1]
+
+        print("new content: %s" % new_content)
+        print("upper left index:")
+        print(self._print_index(upper_left_index))
+        
+        self.paste_contents(upper_left_index, new_content)
+        
+######################## END COPY & PASTE #####################
     
 
 # simple progress bar
