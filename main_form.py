@@ -101,21 +101,6 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
         self.tableView.setModel(self.model)
         self.tableView.resizeColumnsToContents()
         self.make_model_connections()
-        
-#    def load_user_prefs(self, filename=USER_PREFERENCES_FILENAME):
-#        try:
-#            with open(filename, 'rb') as f:
-#                self.user_prefs = pickle.load(f)
-#        except IOError: # file doesn't exist
-#            # make default preferences
-#            self.user_prefs = {'recent_files': RecentFilesManager(),}
-#            
-#        
-#        self.populate_recent_datasets()
-       
-#    def save_user_prefs(self, filename=USER_PREFERENCES_FILENAME):
-#        with open(filename, 'wb') as f:
-#            pickle.dump(self.user_prefs, f)
 
     def setup_menus(self):
         # File Menu
@@ -131,15 +116,16 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
         QObject.connect(self.actionSave_As, SIGNAL("triggered()"), lambda: self.save(save_as=True))
         self.actionSave_As.setShortcut(QKeySequence.SaveAs)
         
-        # Edit Menu
+        ### Edit Menu ###
         QObject.connect(self.actionUndo, SIGNAL("triggered()"), self.undo)
         self.actionUndo.setShortcut(QKeySequence(QKeySequence.Undo))  
         
         QObject.connect(self.actionRedo, SIGNAL("triggered()"), self.redo)
         self.actionRedo.setShortcut(QKeySequence.Redo)
         
-        # TODO: implement cut menu action
-        self.actionCut.setShortcut(QKeySequence.Cut)    
+        # Cut, Copy, Paste #
+        QObject.connect(self.actionCut, SIGNAL("triggered()"), self.cut)
+        self.actionCut.setShortcut(QKeySequence.Cut) 
         
         QObject.connect(self.actionCopy, SIGNAL("triggered()"), self.copy)
         self.actionCopy.setShortcut(QKeySequence.Copy)
@@ -676,11 +662,37 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
 ################ END HANDLE USER PREFS ######################
 
 ############### COPY & PASTE ###############################
+
+    def cut(self):
+        # copy the data onto the clipboard
+        selected_indexes = self.tableView.selectionModel().selectedIndexes()
+        upper_left_index  = self._upper_left(selected_indexes)
+        lower_right_index = self._lower_right(selected_indexes)
+        if upper_left_index is None: # leave if nothing is selected
+            print("No selection")
+            return False
+        self.copy_contents_in_range(upper_left_index, lower_right_index,
+                                    to_clipboard=True)  
+        
+        # create a matrix of Nones and then 'paste' that in to the space we
+        # just copied from
+        nrows = lower_right_index.row() - upper_left_index.row() + 1
+        ncols = lower_right_index.column() - upper_left_index.column() + 1
+        nonerow = [None]*ncols
+        none_matrix = []
+        for _ in range(nrows):
+            none_matrix.append(nonerow[:])
+
+        self.paste_contents(upper_left_index, none_matrix)
+
     def copy(self):
         # copy/paste: these only happen if at least one cell is selected
         selected_indexes = self.tableView.selectionModel().selectedIndexes()
         upper_left_index  = self._upper_left(selected_indexes)
-        lower_right_index = self._lower_right(selected_indexes)  
+        lower_right_index = self._lower_right(selected_indexes)
+        if upper_left_index is None: # leave if nothing is selected
+            print("No selection")
+            return False
         self.copy_contents_in_range(upper_left_index, lower_right_index,
                                     to_clipboard=True)   
                                                                                     
