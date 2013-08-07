@@ -133,6 +133,8 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
         QObject.connect(self.actionPaste, SIGNAL("triggered()"), self.paste)
         self.actionPaste.setShortcut(QKeySequence.Paste)
         
+        QObject.connect(self.actionClear_Selected_Cells, SIGNAL("triggered()"), self.clear_selected_cells)
+        
         # Analysis Menu
         QObject.connect(self.actionCalculate_Effect_Size, SIGNAL("triggered()"), self.calculate_effect_size)
         QObject.connect(self.actionStandard_Meta_Analysis, SIGNAL("triggered()"), self.meta_analysis)
@@ -668,6 +670,17 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
 ################ END HANDLE USER PREFS ######################
 
 ############### COPY & PASTE ###############################
+
+    def clear_selected_cells(self):
+        print("clearing selected cell")
+        
+        selected_indexes = self.tableView.selectionModel().selectedIndexes()
+        self.undo_stack.beginMacro(QString("clearing selected cells"))
+        
+        for index in selected_indexes:
+            self.model.setData(index, QVariant())
+            
+        self.undo_stack.endMacro()
 
     def cut(self):
         # copy the data onto the clipboard
