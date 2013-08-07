@@ -104,17 +104,20 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
 
     def setup_menus(self):
         # File Menu
-        QObject.connect(self.actionNew    , SIGNAL("triggered()"), self.new_dataset)
+        QObject.connect(self.actionNew, SIGNAL("triggered()"), self.new_dataset)
         self.actionNew.setShortcut(QKeySequence.New)
         
-        QObject.connect(self.actionOpen   , SIGNAL("triggered()"), self.open)
+        QObject.connect(self.actionOpen, SIGNAL("triggered()"), self.open)
         self.actionOpen.setShortcut(QKeySequence.Open)
         
-        QObject.connect(self.actionSave   , SIGNAL("triggered()"), self.save)
+        QObject.connect(self.actionSave, SIGNAL("triggered()"), self.save)
         self.actionSave.setShortcut(QKeySequence.Save)
         
         QObject.connect(self.actionSave_As, SIGNAL("triggered()"), lambda: self.save(save_as=True))
         self.actionSave_As.setShortcut(QKeySequence.SaveAs)
+        
+        QObject.connect(self.actionQuit, SIGNAL("triggered()"), self.quit)
+        self.actionQuit.setShortcut(QKeySequence.Quit)
         
         ### Edit Menu ###
         QObject.connect(self.actionUndo, SIGNAL("triggered()"), self.undo)
@@ -472,8 +475,7 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
                         "Changes have been made to the data. Do you want to save your changes, discard them, or cancel?",
                         QMessageBox.Save | QMessageBox.Discard | QMessageBox.Cancel)
         if choice == QMessageBox.Save:
-            self.save()
-            return True
+            return self.save() # true of save was successful, false if cancelled
         
         return choice != QMessageBox.Cancel
         
@@ -536,19 +538,26 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
         self.model = ee_model.EETableModel(undo_stack=self.undo_stack)
         self.model.dirty = False
         self.outpath = None
+        self.set_window_title()
         self.tableView.setModel(self.model)
         
         self.statusbar.showMessage("Created a new dataset")
         
     def save(self, save_as=False):
         if self.outpath is None or save_as:
-            out_fpath = os.path.join('.', DEFAULT_FILENAME)
+            if self.outpath is None:
+                out_fpath = os.path.join(BASE_PATH, DEFAULT_FILENAME)
+            else:
+                out_fpath = self.outpath # already have filename, maybe want to change it
+            print("proposed file path: %s" % out_fpath)
             out_fpath = unicode(QFileDialog.getSaveFileName(self, "OpenMEE - Save File",
                                                          out_fpath, "OpenMEE files: (.ome)"))
             if out_fpath in ["", None]:
                 return False
-            else:
-                self.outpath = out_fpath
+            
+            if out_fpath[-4:] != u".ome": # add proper file extension
+                out_fpath += u".ome"
+            self.outpath = out_fpath
         
         # pickle the 'state' of the model which contains the dataset, etc
         try:
@@ -616,6 +625,24 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
     
     def status_from_action(self, action):
         self.statusBar().showMessage(action.text(), 2000)
+        
+    def closeEvent(self, event):
+        ok_to_close = self.prompt_user_about_unsaved_data()
+        if ok_to_close:
+            print("*** Till we meet again, dear analyst ***")
+            event.accept()
+        else: # user cancelled
+            event.ignore()
+        
+    def quit(self):
+        ok_to_close = self.prompt_user_about_unsaved_data()
+        if ok_to_close:
+            print("*** Till we meet again, dear analyst ***")
+            QApplication.quit()
+        else:
+            pass # do nothing, user cancelled
+    
+       
 
 ### HANDLE USER PREFERENCES
     def update_user_prefs(self, field, value):
@@ -887,6 +914,8 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
         self.paste_contents(upper_left_index, new_content)
         
 ######################## END COPY & PASTE #####################
+
+
     
 
 # simple progress bar
