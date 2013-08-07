@@ -1,9 +1,12 @@
-from functools import partial
+#from functools import partial
 
 from PyQt4 import QtCore, QtGui
 from PyQt4.Qt import *
 
 from globals import *
+
+
+
 
 
 class DataLocationPage(QWizardPage):
@@ -21,6 +24,8 @@ class DataLocationPage(QWizardPage):
         
         self.enable_ma_wizard_options = enable_ma_wizard_options
         
+        self.box_names_to_boxes = {}
+    
     def initializePage(self):
         self.data_type = self.wizard().selected_data_type
         
@@ -28,7 +33,6 @@ class DataLocationPage(QWizardPage):
         
         vlayout = self.layout()
         if vlayout is None:
-            #layout = QGridLayout()
             vlayout = QVBoxLayout()
             self.setLayout(vlayout)
             
@@ -77,8 +81,18 @@ class DataLocationPage(QWizardPage):
             for box in [self.effect_size_combo_box, self.variance_combo_box]:
                 QObject.connect(box, SIGNAL("currentIndexChanged(int)"), self._update_current_selections)
             
+            self.box_names_to_boxes.update({'effect_size': self.effect_size_combo_box,
+                                            'variance'   : self.variance_combo_box})
             
-            
+    def get_boxname_for_box(self, box):
+        self.box_names_to_boxes
+        
+        for name,v in self.box_names_to_boxes.items():
+            if v == box:
+                return name
+        return None
+        
+    
     def _setup_MEAN_AND_STD_DEV_table(self, layout):
         # top row labels
         layout.addWidget(QLabel("Control Group"), 0, 1)
@@ -119,7 +133,18 @@ class DataLocationPage(QWizardPage):
         # connect boxes to update of selections
         for box in self.continuous_combo_boxes + self.counts_combo_boxes:
             QObject.connect(box, SIGNAL("currentIndexChanged(int)"), self._update_current_selections)
-            
+        
+        self.box_names_to_boxes = {             
+            'control_mean'            : self.control_mean_combo_box,
+            'control_std_dev'         : self.control_std_dev_combo_box,
+            'control_sample_size'     : self.control_sample_size_combo_box,
+            'experimental_mean'       : self.experimental_mean_combo_box,
+            'experimental_std_dev'    : self.experimental_std_dev_combo_box,
+            'experimental_sample_size': self.experimental_sample_size_combo_box
+            }
+                            
+                                   
+                                   
     
     def _setup_TWO_BY_TWO_CONTINGENCY_table(self, layout):
         # top row labels
@@ -150,6 +175,15 @@ class DataLocationPage(QWizardPage):
         
         for box in self.counts_combo_boxes:
             QObject.connect(box, SIGNAL("currentIndexChanged(int)"), self._update_current_selections)
+            
+            
+        self.box_names_to_boxes = {
+            'control_response'        : self.control_response_combo_box,
+            'control_noresponse'      : self.control_noresponse_combo_box,
+            'experimental_response'   : self.experimental_response_combo_box,
+            'experimental_noresponse' : self.experimental_noresponse_combo_box}
+
+ 
 
         
     def _setup_CORRELATION_COEFFICIENTS_table(self, layout):
@@ -168,6 +202,12 @@ class DataLocationPage(QWizardPage):
         for box in [self.correlation_combo_box, self.sample_size_combo_box]:
             QObject.connect(box, SIGNAL("currentIndexChanged(int)"), self._update_current_selections)
             
+        self.box_names_to_boxes = {
+            'correlation': self.correlation_combo_box,
+            'sample_size': self.sample_size_combo_box}
+                  
+
+            
     def _populate_combo_boxes(self, combo_boxes, columns):
         ''' Populates combo boxes that are 'continuous' with list of continuous
         -type columns'''
@@ -182,6 +222,35 @@ class DataLocationPage(QWizardPage):
                 box.addItem(var.get_label(), col) # store the chosen col
             box.setCurrentIndex(0)
             box.blockSignals(False)
+            
+    def _set_default_choices_for_combo_boxes(self, combo_boxes, columns):
+        ''' Sets the default choice for the combo boxes from the last time the
+        dialog was open (assuming that the column is still a valid choice).
+        We assume/hope things didn't change to much in the meantime. An improvement
+        would be to check if any columns have been added/removed or changed state,
+        in which case we would clear the stored choices '''
+        
+        
+        for box in combo_boxes:
+            box.blockSignals(True)
+            previous_col_choice = self.get_default_col_choice_for_box(box)
+            default_index = 0
+            for index in range(0,box.count()):
+                col = box.itemData(index)
+                if col == previous_col_choice:
+                    default_index = index
+                    break
+            box.setCurrentIndex(default_index)
+            box.blockSignals(False)
+        
+        # make sure the selections are recorded
+        self._update_current_selections()
+            
+    def get_default_col_choice_for_box(self,box):
+        box_name = self.get_boxname_for_box(box)
+        column = self.model.get_data_location_choice(self.data_type, box_name)
+        if column is None:
+            return -1 # means no column chosen
             
     def _get_current_selections(self):
         ''' Returns a dictionary mapping fields to combo_box_selections(columns) '''

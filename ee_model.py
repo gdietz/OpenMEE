@@ -11,7 +11,7 @@ from PyQt4.Qt import *
 import pdb
 import string
 from sets import Set
-from functools import partial
+#from functools import partial
 import copy
 
 # handrolled
@@ -32,7 +32,7 @@ FORBIDDEN_VARIABLE_NAMES = [LABEL_PREFIX_MARKER,]
 
 class ModelState:
     def __init__(self, dataset, precision, dirty, rows_2_studies, cols_2_vars,
-                 label_column, label_column_name_label):
+                 label_column, label_column_name_label, data_location_choices):
         self.dataset   = dataset
         self.precision = precision
         self.dirty     = dirty
@@ -40,6 +40,7 @@ class ModelState:
         self.cols_2_vars    = cols_2_vars
         self.label_column   = label_column
         self.label_column_name_label = label_column_name_label
+        self.data_location_choices = data_location_choices
         
 
 class EETableModel(QAbstractTableModel):
@@ -53,6 +54,7 @@ class EETableModel(QAbstractTableModel):
             self.dataset = EEDataSet()
             self.precision = DEFAULT_PRECISION
             self.dirty = False
+            self.data_location_choices = {} # maps data_types to column choices
             
             # mapping rows to studies
             self.rows_2_studies = self._make_arbitrary_mapping_of_rows_to_studies()
@@ -79,7 +81,9 @@ class EETableModel(QAbstractTableModel):
                           rows_2_studies = self.rows_2_studies, 
                           cols_2_vars    = self.cols_2_vars,
                           label_column   = self.label_column,
-                          label_column_name_label = self.label_column_name_label)
+                          label_column_name_label = self.label_column_name_label,
+                          data_location_choices = self.data_location_choices)
+        
         
     def load_model_state(self, state):
         self.dataset        = state.dataset
@@ -89,6 +93,23 @@ class EETableModel(QAbstractTableModel):
         self.cols_2_vars    = state.cols_2_vars
         self.label_column   = state.label_column
         self.label_column_name_label = state.label_column_name_label
+        self.data_location_choices = state.data_location_choices
+        
+    def update_data_location_choices(self, data_type, data_locations):
+        ''' data locations is a dictionary obtained from the
+        calculate effect size wizard or meta-analysis wizard that maps
+        combo box choices to column #s '''
+        
+        if data_type not in self.data_location_choices:
+            self.data_location_choices[data_type] = {}
+        self.data_location_choices[data_type].update(data_locations)
+        
+    def get_data_location_choice(self, data_type, field_name):
+        try:
+            return self.data_location_choices[data_type][field_name]
+        except KeyError:
+            return None
+        
         
     def set_undo_stack(self, undo_stack):
         self.undo_stack = undo_stack

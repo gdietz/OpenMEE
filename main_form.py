@@ -178,6 +178,10 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
             metric = wizard.selected_metric
             data_location = wizard.data_location
             
+            # save data locations choices for this data type in the model
+            self.model.update_data_location_choices(data_type, data_location)
+            
+            
             data = python_to_R.gather_data(self.model, data_location)
             try:
                 effect_sizes = python_to_R.effect_size(metric, data_type, data)
@@ -203,6 +207,9 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
             included_studies = wizard.get_included_studies_in_proper_order()
             current_param_vals = wizard.get_plot_params()
             chosen_method = wizard.get_current_method()
+            
+            # save data locations choices for this data type in the model
+            self.model.update_data_location_choices(data_type, data_location)
             
             self.run_ma(included_studies, data_type, metric, data_location,
                         current_param_vals, chosen_method, meta_f_str)
