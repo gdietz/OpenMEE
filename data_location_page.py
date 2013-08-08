@@ -50,14 +50,17 @@ class DataLocationPage(QWizardPage):
             instructions_label.setWordWrap(True)
             
             vlayout.addWidget(instructions_label)
-        vlayout.addLayout(layout)
+            
+
+        
+        vlayout.addLayout(layout) # grid layout with column choices
         
         if self.data_type == MEANS_AND_STD_DEVS:
-            self._setup_MEAN_AND_STD_DEV_table(layout)
+            self._setup_MEAN_AND_STD_DEV_table(layout, startrow=layout.rowCount())
         elif self.data_type == TWO_BY_TWO_CONTINGENCY_TABLE:
-            self._setup_TWO_BY_TWO_CONTINGENCY_table(layout)
+            self._setup_TWO_BY_TWO_CONTINGENCY_table(layout, startrow=layout.rowCount())
         elif self.data_type == CORRELATION_COEFFICIENTS:
-            self._setup_CORRELATION_COEFFICIENTS_table(layout)
+            self._setup_CORRELATION_COEFFICIENTS_table(layout, startrow=layout.rowCount())
         else:
             raise Exception("Unrecognized Data type")
         
@@ -86,8 +89,30 @@ class DataLocationPage(QWizardPage):
             # connect boxes to update of selections
             for box in [self.effect_size_combo_box, self.variance_combo_box]:
                 QObject.connect(box, SIGNAL("currentIndexChanged(int)"), self._update_current_selections)
-            
+        
 
+        # add clear selections button
+        self.clear_selections_btn = QPushButton(QString("Clear Selections"))
+        clear_selections_btn_layout = QHBoxLayout()
+        spacerItem = QtGui.QSpacerItem(40, 20, QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Minimum)
+        clear_selections_btn_layout.addItem(spacerItem)
+        clear_selections_btn_layout.addWidget(self.clear_selections_btn)
+        vlayout.addLayout(clear_selections_btn_layout)
+        self.clear_selections_btn.clicked.connect(self._clear_selections)
+    
+    
+    def _clear_selections(self):
+        print("Clearing selections")
+        
+        boxes = self.box_names_to_boxes.values()
+
+        # by convention, the blank choice is the first entry in the combo boxes
+        for box in boxes:
+            box.blockSignals(True)
+            box.setCurrentIndex(0)
+            box.blockSignals(False)
+        
+        self._update_current_selections()
             
     def get_boxname_for_box(self, box):
         self.box_names_to_boxes
@@ -98,32 +123,32 @@ class DataLocationPage(QWizardPage):
         return None
         
     
-    def _setup_MEAN_AND_STD_DEV_table(self, layout):
+    def _setup_MEAN_AND_STD_DEV_table(self, layout, startrow=0):
         # top row labels
-        layout.addWidget(QLabel("Control Group"), 0, 1)
-        layout.addWidget(QLabel("Experimental Group"), 0, 2)
+        layout.addWidget(QLabel("Control Group"), startrow, 1)
+        layout.addWidget(QLabel("Experimental Group"), startrow, 2)
         # left column labels
-        layout.addWidget(QLabel("Mean"), 1, 0)
-        layout.addWidget(QLabel("Stand. Dev."), 2, 0)
-        layout.addWidget(QLabel("Sample Size"), 3, 0)
+        layout.addWidget(QLabel("Mean"), startrow+1, 0)
+        layout.addWidget(QLabel("Stand. Dev."), startrow+2, 0)
+        layout.addWidget(QLabel("Sample Size"), startrow+3, 0)
         
         # control group combo boxes
         self.control_mean_combo_box = QComboBox()
         self.control_std_dev_combo_box = QComboBox()
         self.control_sample_size_combo_box = QComboBox()
         
-        layout.addWidget(self.control_mean_combo_box       , 1, 1)
-        layout.addWidget(self.control_std_dev_combo_box    , 2, 1)
-        layout.addWidget(self.control_sample_size_combo_box, 3, 1)
+        layout.addWidget(self.control_mean_combo_box       , startrow+1, 1)
+        layout.addWidget(self.control_std_dev_combo_box    , startrow+2, 1)
+        layout.addWidget(self.control_sample_size_combo_box, startrow+3, 1)
         
         # experimental group combo boxes
         self.experimental_mean_combo_box = QComboBox()
         self.experimental_std_dev_combo_box = QComboBox()
         self.experimental_sample_size_combo_box = QComboBox()
         
-        layout.addWidget(self.experimental_mean_combo_box       , 1, 2) 
-        layout.addWidget(self.experimental_std_dev_combo_box    , 2, 2)
-        layout.addWidget(self.experimental_sample_size_combo_box, 3, 2)
+        layout.addWidget(self.experimental_mean_combo_box       , startrow+1, 2) 
+        layout.addWidget(self.experimental_std_dev_combo_box    , startrow+2, 2)
+        layout.addWidget(self.experimental_sample_size_combo_box, startrow+3, 2)
         
         self.continuous_combo_boxes = [self.control_mean_combo_box,
                                        self.control_std_dev_combo_box,
@@ -154,25 +179,25 @@ class DataLocationPage(QWizardPage):
                                    
                                    
     
-    def _setup_TWO_BY_TWO_CONTINGENCY_table(self, layout):
+    def _setup_TWO_BY_TWO_CONTINGENCY_table(self, layout, startrow=0):
         # top row labels
-        layout.addWidget(QLabel("Control"), 0, 1)
-        layout.addWidget(QLabel("Treatment"), 0, 2)
+        layout.addWidget(QLabel("Control"),   startrow, 1)
+        layout.addWidget(QLabel("Treatment"), startrow, 2)
         # left column labels
-        layout.addWidget(QLabel("Response"), 1, 0)
-        layout.addWidget(QLabel("No Response"), 2, 0)
+        layout.addWidget(QLabel("Response"),    startrow+1, 0)
+        layout.addWidget(QLabel("No Response"), startrow+2, 0)
         
         # control combo boxes
         self.control_response_combo_box = QComboBox()
         self.control_noresponse_combo_box = QComboBox()
-        layout.addWidget(self.control_response_combo_box, 1, 1)
-        layout.addWidget(self.control_noresponse_combo_box, 2, 1)
+        layout.addWidget(self.control_response_combo_box,   startrow+1, 1)
+        layout.addWidget(self.control_noresponse_combo_box, startrow+2, 1)
         
         # treatment combo_boxes
         self.experimental_response_combo_box = QComboBox()
         self.experimental_noresponse_combo_box = QComboBox()
-        layout.addWidget(self.experimental_response_combo_box, 1, 2)
-        layout.addWidget(self.experimental_noresponse_combo_box, 2, 2)
+        layout.addWidget(self.experimental_response_combo_box,   startrow+1, 2)
+        layout.addWidget(self.experimental_noresponse_combo_box, startrow+2, 2)
         
         self.counts_combo_boxes = [self.control_response_combo_box,
                                    self.control_noresponse_combo_box,
@@ -196,15 +221,15 @@ class DataLocationPage(QWizardPage):
  
 
         
-    def _setup_CORRELATION_COEFFICIENTS_table(self, layout):
+    def _setup_CORRELATION_COEFFICIENTS_table(self, layout, startrow=0):
         # top row labels
-        layout.addWidget(QLabel("Correlation"), 0, 1)
-        layout.addWidget(QLabel("Sample Size"), 0, 2)
+        layout.addWidget(QLabel("Correlation"), startrow, 1)
+        layout.addWidget(QLabel("Sample Size"), startrow, 2)
         
         self.correlation_combo_box = QComboBox()
         self.sample_size_combo_box = QComboBox()
-        layout.addWidget(self.correlation_combo_box, 1, 1)
-        layout.addWidget(self.sample_size_combo_box, 1, 2)
+        layout.addWidget(self.correlation_combo_box, startrow+1, 1)
+        layout.addWidget(self.sample_size_combo_box, startrow+1, 2)
         
         self.box_names_to_boxes = {
             'correlation': self.correlation_combo_box,
