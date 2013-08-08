@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'main_window.ui'
 #
-# Created: Wed Aug  7 16:11:59 2013
+# Created: Thu Aug  8 18:01:30 2013
 #      by: PyQt4 UI code generator 4.10.2
 #
 # WARNING! All changes made in this file will be lost!
@@ -64,14 +64,12 @@ class Ui_MainWindow(object):
         self.actionOpen.setObjectName(_fromUtf8("actionOpen"))
         self.actionSave = QtGui.QAction(MainWindow)
         self.actionSave.setObjectName(_fromUtf8("actionSave"))
-        self.actionClose = QtGui.QAction(MainWindow)
-        self.actionClose.setObjectName(_fromUtf8("actionClose"))
         self.actionQuit = QtGui.QAction(MainWindow)
         self.actionQuit.setObjectName(_fromUtf8("actionQuit"))
         self.actionSave_As = QtGui.QAction(MainWindow)
         self.actionSave_As.setObjectName(_fromUtf8("actionSave_As"))
-        self.actionCSV = QtGui.QAction(MainWindow)
-        self.actionCSV.setObjectName(_fromUtf8("actionCSV"))
+        self.actionImportCSV = QtGui.QAction(MainWindow)
+        self.actionImportCSV.setObjectName(_fromUtf8("actionImportCSV"))
         self.actionCopy = QtGui.QAction(MainWindow)
         self.actionCopy.setObjectName(_fromUtf8("actionCopy"))
         self.actionPaste = QtGui.QAction(MainWindow)
@@ -104,8 +102,8 @@ class Ui_MainWindow(object):
         self.actionTable_Preferences.setObjectName(_fromUtf8("actionTable_Preferences"))
         self.actionShow_toolbar = QtGui.QAction(MainWindow)
         self.actionShow_toolbar.setObjectName(_fromUtf8("actionShow_toolbar"))
-        self.actionAs_CSV = QtGui.QAction(MainWindow)
-        self.actionAs_CSV.setObjectName(_fromUtf8("actionAs_CSV"))
+        self.actionExportCSV = QtGui.QAction(MainWindow)
+        self.actionExportCSV.setObjectName(_fromUtf8("actionExportCSV"))
         self.actionUndo = QtGui.QAction(MainWindow)
         self.actionUndo.setObjectName(_fromUtf8("actionUndo"))
         self.actionRedo = QtGui.QAction(MainWindow)
@@ -122,8 +120,8 @@ class Ui_MainWindow(object):
         self.actionSubgroup.setObjectName(_fromUtf8("actionSubgroup"))
         self.actionMeta_Regression = QtGui.QAction(MainWindow)
         self.actionMeta_Regression.setObjectName(_fromUtf8("actionMeta_Regression"))
-        self.menuImport.addAction(self.actionCSV)
-        self.menuExport.addAction(self.actionAs_CSV)
+        self.menuImport.addAction(self.actionImportCSV)
+        self.menuExport.addAction(self.actionExportCSV)
         self.menuFile.addAction(self.actionNew)
         self.menuFile.addAction(self.actionOpen)
         self.menuFile.addAction(self.actionSave)
@@ -182,10 +180,9 @@ class Ui_MainWindow(object):
         self.actionNew.setText(_translate("MainWindow", "New", None))
         self.actionOpen.setText(_translate("MainWindow", "Open", None))
         self.actionSave.setText(_translate("MainWindow", "Save", None))
-        self.actionClose.setText(_translate("MainWindow", "Close", None))
         self.actionQuit.setText(_translate("MainWindow", "Quit", None))
         self.actionSave_As.setText(_translate("MainWindow", "Save As...", None))
-        self.actionCSV.setText(_translate("MainWindow", "CSV", None))
+        self.actionImportCSV.setText(_translate("MainWindow", "CSV", None))
         self.actionCopy.setText(_translate("MainWindow", "Copy", None))
         self.actionPaste.setText(_translate("MainWindow", "Paste", None))
         self.actionClear_Selected_Cells.setText(_translate("MainWindow", "Clear Selected Cells", None))
@@ -202,7 +199,8 @@ class Ui_MainWindow(object):
         self.actionDecimal_Places.setText(_translate("MainWindow", "Decimal Places", None))
         self.actionTable_Preferences.setText(_translate("MainWindow", "Table Preferences", None))
         self.actionShow_toolbar.setText(_translate("MainWindow", "Show toolbar", None))
-        self.actionAs_CSV.setText(_translate("MainWindow", "As CSV", None))
+        self.actionExportCSV.setText(_translate("MainWindow", "As CSV", None))
+        self.actionExportCSV.setToolTip(_translate("MainWindow", "Export CSV", None))
         self.actionUndo.setText(_translate("MainWindow", "Undo", None))
         self.actionRedo.setText(_translate("MainWindow", "Redo", None))
         self.actionCalculate_Effect_Size.setText(_translate("MainWindow", "Calculate Effect Size", None))

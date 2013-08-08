@@ -16,6 +16,7 @@ import ee_model
 import useful_dialogs
 import python_to_R
 import results_window
+import csv_import_dlg
 
 from globals import *
 
@@ -118,6 +119,9 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
         
         QObject.connect(self.actionQuit, SIGNAL("triggered()"), self.quit)
         self.actionQuit.setShortcut(QKeySequence.Quit)
+        
+        QObject.connect(self.actionImportCSV, SIGNAL("triggered()"), self.import_csv)
+        
         
         ### Edit Menu ###
         QObject.connect(self.actionUndo, SIGNAL("triggered()"), self.undo)
@@ -352,46 +356,51 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
         label_column = self.model.get_label_column()
         is_variable_column = self.model.column_assigned_to_variable(column_clicked)
         context_menu = QMenu(self.tableView)
-    
-        if not (column_clicked == label_column or is_variable_column):
-            return False
         
-        if column_clicked != label_column:
-            if is_variable_column:
-                variable = self.model.get_variable_assigned_to_column(column_clicked)
-                
-                # Change format of column
-                change_format_menu = QMenu("Change format", parent=context_menu)
-                self.add_choices_to_change_format_menu(change_format_menu, column_clicked)
-                if len(change_format_menu.actions()) > 0:
-                    context_menu.addMenu(change_format_menu)
-                
-                # Mark column as label
-                if label_column is None and variable.get_type() == CATEGORICAL:
-                    mark_as_label_action = context_menu.addAction("Mark as label column")
-                    QAction.connect(mark_as_label_action, SIGNAL("triggered()"),
-                                    partial(self.mark_column_as_label, column_clicked))
+        if (column_clicked == label_column or is_variable_column):
+            if column_clicked != label_column:
+                if is_variable_column:
+                    variable = self.model.get_variable_assigned_to_column(column_clicked)
+                    
+                    # Change format of column
+                    change_format_menu = QMenu("Change format", parent=context_menu)
+                    self.add_choices_to_change_format_menu(change_format_menu, column_clicked)
+                    if len(change_format_menu.actions()) > 0:
+                        context_menu.addMenu(change_format_menu)
+                    
+                    # Mark column as label
+                    if label_column is None and variable.get_type() == CATEGORICAL:
+                        mark_as_label_action = context_menu.addAction("Mark as label column")
+                        QAction.connect(mark_as_label_action, SIGNAL("triggered()"),
+                                        partial(self.mark_column_as_label, column_clicked))
+            
+            else:     #  column is label column
+                # Unmark column as label
+                unmark_as_label_action = context_menu.addAction("Unmark as label column")
+                QAction.connect(unmark_as_label_action, SIGNAL("triggered()"),
+                                partial(self.unmark_column_as_label, column_clicked))
+            
+            # rename label column
+            rename_column_action = context_menu.addAction("Rename %s" % ('variable' if is_variable_column else 'label column')) 
+            QAction.connect(rename_column_action, SIGNAL("triggered()"), lambda: self.rename_column(column_clicked))
+            
+            # delete column
+            delete_column_action = context_menu.addAction("Remove %s" % ('variable' if is_variable_column else 'label column'))
+            QAction.connect(delete_column_action, SIGNAL("triggered()"), lambda: self.model.removeColumn(column_clicked))
+            
+            # insert column
+            insert_column_action = context_menu.addAction("Insert column")
+            QAction.connect(insert_column_action, SIGNAL("triggered()"), lambda: self.model.insertColumn(column_clicked))
+            
+            
+        else: # column is not a label column or variable column
         
-        else:     #  column is label column
-            # Unmark column as label
-            unmark_as_label_action = context_menu.addAction("Unmark as label column")
-            QAction.connect(unmark_as_label_action, SIGNAL("triggered()"),
-                            partial(self.unmark_column_as_label, column_clicked))
-        
-        # rename label column
-        rename_column_action = context_menu.addAction("Rename %s" % ('variable' if is_variable_column else 'label column')) 
-        QAction.connect(rename_column_action, SIGNAL("triggered()"), lambda: self.rename_column(column_clicked))
-        
-        # delete column
-        delete_column_action = context_menu.addAction("Remove %s" % ('variable' if is_variable_column else 'label column'))
-        QAction.connect(delete_column_action, SIGNAL("triggered()"), lambda: self.model.removeColumn(column_clicked))
-        
-        # insert column
-        insert_column_action = context_menu.addAction("Insert column")
-        QAction.connect(insert_column_action, SIGNAL("triggered()"), lambda: self.model.insertColumn(column_clicked))
+            # Make new variable
+            make_new_categorical_variable_action = context_menu.addAction("Make new categorical variable")
+            QObject.connect(make_new_categorical_variable_action, SIGNAL("triggered()"), partial(self.make_new_variable_at_col, col=column_clicked,var_type=CATEGORICAL))
         
         context_menu.popup(QCursor.pos())
-    
+        
     def mark_column_as_label(self, col):
         ''' Should only occur for columns of CATEGORICAL type and only for a
         column which is not already the label column
@@ -428,6 +437,31 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
                                             description="Unmark column '%s' as label" % label_column_name)
         self.undo_stack.push(unmark_column_as_label_cmd)
         self.model._set_dirty_bit()
+        
+    def make_new_variable_at_col(self, col, var_type=CATEGORICAL,var_name=None):
+        if var_name is None:
+            name = self.model.get_default_header(col)
+        else:
+            name = var_name
+        
+        self.undo_stack.beginMacro(QString("Make a new variable at col %d" % col))
+        
+        start_cmd = GenericUndoCommand(redo_fn=self.model.beginResetModel,
+                                       undo_fn=self.model.endResetModel,
+                                       on_undo_exit=self.tableView.resizeColumnsToContents)
+        self.undo_stack.push(start_cmd)
+        
+        make_new_variable_cmd = ee_model.MakeNewVariableCommand(
+                        model=self.model, var_name=name, col=col,
+                        var_type=var_type)
+        self.undo_stack.push(make_new_variable_cmd)
+        
+        end_cmd = GenericUndoCommand(undo_fn=self.model.beginResetModel,
+                                     redo_fn=self.model.endResetModel,
+                                     on_redo_exit=self.tableView.resizeColumnsToContents)
+        self.undo_stack.push(end_cmd)
+        self.undo_stack.endMacro()
+        
     
     def rename_column(self, col):
         is_label_column = col == self.model.label_column
@@ -452,7 +486,7 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
         if initial_name == proposed_name:
             return False
         
-        # We will proceed with the nenaming
+        # We will proceed with the renaming
         if is_label_column:
             redo = partial(self.model.change_label_column_name, proposed_name)
             undo = partial(self.model.change_label_column_name, initial_name)
@@ -835,7 +869,7 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
 
 
 
-    def paste_contents(self, upper_left_index, source_content):
+    def paste_contents(self, upper_left_index, source_content, progress_bar_title="Pasting", progress_bar_label=""):
         '''
         paste the content in source_content into the matrix starting at the upper_left_coord
         cell. new rows will be added as needed; existing data will be overwritten
@@ -849,7 +883,7 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
             # text -- we get rid of it here
             source_content = source_content[:-1]
 
-        def cancel_macro_creation_and_revert_state(self):
+        def cancel_macro_creation_and_revert_state():
             ''' Ends creation of macro (in progress) and reverts the state of
             the model to before the macro began to be created '''
             
@@ -870,8 +904,14 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
         self.undo_stack.push(GenericUndoCommand(redo_fn=do_nothing,
                                                 undo_fn=self.tableView.resizeColumnsToContents))
         
+        nrows = len(source_content)
+        ncols = len(source_content[0])
+        progress_dlg = QProgressDialog(QString(progress_bar_title),QString("cancel"),0,(nrows-1)*(ncols-1),parent=self)
+        progress_dlg.setWindowModality(Qt.WindowModal)
         for src_row in range(len(source_content)):
             for src_col in range(len(source_content[0])):
+                progress_dlg.setValue(src_row*ncols + src_col)
+                QApplication.processEvents()
                 try:
                     # note that we treat all of the data pasted as
                     # one event; i.e., when undo is called, it undos the
@@ -881,7 +921,10 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
                     if not setdata_ok:
                         cancel_macro_creation_and_revert_state()
                 except Exception, e:
+                    progress_dlg.setValue(progress_dlg.maximum())
                     print "whoops, exception while pasting: %s" % e
+        progress_dlg.setValue(progress_dlg.maximum())               
+                    
                     
         self.undo_stack.push(GenericUndoCommand(redo_fn=self.tableView.resizeColumnsToContents,
                                                 undo_fn=do_nothing))
@@ -922,6 +965,27 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
         
 ######################## END COPY & PASTE #####################
 
+    def import_csv(self):
+            form = csv_import_dlg.CSVImportDialog(self)
+            
+            if form.exec_():
+                data = form.get_csv_data()
+                if data is None:
+                    QMessageBox.warning(self, "problem", "Coudln't import csv data for some reason")
+                    return
+                matrix = data['data']
+                headers = data['headers']
+                
+                self.new_dataset()
+                
+                start_index = self.model.createIndex(0,0)
+                
+                if headers != []:
+                    for col,header in enumerate(headers):
+                        self.make_new_variable_at_col(col, var_type=CATEGORICAL, var_name=str(header))
+                self.paste_contents(start_index, matrix)
+                
+                self.undo_stack.clear()
 
     
 

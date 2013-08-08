@@ -37,13 +37,13 @@
      <property name="title">
       <string>Import</string>
      </property>
-     <addaction name="actionCSV"/>
+     <addaction name="actionImportCSV"/>
     </widget>
     <widget class="QMenu" name="menuExport">
      <property name="title">
       <string>Export</string>
      </property>
-     <addaction name="actionAs_CSV"/>
+     <addaction name="actionExportCSV"/>
     </widget>
     <widget class="QMenu" name="menuRecent_Data">
      <property name="title">
@@ -129,11 +129,6 @@
     <string>Save</string>
    </property>
   </action>
-  <action name="actionClose">
-   <property name="text">
-    <string>Close</string>
-   </property>
-  </action>
   <action name="actionQuit">
    <property name="text">
     <string>Quit</string>
@@ -144,7 +139,7 @@
     <string>Save As...</string>
    </property>
   </action>
-  <action name="actionCSV">
+  <action name="actionImportCSV">
    <property name="text">
     <string>CSV</string>
    </property>
@@ -229,9 +224,12 @@
     <string>Show toolbar</string>
    </property>
   </action>
-  <action name="actionAs_CSV">
+  <action name="actionExportCSV">
    <property name="text">
     <string>As CSV</string>
+   </property>
+   <property name="toolTip">
+    <string>Export CSV</string>
    </property>
   </action>
   <action name="actionUndo">

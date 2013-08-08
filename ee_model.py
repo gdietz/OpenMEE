@@ -583,7 +583,7 @@ class EETableModel(QAbstractTableModel):
         if not row_has_study: # no study on this row yet, we will make one
             if value_blank:
                 cancel_macro_creation_and_revert_state()
-                return False
+                return True
             self.undo_stack.push(MakeStudyCommand(model=self, row=row))
             
         study = self.rows_2_studies[row]
@@ -595,13 +595,13 @@ class EETableModel(QAbstractTableModel):
                 self.undo_stack.push(SetStudyLabelCommand(study=study, new_label=proposed_label))
             else:
                 cancel_macro_creation_and_revert_state()
-                return False
+                return True
         else: # we are in a variable column (initialized or not)
             make_new_variable = not self.column_assigned_to_variable(col)
             if make_new_variable: # make a new variable and give it the default column header name
                 if value_blank:
                     cancel_macro_creation_and_revert_state()
-                    return False
+                    return True
                 new_var_name = str(self.get_default_header(col))
                 self.undo_stack.push(MakeNewVariableCommand(model=self, var_name=new_var_name, col=col))
 
@@ -671,6 +671,13 @@ class EETableModel(QAbstractTableModel):
         for i,label in zip(range(length), excel_column_headers()):
             self.default_headers.append(QString(label))
         return self.default_headers
+    
+    @staticmethod
+    def get_default_header_string_of_length(length):
+        header_string = []
+        for _,label in zip(range(length),excel_column_headers()):
+            header_string.append(QString(label))
+        return header_string
     
     def _set_dirty_bit(self, state=True):
         self.dirty = state

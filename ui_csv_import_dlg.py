@@ -1,0 +1,155 @@
+# -*- coding: utf-8 -*-
+
+# Form implementation generated from reading ui file 'csv_import_dlg.ui'
+#
+# Created: Thu Aug  8 16:06:31 2013
+#      by: PyQt4 UI code generator 4.10.2
+#
+# WARNING! All changes made in this file will be lost!
+
+from PyQt4 import QtCore, QtGui
+
+try:
+    _fromUtf8 = QtCore.QString.fromUtf8
+except AttributeError:
+    def _fromUtf8(s):
+        return s
+
+try:
+    _encoding = QtGui.QApplication.UnicodeUTF8
+    def _translate(context, text, disambig):
+        return QtGui.QApplication.translate(context, text, disambig, _encoding)
+except AttributeError:
+    def _translate(context, text, disambig):
+        return QtGui.QApplication.translate(context, text, disambig)
+
+class Ui_CSVImportDialog(object):
+    def setupUi(self, CSVImportDialog):
+        CSVImportDialog.setObjectName(_fromUtf8("CSVImportDialog"))
+        CSVImportDialog.resize(519, 472)
+        self.verticalLayout_3 = QtGui.QVBoxLayout(CSVImportDialog)
+        self.verticalLayout_3.setObjectName(_fromUtf8("verticalLayout_3"))
+        self.instructions = QtGui.QLabel(CSVImportDialog)
+        font = QtGui.QFont()
+        font.setPointSize(17)
+        self.instructions.setFont(font)
+        self.instructions.setAlignment(QtCore.Qt.AlignLeading|QtCore.Qt.AlignLeft|QtCore.Qt.AlignVCenter)
+        self.instructions.setWordWrap(True)
+        self.instructions.setMargin(10)
+        self.instructions.setObjectName(_fromUtf8("instructions"))
+        self.verticalLayout_3.addWidget(self.instructions)
+        self.groupBox = QtGui.QGroupBox(CSVImportDialog)
+        sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Preferred, QtGui.QSizePolicy.Minimum)
+        sizePolicy.setHorizontalStretch(0)
+        sizePolicy.setVerticalStretch(0)
+        sizePolicy.setHeightForWidth(self.groupBox.sizePolicy().hasHeightForWidth())
+        self.groupBox.setSizePolicy(sizePolicy)
+        self.groupBox.setMinimumSize(QtCore.QSize(0, 200))
+        self.groupBox.setObjectName(_fromUtf8("groupBox"))
+        self.verticalLayout = QtGui.QVBoxLayout(self.groupBox)
+        self.verticalLayout.setObjectName(_fromUtf8("verticalLayout"))
+        self.from_excel_chkbx = QtGui.QCheckBox(self.groupBox)
+        self.from_excel_chkbx.setObjectName(_fromUtf8("from_excel_chkbx"))
+        self.verticalLayout.addWidget(self.from_excel_chkbx)
+        self.has_headers_chkbx = QtGui.QCheckBox(self.groupBox)
+        self.has_headers_chkbx.setChecked(True)
+        self.has_headers_chkbx.setObjectName(_fromUtf8("has_headers_chkbx"))
+        self.verticalLayout.addWidget(self.has_headers_chkbx)
+        self.delimeterlayout = QtGui.QHBoxLayout()
+        self.delimeterlayout.setObjectName(_fromUtf8("delimeterlayout"))
+        self.delimter_lbl = QtGui.QLabel(self.groupBox)
+        self.delimter_lbl.setObjectName(_fromUtf8("delimter_lbl"))
+        self.delimeterlayout.addWidget(self.delimter_lbl)
+        self.delimter_le = QtGui.QLineEdit(self.groupBox)
+        sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Fixed, QtGui.QSizePolicy.Fixed)
+        sizePolicy.setHorizontalStretch(0)
+        sizePolicy.setVerticalStretch(0)
+        sizePolicy.setHeightForWidth(self.delimter_le.sizePolicy().hasHeightForWidth())
+        self.delimter_le.setSizePolicy(sizePolicy)
+        self.delimter_le.setMaximumSize(QtCore.QSize(20, 16777215))
+        self.delimter_le.setObjectName(_fromUtf8("delimter_le"))
+        self.delimeterlayout.addWidget(self.delimter_le)
+        spacerItem = QtGui.QSpacerItem(40, 20, QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Minimum)
+        self.delimeterlayout.addItem(spacerItem)
+        self.verticalLayout.addLayout(self.delimeterlayout)
+        self.quotelayout = QtGui.QHBoxLayout()
+        self.quotelayout.setObjectName(_fromUtf8("quotelayout"))
+        self.quotelbl = QtGui.QLabel(self.groupBox)
+        self.quotelbl.setObjectName(_fromUtf8("quotelbl"))
+        self.quotelayout.addWidget(self.quotelbl)
+        self.quotechar_le = QtGui.QLineEdit(self.groupBox)
+        sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Fixed, QtGui.QSizePolicy.Fixed)
+        sizePolicy.setHorizontalStretch(0)
+        sizePolicy.setVerticalStretch(0)
+        sizePolicy.setHeightForWidth(self.quotechar_le.sizePolicy().hasHeightForWidth())
+        self.quotechar_le.setSizePolicy(sizePolicy)
+        self.quotechar_le.setMaximumSize(QtCore.QSize(20, 16777215))
+        self.quotechar_le.setObjectName(_fromUtf8("quotechar_le"))
+        self.quotelayout.addWidget(self.quotechar_le)
+        spacerItem1 = QtGui.QSpacerItem(40, 20, QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Minimum)
+        self.quotelayout.addItem(spacerItem1)
+        self.verticalLayout.addLayout(self.quotelayout)
+        self.horizontalLayout = QtGui.QHBoxLayout()
+        self.horizontalLayout.setObjectName(_fromUtf8("horizontalLayout"))
+        self.file_path_lbl = QtGui.QLabel(self.groupBox)
+        self.file_path_lbl.setObjectName(_fromUtf8("file_path_lbl"))
+        self.horizontalLayout.addWidget(self.file_path_lbl)
+        spacerItem2 = QtGui.QSpacerItem(40, 20, QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Minimum)
+        self.horizontalLayout.addItem(spacerItem2)
+        self.select_file_btn = QtGui.QPushButton(self.groupBox)
+        icon = QtGui.QIcon()
+        icon.addPixmap(QtGui.QPixmap(_fromUtf8(":/function_icon_set/function_icon_set/folder_48.png")), QtGui.QIcon.Normal, QtGui.QIcon.Off)
+        self.select_file_btn.setIcon(icon)
+        self.select_file_btn.setObjectName(_fromUtf8("select_file_btn"))
+        self.horizontalLayout.addWidget(self.select_file_btn)
+        self.verticalLayout.addLayout(self.horizontalLayout)
+        self.verticalLayout_3.addWidget(self.groupBox)
+        self.preview_grp_box = QtGui.QGroupBox(CSVImportDialog)
+        self.preview_grp_box.setObjectName(_fromUtf8("preview_grp_box"))
+        self.horizontalLayout_10 = QtGui.QHBoxLayout(self.preview_grp_box)
+        self.horizontalLayout_10.setObjectName(_fromUtf8("horizontalLayout_10"))
+        self.preview_table = QtGui.QTableWidget(self.preview_grp_box)
+        sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Minimum, QtGui.QSizePolicy.Expanding)
+        sizePolicy.setHorizontalStretch(0)
+        sizePolicy.setVerticalStretch(0)
+        sizePolicy.setHeightForWidth(self.preview_table.sizePolicy().hasHeightForWidth())
+        self.preview_table.setSizePolicy(sizePolicy)
+        font = QtGui.QFont()
+        font.setPointSize(8)
+        font.setBold(True)
+        font.setWeight(75)
+        self.preview_table.setFont(font)
+        self.preview_table.setObjectName(_fromUtf8("preview_table"))
+        self.preview_table.setColumnCount(0)
+        self.preview_table.setRowCount(0)
+        self.horizontalLayout_10.addWidget(self.preview_table)
+        self.verticalLayout_3.addWidget(self.preview_grp_box)
+        self.buttonBox = QtGui.QDialogButtonBox(CSVImportDialog)
+        self.buttonBox.setOrientation(QtCore.Qt.Horizontal)
+        self.buttonBox.setStandardButtons(QtGui.QDialogButtonBox.Cancel|QtGui.QDialogButtonBox.Ok)
+        self.buttonBox.setObjectName(_fromUtf8("buttonBox"))
+        self.verticalLayout_3.addWidget(self.buttonBox)
+        self.delimter_lbl.setBuddy(self.delimter_le)
+        self.quotelbl.setBuddy(self.delimter_le)
+        self.file_path_lbl.setBuddy(self.select_file_btn)
+
+        self.retranslateUi(CSVImportDialog)
+        QtCore.QObject.connect(self.buttonBox, QtCore.SIGNAL(_fromUtf8("accepted()")), CSVImportDialog.accept)
+        QtCore.QObject.connect(self.buttonBox, QtCore.SIGNAL(_fromUtf8("rejected()")), CSVImportDialog.reject)
+        QtCore.QMetaObject.connectSlotsByName(CSVImportDialog)
+
+    def retranslateUi(self, CSVImportDialog):
+        CSVImportDialog.setWindowTitle(_translate("CSVImportDialog", "CSV Import", None))
+        self.instructions.setText(_translate("CSVImportDialog", "Please select a csv file to import.\n"
+"Remember to assign a proper format to each column.", None))
+        self.groupBox.setTitle(_translate("CSVImportDialog", "Import Options", None))
+        self.from_excel_chkbx.setText(_translate("CSVImportDialog", "csv exported from excel?", None))
+        self.has_headers_chkbx.setText(_translate("CSVImportDialog", "Has column labels?", None))
+        self.delimter_lbl.setText(_translate("CSVImportDialog", "Delimter:", None))
+        self.delimter_le.setText(_translate("CSVImportDialog", ",", None))
+        self.quotelbl.setText(_translate("CSVImportDialog", "Quote Character:", None))
+        self.quotechar_le.setText(_translate("CSVImportDialog", "\"", None))
+        self.file_path_lbl.setText(_translate("CSVImportDialog", "No file has been chosen.", None))
+        self.select_file_btn.setText(_translate("CSVImportDialog", "select csv file ...", None))
+        self.preview_grp_box.setTitle(_translate("CSVImportDialog", "Preview of imported data", None))
+
