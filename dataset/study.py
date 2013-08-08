@@ -22,7 +22,9 @@ class Study:
     # No set_id method because the only time an item_id should ever be set
     # is when it is created
         
-    def get_label(self):
+    def get_label(self, none_to_empty_string=False):
+        if none_to_empty_string and self.label is None:
+            return ''
         return self.label
     
     def set_label(self, label):

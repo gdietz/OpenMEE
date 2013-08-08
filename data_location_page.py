@@ -23,8 +23,10 @@ class DataLocationPage(QWizardPage):
         self.count_columns = self.model.get_count_columns()
         
         self.enable_ma_wizard_options = enable_ma_wizard_options
+        self.effect_and_var_boxes_exist = False
         
         self.box_names_to_boxes = {}
+    
     
     def initializePage(self):
         self.data_type = self.wizard().selected_data_type
@@ -67,12 +69,16 @@ class DataLocationPage(QWizardPage):
             eff_var_layout.addWidget(QLabel("\nVariance"), 0, 1)
             self.effect_size_combo_box = QComboBox()
             self.variance_combo_box = QComboBox()
+            self.effect_and_var_boxes_exist = True
             eff_var_layout.addWidget(self.effect_size_combo_box, 1, 0)
             eff_var_layout.addWidget(self.variance_combo_box, 1, 1)
             
             # add layout to larger layout
             rowcount = layout.rowCount()
             layout.addLayout(eff_var_layout, rowcount, 0, 1, 2)
+            
+            self.box_names_to_boxes.update({'effect_size': self.effect_size_combo_box,
+                                            'variance'   : self.variance_combo_box})
             
             self._populate_combo_boxes([self.effect_size_combo_box, self.variance_combo_box],
                                        self.continuous_columns)
@@ -81,8 +87,7 @@ class DataLocationPage(QWizardPage):
             for box in [self.effect_size_combo_box, self.variance_combo_box]:
                 QObject.connect(box, SIGNAL("currentIndexChanged(int)"), self._update_current_selections)
             
-            self.box_names_to_boxes.update({'effect_size': self.effect_size_combo_box,
-                                            'variance'   : self.variance_combo_box})
+
             
     def get_boxname_for_box(self, box):
         self.box_names_to_boxes
@@ -127,12 +132,6 @@ class DataLocationPage(QWizardPage):
         self.counts_combo_boxes = [self.control_sample_size_combo_box,
                                    self.experimental_sample_size_combo_box,]
         
-        self._populate_combo_boxes(self.continuous_combo_boxes, self.continuous_columns)
-        self._populate_combo_boxes(self.counts_combo_boxes, self.count_columns)
-        
-        # connect boxes to update of selections
-        for box in self.continuous_combo_boxes + self.counts_combo_boxes:
-            QObject.connect(box, SIGNAL("currentIndexChanged(int)"), self._update_current_selections)
         
         self.box_names_to_boxes = {             
             'control_mean'            : self.control_mean_combo_box,
@@ -142,6 +141,15 @@ class DataLocationPage(QWizardPage):
             'experimental_std_dev'    : self.experimental_std_dev_combo_box,
             'experimental_sample_size': self.experimental_sample_size_combo_box
             }
+        
+        self._populate_combo_boxes(self.continuous_combo_boxes, self.continuous_columns)
+        self._populate_combo_boxes(self.counts_combo_boxes, self.count_columns)
+        
+        # connect boxes to update of selections
+        for box in self.continuous_combo_boxes + self.counts_combo_boxes:
+            QObject.connect(box, SIGNAL("currentIndexChanged(int)"), self._update_current_selections)
+        
+
                             
                                    
                                    
@@ -171,17 +179,19 @@ class DataLocationPage(QWizardPage):
                                    self.experimental_noresponse_combo_box, 
                                    self.experimental_response_combo_box]
         
+        self.box_names_to_boxes = {
+            'control_response'        : self.control_response_combo_box,
+            'control_noresponse'      : self.control_noresponse_combo_box,
+            'experimental_response'   : self.experimental_response_combo_box,
+            'experimental_noresponse' : self.experimental_noresponse_combo_box}
+        
         self._populate_combo_boxes(self.counts_combo_boxes, self.count_columns)
         
         for box in self.counts_combo_boxes:
             QObject.connect(box, SIGNAL("currentIndexChanged(int)"), self._update_current_selections)
             
             
-        self.box_names_to_boxes = {
-            'control_response'        : self.control_response_combo_box,
-            'control_noresponse'      : self.control_noresponse_combo_box,
-            'experimental_response'   : self.experimental_response_combo_box,
-            'experimental_noresponse' : self.experimental_noresponse_combo_box}
+
 
  
 
@@ -196,15 +206,18 @@ class DataLocationPage(QWizardPage):
         layout.addWidget(self.correlation_combo_box, 1, 1)
         layout.addWidget(self.sample_size_combo_box, 1, 2)
         
+        self.box_names_to_boxes = {
+            'correlation': self.correlation_combo_box,
+            'sample_size': self.sample_size_combo_box}
+        
+        
         self._populate_combo_boxes([self.correlation_combo_box,], self.continuous_columns)
         self._populate_combo_boxes([self.sample_size_combo_box,], self.count_columns)
         
         for box in [self.correlation_combo_box, self.sample_size_combo_box]:
             QObject.connect(box, SIGNAL("currentIndexChanged(int)"), self._update_current_selections)
             
-        self.box_names_to_boxes = {
-            'correlation': self.correlation_combo_box,
-            'sample_size': self.sample_size_combo_box}
+
                   
 
             
@@ -223,6 +236,8 @@ class DataLocationPage(QWizardPage):
             box.setCurrentIndex(0)
             box.blockSignals(False)
             
+        self._set_default_choices_for_combo_boxes(combo_boxes, columns)
+            
     def _set_default_choices_for_combo_boxes(self, combo_boxes, columns):
         ''' Sets the default choice for the combo boxes from the last time the
         dialog was open (assuming that the column is still a valid choice).
@@ -230,17 +245,19 @@ class DataLocationPage(QWizardPage):
         would be to check if any columns have been added/removed or changed state,
         in which case we would clear the stored choices '''
         
+        print("Setting default choices for combo boxes")
         
         for box in combo_boxes:
             box.blockSignals(True)
             previous_col_choice = self.get_default_col_choice_for_box(box)
-            default_index = 0
+            default_index = -1
             for index in range(0,box.count()):
                 col = box.itemData(index)
                 if col == previous_col_choice:
                     default_index = index
                     break
-            box.setCurrentIndex(default_index)
+            if default_index != -1:
+                box.setCurrentIndex(default_index)
             box.blockSignals(False)
         
         # make sure the selections are recorded
@@ -251,6 +268,7 @@ class DataLocationPage(QWizardPage):
         column = self.model.get_data_location_choice(self.data_type, box_name)
         if column is None:
             return -1 # means no column chosen
+        return column
             
     def _get_current_selections(self):
         ''' Returns a dictionary mapping fields to combo_box_selections(columns) '''
@@ -280,9 +298,10 @@ class DataLocationPage(QWizardPage):
             current_selections = {'correlation': selected_column(self.correlation_combo_box),
                                   'sample_size': selected_column(self.sample_size_combo_box),}
             
-        if self.enable_ma_wizard_options:
+        if self.enable_ma_wizard_options and self.effect_and_var_boxes_exist:
             current_selections['effect_size'] = selected_column(self.effect_size_combo_box)
-            current_selections['variance']    = selected_column(self.variance_combo_box) 
+            current_selections['variance']    = selected_column(self.variance_combo_box)
+                
         
         return current_selections
     
@@ -299,7 +318,9 @@ class DataLocationPage(QWizardPage):
         if not self.enable_ma_wizard_options:
             if None in current_selections.values():
                 return False
-        else:
+        else: # in the case of performing a meta-analysis (where we really only need effect size and variance)
+            if not self.effect_and_var_boxes_exist:
+                return False
             if None in [current_selections['effect_size'], current_selections['variance']]:
                 return False
         return True

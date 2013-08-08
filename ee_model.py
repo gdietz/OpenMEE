@@ -93,7 +93,10 @@ class EETableModel(QAbstractTableModel):
         self.cols_2_vars    = state.cols_2_vars
         self.label_column   = state.label_column
         self.label_column_name_label = state.label_column_name_label
-        self.data_location_choices = state.data_location_choices
+        try:
+            self.data_location_choices = state.data_location_choices
+        except AttributeError: # backwards compatibility with old version of dataset w/o data_location_choices
+            self.data_location_choices = {}
         
     def update_data_location_choices(self, data_type, data_locations):
         ''' data locations is a dictionary obtained from the
@@ -103,6 +106,8 @@ class EETableModel(QAbstractTableModel):
         if data_type not in self.data_location_choices:
             self.data_location_choices[data_type] = {}
         self.data_location_choices[data_type].update(data_locations)
+        
+        print("Data location choices are now: %s" % str(self.data_location_choices))
         
     def get_data_location_choice(self, data_type, field_name):
         try:
@@ -128,7 +133,9 @@ class EETableModel(QAbstractTableModel):
                                 "Dirty: %s\n" % str(self.dirty),
                                 "Label Column: %s\n" % self.label_column,
                                 "Rows-to-study ids: %s\n" % str(rows_2_study_ids),
-                                "Columns to variables: %s\n" % str(self.cols_2_vars)])
+                                "Columns to variables: %s\n" % str(self.cols_2_vars),
+                                "Data location choices: %s\n" % str(self.data_location_choices),
+                                ])
         return summary_str + model_info
     
     
@@ -557,7 +564,7 @@ class EETableModel(QAbstractTableModel):
         row_has_study = row in self.rows_2_studies
         is_label_col = col == self.label_column
         
-        value_blank = value is None or str(value.toString()) == ""
+        value_blank = (value == QVariant()) or (value is None) or (str(value.toString()) == "") 
         
         def cancel_macro_creation_and_revert_state():
             ''' Ends creation of macro (in progress) and reverts the state of
@@ -583,7 +590,7 @@ class EETableModel(QAbstractTableModel):
         
         if is_label_col:
             existing_label = study.get_label()
-            proposed_label = str(value.toString())
+            proposed_label = str(value.toString()) if not value_blank else None
             if proposed_label != existing_label:
                 self.undo_stack.push(SetStudyLabelCommand(study=study, new_label=proposed_label))
             else:
@@ -613,10 +620,10 @@ class EETableModel(QAbstractTableModel):
             formatted_value = self._convert_input_value_to_correct_type_for_assignment(value_as_string, var_type)
             self.undo_stack.push(SetVariableValueCommand(study=study, variable=var, value=formatted_value))
             
-            # If variables and label for this study are all blank, remove the
-            # study from the dataset
-            if study.is_totally_blank():
-                self.undo_stack.push(RemoveStudyCommand(model=self, row=row))
+        # If variables and label for this study are all blank, remove the
+        # study from the dataset
+        if study.is_totally_blank():
+            self.undo_stack.push(RemoveStudyCommand(model=self, row=row))
             
         
         # End of the macro for undo/redo

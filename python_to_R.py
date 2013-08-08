@@ -186,13 +186,13 @@ def dataset_to_simple_binary_robj(model, included_studies, data_location, var_na
     '''
     r_str = None
     
-    study_ids = [study.get_id() for study in included_studies]
+    ####study_ids = [study.get_id() for study in included_studies]
 
     # issue #139 -- also grab the years
     none_to_str = lambda n : str(n) if n is not None else "" # this will produce NA ints
     #study_years = ", ".join(["as.integer(%s)" % none_to_str(study.year) for study in studies])
     study_years = ", ".join(["as.integer(%s)" % none_to_str(None) for study in included_studies])
-    study_names = ", ".join(["'" + study.get_label() + "'" for study in included_studies])
+    study_names = ", ".join(["'" + study.get_label(none_to_empty_string=True) + "'" for study in included_studies])
     
     ests_variable = model.get_variable_assigned_to_column(data_location['effect_size'])
     variance_variable = model.get_variable_assigned_to_column(data_location['variance'])
@@ -285,9 +285,9 @@ def dataset_to_simple_continuous_robj(model, included_studies, data_location,
                                       covs_to_include=None, one_arm=False):
     r_str = None
     
-    #study_ids = [study.get_id() for study in included_studies]
+    ###study_ids = [study.get_id() for study in included_studies]
     
-    study_names = ", ".join(["'" + study.get_label() + "'" for study in included_studies])
+    study_names = ", ".join(["'" + study.get_label(none_to_empty_string=True) + "'" for study in included_studies])
     none_to_str = lambda n : str(n) if n is not None else "" # this will produce NA ints
     study_years = ", ".join(["as.integer(%s)" % none_to_str(None) for study in included_studies])
     
