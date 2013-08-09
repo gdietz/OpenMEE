@@ -17,36 +17,8 @@
    <item>
     <widget class="QTabWidget" name="tabWidget">
      <property name="currentIndex">
-      <number>1</number>
+      <number>0</number>
      </property>
-     <widget class="QWidget" name="refine_categories_tab">
-      <attribute name="title">
-       <string>Refine Categories</string>
-      </attribute>
-      <layout class="QVBoxLayout" name="verticalLayout_2">
-       <item>
-        <widget class="QGroupBox" name="cat_group_box">
-         <property name="title">
-          <string>Choose Groups of Studies to Include in the Analysis</string>
-         </property>
-         <layout class="QVBoxLayout" name="verticalLayout_5">
-          <property name="margin">
-           <number>0</number>
-          </property>
-          <item>
-           <widget class="QTreeWidget" name="cat_treeWidget">
-            <column>
-             <property name="text">
-              <string notr="true">1</string>
-             </property>
-            </column>
-           </widget>
-          </item>
-         </layout>
-        </widget>
-       </item>
-      </layout>
-     </widget>
      <widget class="QWidget" name="refine_studies_tab">
       <attribute name="title">
        <string>Refine Studies</string>
@@ -129,6 +101,22 @@
           </spacer>
          </item>
         </layout>
+       </item>
+      </layout>
+     </widget>
+     <widget class="QWidget" name="refine_categories_tab">
+      <attribute name="title">
+       <string>Refine Categories</string>
+      </attribute>
+      <layout class="QVBoxLayout" name="verticalLayout_2">
+       <item>
+        <widget class="QTreeWidget" name="cat_treeWidget">
+         <column>
+          <property name="text">
+           <string notr="true">Choose Groups of Studies to Include in the Analysis</string>
+          </property>
+         </column>
+        </widget>
        </item>
       </layout>
      </widget>
