@@ -15,7 +15,7 @@ import pdb
 import os
 import sys
 import ui_results_window
-#import edit_forest_plot_form
+import edit_forest_plot_form
 import python_to_R
 #import shutil
 
@@ -356,7 +356,7 @@ class ResultsWindow(QMainWindow, ui_results_window.Ui_ResultsWindow):
                            qpixmap_item, plot_type="forest"):
         plot_img = QImage(png_path)
         
-        
+        print("plot_img: %s" % plot_img)
         def _graphics_item_context_menu(event):
             def add_save_as_pdf_menu_action(menu):
                 action = QAction("save pdf image as...", self)
@@ -401,48 +401,49 @@ class ResultsWindow(QMainWindow, ui_results_window.Ui_ResultsWindow):
 
     def save_image_as(self, params_path, title, plot_type="forest", unscaled_image=None):
         
-        if not unscaled_image:
-            # note that the params object will, by convention,
-            # have the (generic) name 'plot.data' -- after this
-            # call, this object will be in the namespace
-            python_to_R.load_in_R("%s.plotdata" % params_path)
-    
-            default_path = {"forest":"forest_plot.pdf",
-                            "regression":"regression.pdf"}[plot_type]
-    
-            # where to save the graphic?
-            file_path = unicode(QFileDialog.getSaveFileName(self, 
-                                                            "OpenMeta[Analyst] -- save plot as", 
-                                                            QString(default_path)))
-    
-            # now we re-generate it, unless they canceled, of course
-            if file_path != "":
-                if plot_type == "forest":
-                    if self._is_side_by_side_fp(title):
-                        python_to_R.generate_forest_plot(file_path, side_by_side=True)
-                    else:
-                        python_to_R.generate_forest_plot(file_path)
-                elif plot_type == "regression":
-                    python_to_R.generate_reg_plot(file_path)
+        print("unscaled_image: %s" % str(unscaled_image))
+        #if not unscaled_image:
+        # note that the params object will, by convention,
+        # have the (generic) name 'plot.data' -- after this
+        # call, this object will be in the namespace
+        python_to_R.load_in_R("%s.plotdata" % params_path)
+        print("Loaded: %s" % "%s.plotdata" % params_path)
+
+        default_path = {"forest":"forest_plot.pdf",
+                        "regression":"regression.pdf"}[plot_type]
+
+        # where to save the graphic?
+        file_path = unicode(QFileDialog.getSaveFileName(self, 
+                                                        "OpenMeta[Analyst] -- save plot as", 
+                                                        QString(default_path)))
+
+        # now we re-generate it, unless they canceled, of course
+        if file_path != "":
+            if plot_type == "forest":
+                if self._is_side_by_side_fp(title):
+                    python_to_R.generate_forest_plot(file_path, side_by_side=True)
                 else:
-                    print "sorry -- I don't know how to draw %s plots!" % plot_type
-        else: # case where we just have the png and can't regenerate the pdf from plot data
-            default_path = '.'.join([title.replace(' ','_'),"png"])
-            file_path = unicode(QFileDialog.getSaveFileName(self, "OpenMeta[Analyst] -- save plot as", QString(default_path)))
-            unscaled_image.save(QString(file_path),"PNG")
+                    python_to_R.generate_forest_plot(file_path)
+            elif plot_type == "regression":
+                python_to_R.generate_reg_plot(file_path)
+            else:
+                print "sorry -- I don't know how to draw %s plots!" % plot_type
+#        else: # case where we just have the png and can't regenerate the pdf from plot data
+#            print("Can't regenerate pdf")
+#            default_path = '.'.join([title.replace(' ','_'),"png"])
+#            file_path = unicode(QFileDialog.getSaveFileName(self, "OpenMeta[Analyst] -- save plot as", QString(default_path)))
+#            unscaled_image.save(QString(file_path),"PNG")
             
 
     def edit_image(self, params_path, title, png_path, pixmap_item):
-# TODO: TEMPORARILY COMMENTED OUT
-#        plot_editor_window = edit_forest_plot_form.EditPlotWindow(\
-#                                            params_path, png_path,\
-#                                            pixmap_item, parent=self)
-#        if plot_editor_window is not None:
-#            plot_editor_window.show()
-#        else:
-#            # TODO show a warning
-#            print "sorry - can't edit"
-        pass
+        plot_editor_window = edit_forest_plot_form.EditPlotWindow(\
+                                            params_path, png_path,\
+                                            pixmap_item, parent=self)
+        if plot_editor_window is not None:
+            plot_editor_window.show()
+        else:
+            # TODO show a warning
+            print "sorry - can't edit"
         
     def position(self):
         point = QPoint(self.x_coord, self.y_coord)

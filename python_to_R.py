@@ -860,8 +860,65 @@ class R_parse_tools:
             return False
         
         return str(r_object.names) != "NULL"
-        
-
-    
-
 #### end of R data structure tools #########
+
+
+def load_vars_for_plot(params_path, return_params_dict=False):
+    ''' 
+    loads the three necessary (for plot generation) variables
+    into R. we assume a naming convention in which params_path
+    is the base, data is stored in *.data, params in *.params
+    and result in *.res.
+    '''
+    for var in ("data", "params", "res"):
+        cur_path = "%s.%s" % (params_path, var)
+        if os.path.exists(cur_path):
+            load_in_R(cur_path)
+            print "loaded %s" % cur_path
+        else:
+            print "whoops -- couldn't load %s" % cur_path
+            return False
+
+    if return_params_dict:
+        robj = ro.r("params")
+        params_dict = R_parse_tools.recursioner(robj)
+        return params_dict
+    return True
+
+def regenerate_plot_data(om_data_name="om.data", res_name="res",           
+                            plot_params_name="params", plot_data_name="plot.data"):
+    
+    ####
+    # this is crude, but works for now, and easier than making
+    # the results_window keep track of why type of data it's
+    # displaying. may need to re-think this ain any case for the
+    # general case of plots (what 'type' is a mixed analysis, e.g.?)
+    ####
+    data_type = str(ro.r("class(%s)" % om_data_name))
+
+    if "BinaryData" in data_type:
+        ro.r("plot.data<-create.plot.data.binary(%s, %s, %s)" % \
+                            (om_data_name, plot_params_name, res_name))
+    elif "ContinuousData" in data_type:
+        ro.r("plot.data<-create.plot.data.continuous(%s, %s, %s)" % \
+                            (om_data_name, plot_params_name, res_name))
+    else:
+        ro.r("plot.data<-create.plot.data.diagnostic(%s, %s, %s)" % \
+                            (om_data_name, plot_params_name, res_name))
+        
+def update_plot_params(plot_params, plot_params_name="params", \
+                        write_them_out=False, outpath=None):
+    # first cast the params to an R data frame to make it
+    # R-palatable
+    params_df = ro.r['data.frame'](**plot_params)
+    ro.r("tmp.params <- %s" % params_df.r_repr())
+   
+    for param_name in plot_params:
+        ro.r("%s$%s <- tmp.params$%s" % \
+                (plot_params_name, param_name, param_name))
+
+    if write_them_out:
+        ro.r("save(tmp.params, file='%s')" % outpath)
+        
+def write_out_plot_data(params_out_path, plot_data_name="plot.data"):
+    ro.r("save.plot.data(%s, '%s')" % (plot_data_name, params_out_path))
