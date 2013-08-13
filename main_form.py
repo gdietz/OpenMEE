@@ -211,13 +211,16 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
             included_studies = wizard.get_included_studies_in_proper_order()
             current_param_vals = wizard.get_plot_params()
             chosen_method = wizard.get_current_method()
+            study_inclusion_state = wizard.studies_included_table
             
             # save data locations choices for this data type in the model
             self.model.update_data_location_choices(data_type, data_location)
             
+            # save which studies were included on last meta-analysis
+            self.model.update_previously_included_studies(study_inclusion_state)
+            
             self.run_ma(included_studies, data_type, metric, data_location,
                         current_param_vals, chosen_method, meta_f_str)
-    
 
     def run_ma(self, included_studies, data_type, metric, data_location,
                current_param_vals, chosen_method, meta_f_str):

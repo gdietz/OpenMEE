@@ -9,6 +9,11 @@ import ui_refine_studies_page
 
 MISSING_ENTRY_STR = "Not entered"
 
+
+# Policy:
+# Use include states of previously analyzed studies if the state exists,
+# otherwise, include the study by default (if it is includable)
+
 class RefineStudiesPage(QWizardPage, ui_refine_studies_page.Ui_WizardPage):
     def __init__(self, model, parent=None):
         super(RefineStudiesPage, self).__init__(parent)
@@ -43,12 +48,10 @@ class RefineStudiesPage(QWizardPage, ui_refine_studies_page.Ui_WizardPage):
         
 
     def initializePage(self):
-        
-        
         # map studies to boolean storing whether they CAN be included (if they have values for effect size and variance)
         self.studies_includable = dict([(study, self._is_includable(study)) for study in self.studies])
         # maps studies to boolean storing whether they are included or not
-        self.studies_included_dict = self._get_default_studies_included_dict()
+        self.studies_included_dict = self.get_studies_included_dict_with_previously_included_studies()
 
         self.wizard().studies_included_table = self.studies_included_dict
 
@@ -61,6 +64,18 @@ class RefineStudiesPage(QWizardPage, ui_refine_studies_page.Ui_WizardPage):
         ''' Includes all includable studies '''
         
         return dict([(study, self.studies_includable[study]) for study in self.studies])
+    
+    def get_studies_included_dict_with_previously_included_studies(self):
+        previous_study_inclusion_state = self.model.get_previously_included_studies()
+        
+        included_studies_dict = self._get_default_studies_included_dict()
+        
+        for study, include_status in included_studies_dict.items():
+            # modify dictionary if there is a previous include/exclude state
+            if study in previous_study_inclusion_state and self._is_includable(study):
+                included_studies_dict[study] = previous_study_inclusion_state[study]
+        
+        return included_studies_dict
         
     def _is_includable(self, study):
         ''' Returns whether or not a study is includable (i.e. if it has an

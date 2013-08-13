@@ -32,7 +32,8 @@ FORBIDDEN_VARIABLE_NAMES = [LABEL_PREFIX_MARKER,]
 
 class ModelState:
     def __init__(self, dataset, precision, dirty, rows_2_studies, cols_2_vars,
-                 label_column, label_column_name_label, data_location_choices):
+                 label_column, label_column_name_label, data_location_choices,
+                 previous_study_inclusion_state):
         self.dataset   = dataset
         self.precision = precision
         self.dirty     = dirty
@@ -41,6 +42,7 @@ class ModelState:
         self.label_column   = label_column
         self.label_column_name_label = label_column_name_label
         self.data_location_choices = data_location_choices
+        self.previous_study_inclusion_state = previous_study_inclusion_state
         
 
 class EETableModel(QAbstractTableModel):
@@ -55,6 +57,7 @@ class EETableModel(QAbstractTableModel):
             self.precision = DEFAULT_PRECISION
             self.dirty = False
             self.data_location_choices = {} # maps data_types to column choices
+            self.previous_study_inclusion_state = {}
             
             # mapping rows to studies
             self.rows_2_studies = self._make_arbitrary_mapping_of_rows_to_studies()
@@ -82,7 +85,9 @@ class EETableModel(QAbstractTableModel):
                           cols_2_vars    = self.cols_2_vars,
                           label_column   = self.label_column,
                           label_column_name_label = self.label_column_name_label,
-                          data_location_choices = self.data_location_choices)
+                          data_location_choices = self.data_location_choices,
+                          previous_study_inclusion_state = self.previous_study_inclusion_state,
+                          )
         
         
     def load_model_state(self, state):
@@ -97,6 +102,10 @@ class EETableModel(QAbstractTableModel):
             self.data_location_choices = state.data_location_choices
         except AttributeError: # backwards compatibility with old version of dataset w/o data_location_choices
             self.data_location_choices = {}
+        try:
+            self.previous_study_inclusion_state = state.previous_study_inclusion_state
+        except:
+            self.previous_study_inclusion_state = {}
         
     def update_data_location_choices(self, data_type, data_locations):
         ''' data locations is a dictionary obtained from the
@@ -108,6 +117,17 @@ class EETableModel(QAbstractTableModel):
         self.data_location_choices[data_type].update(data_locations)
         
         print("Data location choices are now: %s" % str(self.data_location_choices))
+        
+    
+    def update_previously_included_studies(self, studies_inclusion_state):
+        ''' included studies is a set() of studies obtained from the meta-
+        analysis wizard '''
+        
+        self.previous_study_inclusion_state = {}
+        self.previous_study_inclusion_state.update(studies_inclusion_state)
+        
+    def get_previously_included_studies(self):
+        return self.previous_study_inclusion_state
         
     def get_data_location_choice(self, data_type, field_name):
         try:
