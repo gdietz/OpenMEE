@@ -176,6 +176,11 @@ class EETableModel(QAbstractTableModel):
         
         return sorted([col for col,var in self.cols_2_vars.items() if var.get_type()==var_type])
     
+    def get_categorical_variables(self):
+        categorical_cols = self.get_categorical_columns()
+        categorical_vars = [self.get_variable_assigned_to_column(col) for col in categorical_cols]
+        return categorical_vars
+    
     ################# END get columns of a particular type ###################
     
     

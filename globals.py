@@ -41,6 +41,11 @@ OMA_CONVENTION = {MEANS_AND_STD_DEVS:'continuous',
                   TWO_BY_TWO_CONTINGENCY_TABLE:'binary',
                   CORRELATION_COEFFICIENTS:'continuous'}
 
+# For dealing with covariates in the interface to OpenMetaR
+COVARIATE_TYPE_TO_OMA_STR_DICT = {CONTINUOUS:u"continuous",
+                                  CATEGORICAL:u"factor",
+                                 }
+
 # Data type names mapping data types ---> pretty names
 DATA_TYPE_TEXT = {MEANS_AND_STD_DEVS:"Means and Stand. Devs",
                   TWO_BY_TWO_CONTINGENCY_TABLE:"2x2 Contingency Table", 

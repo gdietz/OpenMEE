@@ -11,11 +11,18 @@ class MethodsAndParametersPage(QWizardPage, ui_methods_and_parameters_page.Ui_Wi
         super(MethodsAndParametersPage, self).__init__(parent)
         self.setupUi(self)
         
-        self.current_param_vals = external_params or {}
+        self.external_params = external_params
+        
+
         self.model = model
         self.meta_f_str = meta_f_str
         
     def initializePage(self):
+        if self.wizard().enable_subgroup_options:
+            self.external_params = {"cov_name":self.wizard().get_subgroup_variable().get_label()}
+        self.current_param_vals = self.external_params or {}
+        
+        
         self.data_type = self.wizard().selected_data_type
         self.metric = self.wizard().selected_metric
         self.data_location = self.wizard().data_location
@@ -50,6 +57,8 @@ class MethodsAndParametersPage(QWizardPage, ui_methods_and_parameters_page.Ui_Wi
     def get_included_studies_in_proper_order(self):
         return self.wizard().get_included_studies_in_proper_order()
         
+    def get_modified_meta_f_str(self):
+        return self.meta_f_str
 
     def select_out_path(self):
         out_f = "."
@@ -143,20 +152,27 @@ class MethodsAndParametersPage(QWizardPage, ui_methods_and_parameters_page.Ui_Wi
         # to the R side to check the feasibility of the methods over the current data.
         # i.e., we do not display methods that cannot be performed over the 
         # current data.
-        tmp_obj_name = "tmp_obj" 
+        tmp_obj_name = "tmp_obj"
+        
+        covs_to_include = []
+        if self.wizard().enable_subgroup_options:
+                covs_to_include = [self.wizard().get_subgroup_variable(),]
+        
         if OMA_CONVENTION[self.data_type] == "binary":
             python_to_R.dataset_to_simple_binary_robj(self.model,
                                                       included_studies = self.get_included_studies_in_proper_order(),
                                                       data_location = self.data_location,
                                                       var_name = tmp_obj_name,
-                                                      covs_to_include=None, one_arm=False)
+                                                      covs_to_include=covs_to_include,
+                                                      one_arm=False)
         elif OMA_CONVENTION[self.data_type] == "continuous":
             python_to_R.dataset_to_simple_continuous_robj(model=self.model,
                                                           included_studies=self.get_included_studies_in_proper_order(),
                                                           data_location=self.data_location, 
                                                           data_type=self.data_type, 
                                                           var_name=tmp_obj_name, 
-                                                          covs_to_include=None, one_arm=False)
+                                                          covs_to_include=covs_to_include,
+                                                          one_arm=False)
             
         self.available_method_d = python_to_R.get_available_methods(
                                                 for_data_type=OMA_CONVENTION[self.data_type],

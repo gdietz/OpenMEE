@@ -171,7 +171,7 @@ def studies_have_point_estimates(studies, data_location, model):
     
 
 def dataset_to_simple_binary_robj(model, included_studies, data_location, var_name="tmp_obj", 
-                                  include_raw_data=True, covs_to_include=None, one_arm=False
+                                  include_raw_data=True, covs_to_include=[], one_arm=False
                                   ):
     '''
     This converts an EETableModel to an OpenMetaData (OMData) R object. We use type EETableModel
@@ -205,9 +205,8 @@ def dataset_to_simple_binary_robj(model, included_studies, data_location, var_na
 
     # TODO: add this covariate handling back in 
     # generate the covariate string
-    cov_str = "list()"
-    #cov_str = list_of_cov_value_objects_str(table_model.dataset, study_ids,
-    #                                        cov_list=covs_to_include)
+    #cov_str = "list()"
+    cov_str = list_of_cov_value_objects_str(studies=included_studies, cov_list=covs_to_include)
     
 
     # first try and construct an object with raw data
@@ -282,7 +281,7 @@ def dataset_to_simple_binary_robj(model, included_studies, data_location, var_na
 def dataset_to_simple_continuous_robj(model, included_studies, data_location,
                                       data_type, 
                                       var_name="tmp_obj",
-                                      covs_to_include=None, one_arm=False):
+                                      covs_to_include=[], one_arm=False):
     r_str = None
     
     ###study_ids = [study.get_id() for study in included_studies]
@@ -302,11 +301,9 @@ def dataset_to_simple_continuous_robj(model, included_studies, data_location,
     
     
     # TODO: add this covariate handling back in 
-    cov_str = "list()"
+    #cov_str = "list()"
     # generate the covariate string
-#    cov_str = list_of_cov_value_objects_str(table_model.dataset,
-#                                            study_ids,
-#                                            cov_list=covs_to_include,)
+    cov_str = list_of_cov_value_objects_str(studies=included_studies, cov_list=covs_to_include)
 
 
     # first try and construct an object with raw data -- note that if
@@ -922,3 +919,69 @@ def update_plot_params(plot_params, plot_params_name="params", \
         
 def write_out_plot_data(params_out_path, plot_data_name="plot.data"):
     ro.r("save.plot.data(%s, '%s')" % (plot_data_name, params_out_path))
+    
+
+######### DEAL WITH COVARIATES #########
+
+def list_of_cov_value_objects_str(studies, cov_list=[]):
+    ''' makes r_string of covariate objects with their values '''
+    
+    r_cov_str = []
+    for cov in cov_list:
+        r_cov_str.append(_gen_cov_vals_obj_str(cov, studies))
+    r_cov_str = "list(" + ",".join(r_cov_str) + ")"
+
+    return r_cov_str
+
+
+def _gen_cov_vals_obj_str(cov, studies):
+    ''' makes an R-evalable string to generate a covariate in R'''
+    
+    values_str, cov_vals = cov_to_str(cov, studies, named_list=False, return_cov_vals=True)
+    ref_var = cov_vals[0].replace("'", "") # arbitrary
+
+    ## setting the reference variable to the first entry
+    # for now -- this only matters for factors, obviously
+
+    r_str = "new('CovariateValues', cov.name='%s', cov.vals=%s, \
+                    cov.type='%s', ref.var='%s')" % \
+                (cov.get_label(), values_str, COVARIATE_TYPE_TO_OMA_STR_DICT[cov.get_type()], ref_var)
+    return r_str
+
+def cov_to_str(cov, studies, named_list=True, return_cov_vals=False):
+    '''
+    The string is constructed so that the covariate
+    values are in the same order as the studies
+    list.
+    '''
+    cov_str = None
+    if named_list:
+        cov_str = "%s=c(" % cov.get_label()
+    else:
+        cov_str = "c("
+
+    def convert_cov_value(cov_type, value):
+        if cov_type == CONTINUOUS:
+            if value is None:
+                return "NA"
+            else:
+                return "%s" % str(value)
+        elif cov_type == CATEGORICAL:
+            if value is None:
+                return "NA"
+            else:
+                return "'%s'" % unicode(str(value).encode('latin1'), 'latin1')
+        else:
+            raise Exception("Unrecognized covariate type")
+
+
+    cov_values = [study.get_var(cov) for study in studies]
+    cov_values = [convert_cov_value(cov.get_type(), value) for value in cov_values]
+
+    cov_str += ",".join(cov_values) + ")"
+    
+    if return_cov_vals:
+        return (cov_str, cov_values)
+    return cov_str
+
+##################### END OF COVARIATE STUFF #################################

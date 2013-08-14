@@ -145,7 +145,9 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
         # Analysis Menu
         QObject.connect(self.actionCalculate_Effect_Size, SIGNAL("triggered()"), self.calculate_effect_size)
         QObject.connect(self.actionStandard_Meta_Analysis, SIGNAL("triggered()"), self.meta_analysis)
-        
+        QObject.connect(self.actionCumulative, SIGNAL("triggered()"), self.cum_ma)
+        QObject.connect(self.actionLeave_one_out, SIGNAL("triggered()"), self.loo_ma)
+        QObject.connect(self.actionSubgroup, SIGNAL("triggered()"), self.subgroup_ma)
         
     
     def setup_connections(self):
@@ -198,13 +200,13 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
             
             print("Computed these effect sizes: %s" % str(effect_sizes))
             
-    def meta_analysis(self):
-        
-        
-        wizard = ma_wizard.MetaAnalysisWizard(model=self.model, parent=self)
+    def meta_analysis(self, meta_f_str=None,
+                            subgroup_ma = False):
+        wizard = ma_wizard.MetaAnalysisWizard(model=self.model, meta_f_str=meta_f_str,
+                                              enable_subgroup_options=subgroup_ma, parent=self)
         
         if wizard.exec_():
-            meta_f_str = wizard.meta_f_str
+            meta_f_str = wizard.get_modified_meta_f_str()
             data_type = wizard.selected_data_type
             metric = wizard.selected_metric
             data_location = wizard.data_location
@@ -212,6 +214,7 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
             current_param_vals = wizard.get_plot_params()
             chosen_method = wizard.get_current_method()
             study_inclusion_state = wizard.studies_included_table
+            subgroup_variable = wizard.get_subgroup_variable()
             
             # save data locations choices for this data type in the model
             self.model.update_data_location_choices(data_type, data_location)
@@ -219,11 +222,31 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
             # save which studies were included on last meta-analysis
             self.model.update_previously_included_studies(study_inclusion_state)
             
+            if subgroup_ma:
+                covs_to_include = [subgroup_variable,]
+            else:
+                covs_to_include = []
+                
+                
             self.run_ma(included_studies, data_type, metric, data_location,
-                        current_param_vals, chosen_method, meta_f_str)
+                        current_param_vals, chosen_method, meta_f_str, covs_to_include=covs_to_include)
+            
+    def cum_ma(self):
+        self.meta_analysis(meta_f_str="cum.ma")
+        
+    def loo_ma(self):
+        self.meta_analysis(meta_f_str="loo.ma")
+        
+    def subgroup_ma(self):
+        self.meta_analysis(meta_f_str="subgroup.ma", subgroup_ma=True)
+        
+        
+        
+        
+        
 
     def run_ma(self, included_studies, data_type, metric, data_location,
-               current_param_vals, chosen_method, meta_f_str):
+               current_param_vals, chosen_method, meta_f_str, covs_to_include=[]):
         ###
         # first, let's fire up a progress bar
         bar = MetaProgress(self)
@@ -243,7 +266,8 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
             # you'd like)
             python_to_R.dataset_to_simple_binary_robj(model=self.model,
                                                       included_studies=included_studies,
-                                                      data_location=data_location)
+                                                      data_location=data_location,
+                                                      covs_to_include=covs_to_include)
             if meta_f_str is None:
                 result = python_to_R.run_binary_ma(chosen_method, current_param_vals)
                 #pass
@@ -256,7 +280,7 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
                                                           included_studies=included_studies,
                                                           data_location=data_location,
                                                           data_type=data_type, 
-                                                          var_name="tmp_obj")
+                                                          covs_to_include=covs_to_include)
             if meta_f_str is None:
                 # run standard meta-analysis
                 result = python_to_R.run_continuous_ma(chosen_method, current_param_vals)
