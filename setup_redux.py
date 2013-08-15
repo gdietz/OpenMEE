@@ -17,7 +17,7 @@ from cx_Freeze import Executable, Freezer, setup
 
 # Define app name and such
 name = "OpenMEE"
-baseDir = '../' #baseDir = './'
+baseDir = './'      #baseDir = '../'
 srcDir = './'
 distDir = baseDir+'../frozen/'
 scriptFiles = [srcDir + 'launch.py']
