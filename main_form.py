@@ -567,7 +567,7 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
         
         print("Loading %s ..." % str(file_path))
         try:
-            with open(file_path, 'rb') as f:
+            with open(file_path, 'r') as f:
                 state = pickle.load(f)
         except Exception as e:
             msg = "Could not open %s, the error is: %s" % (str(file_path),str(e))
