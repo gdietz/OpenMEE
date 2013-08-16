@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'csv_import_dlg.ui'
 #
-# Created: Thu Aug  8 16:06:31 2013
+# Created: Thu Aug 15 17:07:06 2013
 #      by: PyQt4 UI code generator 4.10.2
 #
 # WARNING! All changes made in this file will be lost!

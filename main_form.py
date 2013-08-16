@@ -17,6 +17,7 @@ import useful_dialogs
 import python_to_R
 import results_window
 import csv_import_dlg
+import csv_export_dlg
 
 from globals import *
 
@@ -121,6 +122,7 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
         self.actionQuit.setShortcut(QKeySequence.Quit)
         
         QObject.connect(self.actionImportCSV, SIGNAL("triggered()"), self.import_csv)
+        QObject.connect(self.actionExportCSV, SIGNAL("triggered()"), self.export_csv)
         
         
         ### Edit Menu ###
@@ -619,7 +621,7 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
                 out_fpath = self.outpath # already have filename, maybe want to change it
             print("proposed file path: %s" % out_fpath)
             out_fpath = unicode(QFileDialog.getSaveFileName(self, "OpenMEE - Save File",
-                                                         out_fpath, "OpenMEE files: (.ome)"))
+                                                         out_fpath, "OpenMEE files (.ome)"))
             if out_fpath in ["", None]:
                 return False
             
@@ -993,27 +995,31 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
 ######################## END COPY & PASTE #####################
 
     def import_csv(self):
-            form = csv_import_dlg.CSVImportDialog(self)
+        form = csv_import_dlg.CSVImportDialog(self)
+        
+        if form.exec_():
+            data = form.get_csv_data()
+            if data is None:
+                QMessageBox.warning(self, "problem", "Coudln't import csv data for some reason")
+                return
+            matrix = data['data']
+            headers = data['headers']
             
-            if form.exec_():
-                data = form.get_csv_data()
-                if data is None:
-                    QMessageBox.warning(self, "problem", "Coudln't import csv data for some reason")
-                    return
-                matrix = data['data']
-                headers = data['headers']
+            self.new_dataset()
+            
+            start_index = self.model.createIndex(0,0)
+            
+            if headers != []:
+                for col,header in enumerate(headers):
+                    self.make_new_variable_at_col(col, var_type=CATEGORICAL, var_name=str(header))
+            self.paste_contents(start_index, matrix)
+            
+            self.undo_stack.clear()
                 
-                self.new_dataset()
-                
-                start_index = self.model.createIndex(0,0)
-                
-                if headers != []:
-                    for col,header in enumerate(headers):
-                        self.make_new_variable_at_col(col, var_type=CATEGORICAL, var_name=str(header))
-                self.paste_contents(start_index, matrix)
-                
-                self.undo_stack.clear()
-
+    def export_csv(self):
+        form = csv_export_dlg.CSVExportDialog(model=self.model, filepath=self.outpath, parent=self)
+        
+        form.exec_()
     
 
 # simple progress bar

@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'csv_export_options_dlg.ui'
 #
-# Created: Thu Aug 15 17:14:02 2013
+# Created: Fri Aug 16 12:10:35 2013
 #      by: PyQt4 UI code generator 4.10.2
 #
 # WARNING! All changes made in this file will be lost!
@@ -26,7 +26,7 @@ except AttributeError:
 class Ui_Dialog(object):
     def setupUi(self, Dialog):
         Dialog.setObjectName(_fromUtf8("Dialog"))
-        Dialog.resize(275, 209)
+        Dialog.resize(275, 230)
         self.verticalLayout = QtGui.QVBoxLayout(Dialog)
         self.verticalLayout.setObjectName(_fromUtf8("verticalLayout"))
         self.label = QtGui.QLabel(Dialog)
@@ -47,10 +47,10 @@ class Ui_Dialog(object):
         self.quote_text_cells_chkbox.setChecked(True)
         self.quote_text_cells_chkbox.setObjectName(_fromUtf8("quote_text_cells_chkbox"))
         self.verticalLayout.addWidget(self.quote_text_cells_chkbox)
-        self.checkBox = QtGui.QCheckBox(Dialog)
-        self.checkBox.setChecked(True)
-        self.checkBox.setObjectName(_fromUtf8("checkBox"))
-        self.verticalLayout.addWidget(self.checkBox)
+        self.include_headers_chkbox = QtGui.QCheckBox(Dialog)
+        self.include_headers_chkbox.setChecked(True)
+        self.include_headers_chkbox.setObjectName(_fromUtf8("include_headers_chkbox"))
+        self.verticalLayout.addWidget(self.include_headers_chkbox)
         self.horizontalLayout = QtGui.QHBoxLayout()
         self.horizontalLayout.setObjectName(_fromUtf8("horizontalLayout"))
         self.delimter_lbl = QtGui.QLabel(Dialog)
@@ -101,8 +101,8 @@ class Ui_Dialog(object):
         self.label.setText(_translate("Dialog", "Formatting options for CSV export", None))
         self.excel_dialect_chkbox.setText(_translate("Dialog", "excel CSV dialect?", None))
         self.quote_text_cells_chkbox.setText(_translate("Dialog", "Quote text cells?", None))
-        self.checkBox.setText(_translate("Dialog", "include column headers", None))
-        self.delimter_lbl.setText(_translate("Dialog", "Delimeter: ", None))
+        self.include_headers_chkbox.setText(_translate("Dialog", "include column headers", None))
+        self.delimter_lbl.setText(_translate("Dialog", "Delimiter: ", None))
         self.delimeter_le.setText(_translate("Dialog", ",", None))
         self.quotechar_lbl.setText(_translate("Dialog", "Quote character: ", None))
         self.quotechar_le.setText(_translate("Dialog", "\"", None))

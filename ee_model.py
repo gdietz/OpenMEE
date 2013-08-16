@@ -213,7 +213,7 @@ class EETableModel(QAbstractTableModel):
         
     def change_row_count_if_needed(self):
         old_row_limit = self.rowlimit
-        max_occupied_row = self._get_max_occupied_row()
+        max_occupied_row = self.get_max_occupied_row()
         if max_occupied_row is None:
             new_row_limit = ADDITIONAL_ROWS
         else:
@@ -226,7 +226,7 @@ class EETableModel(QAbstractTableModel):
             
     def change_column_count_if_needed(self):
         old_col_limit = self.collimit
-        max_occupied_col = self._get_max_occupied_col()
+        max_occupied_col = self.get_max_occupied_col()
         if max_occupied_col is None:
             new_col_limit = ADDITIONAL_COLS
         else:
@@ -240,7 +240,7 @@ class EETableModel(QAbstractTableModel):
     def columnCount(self, index=QModelIndex()):
         return self.collimit
     
-    def _get_max_occupied_row(self):
+    def get_max_occupied_row(self):
         ''' Returns the highest numbered row index of the occupied rows
             returns None if no rows are occupied '''
         
@@ -250,7 +250,7 @@ class EETableModel(QAbstractTableModel):
         else:
             return max(occupied_rows)
         
-    def _get_max_occupied_col(self):
+    def get_max_occupied_col(self):
         occupied_cols = Set(self.cols_2_vars.keys())
         if self.label_column is not None:
             occupied_cols.add(self.label_column)
@@ -498,7 +498,7 @@ class EETableModel(QAbstractTableModel):
         
         if not index.isValid():
             return QVariant()
-        max_occupied_row = self._get_max_occupied_row()
+        max_occupied_row = self.get_max_occupied_row()
         if max_occupied_row and not (0 <= index.row() <= max_occupied_row):
             return QVariant()
         
