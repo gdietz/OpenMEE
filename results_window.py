@@ -10,7 +10,9 @@
 #############################################
 
 #import random
+from PyQt4 import QtCore, QtGui
 from PyQt4.Qt import *
+
 import pdb
 import os
 import sys
@@ -30,6 +32,8 @@ SCALE_P = .5 # percent images are to be scaled
 # require to re-generate them (and we invoke a different method!)
 SIDE_BY_SIDE_FOREST_PLOTS = ("NLR and PLR Forest Plot", "Sensitivity and Specificity")
 ROW_HEIGHT = 15 # by trial-and-error; seems to work very well
+
+
 
 class ResultsWindow(QMainWindow, ui_results_window.Ui_ResultsWindow):
 

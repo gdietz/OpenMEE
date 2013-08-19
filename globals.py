@@ -72,7 +72,7 @@ METRIC_TEXT_SHORT = {HEDGES_D:"d",
                      FISHER_Z_TRANSFORM:"Zr",
                      }
 METRIC_TO_ESCALC_MEASURE = {HEDGES_D: "SMD",
-                            #LN_RESPONSE_RATIO: None, # ln RR not in escalc
+                            LN_RESPONSE_RATIO: "ROM",
                             ODDS_RATIO:"OR",
                             RATE_DIFFERENCE:"RD",
                             RELATIVE_RATE:"RR",
