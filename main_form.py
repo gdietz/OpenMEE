@@ -90,7 +90,13 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
     def showEvent(self, show_event):
         ''' do custom stuff upon showing the window '''
         
-        self._set_show_toolbar_txt()
+        self._set_show_toolbar_txt() # change status of show toolbar action
+        
+        # undo/redo actions
+        self.update_undo_enable_status()
+        self.update_redo_enable_status()
+        
+        
         QMainWindow.showEvent(self, show_event)
 
     def set_model(self, state):
@@ -157,6 +163,9 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
         QObject.connect(self.actionCumulative, SIGNAL("triggered()"), self.cum_ma)
         QObject.connect(self.actionLeave_one_out, SIGNAL("triggered()"), self.loo_ma)
         QObject.connect(self.actionSubgroup, SIGNAL("triggered()"), self.subgroup_ma)
+        
+        
+        
     
     def toggle_toolbar_visibility(self):
         status = self.toolBar.isVisible()
@@ -174,6 +183,23 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
     
     def setup_connections(self):
         self.make_model_connections()
+        
+        # connect undo/redo signals to enable/disable menu items
+        self.undo_stack.canUndoChanged.connect(self.update_undo_enable_status)
+        self.undo_stack.canRedoChanged.connect(self.update_redo_enable_status)
+        
+    def update_undo_enable_status(self):
+        if self.undo_stack.canUndo():
+            self.actionUndo.setEnabled(True)
+        else:
+            self.actionUndo.setEnabled(False)
+    
+    def update_redo_enable_status(self):
+        if self.undo_stack.canRedo():
+            self.actionRedo.setEnabled(True)
+        else:
+            self.actionRedo.setEnabled(False)
+        
         
     def populate_recent_datasets(self):
         self.menuRecent_Data.clear()
