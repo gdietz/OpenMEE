@@ -26,10 +26,6 @@ ADDITIONAL_COLS = 40
 LABEL_PREFIX_MARKER  = "*lbl*" # marker placed at start of a label(but is not displayed)
 FORBIDDEN_VARIABLE_NAMES = [LABEL_PREFIX_MARKER,]
 
-# TODO:
-# * Don't show option to change the format of a column marked as label
-# * Add options to mark/unmark column as label ----> categorical
-
 class ModelState:
     def __init__(self, dataset, precision, dirty, rows_2_studies, cols_2_vars,
                  label_column, label_column_name_label, data_location_choices,
@@ -46,6 +42,9 @@ class ModelState:
         
 
 class EETableModel(QAbstractTableModel):
+    
+    column_formats_changed = pyqtSignal()
+    
     def __init__(self, undo_stack, model_state=None):
         super(EETableModel, self).__init__()
         
@@ -177,8 +176,8 @@ class EETableModel(QAbstractTableModel):
         return sorted([col for col,var in self.cols_2_vars.items() if var.get_type()==var_type])
     
     def get_categorical_variables(self):
-        categorical_cols = self.get_categorical_columns()
-        categorical_vars = [self.get_variable_assigned_to_column(col) for col in categorical_cols]
+        variables = self.dataset.get_variables()
+        categorical_vars = [var for var in variables if var.get_type()==CATEGORICAL]
         return categorical_vars
     
     ################# END get columns of a particular type ###################
@@ -347,6 +346,8 @@ class EETableModel(QAbstractTableModel):
         self.dataset.change_variable_type(var, new_type, precision)
         self.endResetModel()
         
+        # Emit signal
+        self.column_formats_changed.emit()
         
     def mark_column_as_label(self, column_index):
         ''' Sets the contents of this column as the labels for the studies in the column '''
@@ -375,6 +376,10 @@ class EETableModel(QAbstractTableModel):
         # Mark the column as the label column
         self.label_column = column_index
         
+        
+        # Emit signal
+        self.column_formats_changed.emit()
+        
     
     def remove_variable(self, var):
         ''' Deletes a variable from the collection and removes it from the
@@ -384,6 +389,9 @@ class EETableModel(QAbstractTableModel):
         
         self.dataset.remove_variable(var)
         del self.cols_2_vars[col]
+        
+        # Emit signal
+        self.column_formats_changed.emit()
         
     def remove_study(self, study):
         row = self.get_row_assigned_to_study(study)
@@ -439,7 +447,13 @@ class EETableModel(QAbstractTableModel):
 
 
 
-
+    def make_new_variable(self, label=None, var_type=CATEGORICAL):
+        new_var = self.dataset.make_new_variable(label=label, var_type=var_type)
+        
+        # Emit signal
+        self.column_formats_changed.emit()
+        
+        return new_var
 
          
     def unmark_column_as_label(self, column_index):
@@ -453,7 +467,7 @@ class EETableModel(QAbstractTableModel):
         
         # Add new variable with 'categorical' type (the most general)
         variable_name = self.label_column_name_label
-        new_var = self.dataset.make_new_variable(label=variable_name, var_type=CATEGORICAL)
+        new_var = self.make_new_variable(label=variable_name, var_type=CATEGORICAL)
         # Assign the variable to the column
         self.cols_2_vars[column_index] = new_var
         
@@ -470,6 +484,9 @@ class EETableModel(QAbstractTableModel):
         # Un-mark label column
         self.label_column = None
         self.label_column_name_label = None
+        
+        # Emit signal
+        self.column_formats_changed.emit()
         
         
     def set_precision(self, new_precision):
@@ -846,6 +863,7 @@ class SetStudyLabelCommand(QUndoCommand):
 class MakeNewVariableCommand(QUndoCommand):
     ''' Creates/Deletes a new variable and assigns it to the given column '''
     
+    
     def __init__(self, model, var_name, col, var_type=CATEGORICAL):
         super(MakeNewVariableCommand, self).__init__()
         
@@ -863,7 +881,7 @@ class MakeNewVariableCommand(QUndoCommand):
     def redo(self):
         if DEBUG_MODE: print("redo: make new variable_command")
         if self.var is None:
-            self.var = self.model.dataset.make_new_variable(label=self.var_name, var_type=self.var_type)
+            self.var = self.model.make_new_variable(label=self.var_name, var_type=self.var_type)
         else:
             self.model.dataset.add_existing_variable(self.var)
         self.model.cols_2_vars[self.col] = self.var

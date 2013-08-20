@@ -89,6 +89,16 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
 
     def showEvent(self, show_event):
         ''' do custom stuff upon showing the window '''
+
+        self.initialize_display()
+        
+        
+        QMainWindow.showEvent(self, show_event)
+    
+    
+    def initialize_display(self):
+        ''' collection of function calls to perform when the main window is
+        first displayed or a new model is loaded '''
         
         self._set_show_toolbar_txt() # change status of show toolbar action
         
@@ -96,8 +106,9 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
         self.update_undo_enable_status()
         self.update_redo_enable_status()
         
+        self.update_subgroup_ma_enable_status()
         
-        QMainWindow.showEvent(self, show_event)
+        
 
     def set_model(self, state):
         '''
@@ -199,6 +210,14 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
             self.actionRedo.setEnabled(True)
         else:
             self.actionRedo.setEnabled(False)
+            
+    def update_subgroup_ma_enable_status(self):
+        print("intercepted column format changed")
+        
+        if self.model.get_categorical_variables() == []:
+            self.actionSubgroup.setEnabled(False)
+        else:
+            self.actionSubgroup.setEnabled(True)
         
         
     def populate_recent_datasets(self):
@@ -214,10 +233,15 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
         QObject.disconnect(self.model, SIGNAL("dataChanged(QModelIndex, QModelIndex)"), self.change_index_after_data_edited)
         #QObject.disconnect(self.model, SIGNAL("dataChanged(QModelIndex, QModelIndex)"), self.tableView.resizeColumnsToContents)
         
+        self.model.column_formats_changed.disconnect(self.update_subgroup_ma_enable_status)
+        
     def make_model_connections(self):
         QObject.connect(self.model, SIGNAL("DataError"), self.warning_msg)
         QObject.connect(self.model, SIGNAL("dataChanged(QModelIndex, QModelIndex)"), self.change_index_after_data_edited)
         #QObject.connect(self.model, SIGNAL("dataChanged(QModelIndex, QModelIndex)"), self.tableView.resizeColumnsToContents) # was making responsiveness of tableView slow
+    
+        self.model.column_formats_changed.connect(self.update_subgroup_ma_enable_status)
+        
     
     def calculate_effect_size(self):
         ''' Opens the calculate effect size wizard form and then calculates the new
@@ -644,6 +668,9 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
         
         # reset undo view form
         self.undo_view_form.set_stack_and_model(self.undo_stack, self.model)
+        
+        # reset menu/toolbar
+        self.initialize_display()
         
         return True
     
