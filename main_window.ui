@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>721</width>
-    <height>555</height>
+    <width>933</width>
+    <height>547</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -25,7 +25,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>721</width>
+     <width>933</width>
      <height>22</height>
     </rect>
    </property>
@@ -114,17 +114,58 @@
    <addaction name="menuAnalysis"/>
   </widget>
   <widget class="QStatusBar" name="statusbar"/>
+  <widget class="QToolBar" name="toolBar">
+   <property name="windowTitle">
+    <string>toolBar</string>
+   </property>
+   <attribute name="toolBarArea">
+    <enum>TopToolBarArea</enum>
+   </attribute>
+   <attribute name="toolBarBreak">
+    <bool>false</bool>
+   </attribute>
+   <addaction name="actionNew"/>
+   <addaction name="actionOpen"/>
+   <addaction name="actionSave"/>
+   <addaction name="actionImportCSV"/>
+   <addaction name="actionExportCSV"/>
+   <addaction name="separator"/>
+   <addaction name="actionCalculate_Effect_Size"/>
+   <addaction name="actionStandard_Meta_Analysis"/>
+   <addaction name="actionCumulative"/>
+   <addaction name="actionLeave_one_out"/>
+   <addaction name="actionSubgroup"/>
+   <addaction name="actionMeta_Regression"/>
+  </widget>
   <action name="actionNew">
+   <property name="icon">
+    <iconset resource="icons.qrc">
+     <normaloff>:/function_icon_set/images/function_icon_set/add_48.png</normaloff>:/function_icon_set/images/function_icon_set/add_48.png</iconset>
+   </property>
    <property name="text">
     <string>New</string>
    </property>
+   <property name="toolTip">
+    <string>New Dataset</string>
+   </property>
   </action>
   <action name="actionOpen">
+   <property name="icon">
+    <iconset resource="icons.qrc">
+     <normaloff>:/function_icon_set/images/function_icon_set/folder_48.png</normaloff>:/function_icon_set/images/function_icon_set/folder_48.png</iconset>
+   </property>
    <property name="text">
     <string>Open</string>
    </property>
+   <property name="toolTip">
+    <string>Open file</string>
+   </property>
   </action>
   <action name="actionSave">
+   <property name="icon">
+    <iconset resource="icons.qrc">
+     <normaloff>:/function_icon_set/images/function_icon_set/floppy_disk_48.png</normaloff>:/function_icon_set/images/function_icon_set/floppy_disk_48.png</iconset>
+   </property>
    <property name="text">
     <string>Save</string>
    </property>
@@ -140,8 +181,15 @@
    </property>
   </action>
   <action name="actionImportCSV">
+   <property name="icon">
+    <iconset resource="icons.qrc">
+     <normaloff>:/function_icon_set/images/function_icon_set/box_download_48.png</normaloff>:/function_icon_set/images/function_icon_set/box_download_48.png</iconset>
+   </property>
    <property name="text">
     <string>CSV</string>
+   </property>
+   <property name="toolTip">
+    <string>import CSV</string>
    </property>
   </action>
   <action name="actionCopy">
@@ -225,6 +273,10 @@
    </property>
   </action>
   <action name="actionExportCSV">
+   <property name="icon">
+    <iconset resource="icons.qrc">
+     <normaloff>:/function_icon_set/images/function_icon_set/box_upload_48.png</normaloff>:/function_icon_set/images/function_icon_set/box_upload_48.png</iconset>
+   </property>
    <property name="text">
     <string>As CSV</string>
    </property>
@@ -248,31 +300,53 @@
    </property>
   </action>
   <action name="actionStandard_Meta_Analysis">
+   <property name="icon">
+    <iconset resource="icons.qrc">
+     <normaloff>:/analysis_icons/images/meta_analysis.png</normaloff>:/analysis_icons/images/meta_analysis.png</iconset>
+   </property>
    <property name="text">
     <string>Standard Meta-Analysis</string>
    </property>
   </action>
   <action name="actionCumulative">
+   <property name="icon">
+    <iconset resource="icons.qrc">
+     <normaloff>:/analysis_icons/images/cum_meta_analysis.png</normaloff>:/analysis_icons/images/cum_meta_analysis.png</iconset>
+   </property>
    <property name="text">
     <string>Cumulative analysis</string>
    </property>
   </action>
   <action name="actionLeave_one_out">
+   <property name="icon">
+    <iconset resource="icons.qrc">
+     <normaloff>:/analysis_icons/images/leave_one_out.png</normaloff>:/analysis_icons/images/leave_one_out.png</iconset>
+   </property>
    <property name="text">
     <string>Leave-one-out analysis</string>
    </property>
   </action>
   <action name="actionSubgroup">
+   <property name="icon">
+    <iconset resource="icons.qrc">
+     <normaloff>:/analysis_icons/images/subgroup_ma.png</normaloff>:/analysis_icons/images/subgroup_ma.png</iconset>
+   </property>
    <property name="text">
     <string>Subgroup analysis</string>
    </property>
   </action>
   <action name="actionMeta_Regression">
+   <property name="icon">
+    <iconset resource="icons.qrc">
+     <normaloff>:/analysis_icons/images/meta_reg.png</normaloff>:/analysis_icons/images/meta_reg.png</iconset>
+   </property>
    <property name="text">
     <string>Meta-Regression</string>
    </property>
   </action>
  </widget>
- <resources/>
+ <resources>
+  <include location="icons.qrc"/>
+ </resources>
  <connections/>
 </ui>
