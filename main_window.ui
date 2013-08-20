@@ -131,6 +131,7 @@
    <addaction name="actionExportCSV"/>
    <addaction name="separator"/>
    <addaction name="actionCalculate_Effect_Size"/>
+   <addaction name="separator"/>
    <addaction name="actionStandard_Meta_Analysis"/>
    <addaction name="actionCumulative"/>
    <addaction name="actionLeave_one_out"/>

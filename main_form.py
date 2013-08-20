@@ -78,6 +78,7 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
         self.set_window_title()
         python_to_R.set_conf_level_in_R(DEFAULT_CONFIDENCE_LEVEL)
         
+        
     def set_window_title(self):
         if self.outpath is None:
             filename = DEFAULT_FILENAME
@@ -86,8 +87,11 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
         self.setWindowTitle(' - '.join([PROGRAM_NAME, filename]))
 
 
-
-
+    def showEvent(self, show_event):
+        ''' do custom stuff upon showing the window '''
+        
+        self._set_show_toolbar_txt()
+        QMainWindow.showEvent(self, show_event)
 
     def set_model(self, state):
         '''
@@ -144,13 +148,29 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
         
         QObject.connect(self.actionClear_Selected_Cells, SIGNAL("triggered()"), self.clear_selected_cells)
         
+        # Show/hide toolbar
+        QObject.connect(self.actionShow_toolbar, SIGNAL("triggered()"), self.toggle_toolbar_visibility)
+        
         # Analysis Menu
         QObject.connect(self.actionCalculate_Effect_Size, SIGNAL("triggered()"), self.calculate_effect_size)
         QObject.connect(self.actionStandard_Meta_Analysis, SIGNAL("triggered()"), self.meta_analysis)
         QObject.connect(self.actionCumulative, SIGNAL("triggered()"), self.cum_ma)
         QObject.connect(self.actionLeave_one_out, SIGNAL("triggered()"), self.loo_ma)
         QObject.connect(self.actionSubgroup, SIGNAL("triggered()"), self.subgroup_ma)
+    
+    def toggle_toolbar_visibility(self):
+        status = self.toolBar.isVisible()
+        self.toolBar.setVisible(not status)
+        self._set_show_toolbar_txt()
+            
+    def _set_show_toolbar_txt(self):
+        visible = self.toolBar.isVisible()
         
+        if visible:
+            print("hide toolbar")
+            self.actionShow_toolbar.setText("Hide toolbar")
+        else:
+            self.actionShow_toolbar.setText("Show toolbar")
     
     def setup_connections(self):
         self.make_model_connections()

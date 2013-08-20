@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'main_window.ui'
 #
-# Created: Tue Aug 20 14:58:53 2013
+# Created: Tue Aug 20 15:12:04 2013
 #      by: PyQt4 UI code generator 4.10.2
 #
 # WARNING! All changes made in this file will be lost!
@@ -203,6 +203,7 @@ class Ui_MainWindow(object):
         self.toolBar.addAction(self.actionExportCSV)
         self.toolBar.addSeparator()
         self.toolBar.addAction(self.actionCalculate_Effect_Size)
+        self.toolBar.addSeparator()
         self.toolBar.addAction(self.actionStandard_Meta_Analysis)
         self.toolBar.addAction(self.actionCumulative)
         self.toolBar.addAction(self.actionLeave_one_out)
