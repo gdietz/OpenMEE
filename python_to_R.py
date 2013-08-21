@@ -741,6 +741,46 @@ def run_meta_method(meta_function_name, function_name, params, \
     # in R (for graphics manipulation).
     return parse_out_results(result)
 
+def run_meta_regression(metric, fixed_effects=False, data_name="tmp_obj",
+                        results_name="results_obj", 
+                        conf_level=DEFAULT_CONFIDENCE_LEVEL): 
+    
+    if conf_level is None:
+        raise ValueError("Confidence level must be specified")
+                        
+    method_str = "FE" if fixed_effects else "DL"    
+
+    # @TODO conf.level, digits should be user-specified
+    params = {"conf.level": conf_level,
+              "digits": 3,
+              "method": method_str,
+              "rm.method": "ML",
+              "measure": METRIC_TO_ESCALC_MEASURE[metric]}
+    params_df = ro.r['data.frame'](**params)
+
+    # create a lit of covariate objects on the R side
+    r_str = "%s<- meta.regression(%s, %s)" % \
+                            (results_name, data_name, str(params_df.r_repr()))
+
+
+    print "\n\n(run_meta_regression): executing:\n %s\n" % r_str
+
+    ### TODO -- this is hacky
+
+    ro.r(r_str)
+    result = ro.r("%s" % results_name)
+
+    if "try-error" in str(result):
+        # uh-oh, there was an error (but the weird
+        # RRunTimeError alluded to above; this is a 
+        # legit error returned from an R routine)
+        return str([msg for msg in result][0])
+ 
+
+    parsed_results = parse_out_results(result)
+
+    return parsed_results
+
 def get_method_description(method_name):
     pretty_names_f = "%s.pretty.names" % method_name
     method_list = ro.r("lsf.str('package:openmetar')")

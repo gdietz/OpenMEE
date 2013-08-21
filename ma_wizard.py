@@ -8,30 +8,39 @@ from data_location_page import DataLocationPage
 from refine_studies_page import RefineStudiesPage
 from methods_and_parameters_page import MethodsAndParametersPage
 from subgroup_variable_page import SubgroupVariablePage
+from select_covariates_page import SelectCovariatesPage
 
-Page_ChooseEffectSize, Page_DataLocation, Page_RefineStudies, Page_MethodsAndParameters, Page_SubgroupVariable = range(5)
+Page_ChooseEffectSize, Page_DataLocation, Page_RefineStudies, Page_MethodsAndParameters, Page_SubgroupVariable, Page_SelectCovariates = range(6)
 class MetaAnalysisWizard(QtGui.QWizard):
-    def __init__(self, model, meta_f_str=None, enable_subgroup_options=False, parent=None):
+    def __init__(self, model, meta_f_str=None, subgroup_mode=False, meta_regression_mode=False, parent=None):
         super(MetaAnalysisWizard, self).__init__(parent)
         
         self.model = model
         self.meta_f_str = meta_f_str
-        self.enable_subgroup_options = enable_subgroup_options
+        self.subgroup_mode = subgroup_mode
+        self.meta_regression_mode = meta_regression_mode
         
         self.selected_data_type = None
         self.selected_metric = None
         self.data_location = None
         self.studies_included_table = None # dict mapping studies to if their inclusion state
         self.subgroup_variable_column = None
+        self.covariates_included_table = None
+        self.using_fixed_effects = None # will be a callable returning a boolean
         
         self.methods_and_params_page_instance = MethodsAndParametersPage(model=model, meta_f_str=meta_f_str)
         
         self.setPage(Page_ChooseEffectSize, ChooseEffectSizePage(add_generic_effect=True))
         self.setPage(Page_DataLocation,     DataLocationPage(model=model, enable_ma_wizard_options=True))
-        self.setPage(Page_RefineStudies,    RefineStudiesPage(model=model))
+        
         self.setPage(Page_MethodsAndParameters, self.methods_and_params_page_instance)
-        if enable_subgroup_options:
+        if subgroup_mode:
             self.setPage(Page_SubgroupVariable, SubgroupVariablePage(model=model))
+        elif meta_regression_mode:
+            self.setPage(Page_SelectCovariates, SelectCovariatesPage(model=model))
+            self.setPage(Page_RefineStudies, RefineStudiesPage(model=model, meta_regression_mode=True))
+        else:
+            self.setPage(Page_RefineStudies,    RefineStudiesPage(model=model))
         
         self.setStartId(Page_ChooseEffectSize)
         self.setWizardStyle(QWizard.ClassicStyle)
@@ -43,6 +52,10 @@ class MetaAnalysisWizard(QtGui.QWizard):
     def _change_size(self, pageid):
         print("changing size")
         self.adjustSize()
+        
+    def get_included_covariates(self):
+        included_covariates = [cov for cov,should_include in self.covariates_included_table.iteritems() if should_include]
+        return included_covariates
         
     def get_subgroup_variable_column(self):
         return self.subgroup_variable_column
@@ -68,7 +81,7 @@ class MetaAnalysisWizard(QtGui.QWizard):
 
 
     def nextId(self):
-        if self.enable_subgroup_options:
+        if self.subgroup_mode:
             # this is redundant but it makes the path easier to understand
             if self.currentId() == Page_ChooseEffectSize:
                 return Page_DataLocation
@@ -79,6 +92,15 @@ class MetaAnalysisWizard(QtGui.QWizard):
             elif self.currentId() == Page_SubgroupVariable:  #
                 return Page_MethodsAndParameters             #
             elif self.currentId() == Page_MethodsAndParameters:
+                return -1
+        elif self.meta_regression_mode:
+            if self.currentId() == Page_ChooseEffectSize:
+                return Page_DataLocation
+            elif self.currentId() == Page_DataLocation:
+                return Page_SelectCovariates
+            elif self.currentId() == Page_SelectCovariates:
+                return Page_RefineStudies
+            elif self.currentId() == Page_RefineStudies:
                 return -1
         else:
             if self.currentId() == Page_ChooseEffectSize:

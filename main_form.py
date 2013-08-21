@@ -22,7 +22,7 @@ import csv_export_dlg
 from globals import *
 
 # TODO: Handle setting the dirty bit more correctly in undo/redo
-# right now just set it all the time during redo but don't bother unsetting it
+# right now just set it all the time/(or not) (very haphazard) during redo but don't bother unsetting it
 
 
 class RecentFilesManager:
@@ -174,6 +174,7 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
         QObject.connect(self.actionCumulative, SIGNAL("triggered()"), self.cum_ma)
         QObject.connect(self.actionLeave_one_out, SIGNAL("triggered()"), self.loo_ma)
         QObject.connect(self.actionSubgroup, SIGNAL("triggered()"), self.subgroup_ma)
+        self.actionMeta_Regression.triggered.connect(self.meta_regression)
         
         
         
@@ -214,7 +215,7 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
     def update_subgroup_ma_enable_status(self):
         print("intercepted column format changed")
         
-        if self.model.get_categorical_variables() == []:
+        if self.model.get_variables(var_type=CATEGORICAL) == []:
             self.actionSubgroup.setEnabled(False)
         else:
             self.actionSubgroup.setEnabled(True)
@@ -274,8 +275,10 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
             
     def meta_analysis(self, meta_f_str=None,
                             subgroup_ma = False):
-        wizard = ma_wizard.MetaAnalysisWizard(model=self.model, meta_f_str=meta_f_str,
-                                              enable_subgroup_options=subgroup_ma, parent=self)
+        wizard = ma_wizard.MetaAnalysisWizard(model=self.model,
+                                              meta_f_str=meta_f_str,
+                                              subgroup_mode=subgroup_ma,
+                                              parent=self)
         
         if wizard.exec_():
             meta_f_str = wizard.get_modified_meta_f_str()
@@ -311,9 +314,49 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
         
     def subgroup_ma(self):
         self.meta_analysis(meta_f_str="subgroup.ma", subgroup_ma=True)
+    
+    def meta_regression(self):
+        wizard = ma_wizard.MetaAnalysisWizard(model=self.model,
+                                              meta_regression_mode=True,
+                                              parent=self)
+        
+        if wizard.exec_():
+            data_type = wizard.selected_data_type
+            metric = wizard.selected_metric
+            data_location = wizard.data_location
+            included_studies = wizard.get_included_studies_in_proper_order()
+            study_inclusion_state = wizard.studies_included_table
+            included_covariates = wizard.get_included_covariates()
+            fixed_effects = wizard.using_fixed_effects()
+            
+            # save data locations choices for this data type in the model
+            self.model.update_data_location_choices(data_type, data_location)
+            
+            # save which studies were included on last meta-regression
+            self.model.update_previously_included_studies(study_inclusion_state)
+            
+                
+                
+            self.run_meta_regression(metric, data_type, included_studies, data_location, covs_to_include=included_covariates, fixed_effects=fixed_effects)
         
         
+    def run_meta_regression(self, metric, data_type, included_studies, data_location, covs_to_include, fixed_effects):
         
+        if OMA_CONVENTION[data_type] == "binary":
+            python_to_R.dataset_to_simple_binary_robj(model=self.model,
+                                                      included_studies=included_studies,
+                                                      data_location=data_location,
+                                                      covs_to_include=covs_to_include,
+                                                      include_raw_data=False)
+        elif OMA_CONVENTION[data_type] == "continuous":
+            python_to_R.dataset_to_simple_continuous_robj(model=self.model,
+                                              included_studies=included_studies,
+                                              data_location=data_location,
+                                              data_type=data_type, 
+                                              covs_to_include=covs_to_include)
+        
+        result = python_to_R.run_meta_regression(metric=metric, fixed_effects=fixed_effects)
+        self.analysis(result)
         
         
 

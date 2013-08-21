@@ -15,15 +15,16 @@ MISSING_ENTRY_STR = "Not entered"
 # otherwise, include the study by default (if it is includable)
 
 class RefineStudiesPage(QWizardPage, ui_refine_studies_page.Ui_WizardPage):
-    def __init__(self, model, parent=None):
+    def __init__(self, model, meta_regression_mode=False, parent=None):
         super(RefineStudiesPage, self).__init__(parent)
         self.setupUi(self)
         
         self.model = model
+        self.meta_regression_mode = meta_regression_mode
         
         self.studies = self.model.get_studies_in_current_order()
         
-        self.categorical_variables = self._get_categorical_variables(self.model)
+        self.categorical_variables = self.model.get_variables(var_type=CATEGORICAL)
         
         self.items_to_studies = {} # items refers to those in the refine_studies tab
         # mapping: item --> (categorical variable, category
@@ -49,7 +50,7 @@ class RefineStudiesPage(QWizardPage, ui_refine_studies_page.Ui_WizardPage):
 
     def initializePage(self):
         # map studies to boolean storing whether they CAN be included (if they have values for effect size and variance)
-        self.studies_includable = dict([(study, self._is_includable(study)) for study in self.studies])
+        self.studies_includable = dict([(study, self._is_includable(study)[0]) for study in self.studies])
         # maps studies to boolean storing whether they are included or not
         self.studies_included_dict = self.get_studies_included_dict_with_previously_included_studies()
 
@@ -72,28 +73,58 @@ class RefineStudiesPage(QWizardPage, ui_refine_studies_page.Ui_WizardPage):
         
         for study, include_status in included_studies_dict.items():
             # modify dictionary if there is a previous include/exclude state
-            if study in previous_study_inclusion_state and self._is_includable(study):
+            if study in previous_study_inclusion_state and self._is_includable(study)[0]:
                 included_studies_dict[study] = previous_study_inclusion_state[study]
         
         return included_studies_dict
         
     def _is_includable(self, study):
-        ''' Returns whether or not a study is includable (i.e. if it has an
-        effect size and variance'''
+        ''' Returns a tuple indicating whether or not a study is includable (i.e. if it has an
+        effect size and variance. tuple: (boolean includable, str reason not includable) '''
         
-        # get variables associated with efffect size and variance
-        data_location   = self.wizard().data_location
-        effect_size_col = data_location['effect_size']
-        variance_col    = data_location['variance']
-        effect_size_var = self.model.get_variable_assigned_to_column(effect_size_col)
-        variance_var    = self.model.get_variable_assigned_to_column(variance_col)
+        def effect_size_and_var_present():
+            reason = ""
+            # get variables associated with efffect size and variance
+            data_location   = self.wizard().data_location
+            effect_size_col = data_location['effect_size']
+            variance_col    = data_location['variance']
+            effect_size_var = self.model.get_variable_assigned_to_column(effect_size_col)
+            variance_var    = self.model.get_variable_assigned_to_column(variance_col)
+            
+            effect_size = study.get_var(effect_size_var)
+            variance = study.get_var(variance_var)
+            
+            includable= False
+            if isinstance(effect_size, float) and isinstance(variance, float):
+                includable=True
+            
+            reason = "Effect size or variance missing"
+            return (includable, reason)
         
-        effect_size = study.get_var(effect_size_var)
-        variance = study.get_var(variance_var)
+        def all_included_covariates_present_for_study():
+            included_covariates = self.wizard().get_included_covariates()
+            
+            covariate_labels_for_which_the_study_lacks_values = []
+            
+            all_present = True
+            for cov in included_covariates:
+                if study.get_var(cov) is None:
+                    all_present = False
+                    label = cov.getlabel()
+                    if label is None:
+                        label="(NO LABEL)"
+                    covariate_labels_for_which_the_study_lacks_values.append(label)
+            
+            reason = ""
+            if not all_present:
+                reason = "Covariate labels missing for covariate(s): %s" % ', '.join(covariate_labels_for_which_the_study_lacks_values)
+            return (all_present, reason)
         
-        if isinstance(effect_size, float) and isinstance(variance, float):
-            return True
-        return False
+        includable, reason = effect_size_and_var_present()
+        if includable and self.meta_regression_mode:
+            includable, reason = all_included_covariates_present_for_study()
+        # reason not an empty string only iff includable is False
+        return (includable, reason)
     
     def print_old_new(self, old, new):
         print("Old: %s, New: %s" % (str(old), str(new)))
@@ -119,7 +150,7 @@ class RefineStudiesPage(QWizardPage, ui_refine_studies_page.Ui_WizardPage):
         
         # First change the include status of the studies, then, change the checkboxes & tree
         for study in self.studies_included_dict.keys():
-            if self._is_includable(study):
+            if self._is_includable(study)[0]:
                 self.studies_included_dict[study] = True # include in study
         
         # change status of the checkboxes
@@ -155,20 +186,21 @@ class RefineStudiesPage(QWizardPage, ui_refine_studies_page.Ui_WizardPage):
         self.cat_treeWidget.blockSignals(False)
     
     def _populate_refine_studies_tab(self):
-        ''' Adds checkable list of studies to based on their include state'''
+        ''' Adds checkable list of studies based on their include state'''
         
         self.refine_studies_list_widget.blockSignals(True)
         self.refine_studies_list_widget.clear()
         
         for study in self.studies:
-            includable = self._is_includable(study)
+            includable, reason = self._is_includable(study)
+            
             
             label = study.get_label()
             if label in [None, ""]:
                 row = self.model.get_row_assigned_to_study(study)
                 label = "Study row %d" % (row+1) # row in model indexed from 0
             if not includable:
-                label += " (can't include study: effect size or variance missing)"
+                label += " (can't include study: %s)" % reason
             item = QListWidgetItem(label)
             self.items_to_studies[item] = study
             #item.setFlags(item.flags()|Qt.ItemIsUserCheckable|Qt.ItemIsTristate)
@@ -276,7 +308,7 @@ class RefineStudiesPage(QWizardPage, ui_refine_studies_page.Ui_WizardPage):
             # check or deselect as necessary across groups of studies
             variable, category = self.items_to_factor_values[item]
             for study in self.studies_included_dict.keys():
-                if study.get_var(variable)==category and self._is_includable(study):
+                if study.get_var(variable)==category and self._is_includable(study)[0]:
                     print("matched")
                     if state == Qt.Unchecked:
                         self.studies_included_dict[study]=False
@@ -292,11 +324,6 @@ class RefineStudiesPage(QWizardPage, ui_refine_studies_page.Ui_WizardPage):
         
 #    def item_clicked(self, item):
 #        study = self.items_to_studies[item]
-    
-    def _get_categorical_variables(self, model):
-        cat_cols = self.model.get_categorical_columns()
-        cat_vars = [self.model.get_variable_assigned_to_column(col) for col in cat_cols]
-        return cat_vars
         
     def categories_of_var(self, studies, variable):
         ''' Returns a list of the categories of a categorical variable'''

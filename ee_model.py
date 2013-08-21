@@ -175,10 +175,18 @@ class EETableModel(QAbstractTableModel):
         
         return sorted([col for col,var in self.cols_2_vars.items() if var.get_type()==var_type])
     
-    def get_categorical_variables(self):
+    def get_variables(self, var_type=None):
+        ''' Gets all the variables in a list, or all the variables of a 
+        particular type '''
+        
+        if var_type == None: # special case, return all variables
+            return self.dataset.get_variables()
+        elif var_type not in VARIABLE_TYPES:
+            raise Exception("Not a defined variable type!")
+        
         variables = self.dataset.get_variables()
-        categorical_vars = [var for var in variables if var.get_type()==CATEGORICAL]
-        return categorical_vars
+        desired_variables = [var for var in variables if var.get_type()==var_type]
+        return desired_variables
     
     ################# END get columns of a particular type ###################
     
