@@ -78,6 +78,9 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
         self.set_window_title()
         python_to_R.set_conf_level_in_R(DEFAULT_CONFIDENCE_LEVEL)
         
+        # issue #8: disable copy-pasta if nothing 
+        # is selected (which is true at the outset)
+        self.toggle_copy_pasta(False)
         
     def set_window_title(self):
         if self.outpath is None:
@@ -86,6 +89,15 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
             filename = os.path.basename(self.outpath)
         self.setWindowTitle(' - '.join([PROGRAM_NAME, filename]))
 
+    def toggle_copy_pasta(self, b):
+        '''
+        set all menu options pertaining to 
+        copy/paste to (boolean) b.
+        '''
+        self.actionCopy.setEnabled(b)
+        self.actionPaste.setEnabled(b)
+        self.actionCut.setEnabled(b)
+        self.actionClear_Selected_Cells.setEnabled(b)
 
     def showEvent(self, show_event):
         ''' do custom stuff upon showing the window '''
@@ -199,7 +211,25 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
         # connect undo/redo signals to enable/disable menu items
         self.undo_stack.canUndoChanged.connect(self.update_undo_enable_status)
         self.undo_stack.canRedoChanged.connect(self.update_redo_enable_status)
-        
+            
+    
+
+        # QObject.connect(self.model, SIGNAL("DataError"), self.warning_msg)
+        QObject.connect(self.tableView.selectionModel(), 
+                            SIGNAL("selectionChanged(QItemSelection, QItemSelection)"), 
+                            self.table_selection_changed)
+
+    def table_selection_changed(self):
+        anything_selected = False
+        selected_indexes = self.tableView.selectionModel().selectedIndexes()
+        upper_left_index  = self._upper_left(selected_indexes)
+        if upper_left_index is not None:
+            anything_selected = True
+
+        # issue #8
+        self.toggle_copy_pasta(anything_selected)
+
+
     def update_undo_enable_status(self):
         if self.undo_stack.canUndo():
             self.actionUndo.setEnabled(True)
@@ -1145,7 +1175,6 @@ class MetaProgress(QDialog, ui_running.Ui_running):
     def __init__(self, parent=None):
         super(MetaProgress, self).__init__(parent)
         self.setupUi(self)
-
 
 
 
