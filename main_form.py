@@ -78,6 +78,7 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
         self.set_window_title()
         python_to_R.set_conf_level_in_R(DEFAULT_CONFIDENCE_LEVEL)
         
+        
     def set_window_title(self):
         if self.outpath is None:
             filename = DEFAULT_FILENAME
@@ -86,8 +87,28 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
         self.setWindowTitle(' - '.join([PROGRAM_NAME, filename]))
 
 
+    def showEvent(self, show_event):
+        ''' do custom stuff upon showing the window '''
 
-
+        self.initialize_display()
+        
+        
+        QMainWindow.showEvent(self, show_event)
+    
+    
+    def initialize_display(self):
+        ''' collection of function calls to perform when the main window is
+        first displayed or a new model is loaded '''
+        
+        self._set_show_toolbar_txt() # change status of show toolbar action
+        
+        # undo/redo actions
+        self.update_undo_enable_status()
+        self.update_redo_enable_status()
+        
+        self.update_subgroup_ma_enable_status()
+        
+        
 
     def set_model(self, state):
         '''
@@ -144,6 +165,9 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
         
         QObject.connect(self.actionClear_Selected_Cells, SIGNAL("triggered()"), self.clear_selected_cells)
         
+        # Show/hide toolbar
+        QObject.connect(self.actionShow_toolbar, SIGNAL("triggered()"), self.toggle_toolbar_visibility)
+        
         # Analysis Menu
         QObject.connect(self.actionCalculate_Effect_Size, SIGNAL("triggered()"), self.calculate_effect_size)
         QObject.connect(self.actionStandard_Meta_Analysis, SIGNAL("triggered()"), self.meta_analysis)
@@ -151,9 +175,50 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
         QObject.connect(self.actionLeave_one_out, SIGNAL("triggered()"), self.loo_ma)
         QObject.connect(self.actionSubgroup, SIGNAL("triggered()"), self.subgroup_ma)
         
+        
+        
+    
+    def toggle_toolbar_visibility(self):
+        status = self.toolBar.isVisible()
+        self.toolBar.setVisible(not status)
+        self._set_show_toolbar_txt()
+            
+    def _set_show_toolbar_txt(self):
+        visible = self.toolBar.isVisible()
+        
+        if visible:
+            print("hide toolbar")
+            self.actionShow_toolbar.setText("Hide toolbar")
+        else:
+            self.actionShow_toolbar.setText("Show toolbar")
     
     def setup_connections(self):
         self.make_model_connections()
+        
+        # connect undo/redo signals to enable/disable menu items
+        self.undo_stack.canUndoChanged.connect(self.update_undo_enable_status)
+        self.undo_stack.canRedoChanged.connect(self.update_redo_enable_status)
+        
+    def update_undo_enable_status(self):
+        if self.undo_stack.canUndo():
+            self.actionUndo.setEnabled(True)
+        else:
+            self.actionUndo.setEnabled(False)
+    
+    def update_redo_enable_status(self):
+        if self.undo_stack.canRedo():
+            self.actionRedo.setEnabled(True)
+        else:
+            self.actionRedo.setEnabled(False)
+            
+    def update_subgroup_ma_enable_status(self):
+        print("intercepted column format changed")
+        
+        if self.model.get_categorical_variables() == []:
+            self.actionSubgroup.setEnabled(False)
+        else:
+            self.actionSubgroup.setEnabled(True)
+        
         
     def populate_recent_datasets(self):
         self.menuRecent_Data.clear()
@@ -168,10 +233,15 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
         QObject.disconnect(self.model, SIGNAL("dataChanged(QModelIndex, QModelIndex)"), self.change_index_after_data_edited)
         #QObject.disconnect(self.model, SIGNAL("dataChanged(QModelIndex, QModelIndex)"), self.tableView.resizeColumnsToContents)
         
+        self.model.column_formats_changed.disconnect(self.update_subgroup_ma_enable_status)
+        
     def make_model_connections(self):
         QObject.connect(self.model, SIGNAL("DataError"), self.warning_msg)
         QObject.connect(self.model, SIGNAL("dataChanged(QModelIndex, QModelIndex)"), self.change_index_after_data_edited)
         #QObject.connect(self.model, SIGNAL("dataChanged(QModelIndex, QModelIndex)"), self.tableView.resizeColumnsToContents) # was making responsiveness of tableView slow
+    
+        self.model.column_formats_changed.connect(self.update_subgroup_ma_enable_status)
+        
     
     def calculate_effect_size(self):
         ''' Opens the calculate effect size wizard form and then calculates the new
@@ -598,6 +668,9 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
         
         # reset undo view form
         self.undo_view_form.set_stack_and_model(self.undo_stack, self.model)
+        
+        # reset menu/toolbar
+        self.initialize_display()
         
         return True
     
