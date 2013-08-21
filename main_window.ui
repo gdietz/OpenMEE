@@ -296,6 +296,10 @@
    </property>
   </action>
   <action name="actionCalculate_Effect_Size">
+   <property name="icon">
+    <iconset resource="icons.qrc">
+     <normaloff>:/analysis_icons/images/calculate_effect_size.png</normaloff>:/analysis_icons/images/calculate_effect_size.png</iconset>
+   </property>
    <property name="text">
     <string>Calculate Effect Size</string>
    </property>
