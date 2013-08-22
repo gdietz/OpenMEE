@@ -459,6 +459,11 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
             self.tableView.setFocus()
             new_index = self.model.createIndex(row,col)
             self.tableView.setCurrentIndex(new_index)
+            # issue #13. I realize this makes the UI
+            # a tad less zippy, but I think it's infinitely
+            # preferable to ellipses all over the place
+            # (and honestly, it's not that slow)
+            self.tableView.resizeColumnsToContents()
         
     def warning_msg(self, title="mystery warning", msg="a mysterious warning"):
         warning_box = QMessageBox(self)
