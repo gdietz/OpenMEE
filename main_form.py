@@ -118,7 +118,38 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
         self.update_undo_enable_status()
         self.update_redo_enable_status()
         
-        self.update_subgroup_ma_enable_status()
+        self.toggle_analyses_enable_status()
+    
+    def toggle_analyses_enable_status(self):
+        ''' Toggle the enable status of the analysis actions according whether
+        1) There are studies
+        2) a label column has been set '''
+        
+        enable = True
+        
+        studies = self.model.get_studies_in_current_order()
+        if len(studies) == 0:
+            enable = False
+            
+        if self.model.label_column is None:
+            enable = False
+            
+        self.enable_analyses = enable
+            
+        self.actionCalculate_Effect_Size.setEnabled(enable)
+        self.actionStandard_Meta_Analysis.setEnabled(enable)
+        self.actionLeave_one_out.setEnabled(enable)
+        self.actionCumulative.setEnabled(enable)
+        self.actionMeta_Regression.setEnabled(enable)
+        
+        if enable:
+            if self.model.get_variables(var_type=CATEGORICAL) == []:
+                self.actionSubgroup.setEnabled(False)
+            else:
+                self.actionSubgroup.setEnabled(True)
+        else:
+            self.actionSubgroup.setEnabled(False)
+        
         
         
 
@@ -242,13 +273,7 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
         else:
             self.actionRedo.setEnabled(False)
             
-    def update_subgroup_ma_enable_status(self):
-        print("intercepted column format changed")
-        
-        if self.model.get_variables(var_type=CATEGORICAL) == []:
-            self.actionSubgroup.setEnabled(False)
-        else:
-            self.actionSubgroup.setEnabled(True)
+
         
         
     def populate_recent_datasets(self):
@@ -264,15 +289,20 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
         QObject.disconnect(self.model, SIGNAL("dataChanged(QModelIndex, QModelIndex)"), self.change_index_after_data_edited)
         #QObject.disconnect(self.model, SIGNAL("dataChanged(QModelIndex, QModelIndex)"), self.tableView.resizeColumnsToContents)
         
-        self.model.column_formats_changed.disconnect(self.update_subgroup_ma_enable_status)
+        self.model.column_formats_changed.disconnect(self.toggle_analyses_enable_status)
+        self.model.studies_changed.disconnect(self.toggle_analyses_enable_status)
+        self.model.label_column_changed.disconnect(self.toggle_analyses_enable_status)
+        
         
     def make_model_connections(self):
         QObject.connect(self.model, SIGNAL("DataError"), self.warning_msg)
         QObject.connect(self.model, SIGNAL("dataChanged(QModelIndex, QModelIndex)"), self.change_index_after_data_edited)
         #QObject.connect(self.model, SIGNAL("dataChanged(QModelIndex, QModelIndex)"), self.tableView.resizeColumnsToContents) # was making responsiveness of tableView slow
     
-        self.model.column_formats_changed.connect(self.update_subgroup_ma_enable_status)
-        
+        self.model.column_formats_changed.connect(self.toggle_analyses_enable_status)
+        self.model.studies_changed.connect(self.toggle_analyses_enable_status)
+        self.model.label_column_changed.connect(self.toggle_analyses_enable_status)
+    
     
     def calculate_effect_size(self):
         ''' Opens the calculate effect size wizard form and then calculates the new

@@ -44,6 +44,8 @@ class ModelState:
 class EETableModel(QAbstractTableModel):
     
     column_formats_changed = pyqtSignal()
+    studies_changed = pyqtSignal()
+    label_column_changed = pyqtSignal()
     
     def __init__(self, undo_stack, model_state=None):
         super(EETableModel, self).__init__()
@@ -60,8 +62,10 @@ class EETableModel(QAbstractTableModel):
             
             # mapping rows to studies
             self.rows_2_studies = self._make_arbitrary_mapping_of_rows_to_studies()
+            self.studies_changed.emit()
             # For each variable name, store its column location
             (self.cols_2_vars, self.label_column) = self._make_arbitrary_mapping_of_cols_to_variables()
+            self.label_column_changed.emit()
             self.label_column_name_label = "Study Labels"
         else:
             self.load_model_state(model_state)
@@ -105,6 +109,11 @@ class EETableModel(QAbstractTableModel):
             self.previous_study_inclusion_state = state.previous_study_inclusion_state
         except:
             self.previous_study_inclusion_state = {}
+        
+        # Emit signals
+        self.label_column_changed.emit()
+        self.studies_changed.emit()
+        self.column_formats_changed.emit()
         
     def update_data_location_choices(self, data_type, data_locations):
         ''' data locations is a dictionary obtained from the
@@ -193,7 +202,10 @@ class EETableModel(QAbstractTableModel):
     
     def _make_arbitrary_mapping_of_rows_to_studies(self):
         studies = self.dataset.get_studies()
+        
         return dict(enumerate(studies))
+    
+        
 
     def _make_arbitrary_mapping_of_cols_to_variables(self):
         variables = self.dataset.get_variables()
@@ -385,8 +397,9 @@ class EETableModel(QAbstractTableModel):
         self.label_column = column_index
         
         
-        # Emit signal
+        # Emit signals
         self.column_formats_changed.emit()
+        self.label_column_changed.emit()
         
     
     def remove_variable(self, var):
@@ -407,10 +420,16 @@ class EETableModel(QAbstractTableModel):
         self.dataset.remove_study(study)
         del self.rows_2_studies[row]
         
+        # Emit signal
+        self.studies_changed.emit()
+        
     def remove_study_by_row(self, row):
         study = self.rows_2_studies[row]
         self.dataset.remove_study(study)
         del self.rows_2_studies[row]
+        
+        # Emit signal
+        self.studies_changed.emit()
     
     
     def removeColumns(self, column, count=1, index=QModelIndex()):
@@ -495,6 +514,7 @@ class EETableModel(QAbstractTableModel):
         
         # Emit signal
         self.column_formats_changed.emit()
+        self.label_column_changed.emit()
         
         
     def set_precision(self, new_precision):
@@ -850,15 +870,16 @@ class MakeStudyCommand(QUndoCommand):
         else:            # we should always be here on subsequent runs of redo
             model.dataset.add_existing_study(self.study)
         model.rows_2_studies[self.row] = self.study
-    
+        
+        # emit signal
+        self.model.studies_changed.emit()
     
     def undo(self):
         ''' Remove study at the specified row in the model '''
         
-        if DEBUG_MODE: print("undo: make new study_command")
-        model = self.model
-        model.dataset.remove_study(self.study)
-        del model.rows_2_studies[self.row]
+        if DEBUG_MODE:
+            print("undo: make new study_command")
+        self.model.remove_study(self.study)
         
 
 class RemoveStudyCommand(QUndoCommand):
@@ -875,14 +896,17 @@ class RemoveStudyCommand(QUndoCommand):
         self.model.dirty = True
         
     def redo(self):
-        if DEBUG_MODE: print("redo: remove study")
-        self.model.dataset.remove_study(self.study)
-        del self.model.rows_2_studies[self.row]
+        if DEBUG_MODE:
+            print("redo: remove study")
+        self.model.remove_study(self.study)
         
     def undo(self):
         if DEBUG_MODE: print("undo: remove study")
         self.model.dataset.add_existing_study(self.study)
         self.model.rows_2_studies[self.row]=self.study
+        
+        #emit signal
+        self.model.studies_changed.emit()
 
         
 class SetStudyLabelCommand(QUndoCommand):
@@ -1147,6 +1171,8 @@ class RemoveRowsCommand(QUndoCommand):
         for row, study in self.removed_rows_2_studies.items():
             self.model.dataset.add_existing_study(study)
             self.model.rows_2_studies[row] = study
+        #emit signal
+        self.model.studies_changed.emit()
         
         self.model.endInsertRows()
         
