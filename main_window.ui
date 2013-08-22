@@ -33,18 +33,6 @@
     <property name="title">
      <string>File</string>
     </property>
-    <widget class="QMenu" name="menuImport">
-     <property name="title">
-      <string>Import</string>
-     </property>
-     <addaction name="actionImportCSV"/>
-    </widget>
-    <widget class="QMenu" name="menuExport">
-     <property name="title">
-      <string>Export</string>
-     </property>
-     <addaction name="actionExportCSV"/>
-    </widget>
     <widget class="QMenu" name="menuRecent_Data">
      <property name="title">
       <string>Recent Data...</string>
@@ -54,8 +42,8 @@
     <addaction name="actionOpen"/>
     <addaction name="actionSave"/>
     <addaction name="actionSave_As"/>
-    <addaction name="menuImport"/>
-    <addaction name="menuExport"/>
+    <addaction name="actionImportCSV"/>
+    <addaction name="actionExportCSV"/>
     <addaction name="separator"/>
     <addaction name="menuRecent_Data"/>
     <addaction name="separator"/>
@@ -127,8 +115,8 @@
    <addaction name="actionNew"/>
    <addaction name="actionOpen"/>
    <addaction name="actionSave"/>
-   <addaction name="actionImportCSV"/>
-   <addaction name="actionExportCSV"/>
+   <addaction name="actionImportCSV2"/>
+   <addaction name="actionExportCSV2"/>
    <addaction name="separator"/>
    <addaction name="actionCalculate_Effect_Size"/>
    <addaction name="separator"/>
@@ -181,7 +169,7 @@
     <string>Save As...</string>
    </property>
   </action>
-  <action name="actionImportCSV">
+  <action name="actionImportCSV2">
    <property name="icon">
     <iconset resource="icons.qrc">
      <normaloff>:/function_icon_set/images/function_icon_set/box_download_48.png</normaloff>:/function_icon_set/images/function_icon_set/box_download_48.png</iconset>
@@ -273,7 +261,7 @@
     <string>Show toolbar</string>
    </property>
   </action>
-  <action name="actionExportCSV">
+  <action name="actionExportCSV2">
    <property name="icon">
     <iconset resource="icons.qrc">
      <normaloff>:/function_icon_set/images/function_icon_set/box_upload_48.png</normaloff>:/function_icon_set/images/function_icon_set/box_upload_48.png</iconset>
@@ -347,6 +335,16 @@
    </property>
    <property name="text">
     <string>Meta-Regression</string>
+   </property>
+  </action>
+  <action name="actionImportCSV">
+   <property name="text">
+    <string>Import CSV</string>
+   </property>
+  </action>
+  <action name="actionExportCSV">
+   <property name="text">
+    <string>Export CSV</string>
    </property>
   </action>
  </widget>
