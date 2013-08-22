@@ -482,18 +482,18 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
             form.show()
         
     
-    def change_index_after_data_edited(self, index_top_left, index_bottom_right):
+    def change_index_after_data_edited(self, index_top_left, index_bottom_right):        
         row, col = index_top_left.row(), index_top_left.column()
         row += 1
         if row < self.model.rowCount():
             self.tableView.setFocus()
             new_index = self.model.createIndex(row,col)
             self.tableView.setCurrentIndex(new_index)
-            # issue #13. I realize this makes the UI
-            # a tad less zippy, but I think it's infinitely
-            # preferable to ellipses all over the place
-            # (and honestly, it's not that slow)
-            self.tableView.resizeColumnsToContents()
+        # issue #13. I realize this makes the UI
+        # a tad less zippy, but I think it's infinitely
+        # preferable to ellipses all over the place
+        # (and honestly, it's not that slow)
+        self.tableView.resizeColumnsToContents()
         
     def warning_msg(self, title="mystery warning", msg="a mysterious warning"):
         warning_box = QMessageBox(self)
@@ -795,7 +795,8 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
         self.outpath = None
         self.set_window_title()
         self.tableView.setModel(self.model)
-        
+        self.initialize_display()
+        self.tableView.resizeColumnsToContents()
         self.statusbar.showMessage("Created a new dataset")
         
     def save(self, save_as=False):
@@ -1131,12 +1132,16 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
                     # one event; i.e., when undo is called, it undos the
                     # whole paste
                     index = self.model.createIndex(origin_row+src_row, origin_col+src_col)
-                    setdata_ok = self.model.setData(index, QVariant(source_content[src_row][src_col]))
+                    value = str(source_content[src_row][src_col].encode('ascii','ignore'))
+                    setdata_ok = self.model.setData(index, QVariant(value))
                     if not setdata_ok:
                         cancel_macro_creation_and_revert_state()
                 except Exception, e:
+                    #import pdb; pdb.set_trace()
                     progress_dlg.setValue(progress_dlg.maximum())
                     print "whoops, exception while pasting: %s" % e
+                    print("Row, col: %d, %d" % (src_row,src_col))
+                    raise e
         progress_dlg.setValue(progress_dlg.maximum())               
                     
                     
