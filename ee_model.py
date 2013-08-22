@@ -774,7 +774,44 @@ class EETableModel(QAbstractTableModel):
         
         
         self.undo_stack.endMacro()
-    
+        
+        
+    def sort_by_column(self, col):
+        ''' sorts studies by column data (ascending). If the studies are already
+        sorted in ascending order, they sare sorted in descending order '''
+        
+        studies = self.rows_2_studies.values()
+        old_rows_to_studies = self.rows_2_studies.copy()
+        
+        rows_in_order = sorted(old_rows_to_studies.keys())
+        old_study_order = [old_rows_to_studies[row] for row in rows_in_order]
+        
+        is_label_column = col==self.label_column  
+        
+        if is_label_column:
+            sorted_studies = sorted(studies, key=lambda study: study.get_label())
+        else: # is a variable-ish column
+            var = self.get_variable_assigned_to_column(col)
+            sorted_studies = sorted(studies, key=lambda study: study.get_var(var))
+        
+        if sorted_studies == old_study_order:
+            sorted_studies.reverse()
+        
+        new_rows_to_studies = dict(enumerate(sorted_studies))
+        
+        redo_f = lambda: self._set_rows_to_studies(new_rows_to_studies)
+        undo_f = lambda: self._set_rows_to_studies(old_rows_to_studies)
+        
+        sort_cmd = GenericUndoCommand(redo_fn=redo_f, undo_fn=undo_f,
+                                      on_undo_entry=self.beginResetModel,
+                                      on_undo_exit=self.endResetModel,
+                                      on_redo_entry=self.beginResetModel,
+                                      on_redo_exit=self.endResetModel)
+        self.undo_stack.push(sort_cmd)
+        
+        
+    def _set_rows_to_studies(self, new_rows_to_studies):
+        self.rows_2_studies = new_rows_to_studies
     
         
 ##generate_blank_list = lambda length: [None for x in range(length)]

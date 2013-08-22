@@ -564,6 +564,10 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
             insert_column_action = context_menu.addAction("Insert column")
             QAction.connect(insert_column_action, SIGNAL("triggered()"), lambda: self.model.insertColumn(column_clicked))
             
+            # Sort by column data
+            sort_action = context_menu.addAction("Sort by column data")
+            QAction.connect(sort_action, SIGNAL("triggered()"), lambda: self.model.sort_by_column(column_clicked))
+            
             
         else: # column is not a label column or variable column
         
