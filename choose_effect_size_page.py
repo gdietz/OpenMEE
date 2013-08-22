@@ -78,6 +78,9 @@ class ChooseEffectSizePage(QWizardPage, ui_choose_effect_size_page.Ui_choose_eff
             if self.selected_data_type == MEANS_AND_STD_DEVS:
                 btn = QRadioButton("Generic Effect")
                 layout.addWidget(btn)
+                # @TODO for now we map the value of the generic 
+                # effect to None type; may want to change this 
+                # down the road?
                 QObject.connect(btn, SIGNAL("clicked(bool)"), partial(self._update_effect_size_selection, effect_size=None))
            
     
