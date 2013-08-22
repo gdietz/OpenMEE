@@ -1001,7 +1001,7 @@ def cov_to_str(cov, studies, named_list=True, return_cov_vals=False):
         cov_str = "c("
 
     def convert_cov_value(cov_type, value):
-        if cov_type == CONTINUOUS:
+        if cov_type == CONTINUOUS or cov_type==COUNT:
             if value is None:
                 return "NA"
             else:

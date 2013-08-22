@@ -62,6 +62,11 @@ class SelectCovariatesPage(QWizardPage, ui_select_covariates_page.Ui_WizardPage)
         categorical_covariates = self.model.get_variables(CATEGORICAL)
         categorical_covariates.sort(key=lambda cov_var: cov_var.get_label().lower())
         return categorical_covariates
+    
+    def _get_sorted_count_covariates(self):
+        count_covariates = self.model.get_variables(COUNT)
+        count_covariates.sort(key=lambda cov_var: cov_var.get_label().lower())
+        return count_covariates
         
     def _populate_covariate_list(self):
         ''' Adds checkable list of covariates'''
@@ -72,6 +77,7 @@ class SelectCovariatesPage(QWizardPage, ui_select_covariates_page.Ui_WizardPage)
         # get and sort lists of possible continuous and categoical covariates
         continuous_covariates = self._get_sorted_continuous_covariates()
         categorical_covariates = self._get_sorted_categorical_covariates()
+        count_covariates = self._get_sorted_count_covariates()
         
         def add_list_of_covariates(covariates, suffix = ""):
             for cov in covariates:
@@ -88,6 +94,7 @@ class SelectCovariatesPage(QWizardPage, ui_select_covariates_page.Ui_WizardPage)
         
         add_list_of_covariates(continuous_covariates, suffix="(continuous)")
         add_list_of_covariates(categorical_covariates, suffix="(categorical)")
+        add_list_of_covariates(count_covariates, suffix="(count)")
         
         
         

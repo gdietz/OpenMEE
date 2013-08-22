@@ -44,6 +44,7 @@ OMA_CONVENTION = {MEANS_AND_STD_DEVS:'continuous',
 # For dealing with covariates in the interface to OpenMetaR
 COVARIATE_TYPE_TO_OMA_STR_DICT = {CONTINUOUS:u"continuous",
                                   CATEGORICAL:u"factor",
+                                  COUNT:u"continuous",
                                  }
 
 # Data type names mapping data types ---> pretty names
