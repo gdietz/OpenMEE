@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>519</width>
-    <height>472</height>
+    <width>529</width>
+    <height>718</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -47,13 +47,13 @@ Remember to assign a proper format to each column.</string>
      <property name="minimumSize">
       <size>
        <width>0</width>
-       <height>200</height>
+       <height>250</height>
       </size>
      </property>
      <property name="title">
       <string>Import Options</string>
      </property>
-     <layout class="QVBoxLayout" name="verticalLayout">
+     <layout class="QVBoxLayout" name="verticalLayout_2">
       <item>
        <widget class="QCheckBox" name="from_excel_chkbx">
         <property name="text">
@@ -72,18 +72,18 @@ Remember to assign a proper format to each column.</string>
        </widget>
       </item>
       <item>
-       <layout class="QHBoxLayout" name="delimeterlayout">
-        <item>
-         <widget class="QLabel" name="delimter_lbl">
+       <layout class="QGridLayout" name="gridLayout">
+        <item row="1" column="0">
+         <widget class="QLabel" name="quotelbl">
           <property name="text">
-           <string>Delimter:</string>
+           <string>Quote Character:</string>
           </property>
           <property name="buddy">
            <cstring>delimter_le</cstring>
           </property>
          </widget>
         </item>
-        <item>
+        <item row="0" column="1">
          <widget class="QLineEdit" name="delimter_le">
           <property name="sizePolicy">
            <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
@@ -102,8 +102,63 @@ Remember to assign a proper format to each column.</string>
           </property>
          </widget>
         </item>
-        <item>
-         <spacer name="delimeterspacer">
+        <item row="0" column="0">
+         <widget class="QLabel" name="delimter_lbl">
+          <property name="text">
+           <string>Delimter:</string>
+          </property>
+          <property name="buddy">
+           <cstring>delimter_le</cstring>
+          </property>
+         </widget>
+        </item>
+        <item row="2" column="1">
+         <widget class="QLineEdit" name="missing_data_le">
+          <property name="minimumSize">
+           <size>
+            <width>0</width>
+            <height>0</height>
+           </size>
+          </property>
+          <property name="maximumSize">
+           <size>
+            <width>30</width>
+            <height>16777215</height>
+           </size>
+          </property>
+         </widget>
+        </item>
+        <item row="2" column="0">
+         <widget class="QLabel" name="missing_data_lbl">
+          <property name="toolTip">
+           <string>treat entries matching this string as missing data e.g. if you use '.' (without quotes) to represent missing data</string>
+          </property>
+          <property name="text">
+           <string>missing data string:</string>
+          </property>
+         </widget>
+        </item>
+        <item row="1" column="1">
+         <widget class="QLineEdit" name="quotechar_le">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+          <property name="maximumSize">
+           <size>
+            <width>30</width>
+            <height>16777215</height>
+           </size>
+          </property>
+          <property name="text">
+           <string>&quot;</string>
+          </property>
+         </widget>
+        </item>
+        <item row="0" column="2">
+         <spacer name="horizontalSpacer_2">
           <property name="orientation">
            <enum>Qt::Horizontal</enum>
           </property>
@@ -115,41 +170,21 @@ Remember to assign a proper format to each column.</string>
           </property>
          </spacer>
         </item>
-       </layout>
-      </item>
-      <item>
-       <layout class="QHBoxLayout" name="quotelayout">
-        <item>
-         <widget class="QLabel" name="quotelbl">
-          <property name="text">
-           <string>Quote Character:</string>
+        <item row="1" column="2">
+         <spacer name="horizontalSpacer_3">
+          <property name="orientation">
+           <enum>Qt::Horizontal</enum>
           </property>
-          <property name="buddy">
-           <cstring>delimter_le</cstring>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <widget class="QLineEdit" name="quotechar_le">
-          <property name="sizePolicy">
-           <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-            <horstretch>0</horstretch>
-            <verstretch>0</verstretch>
-           </sizepolicy>
-          </property>
-          <property name="maximumSize">
+          <property name="sizeHint" stdset="0">
            <size>
-            <width>20</width>
-            <height>16777215</height>
+            <width>40</width>
+            <height>20</height>
            </size>
           </property>
-          <property name="text">
-           <string>&quot;</string>
-          </property>
-         </widget>
+         </spacer>
         </item>
-        <item>
-         <spacer name="quotespacer">
+        <item row="2" column="2">
+         <spacer name="horizontalSpacer_4">
           <property name="orientation">
            <enum>Qt::Horizontal</enum>
           </property>
@@ -189,15 +224,29 @@ Remember to assign a proper format to each column.</string>
          </spacer>
         </item>
         <item>
-         <widget class="QPushButton" name="select_file_btn">
-          <property name="text">
-           <string>select csv file ...</string>
-          </property>
-          <property name="icon">
-           <iconset>
-            <normaloff>:/function_icon_set/function_icon_set/folder_48.png</normaloff>:/function_icon_set/function_icon_set/folder_48.png</iconset>
-          </property>
-         </widget>
+         <layout class="QVBoxLayout" name="verticalLayout">
+          <item>
+           <widget class="QPushButton" name="reimport_btn">
+            <property name="enabled">
+             <bool>false</bool>
+            </property>
+            <property name="text">
+             <string>reimport file</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QPushButton" name="select_file_btn">
+            <property name="text">
+             <string>select csv file ...</string>
+            </property>
+            <property name="icon">
+             <iconset>
+              <normaloff>:/function_icon_set/function_icon_set/folder_48.png</normaloff>:/function_icon_set/function_icon_set/folder_48.png</iconset>
+            </property>
+           </widget>
+          </item>
+         </layout>
         </item>
        </layout>
       </item>
@@ -251,8 +300,8 @@ Remember to assign a proper format to each column.</string>
    <slot>accept()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>248</x>
-     <y>254</y>
+     <x>254</x>
+     <y>586</y>
     </hint>
     <hint type="destinationlabel">
      <x>157</x>
@@ -267,8 +316,8 @@ Remember to assign a proper format to each column.</string>
    <slot>reject()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>316</x>
-     <y>260</y>
+     <x>322</x>
+     <y>586</y>
     </hint>
     <hint type="destinationlabel">
      <x>286</x>

@@ -15,11 +15,14 @@ class CSVImportDialog(QDialog, ui_csv_import_dlg.Ui_CSVImportDialog):
         self.connect(self.select_file_btn, SIGNAL("clicked()"), self._select_file)
         self.connect(self.from_excel_chkbx,  SIGNAL("stateChanged(int)"), self._rebuild_display)
         self.connect(self.has_headers_chkbx, SIGNAL("stateChanged(int)"), self._rebuild_display)
+        self.reimport_btn.clicked.connect(self._rebuild_display)
         
         self.file_path = None
         self._reset_data()
         
         self.buttonBox.button(QDialogButtonBox.Ok).setEnabled(False)
+        
+        self.adjustSize()
                 
     
     def isOk(self):
@@ -45,6 +48,9 @@ class CSVImportDialog(QDialog, ui_csv_import_dlg.Ui_CSVImportDialog):
         if self.file_path is not None and str(self.file_path) != "":
             self.file_path_lbl.setText(QString(self.file_path))
             self._rebuild_display()
+            self.reimport_btn.setEnabled(True)
+        else:
+            self.reimport_btn.setEnabled(False)
     
     def _num_cols_consistent(self, imported_data):
         '''checks if the # columns in the imported data matrix are the same for
@@ -119,7 +125,14 @@ class CSVImportDialog(QDialog, ui_csv_import_dlg.Ui_CSVImportDialog):
             if self._hasHeaders():
                 self.headers = reader.next()
             for row in reader:
+                # handle missing missing data string
+                missing_data_string = str(self.missing_data_le.text())
+                convert_missing_data_to_empty_str = lambda x: '' if x==missing_data_string else x
+                row = [convert_missing_data_to_empty_str(cell) for cell in row ]
                 self.imported_data.append(row)
+                
+            
+                
         self.print_extracted_data() # just for debugging
         
     def print_extracted_data(self):
