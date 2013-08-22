@@ -54,16 +54,19 @@ DATA_TYPE_TEXT = {MEANS_AND_STD_DEVS:"Means and Stand. Devs",
 # Metric enumerations
 (HEDGES_D, LN_RESPONSE_RATIO,
 ODDS_RATIO, RATE_DIFFERENCE, RELATIVE_RATE,
-FISHER_Z_TRANSFORM) = range(6)
+FISHER_Z_TRANSFORM, GENERIC_EFFECT) = range(7)
 
 # Mapping of metrics ---> pretty names
+# fix for issue #21 -- adding generic effect
 METRIC_TEXT = {HEDGES_D:"Hedges' d",
                LN_RESPONSE_RATIO:"ln Response Ratio",
                ODDS_RATIO:"Log Odds Ratio",
                RATE_DIFFERENCE:"Rate Difference",
                RELATIVE_RATE:"Log Relative Rate",
                FISHER_Z_TRANSFORM:"Fisher's Z-transform",
+               GENERIC_EFFECT:"Generic Effect" 
                }
+
 METRIC_TEXT_SHORT = {HEDGES_D:"d",
                      LN_RESPONSE_RATIO:"ln Resp.R",
                      ODDS_RATIO:"ln OR",
@@ -81,7 +84,7 @@ METRIC_TO_ESCALC_MEASURE = {HEDGES_D: "SMD",
 
 
 # dictionary mapping data types to available metrics
-DATA_TYPE_TO_METRICS = {MEANS_AND_STD_DEVS: [HEDGES_D, LN_RESPONSE_RATIO],
+DATA_TYPE_TO_METRICS = {MEANS_AND_STD_DEVS: [HEDGES_D, LN_RESPONSE_RATIO, GENERIC_EFFECT],
                         TWO_BY_TWO_CONTINGENCY_TABLE: [ODDS_RATIO, RATE_DIFFERENCE, RELATIVE_RATE],
                         CORRELATION_COEFFICIENTS: [FISHER_Z_TRANSFORM,],
                         }
