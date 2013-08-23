@@ -27,11 +27,10 @@ LABEL_PREFIX_MARKER  = "*lbl*" # marker placed at start of a label(but is not di
 FORBIDDEN_VARIABLE_NAMES = [LABEL_PREFIX_MARKER,]
 
 class ModelState:
-    def __init__(self, dataset, precision, dirty, rows_2_studies, cols_2_vars,
+    def __init__(self, dataset, dirty, rows_2_studies, cols_2_vars,
                  label_column, label_column_name_label, data_location_choices,
-                 previous_study_inclusion_state):
+                 previous_study_inclusion_state, color_scheme):
         self.dataset   = dataset
-        self.precision = precision
         self.dirty     = dirty
         self.rows_2_studies = rows_2_studies
         self.cols_2_vars    = cols_2_vars
@@ -47,15 +46,17 @@ class EETableModel(QAbstractTableModel):
     studies_changed = pyqtSignal()
     label_column_changed = pyqtSignal()
     
-    def __init__(self, undo_stack, model_state=None):
+    def __init__(self, undo_stack, user_prefs, model_state=None):
         super(EETableModel, self).__init__()
         
         # Give model access to undo_stack
         self.undo_stack = undo_stack
         
+        self.user_prefs = user_prefs
+        
+        
         if model_state is None:
             self.dataset = EEDataSet()
-            self.precision = DEFAULT_PRECISION
             self.dirty = False
             self.data_location_choices = {} # maps data_types to column choices
             self.previous_study_inclusion_state = {}
@@ -77,12 +78,14 @@ class EETableModel(QAbstractTableModel):
         self.collimit = ADDITIONAL_COLS
         self.change_column_count_if_needed()
         self.change_row_count_if_needed()
+        
+    def set_user_prefs(self, user_prefs):
+        self.user_prefs = user_prefs
     
     def get_state(self):
         ''' returns a class representing the model's state '''
         
         return ModelState(dataset   = self.dataset,
-                          precision = self.precision, 
                           dirty     = self.dirty,
                           rows_2_studies = self.rows_2_studies, 
                           cols_2_vars    = self.cols_2_vars,
@@ -95,7 +98,6 @@ class EETableModel(QAbstractTableModel):
         
     def load_model_state(self, state):
         self.dataset        = state.dataset
-        self.precision      = state.precision
         self.dirty          = state.dirty
         self.rows_2_studies = state.rows_2_studies
         self.cols_2_vars    = state.cols_2_vars
@@ -157,7 +159,6 @@ class EETableModel(QAbstractTableModel):
         
         summary_str = "Dataset Info: %s\n" % str(self.dataset)
         model_info = "  ".join(["Model Info:\n",
-                                "Precision: %d\n" % self.precision,
                                 "Dirty: %s\n" % str(self.dirty),
                                 "Label Column: %s\n" % self.label_column,
                                 "Rows-to-study ids: %s\n" % str(rows_2_study_ids),
@@ -521,11 +522,11 @@ class EETableModel(QAbstractTableModel):
         ''' Sets precision (# of decimals after the decimal point for continuous)
         variable values '''
         
-        self.precision = new_precision
+        self.user_prefs['digits']
         
         
     def get_precision(self):
-        return self.precision
+        return self.user_prefs['digits']
         
         
     def _var_value_for_display(self, value, var_type):
@@ -536,7 +537,7 @@ class EETableModel(QAbstractTableModel):
         # This just properly formats the value with the right precision
         # We're not actually saving a converted value in the dataset
         # TODO: should probably make this function static in the dataset
-        return self.dataset.convert_var_value_to_type(old_type, CATEGORICAL, value, precision=self.precision)
+        return self.dataset.convert_var_value_to_type(old_type, CATEGORICAL, value, precision=self.get_precision())
             
     def data(self, index, role=Qt.DisplayRole):
         PLACEHOLDER_FOR_DISPLAY = "    "
@@ -600,18 +601,18 @@ class EETableModel(QAbstractTableModel):
     
     def _get_label_color(self, role=Qt.ForegroundRole):
         if role == Qt.ForegroundRole:
-            return DEFAULT_LABEL_COLOR
+            return self.user_prefs["color_scheme"]['label'][FOREGROUND]
         else:
-            return DEFAULT_BACKGROUND_COLOR
+            return self.user_prefs["color_scheme"]['label'][BACKGROUND]
     
     def _get_variable_color(self, variable, role=Qt.ForegroundRole):
         
         var_type, var_subtype = variable.get_type(), variable.get_subtype()
         
         if role == Qt.ForegroundRole:
-            color = DEFAULT_VARIABLE_COLORS[var_type]
+            color = self.user_prefs["color_scheme"]['variable'][var_type][FOREGROUND]
             if var_subtype is not None:
-                color =  DEFAULT_VARIABLE_SUBTYPE_COLORS[var_subtype]
+                color =  self.user_prefs["color_scheme"]['variable_subtype'][var_subtype][FOREGROUND]
         else: # background role
             color = DEFAULT_BACKGROUND_COLOR
         return color
@@ -751,7 +752,7 @@ class EETableModel(QAbstractTableModel):
         return self.dataset.convert_var_value_to_type(CATEGORICAL,
                                                       var_type,
                                                       value,
-                                                      precision=self.precision)
+                                                      precision=self.get_precision())
 
 
     def flags(self, index):

@@ -29,17 +29,32 @@ VARIABLE_TYPE_STRING_REPS = {CATEGORICAL:"Categorical",
                              COUNT:"Count",}
 
 # Default # of digits for representing floating point numbers
-DEFAULT_PRECISION = 4
+DEFAULT_PRECISION = 3
 
 # Default variable type
 DEFAULT_VAR_TYPE = CATEGORICAL
 
-DEFAULT_BACKGROUND_COLOR = QColor(29,30,25)
-DEFAULT_LABEL_COLOR      = QColor(255,204,102)
-DEFAULT_VARIABLE_COLORS = {CATEGORICAL: QColor(238,238,230),
-                           COUNT:       QColor(242,38,111),
-                           CONTINUOUS:  QColor(157,102,253)}
-DEFAULT_VARIABLE_SUBTYPE_COLORS = {CALCULATED_RESULT: QColor(222,211,96)}
+DEFAULT_BACKGROUND_COLOR = Qt.white #QColor(29,30,25)
+FOREGROUND, BACKGROUND = range(2)
+DEFAULT_COLOR_SCHEME = {'label': {FOREGROUND: QColor(255,204,102),
+                                  BACKGROUND: DEFAULT_BACKGROUND_COLOR},
+                        'variable' : {
+                                      CATEGORICAL:
+                                            {FOREGROUND: QColor(238,238,230),
+                                             BACKGROUND: DEFAULT_BACKGROUND_COLOR},
+                                      COUNT:
+                                            {FOREGROUND: QColor(242,38,111),
+                                             BACKGROUND: DEFAULT_BACKGROUND_COLOR},
+                                      CONTINUOUS:
+                                            {FOREGROUND: QColor(157,102,253),
+                                             BACKGROUND: DEFAULT_BACKGROUND_COLOR},
+                                      },
+                        'variable_subtype' : {
+                                              CALCULATED_RESULT:
+                                                    {FOREGROUND: QColor(222,211,96),
+                                                     BACKGROUND: DEFAULT_BACKGROUND_COLOR},
+                                              },
+                        }
 
 
 # Meta Analysis data type enumerations

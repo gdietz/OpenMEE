@@ -4,6 +4,7 @@ from PyQt4.Qt import *
 import sys
 import pdb
 import os
+import copy
 from functools import partial
 #from sets import Set
 from collections import deque
@@ -49,8 +50,9 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
         self.setupUi(self)
         
         self.undo_stack = QUndoStack(self)
+        self.load_user_prefs()
         
-        self.model = ee_model.EETableModel(undo_stack=self.undo_stack)
+        self.model = ee_model.EETableModel(undo_stack=self.undo_stack, user_prefs=self.user_prefs)
         self.tableView.setModel(self.model)
         self.tableView.resizeColumnsToContents()
         
@@ -64,7 +66,7 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
 
         self.setup_menus()
         self.setup_connections()
-        self.load_user_prefs()
+        
         self.outpath = None
         
         horizontal_header = self.tableView.horizontalHeader()
@@ -162,6 +164,7 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
         
         self.undo_stack.clear()
         self.model = ee_model.EETableModel(undo_stack=self.undo_stack,
+                                           user_prefs = self.user_prefs,
                                            model_state=state)
         self.model.dirty = False
         self.tableView.setModel(self.model)
@@ -899,6 +902,10 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
             event.accept()
         else: # user cancelled
             event.ignore()
+            
+            
+        # save user prefs
+        self._save_user_prefs()
         
     def quit(self):
         ok_to_close = self.prompt_user_about_unsaved_data()
@@ -919,19 +926,24 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
         return self.user_prefs["method_params"]
 
     def _save_user_prefs(self):
+        
+        
         try:
             fout = open(PREFS_PATH, 'wb')
             pickle.dump(self.user_prefs, fout)
             fout.close()
+            print("Saved user prefs")
         except:
             print "failed to write preferences data!"
         
     def _default_user_prefs(self):       
         return {"splash":True,
-                "digits":3,
+                "digits":DEFAULT_PRECISION,
                 'recent_files': RecentFilesManager(),
                 "method_params":{},
+                "color_scheme": copy.deepcopy(DEFAULT_COLOR_SCHEME)
                 }
+
 
     def load_user_prefs(self):
         '''
