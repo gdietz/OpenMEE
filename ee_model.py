@@ -541,15 +541,16 @@ class EETableModel(QAbstractTableModel):
     def data(self, index, role=Qt.DisplayRole):
         PLACEHOLDER_FOR_DISPLAY = "    "
         
-        if not index.isValid():
-            return QVariant()
-        max_occupied_row = self.get_max_occupied_row()
-        if max_occupied_row and not (0 <= index.row() <= max_occupied_row):
-            return QVariant()
+        #if not index.isValid():
+        #    return QVariant()
+        #max_occupied_row = self.get_max_occupied_row()
+        #if role!=Qt.BackgroundRole and max_occupied_row and not (0 <= index.row() <= max_occupied_row):
+        #    return QVariant()
         
         row, col = index.row(), index.column()
         is_study_row = row in self.rows_2_studies
         is_label_col = col == self.label_column
+        is_variable_col = self.column_assigned_to_variable(col)
         
         if role == Qt.DisplayRole or role == Qt.EditRole:         
             if not is_study_row: # no study for this row, no info to display
@@ -569,8 +570,8 @@ class EETableModel(QAbstractTableModel):
                     else:
                         return QVariant()
                 return QVariant(QString(label))
-            else: # is a variable column
-                if not self.column_assigned_to_variable(col):
+            else: # is a variable column or unassigned
+                if not is_variable_col:
                     if role == Qt.DisplayRole:
                         return QVariant(PLACEHOLDER_FOR_DISPLAY)
                     else:
@@ -585,8 +586,27 @@ class EETableModel(QAbstractTableModel):
                     else:
                         return QVariant()
                 return QVariant(QString(self._var_value_for_display(var_value, var.get_type())))
+        elif role == Qt.BackgroundRole:            
+            return QVariant(QBrush(DEFAULT_BACKGROUND_COLOR))
+        elif role == Qt.ForegroundRole:
+            if is_label_col:
+                return QVariant(QBrush(DEFAULT_LABEL_COLOR))
+            elif is_variable_col:
+                var = self.cols_2_vars[col]
+                color = self._get_variable_foreground_color(var)
+                return QVariant(QBrush(color))
             
         return QVariant()
+    
+    def _get_variable_foreground_color(self, variable):
+        var_type, var_subtype = variable.get_type(), variable.get_subtype()
+        
+        color = DEFAULT_VARIABLE_COLORS[var_type]
+        if var_subtype is not None:
+            color =  DEFAULT_VARIABLE_SUBTYPE_COLORS[var_subtype]
+        return color
+        
+        
     
     def column_assigned_to_variable(self, column_index):
         ''' Is the column assigned to a variable? '''
@@ -778,8 +798,14 @@ class EETableModel(QAbstractTableModel):
         self.undo_stack.push(add_vi_cmd)
         self.undo_stack.push(add_yi_cmd)
         
+        
+        
         variable_yi = self.get_variable_assigned_to_column(yi_col)
         variable_vi = self.get_variable_assigned_to_column(vi_col)
+        
+        # Set subtype (for display purposes only for now)
+        self.undo_stack.push(SetVariableSubTypeCommand(variable_yi, CALCULATED_RESULT))
+        self.undo_stack.push(SetVariableSubTypeCommand(variable_vi, CALCULATED_RESULT))
         
         for study, val_yi, val_vi in zip(studies, effect_sizes['yi'], effect_sizes['vi']):
             set_vi_cmd = SetVariableValueCommand(study, variable_yi, val_yi)
@@ -980,6 +1006,24 @@ class SetVariableValueCommand(QUndoCommand):
     def undo(self):
         if DEBUG_MODE: print("undo: set variable value command")
         self.study.set_var(self.variable, self.old_value)
+        
+        
+class SetVariableSubTypeCommand(QUndoCommand):
+    def __init__(self, variable, new_subtype):
+        super(SetVariableSubTypeCommand, self).__init__()
+        
+        self.variable = variable
+        self.new_subtype = new_subtype
+        self.old_subtype = variable.get_subtype()
+        
+    def redo(self):
+        if DEBUG_MODE: print("redo: set variable subtype command")
+        self.variable.set_subtype(self.new_subtype)
+    
+    def undo(self):
+        if DEBUG_MODE: print("undo: set variable subtype command")
+        self.variable.set_subtype(self.old_subtype)
+
 
 class EmitDataChangedCommand(QUndoCommand):
     ''' Not really a command, just the last thing called @ the end of the macro

@@ -14,6 +14,10 @@ from PyQt4.Qt import *
 CATEGORICAL, CONTINUOUS, COUNT = range(3)
 VARIABLE_TYPES = (CATEGORICAL, CONTINUOUS, COUNT)
 
+# Variables can have subtypes
+(CALCULATED_RESULT,) = range(1)
+VARIABLE_SUBTYPES = (CALCULATED_RESULT,)
+
 # How variable types are represented as short string (for header labels)
 VARIABLE_TYPE_SHORT_STRING_REPS = {CATEGORICAL:"cat",
                                    CONTINUOUS:"cont",
@@ -29,6 +33,13 @@ DEFAULT_PRECISION = 4
 
 # Default variable type
 DEFAULT_VAR_TYPE = CATEGORICAL
+
+DEFAULT_BACKGROUND_COLOR = QColor(29,30,25)
+DEFAULT_LABEL_COLOR      = QColor(255,204,102)
+DEFAULT_VARIABLE_COLORS = {CATEGORICAL: QColor(238,238,230),
+                           COUNT:       QColor(242,38,111),
+                           CONTINUOUS:  QColor(157,102,253)}
+DEFAULT_VARIABLE_SUBTYPE_COLORS = {CALCULATED_RESULT: QColor(222,211,96)}
 
 
 # Meta Analysis data type enumerations
