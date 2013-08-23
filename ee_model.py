@@ -586,25 +586,37 @@ class EETableModel(QAbstractTableModel):
                     else:
                         return QVariant()
                 return QVariant(QString(self._var_value_for_display(var_value, var.get_type())))
-        elif role == Qt.BackgroundRole:            
-            return QVariant(QBrush(DEFAULT_BACKGROUND_COLOR))
-        elif role == Qt.ForegroundRole:
+        elif role == Qt.BackgroundRole or role == Qt.ForegroundRole:
             if is_label_col:
-                return QVariant(QBrush(DEFAULT_LABEL_COLOR))
+                return QVariant(QBrush(self._get_label_color(role)))
             elif is_variable_col:
                 var = self.cols_2_vars[col]
-                color = self._get_variable_foreground_color(var)
-                return QVariant(QBrush(color))
+                color = self._get_variable_color(var, role)
+                return QVariant(QBrush(color))        
+                      
+            return QVariant(QBrush(DEFAULT_BACKGROUND_COLOR))
             
         return QVariant()
     
-    def _get_variable_foreground_color(self, variable):
+    def _get_label_color(self, role=Qt.ForegroundRole):
+        if role == Qt.ForegroundRole:
+            return DEFAULT_LABEL_COLOR
+        else:
+            return DEFAULT_BACKGROUND_COLOR
+    
+    def _get_variable_color(self, variable, role=Qt.ForegroundRole):
+        
         var_type, var_subtype = variable.get_type(), variable.get_subtype()
         
-        color = DEFAULT_VARIABLE_COLORS[var_type]
-        if var_subtype is not None:
-            color =  DEFAULT_VARIABLE_SUBTYPE_COLORS[var_subtype]
+        if role == Qt.ForegroundRole:
+            color = DEFAULT_VARIABLE_COLORS[var_type]
+            if var_subtype is not None:
+                color =  DEFAULT_VARIABLE_SUBTYPE_COLORS[var_subtype]
+        else: # background role
+            color = DEFAULT_BACKGROUND_COLOR
         return color
+    
+    
         
         
     
