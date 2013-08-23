@@ -281,7 +281,7 @@ def dataset_to_simple_binary_robj(model, included_studies, data_location, var_na
 def dataset_to_simple_continuous_robj(model, included_studies, data_location,
                                       data_type, 
                                       var_name="tmp_obj",
-                                      covs_to_include=[], one_arm=False):
+                                      covs_to_include=[], one_arm=False, generic_effect=False):
     r_str = None
     
     ###study_ids = [study.get_id() for study in included_studies]
@@ -308,7 +308,7 @@ def dataset_to_simple_continuous_robj(model, included_studies, data_location,
 
     # first try and construct an object with raw data -- note that if
     # we're using a one-armed metric for cont. data, we just use y/SE
-    if not one_arm and studies_have_raw_data(studies=included_studies,
+    if not generic_effect and not one_arm and studies_have_raw_data(studies=included_studies,
                                              data_type=data_type,
                                              data_location=data_location,
                                              model=model,

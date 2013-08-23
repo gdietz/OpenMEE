@@ -2,8 +2,8 @@ import os
 
 ###### SWITCHES #######
 # Enables additional elements of the program useful in debugging
-DEBUG_MODE = True
-SHOW_UNDO_VIEW = True
+DEBUG_MODE = True           # mostly for printing debugging message to terminal
+SHOW_UNDO_VIEW = False
 SHOW_PSEUDO_CONSOLE_IN_RESULTS_WINDOW = False
 ###### END SWITCHES ######
 
@@ -74,13 +74,16 @@ METRIC_TEXT_SHORT = {HEDGES_D:"d",
                      RATE_DIFFERENCE:"RD",
                      RELATIVE_RATE:"ln RR",
                      FISHER_Z_TRANSFORM:"Zr",
+                     GENERIC_EFFECT:"Gen. Eff."
                      }
+
 METRIC_TO_ESCALC_MEASURE = {HEDGES_D: "SMD",
                             LN_RESPONSE_RATIO: "ROM",
                             ODDS_RATIO:"OR",
                             RATE_DIFFERENCE:"RD",
                             RELATIVE_RATE:"RR",
                             FISHER_Z_TRANSFORM:"ZCOR",
+                            GENERIC_EFFECT:"GEN", # not for escalc but for rma.uni (see metafor documentation)
                             }
 
 

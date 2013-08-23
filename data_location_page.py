@@ -30,7 +30,7 @@ class DataLocationPage(QWizardPage):
     
     def initializePage(self):
         self.data_type = self.wizard().selected_data_type
-        
+        self.selected_metric = self.wizard().selected_metric
         
         
         vlayout = self.layout()
@@ -56,12 +56,16 @@ class DataLocationPage(QWizardPage):
         vlayout.addLayout(layout) # grid layout with column choices
         
         if self.data_type == MEANS_AND_STD_DEVS:
-            self._setup_MEAN_AND_STD_DEV_table(layout, startrow=layout.rowCount())
+            if self.selected_metric != GENERIC_EFFECT:
+                self._setup_MEAN_AND_STD_DEV_table(layout, startrow=layout.rowCount())
+            else:
+                pass # don't choose data location columns for generic effect
         elif self.data_type == TWO_BY_TWO_CONTINGENCY_TABLE:
             self._setup_TWO_BY_TWO_CONTINGENCY_table(layout, startrow=layout.rowCount())
         elif self.data_type == CORRELATION_COEFFICIENTS:
             self._setup_CORRELATION_COEFFICIENTS_table(layout, startrow=layout.rowCount())
         else:
+            
             raise Exception("Unrecognized Data type")
         
         if self.enable_ma_wizard_options:
@@ -306,13 +310,16 @@ class DataLocationPage(QWizardPage):
             return selected_column
         
         if self.data_type == MEANS_AND_STD_DEVS:
-            current_selections = {
-                    'control_mean'            : selected_column(self.control_mean_combo_box),
-                    'control_std_dev'         : selected_column(self.control_std_dev_combo_box),
-                    'control_sample_size'     : selected_column(self.control_sample_size_combo_box),
-                    'experimental_mean'       : selected_column(self.experimental_mean_combo_box),
-                    'experimental_std_dev'    : selected_column(self.experimental_std_dev_combo_box),
-                    'experimental_sample_size': selected_column(self.experimental_sample_size_combo_box),}
+            if self.selected_metric != GENERIC_EFFECT:
+                current_selections = {
+                        'control_mean'            : selected_column(self.control_mean_combo_box),
+                        'control_std_dev'         : selected_column(self.control_std_dev_combo_box),
+                        'control_sample_size'     : selected_column(self.control_sample_size_combo_box),
+                        'experimental_mean'       : selected_column(self.experimental_mean_combo_box),
+                        'experimental_std_dev'    : selected_column(self.experimental_std_dev_combo_box),
+                        'experimental_sample_size': selected_column(self.experimental_sample_size_combo_box),}
+            else: # metric is generic effect
+                current_selections = {}
         elif self.data_type == TWO_BY_TWO_CONTINGENCY_TABLE:
             current_selections = {'control_response'    : selected_column(self.control_response_combo_box),
                                   'control_noresponse'  : selected_column(self.control_noresponse_combo_box),
