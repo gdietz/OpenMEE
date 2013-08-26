@@ -750,7 +750,7 @@ def run_meta_regression(metric, fixed_effects=False, data_name="tmp_obj",
                         
     method_str = "FE" if fixed_effects else "DL"    
 
-    # @TODO conf.level, digits should be user-specified
+    # TODO: conf.level, digits should be user-specified
     params = {"conf.level": conf_level,
               "digits": 3,
               "method": method_str,

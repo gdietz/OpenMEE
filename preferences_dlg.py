@@ -59,7 +59,6 @@ class PreferencesDialog(QDialog, ui_preferences.Ui_Dialog):
             self.font_preview_lbl.setText(font.family())
             self.font_preview_lbl.setFont(font)
             self.font = font
-            QApplication.setFont(font)
             
     def get_btn_color(self, btn):
         if btn == self.label_bg:

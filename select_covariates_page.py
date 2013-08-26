@@ -20,15 +20,21 @@ class SelectCovariatesPage(QWizardPage, ui_select_covariates_page.Ui_WizardPage)
         self.covariate_include_status = {}
         self.init_covariate_include_status()
         self._populate_covariate_list()
+        self.update_conf_level(DEFAULT_CONFIDENCE_LEVEL)
         
         
         self.covariate_listWidget.itemChanged.connect(self.update_covariate_include_status)
+        self.conf_level_spinbox.valueChanged[float].connect(self.update_conf_level)
     
     def init_covariate_include_status(self):
         continuous_covariates = self._get_sorted_continuous_covariates()
         categorical_covariates = self._get_sorted_categorical_covariates()
         covariates = continuous_covariates+categorical_covariates
         self.covariate_include_status = dict([(cov, False) for cov in covariates])
+        
+    def update_conf_level(self, new_conf_level):
+        self.conf_level = new_conf_level
+        print("New conf level is %s" % str(new_conf_level))
         
     def update_covariate_include_status(self, item):
         covariate = self.items_to_covariates[item]
@@ -47,11 +53,14 @@ class SelectCovariatesPage(QWizardPage, ui_select_covariates_page.Ui_WizardPage)
             return True
         return False
     
+    def get_confidence_level(self):
+        return self.conf_level
+    
     
     def initializePage(self):
         self.wizard().covariates_included_table = self.covariate_include_status
         self.wizard().using_fixed_effects = self.fixed_effects_radio_btn.isChecked
-        
+        self.wizard().get_confidence_level = self.get_confidence_level
         
     def _get_sorted_continuous_covariates(self):
         continuous_covariates = self.model.get_variables(CONTINUOUS)

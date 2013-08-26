@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'select_covariates_page.ui'
 #
-# Created: Mon Aug 19 15:13:13 2013
+# Created: Mon Aug 26 13:25:54 2013
 #      by: PyQt4 UI code generator 4.10.2
 #
 # WARNING! All changes made in this file will be lost!
@@ -26,7 +26,7 @@ except AttributeError:
 class Ui_WizardPage(object):
     def setupUi(self, WizardPage):
         WizardPage.setObjectName(_fromUtf8("WizardPage"))
-        WizardPage.resize(305, 325)
+        WizardPage.resize(317, 328)
         self.verticalLayout_4 = QtGui.QVBoxLayout(WizardPage)
         self.verticalLayout_4.setObjectName(_fromUtf8("verticalLayout_4"))
         self.label_2 = QtGui.QLabel(WizardPage)
@@ -45,6 +45,8 @@ class Ui_WizardPage(object):
         self.line.setFrameShadow(QtGui.QFrame.Sunken)
         self.line.setObjectName(_fromUtf8("line"))
         self.verticalLayout_4.addWidget(self.line)
+        self.horizontalLayout = QtGui.QHBoxLayout()
+        self.horizontalLayout.setObjectName(_fromUtf8("horizontalLayout"))
         self.model_type_groupBox = QtGui.QGroupBox(WizardPage)
         self.model_type_groupBox.setObjectName(_fromUtf8("model_type_groupBox"))
         self.verticalLayout_2 = QtGui.QVBoxLayout(self.model_type_groupBox)
@@ -56,7 +58,21 @@ class Ui_WizardPage(object):
         self.fixed_effects_radio_btn = QtGui.QRadioButton(self.model_type_groupBox)
         self.fixed_effects_radio_btn.setObjectName(_fromUtf8("fixed_effects_radio_btn"))
         self.verticalLayout_2.addWidget(self.fixed_effects_radio_btn)
-        self.verticalLayout_4.addWidget(self.model_type_groupBox)
+        self.horizontalLayout.addWidget(self.model_type_groupBox)
+        self.groupBox_2 = QtGui.QGroupBox(WizardPage)
+        self.groupBox_2.setObjectName(_fromUtf8("groupBox_2"))
+        self.verticalLayout = QtGui.QVBoxLayout(self.groupBox_2)
+        self.verticalLayout.setObjectName(_fromUtf8("verticalLayout"))
+        self.conf_level_spinbox = QtGui.QDoubleSpinBox(self.groupBox_2)
+        self.conf_level_spinbox.setDecimals(1)
+        self.conf_level_spinbox.setMinimum(70.0)
+        self.conf_level_spinbox.setMaximum(99.9)
+        self.conf_level_spinbox.setSingleStep(0.1)
+        self.conf_level_spinbox.setProperty("value", 95.0)
+        self.conf_level_spinbox.setObjectName(_fromUtf8("conf_level_spinbox"))
+        self.verticalLayout.addWidget(self.conf_level_spinbox)
+        self.horizontalLayout.addWidget(self.groupBox_2)
+        self.verticalLayout_4.addLayout(self.horizontalLayout)
 
         self.retranslateUi(WizardPage)
         QtCore.QMetaObject.connectSlotsByName(WizardPage)
@@ -68,4 +84,6 @@ class Ui_WizardPage(object):
         self.model_type_groupBox.setTitle(_translate("WizardPage", "Model Type", None))
         self.random_effects_radio_btn.setText(_translate("WizardPage", "random effects", None))
         self.fixed_effects_radio_btn.setText(_translate("WizardPage", "fixed effects", None))
+        self.groupBox_2.setTitle(_translate("WizardPage", "Confidence Level", None))
+        self.conf_level_spinbox.setSuffix(_translate("WizardPage", " %", None))
 

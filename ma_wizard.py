@@ -27,6 +27,7 @@ class MetaAnalysisWizard(QtGui.QWizard):
         self.subgroup_variable_column = None
         self.covariates_included_table = None
         self.using_fixed_effects = None # will be a callable returning a boolean
+        self.get_confidence_level = None # will be a callable returning a double
         
         self.methods_and_params_page_instance = MethodsAndParametersPage(model=model, meta_f_str=meta_f_str)
         

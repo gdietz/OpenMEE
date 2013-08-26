@@ -122,6 +122,10 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
         self.update_redo_enable_status()
         
         self.toggle_analyses_enable_status()
+        
+        font = QFont()
+        font.fromString(self.user_prefs['font'])
+        QApplication.setFont(font)
     
     def toggle_analyses_enable_status(self):
         ''' Toggle the enable status of the analysis actions according whether
@@ -320,6 +324,9 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
             self.update_user_prefs('color_scheme', form.get_color_scheme())
             self.update_user_prefs('digits', form.get_precision())
             self.update_user_prefs('font', form.get_font().toString())
+            font = QFont()
+            font.fromString(self.user_prefs['font'])
+            QApplication.setFont(font)
             self.model.endResetModel()
 
     def calculate_effect_size(self):
@@ -406,6 +413,7 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
             study_inclusion_state = wizard.studies_included_table
             included_covariates = wizard.get_included_covariates()
             fixed_effects = wizard.using_fixed_effects()
+            conf_level = wizard.get_confidence_level()
             
             # save data locations choices for this data type in the model
             self.model.update_data_location_choices(data_type, data_location)
@@ -415,10 +423,16 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
             
                 
                 
-            self.run_meta_regression(metric, data_type, included_studies, data_location, covs_to_include=included_covariates, fixed_effects=fixed_effects)
+            self.run_meta_regression(metric, data_type, included_studies,
+                                     data_location,
+                                     covs_to_include=included_covariates,
+                                     fixed_effects=fixed_effects,
+                                     conf_level=conf_level)
         
         
-    def run_meta_regression(self, metric, data_type, included_studies, data_location, covs_to_include, fixed_effects):
+    def run_meta_regression(self, metric, data_type, included_studies,
+                            data_location, covs_to_include,
+                            fixed_effects, conf_level):
         
         if OMA_CONVENTION[data_type] == "binary":
             python_to_R.dataset_to_simple_binary_robj(model=self.model,
@@ -443,7 +457,7 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
 #                                              data_type=data_type, 
 #                                              covs_to_include=covs_to_include)
         
-        result = python_to_R.run_meta_regression(metric=metric, fixed_effects=fixed_effects)
+        result = python_to_R.run_meta_regression(metric=metric, fixed_effects=fixed_effects, conf_level=conf_level)
         self.analysis(result)
         
         
