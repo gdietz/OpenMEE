@@ -165,7 +165,7 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
         
         self.undo_stack.clear()
         self.model = ee_model.EETableModel(undo_stack=self.undo_stack,
-                                           user_prefs = self.user_prefs,
+                                           user_prefs=self.user_prefs,
                                            model_state=state)
         self.model.dirty = False
         self.tableView.setModel(self.model)
@@ -311,10 +311,12 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
         self.model.label_column_changed.connect(self.toggle_analyses_enable_status)
     
     def adjust_preferences(self):
-        form = preferences_dlg.PreferencesDialog(color_scheme=self.user_prefs['color_scheme'])
+        form = preferences_dlg.PreferencesDialog(color_scheme=self.user_prefs['color_scheme'],
+                                                 precision=self.user_prefs['digits'])
         if form.exec_():
             self.model.beginResetModel()
             self.update_user_prefs('color_scheme', form.get_color_scheme())
+            self.update_user_prefs('digits', form.get_precision())
             self.model.endResetModel()
     
     def calculate_effect_size(self):
@@ -779,6 +781,7 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
         except Exception as e:
             msg = "Could not open %s, the error is: %s" % (str(file_path),str(e))
             QMessageBox.critical(self, "Oops", msg)
+            raise e
             return False
 
         # add to collection of recent files
@@ -812,14 +815,10 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
     def new_dataset(self):
         self.prompt_user_about_unsaved_data()
         
-        self.undo_stack.clear()
-        self.model = ee_model.EETableModel(undo_stack=self.undo_stack)
-        self.model.dirty = False
+        self.set_model(state=None) # disconnects old model, makes new model, etc
         self.outpath = None
         self.set_window_title()
-        self.tableView.setModel(self.model)
         self.initialize_display()
-        self.tableView.resizeColumnsToContents()
         self.statusbar.showMessage("Created a new dataset")
         
     def save(self, save_as=False):

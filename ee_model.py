@@ -29,7 +29,7 @@ FORBIDDEN_VARIABLE_NAMES = [LABEL_PREFIX_MARKER,]
 class ModelState:
     def __init__(self, dataset, dirty, rows_2_studies, cols_2_vars,
                  label_column, label_column_name_label, data_location_choices,
-                 previous_study_inclusion_state, color_scheme):
+                 previous_study_inclusion_state):
         self.dataset   = dataset
         self.dirty     = dirty
         self.rows_2_studies = rows_2_studies

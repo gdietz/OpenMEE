@@ -10,12 +10,12 @@ from globals import *
 #from ee_model import EETableModel
 
 class PreferencesDialog(QDialog, ui_preferences.Ui_Dialog):
-    def __init__(self, color_scheme, parent=None):
+    def __init__(self, color_scheme, precision, parent=None):
         super(PreferencesDialog, self).__init__(parent)
         self.setupUi(self)
         
         self.color_scheme = copy.deepcopy(color_scheme)
-        
+        self.digits_spinBox.setValue(precision)
         
         self.color_buttons()
         # Connect buttons to color pickers
@@ -124,6 +124,9 @@ class PreferencesDialog(QDialog, ui_preferences.Ui_Dialog):
     
     def get_color_scheme(self):
         return self.color_scheme
+    
+    def get_precision(self):
+        return self.digits_spinBox.value()
 
 
 if __name__ == '__main__':
