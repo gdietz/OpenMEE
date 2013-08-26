@@ -10,12 +10,13 @@ from globals import *
 #from ee_model import EETableModel
 
 class PreferencesDialog(QDialog, ui_preferences.Ui_Dialog):
-    def __init__(self, color_scheme, precision, parent=None):
+    def __init__(self, color_scheme, precision, font, parent=None):
         super(PreferencesDialog, self).__init__(parent)
         self.setupUi(self)
         
         self.color_scheme = copy.deepcopy(color_scheme)
         self.digits_spinBox.setValue(precision)
+        
         
         self.color_buttons()
         # Connect buttons to color pickers
@@ -26,8 +27,16 @@ class PreferencesDialog(QDialog, ui_preferences.Ui_Dialog):
                    self.count_bg, self.count_fg,
                    self.calc_bg, self.calc_fg,
                    self.default_bg]
+        
+        
         for btn in buttons:
             btn.clicked.connect(partial(self.get_new_color,btn))
+        self.choose_font_btn.clicked.connect(self.set_font)
+        
+    def showEvent(self, show_event):
+        QDialog.showEvent(self, show_event)
+        
+        self.set_font(dont_ask=True)
         
     def get_new_color(self, btn):
         ''' Pops up a dialog to get the new color for the btn, then sets
@@ -38,6 +47,19 @@ class PreferencesDialog(QDialog, ui_preferences.Ui_Dialog):
         if color.isValid():
             # set new color
             self.set_color_for_btn(btn, color)
+            
+    def set_font(self, dont_ask=False):
+        if dont_ask:
+            font = QApplication.font()
+            ok = True
+        else:
+            font, ok = QFontDialog.getFont(QFont(self.font_preview_lbl.text()), self)
+        if ok:
+            print("Font family: '%s'" % str(font.family()))
+            self.font_preview_lbl.setText(font.family())
+            self.font_preview_lbl.setFont(font)
+            self.font = font
+            QApplication.setFont(font)
             
     def get_btn_color(self, btn):
         if btn == self.label_bg:
@@ -127,6 +149,9 @@ class PreferencesDialog(QDialog, ui_preferences.Ui_Dialog):
     
     def get_precision(self):
         return self.digits_spinBox.value()
+    
+    def get_font(self):
+        return self.font
 
 
 if __name__ == '__main__':

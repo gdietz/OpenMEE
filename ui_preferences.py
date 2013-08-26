@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'preferences_dlg.ui'
 #
-# Created: Mon Aug 26 08:33:45 2013
+# Created: Mon Aug 26 11:27:42 2013
 #      by: PyQt4 UI code generator 4.10.2
 #
 # WARNING! All changes made in this file will be lost!
@@ -26,7 +26,7 @@ except AttributeError:
 class Ui_Dialog(object):
     def setupUi(self, Dialog):
         Dialog.setObjectName(_fromUtf8("Dialog"))
-        Dialog.resize(396, 359)
+        Dialog.resize(396, 412)
         palette = QtGui.QPalette()
         brush = QtGui.QBrush(QtGui.QColor(112, 220, 188))
         brush.setStyle(QtCore.Qt.SolidPattern)
@@ -77,6 +77,7 @@ class Ui_Dialog(object):
         self.label_fg = QtGui.QPushButton(self.groupBox)
         self.label_fg.setMinimumSize(QtCore.QSize(30, 25))
         self.label_fg.setMaximumSize(QtCore.QSize(30, 25))
+        self.label_fg.setStyleSheet(_fromUtf8("background-color: rgb(255, 0, 255);"))
         self.label_fg.setText(_fromUtf8(""))
         self.label_fg.setObjectName(_fromUtf8("label_fg"))
         self.horizontalLayout_3.addWidget(self.label_fg)
@@ -173,6 +174,17 @@ class Ui_Dialog(object):
         spacerItem = QtGui.QSpacerItem(40, 20, QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Minimum)
         self.gridLayout_2.addItem(spacerItem, 1, 2, 1, 1)
         self.verticalLayout.addWidget(self.groupBox)
+        self.horizontalLayout_7 = QtGui.QHBoxLayout()
+        self.horizontalLayout_7.setObjectName(_fromUtf8("horizontalLayout_7"))
+        self.choose_font_btn = QtGui.QPushButton(Dialog)
+        self.choose_font_btn.setObjectName(_fromUtf8("choose_font_btn"))
+        self.horizontalLayout_7.addWidget(self.choose_font_btn)
+        self.font_preview_lbl = QtGui.QLabel(Dialog)
+        self.font_preview_lbl.setObjectName(_fromUtf8("font_preview_lbl"))
+        self.horizontalLayout_7.addWidget(self.font_preview_lbl)
+        spacerItem1 = QtGui.QSpacerItem(40, 20, QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Minimum)
+        self.horizontalLayout_7.addItem(spacerItem1)
+        self.verticalLayout.addLayout(self.horizontalLayout_7)
         self.buttonBox = QtGui.QDialogButtonBox(Dialog)
         self.buttonBox.setOrientation(QtCore.Qt.Horizontal)
         self.buttonBox.setStandardButtons(QtGui.QDialogButtonBox.Cancel|QtGui.QDialogButtonBox.Ok)
@@ -196,4 +208,6 @@ class Ui_Dialog(object):
         self.label_11.setText(_translate("Dialog", "Count Variable", None))
         self.label_13.setText(_translate("Dialog", "Continuous Variable", None))
         self.label_10.setText(_translate("Dialog", "Calculated Result", None))
+        self.choose_font_btn.setText(_translate("Dialog", "Choose Font", None))
+        self.font_preview_lbl.setText(_translate("Dialog", "Font preview area", None))
 

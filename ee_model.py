@@ -598,6 +598,13 @@ class EETableModel(QAbstractTableModel):
                 return QVariant(QBrush(color))        
                       
             return QVariant(QBrush(self.user_prefs["color_scheme"]['DEFAULT_BACKGROUND_COLOR']))
+        elif role == Qt.FontRole:
+            if 'font' not in self.user_prefs:
+                return QVariant()
+            else:
+                font = QFont()
+                font.fromString(self.user_prefs['font'])
+                return QVariant(font) 
             
         return QVariant()
     

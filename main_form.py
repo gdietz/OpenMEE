@@ -312,13 +312,16 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
     
     def adjust_preferences(self):
         form = preferences_dlg.PreferencesDialog(color_scheme=self.user_prefs['color_scheme'],
-                                                 precision=self.user_prefs['digits'])
+                                                 precision=self.user_prefs['digits'],
+                                                 font=QFont(self.model.data(self.model.createIndex(0,0), role=Qt.FontRole)),
+                                                 )
         if form.exec_():
             self.model.beginResetModel()
             self.update_user_prefs('color_scheme', form.get_color_scheme())
             self.update_user_prefs('digits', form.get_precision())
+            self.update_user_prefs('font', form.get_font().toString())
             self.model.endResetModel()
-    
+
     def calculate_effect_size(self):
         ''' Opens the calculate effect size wizard form and then calculates the new
         effect size. Places the new calculated effect + variance in the 2
@@ -942,8 +945,9 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
             pickle.dump(self.user_prefs, fout)
             fout.close()
             print("Saved user prefs")
-        except:
+        except Exception as e:
             print "failed to write preferences data!"
+            raise e
         
     def _default_user_prefs(self):       
         return {"splash":True,
