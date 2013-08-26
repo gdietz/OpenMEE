@@ -19,6 +19,7 @@ import python_to_R
 import results_window
 import csv_import_dlg
 import csv_export_dlg
+import preferences_dlg
 
 from globals import *
 
@@ -214,7 +215,10 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
         # Show/hide toolbar
         QObject.connect(self.actionShow_toolbar, SIGNAL("triggered()"), self.toggle_toolbar_visibility)
         
-        # Analysis Menu
+        ### Table Menu ###
+        self.actionTable_Preferences.triggered.connect(self.adjust_preferences)
+        
+        ### Analysis Menu ###
         QObject.connect(self.actionCalculate_Effect_Size, SIGNAL("triggered()"), self.calculate_effect_size)
         QObject.connect(self.actionStandard_Meta_Analysis, SIGNAL("triggered()"), self.meta_analysis)
         QObject.connect(self.actionCumulative, SIGNAL("triggered()"), self.cum_ma)
@@ -306,6 +310,12 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
         self.model.studies_changed.connect(self.toggle_analyses_enable_status)
         self.model.label_column_changed.connect(self.toggle_analyses_enable_status)
     
+    def adjust_preferences(self):
+        form = preferences_dlg.PreferencesDialog(color_scheme=self.user_prefs['color_scheme'])
+        if form.exec_():
+            self.model.beginResetModel()
+            self.update_user_prefs('color_scheme', form.get_color_scheme())
+            self.model.endResetModel()
     
     def calculate_effect_size(self):
         ''' Opens the calculate effect size wizard form and then calculates the new

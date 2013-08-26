@@ -34,9 +34,10 @@ DEFAULT_PRECISION = 3
 # Default variable type
 DEFAULT_VAR_TYPE = CATEGORICAL
 
-DEFAULT_BACKGROUND_COLOR = Qt.white #QColor(29,30,25)
+DEFAULT_BACKGROUND_COLOR = QColor("white") #QColor(29,30,25)
 FOREGROUND, BACKGROUND = range(2)
-DEFAULT_COLOR_SCHEME = {'label': {FOREGROUND: QColor(255,204,102),
+DEFAULT_COLOR_SCHEME = {'DEFAULT_BACKGROUND_COLOR': QColor("white"),
+                        'label': {FOREGROUND: QColor(255,204,102),
                                   BACKGROUND: DEFAULT_BACKGROUND_COLOR},
                         'variable' : {
                                       CATEGORICAL:

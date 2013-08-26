@@ -53,6 +53,8 @@ class EETableModel(QAbstractTableModel):
         self.undo_stack = undo_stack
         
         self.user_prefs = user_prefs
+        if "color_scheme" not in self.user_prefs:
+            self.user_prefs["color_scheme"]=DEFAULT_COLOR_SCHEME
         
         
         if model_state is None:
@@ -595,7 +597,7 @@ class EETableModel(QAbstractTableModel):
                 color = self._get_variable_color(var, role)
                 return QVariant(QBrush(color))        
                       
-            return QVariant(QBrush(DEFAULT_BACKGROUND_COLOR))
+            return QVariant(QBrush(self.user_prefs["color_scheme"]['DEFAULT_BACKGROUND_COLOR']))
             
         return QVariant()
     
@@ -614,7 +616,9 @@ class EETableModel(QAbstractTableModel):
             if var_subtype is not None:
                 color =  self.user_prefs["color_scheme"]['variable_subtype'][var_subtype][FOREGROUND]
         else: # background role
-            color = DEFAULT_BACKGROUND_COLOR
+            color = self.user_prefs["color_scheme"]['variable'][var_type][BACKGROUND]
+            if var_subtype is not None:
+                color =  self.user_prefs["color_scheme"]['variable_subtype'][var_subtype][BACKGROUND]
         return color
     
     
