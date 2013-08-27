@@ -6,15 +6,16 @@ from PyQt4.Qt import *
 
 from globals import *
 from choose_effect_size_page import ChooseEffectSizePage
-from data_location_page import DataLocationPage
+#from data_location_page import DataLocationPage USE new locations page for this purpose
 
 Page_ChooseEffectSize, Page_DataLocation = range(2)
-class CalculateEffectSizeWizard(QtGui.QWizard):
+class TransformEffectSizeWizard(QtGui.QWizard):
     def __init__(self, model, parent=None):
-        super(CalculateEffectSizeWizard, self).__init__(parent)
+        super(TransformEffectSizeWizard, self).__init__(parent)
         
         self.setPage(Page_ChooseEffectSize, ChooseEffectSizePage())
-        self.setPage(Page_DataLocation, DataLocationPage(model=model, mode=CALCULATE_EFFECT_SIZE_MODE))
+        
+        #self.setPage(Page_DataLocation, DataLocationPage(model=model))
         self.setStartId(Page_ChooseEffectSize)
         self.setWizardStyle(QWizard.ClassicStyle)
         

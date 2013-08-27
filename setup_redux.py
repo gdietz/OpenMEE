@@ -105,8 +105,8 @@ f.Freeze()
 
 ## Process source code and other resources
 
-#TODO: remove the repetition here!
-#TODO: prevent copying '.xxx' files
+# ToDo: remove the repetition here!
+# ToDo: prevent copying '.xxx' files
 
 # Create source dir in frozen app
 '''
@@ -212,7 +212,7 @@ if applicationBundle:
     shutil.copy(srcDir+'building/building_in_mac/Info.plist',contentsDir+'Info.plist')
     
 
-    #Copy the qt_menu.nib directory (TODO: is this the place to look for it?)
+    #Copy the qt_menu.nib directory (ToDo: is this the place to look for it?)
     shutil.copytree('/opt/local/lib/Resources/qt_menu.nib',resourcesDir+'qt_menu.nib')
 
 

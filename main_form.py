@@ -358,11 +358,69 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
             
             print("Computed these effect sizes: %s" % str(effect_sizes))
             
+            
+    def transform_effect_size_bulk(self, metric, data_location, direction):
+        ''' transforms the effect size given in metric from either
+            
+            1) normal scale to transformed scale (usually log scale) or
+            2) tranformed scale to normal scale
+            This is given in direction via the global enumerations
+            TRANS_TO_NORM and NORM_TO_TRANS
+            
+            data_location is a dictionary mapping to columns 
+            
+            Output:
+                Will make new columns at the end of existing columns and put
+                the new info there.
+            
+            TODO: link new columns with existing columns when changes happen '''
+        
+        # TODO: write this wizard
+        #wizard = transform_effect_size_wizard(model=self.model)
+        wizard= None
+        
+        if wizard.exec_():
+            data_type = wizard.selected_data_type
+            metric = wizard.selected_metric
+            data_location = wizard.data_location
+            conf_level = wizard.get_confidence_level()
+            
+            # save data locations choices for this data type in the model
+            self.model.update_data_location_choices(data_type, data_location)
+            
+            data = python_to_R.gather_data(self.model, data_location)
+            
+            try:
+                results = python_to_R.transform_effect_size(metric, data, direction, conf_level)
+            except CrazyRError as e:
+                QMessageBox.critical(self, QString("R error"), QString(str(e)))
+                return False
+            # effect sizes is just yi and vi
+            # TODO: make a new function which does something similiar
+            #self.model.add_transformed_effect_sizes_to_model(metric, effect_sizes)
+            self.tableView.resizeColumnsToContents()
+            
+            print("Computed these effect sizes: %s" % str(results))
+    
+    
+    def transform_effect_size(self, metric, source_data, direction):
+        ''' transforms an individual metric with data given in source data
+        dict to appropriate target data (returned as a dictionary) '''
+        
+        target_results = {}
+        
+        if 
+        
+        
+        
+        return target_results
+        
+            
     def meta_analysis(self, meta_f_str=None,
                             subgroup_ma = False):
         wizard = ma_wizard.MetaAnalysisWizard(model=self.model,
                                               meta_f_str=meta_f_str,
-                                              subgroup_mode=subgroup_ma,
+                                              mode=SUBGROUP_MODE if subgroup_ma else MA_MODE,
                                               parent=self)
         
         if wizard.exec_():
@@ -402,7 +460,7 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
     
     def meta_regression(self):
         wizard = ma_wizard.MetaAnalysisWizard(model=self.model,
-                                              meta_regression_mode=True,
+                                              mode=META_REG_MODE,
                                               parent=self)
         
         if wizard.exec_():

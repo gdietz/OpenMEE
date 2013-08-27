@@ -12,13 +12,12 @@ from select_covariates_page import SelectCovariatesPage
 
 Page_ChooseEffectSize, Page_DataLocation, Page_RefineStudies, Page_MethodsAndParameters, Page_SubgroupVariable, Page_SelectCovariates = range(6)
 class MetaAnalysisWizard(QtGui.QWizard):
-    def __init__(self, model, meta_f_str=None, subgroup_mode=False, meta_regression_mode=False, parent=None):
+    def __init__(self, model, meta_f_str=None, mode = MA_MODE, parent=None):
         super(MetaAnalysisWizard, self).__init__(parent)
         
         self.model = model
         self.meta_f_str = meta_f_str
-        self.subgroup_mode = subgroup_mode
-        self.meta_regression_mode = meta_regression_mode
+        self.mode = mode
         
         self.selected_data_type = None
         self.selected_metric = None
@@ -32,14 +31,14 @@ class MetaAnalysisWizard(QtGui.QWizard):
         self.methods_and_params_page_instance = MethodsAndParametersPage(model=model, meta_f_str=meta_f_str)
         
         self.setPage(Page_ChooseEffectSize, ChooseEffectSizePage(add_generic_effect=True))
-        self.setPage(Page_DataLocation,     DataLocationPage(model=model, enable_ma_wizard_options=True))
+        self.setPage(Page_DataLocation,     DataLocationPage(model=model, mode=MA_MODE))
         
         self.setPage(Page_MethodsAndParameters, self.methods_and_params_page_instance)
-        if subgroup_mode:
+        if mode==SUBGROUP_MODE:
             self.setPage(Page_SubgroupVariable, SubgroupVariablePage(model=model))
-        elif meta_regression_mode:
+        elif mode==META_REG_MODE:
             self.setPage(Page_SelectCovariates, SelectCovariatesPage(model=model))
-            self.setPage(Page_RefineStudies, RefineStudiesPage(model=model, meta_regression_mode=True))
+            self.setPage(Page_RefineStudies, RefineStudiesPage(model=model, mode=META_REG_MODE))
         else:
             self.setPage(Page_RefineStudies,    RefineStudiesPage(model=model))
         
@@ -82,7 +81,7 @@ class MetaAnalysisWizard(QtGui.QWizard):
 
 
     def nextId(self):
-        if self.subgroup_mode:
+        if self.mode==SUBGROUP_MODE:
             # this is redundant but it makes the path easier to understand
             if self.currentId() == Page_ChooseEffectSize:
                 return Page_DataLocation
@@ -94,7 +93,7 @@ class MetaAnalysisWizard(QtGui.QWizard):
                 return Page_MethodsAndParameters             #
             elif self.currentId() == Page_MethodsAndParameters:
                 return -1
-        elif self.meta_regression_mode:
+        elif self.mode == META_REG_MODE:
             if self.currentId() == Page_ChooseEffectSize:
                 return Page_DataLocation
             elif self.currentId() == Page_DataLocation:

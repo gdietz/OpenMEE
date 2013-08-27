@@ -15,12 +15,12 @@ MISSING_ENTRY_STR = "Not entered"
 # otherwise, include the study by default (if it is includable)
 
 class RefineStudiesPage(QWizardPage, ui_refine_studies_page.Ui_WizardPage):
-    def __init__(self, model, meta_regression_mode=False, parent=None):
+    def __init__(self, model, mode=MA_MODE, parent=None):
         super(RefineStudiesPage, self).__init__(parent)
         self.setupUi(self)
         
         self.model = model
-        self.meta_regression_mode = meta_regression_mode
+        self.mode=mode
         
         self.studies = self.model.get_studies_in_current_order()
         
@@ -121,7 +121,7 @@ class RefineStudiesPage(QWizardPage, ui_refine_studies_page.Ui_WizardPage):
             return (all_present, reason)
         
         includable, reason = effect_size_and_var_present()
-        if includable and self.meta_regression_mode:
+        if includable and self.mode==META_REG_MODE:
             includable, reason = all_included_covariates_present_for_study()
         # reason not an empty string only iff includable is False
         return (includable, reason)

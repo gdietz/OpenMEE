@@ -10,11 +10,12 @@ from globals import *
 
 
 class DataLocationPage(QWizardPage):
-    def __init__(self, model, parent=None, enable_ma_wizard_options=False):
+    def __init__(self, model, mode=None, parent=None):
         super(DataLocationPage, self).__init__(parent)
 
         
         self.model = model
+        self.mode = mode
         self.data_type = None
         
         self.setSubTitle("In what columns is the data located?")
@@ -22,7 +23,6 @@ class DataLocationPage(QWizardPage):
         self.continuous_columns = self.model.get_continuous_columns()
         self.count_columns = self.model.get_count_columns()
         
-        self.enable_ma_wizard_options = enable_ma_wizard_options
         self.effect_and_var_boxes_exist = False
         
         self.box_names_to_boxes = {}
@@ -44,31 +44,29 @@ class DataLocationPage(QWizardPage):
         # make grid layout
         layout = QGridLayout()
         
-        if self.enable_ma_wizard_options:
+        if self.mode==MA_MODE:
             calculate_ma_data_loc_instructions = "When performing a meta-analysis only the options in the bottom two boxes need to be chosen. However, choosing options for the boxes above will provide more options when plotting."
             instructions_label = QLabel(calculate_ma_data_loc_instructions)
             instructions_label.setWordWrap(True)
             
             vlayout.addWidget(instructions_label)
             
-
-        
         vlayout.addLayout(layout) # grid layout with column choices
         
-        if self.data_type == MEANS_AND_STD_DEVS:
-            if self.selected_metric != GENERIC_EFFECT:
-                self._setup_MEAN_AND_STD_DEV_table(layout, startrow=layout.rowCount())
+        if self.mode in ANALYSIS_MODES or self.mode==CALCULATE_EFFECT_SIZE_MODE:
+            if self.data_type == MEANS_AND_STD_DEVS:
+                if self.selected_metric != GENERIC_EFFECT:
+                    self._setup_MEAN_AND_STD_DEV_table(layout, startrow=layout.rowCount())
+                else:
+                    pass # don't choose data location columns for generic effect
+            elif self.data_type == TWO_BY_TWO_CONTINGENCY_TABLE:
+                self._setup_TWO_BY_TWO_CONTINGENCY_table(layout, startrow=layout.rowCount())
+            elif self.data_type == CORRELATION_COEFFICIENTS:
+                self._setup_CORRELATION_COEFFICIENTS_table(layout, startrow=layout.rowCount())
             else:
-                pass # don't choose data location columns for generic effect
-        elif self.data_type == TWO_BY_TWO_CONTINGENCY_TABLE:
-            self._setup_TWO_BY_TWO_CONTINGENCY_table(layout, startrow=layout.rowCount())
-        elif self.data_type == CORRELATION_COEFFICIENTS:
-            self._setup_CORRELATION_COEFFICIENTS_table(layout, startrow=layout.rowCount())
-        else:
-            
-            raise Exception("Unrecognized Data type")
+                raise Exception("Unrecognized Data type")
         
-        if self.enable_ma_wizard_options:
+        if self.mode in ANALYSIS_MODES:
             eff_var_layout = QGridLayout()
             
             # Lables:
@@ -309,28 +307,29 @@ class DataLocationPage(QWizardPage):
                 return None
             return selected_column
         
-        if self.data_type == MEANS_AND_STD_DEVS:
-            if self.selected_metric != GENERIC_EFFECT:
-                current_selections = {
-                        'control_mean'            : selected_column(self.control_mean_combo_box),
-                        'control_std_dev'         : selected_column(self.control_std_dev_combo_box),
-                        'control_sample_size'     : selected_column(self.control_sample_size_combo_box),
-                        'experimental_mean'       : selected_column(self.experimental_mean_combo_box),
-                        'experimental_std_dev'    : selected_column(self.experimental_std_dev_combo_box),
-                        'experimental_sample_size': selected_column(self.experimental_sample_size_combo_box),}
-            else: # metric is generic effect
-                current_selections = {}
-        elif self.data_type == TWO_BY_TWO_CONTINGENCY_TABLE:
-            current_selections = {'control_response'    : selected_column(self.control_response_combo_box),
-                                  'control_noresponse'  : selected_column(self.control_noresponse_combo_box),
-                                  'experimental_response'  : selected_column(self.experimental_response_combo_box),
-                                  'experimental_noresponse': selected_column(self.experimental_noresponse_combo_box),
-                                  }
-        elif self.data_type == CORRELATION_COEFFICIENTS:
-            current_selections = {'correlation': selected_column(self.correlation_combo_box),
-                                  'sample_size': selected_column(self.sample_size_combo_box),}
+        if self.mode in ANALYSIS_MODES or self.mode == CALCULATE_EFFECT_SIZE_MODE:
+            if self.data_type == MEANS_AND_STD_DEVS:
+                if self.selected_metric != GENERIC_EFFECT:
+                    current_selections = {
+                            'control_mean'            : selected_column(self.control_mean_combo_box),
+                            'control_std_dev'         : selected_column(self.control_std_dev_combo_box),
+                            'control_sample_size'     : selected_column(self.control_sample_size_combo_box),
+                            'experimental_mean'       : selected_column(self.experimental_mean_combo_box),
+                            'experimental_std_dev'    : selected_column(self.experimental_std_dev_combo_box),
+                            'experimental_sample_size': selected_column(self.experimental_sample_size_combo_box),}
+                else: # metric is generic effect
+                    current_selections = {}
+            elif self.data_type == TWO_BY_TWO_CONTINGENCY_TABLE:
+                current_selections = {'control_response'    : selected_column(self.control_response_combo_box),
+                                      'control_noresponse'  : selected_column(self.control_noresponse_combo_box),
+                                      'experimental_response'  : selected_column(self.experimental_response_combo_box),
+                                      'experimental_noresponse': selected_column(self.experimental_noresponse_combo_box),
+                                      }
+            elif self.data_type == CORRELATION_COEFFICIENTS:
+                current_selections = {'correlation': selected_column(self.correlation_combo_box),
+                                      'sample_size': selected_column(self.sample_size_combo_box),}
             
-        if self.enable_ma_wizard_options and self.effect_and_var_boxes_exist:
+        if self.mode in ANALYSIS_MODES and self.effect_and_var_boxes_exist:
             current_selections['effect_size'] = selected_column(self.effect_size_combo_box)
             current_selections['variance']    = selected_column(self.variance_combo_box)
                 
@@ -347,10 +346,10 @@ class DataLocationPage(QWizardPage):
         current_selections = self.wizard().data_location
         if current_selections is None:
             return False
-        if not self.enable_ma_wizard_options:
+        if self.mode==CALCULATE_EFFECT_SIZE_MODE:
             if None in current_selections.values():
                 return False
-        else: # in the case of performing a meta-analysis (where we really only need effect size and variance)
+        elif self.mode in ANALYSIS_MODES: # in the case of performing a meta-analysis (where we really only need effect size and variance)
             if not self.effect_and_var_boxes_exist:
                 return False
             if None in [current_selections['effect_size'], current_selections['variance']]:

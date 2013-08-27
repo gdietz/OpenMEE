@@ -202,10 +202,7 @@ def dataset_to_simple_binary_robj(model, included_studies, data_location, var_na
     
     ests_str = ", ".join(_to_strs(ests))
     SEs_str = ", ".join(_to_strs(SEs))
-
-    # TODO: add this covariate handling back in 
-    # generate the covariate string
-    #cov_str = "list()"
+    
     cov_str = list_of_cov_value_objects_str(studies=included_studies, cov_list=covs_to_include)
     
 
@@ -299,10 +296,6 @@ def dataset_to_simple_continuous_robj(model, included_studies, data_location,
     ests_str = ", ".join(_to_strs(ests))
     SEs_str = ", ".join(_to_strs(SEs))
     
-    
-    # TODO: add this covariate handling back in 
-    #cov_str = "list()"
-    # generate the covariate string
     cov_str = list_of_cov_value_objects_str(studies=included_studies, cov_list=covs_to_include)
 
 
@@ -393,6 +386,13 @@ def NA_to_None(value):
     if type(value) in NA_types:
         return None
     return value
+
+# TODO: finish this
+def transform_effect_size(metric, source_data, direction, conf_level):
+    if direction == TRANS_TO_NORM:
+    elif direction == NORM_TO_TRANS:
+    else:
+        raise Exception("Unrecognized direction")
 
 def effect_size(metric, data_type, data):
     ''' calculates effect sizes for the data given in the data where data

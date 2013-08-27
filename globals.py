@@ -31,6 +31,16 @@ VARIABLE_TYPE_STRING_REPS = {CATEGORICAL:"Categorical",
 # Default # of digits for representing floating point numbers
 DEFAULT_PRECISION = 3
 
+# Enumerations for calculating effect size and/or back-transform
+TRANS_TO_NORM, NORM_TO_TRANS = range(2) #
+NORMAL_SCALE, TRANSFORMED_SCALE = range(2)
+
+# Wizard 'modes'
+(CALCULATE_EFFECT_SIZE_MODE, MA_MODE, CUM_MODE, SUBGROUP_MODE, LOO_MODE,
+ META_REG_MODE, TRANSFORM_MODE) = range(6)
+ 
+ANALYSIS_MODES = [MA_MODE, CUM_MODE, SUBGROUP_MODE, LOO_MODE, META_REG_MODE]
+
 # Default variable type
 DEFAULT_VAR_TYPE = CATEGORICAL
 

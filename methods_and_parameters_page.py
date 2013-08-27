@@ -18,7 +18,7 @@ class MethodsAndParametersPage(QWizardPage, ui_methods_and_parameters_page.Ui_Wi
         self.meta_f_str = meta_f_str
         
     def initializePage(self):
-        if self.wizard().subgroup_mode:
+        if self.wizard().mode==SUBGROUP_MODE:
             self.external_params = {"cov_name":self.wizard().get_subgroup_variable().get_label()}
         self.current_param_vals = self.external_params or {}
         
@@ -155,7 +155,7 @@ class MethodsAndParametersPage(QWizardPage, ui_methods_and_parameters_page.Ui_Wi
         tmp_obj_name = "tmp_obj"
         
         covs_to_include = []
-        if self.wizard().subgroup_mode:
+        if self.wizard().mode==SUBGROUP_MODE:
                 covs_to_include = [self.wizard().get_subgroup_variable(),]
         
         if OMA_CONVENTION[self.data_type] == "binary":
