@@ -15,8 +15,14 @@ CATEGORICAL, CONTINUOUS, COUNT = range(3)
 VARIABLE_TYPES = (CATEGORICAL, CONTINUOUS, COUNT)
 
 # Variables can have subtypes
-(CALCULATED_RESULT,) = range(1)
-VARIABLE_SUBTYPES = (CALCULATED_RESULT,)
+
+# ...and even sub-subtypes
+(TRANS_EFFECT, TRANS_VAR,
+ RAW_EFFECT, RAW_LOWER, RAW_UPPER) = range(5)
+VARIABLE_SUBTYPES = (TRANS_EFFECT, TRANS_VAR,
+                     RAW_EFFECT,RAW_LOWER, RAW_UPPER)
+EFFECT_TYPES = (TRANS_EFFECT, TRANS_VAR,
+                RAW_EFFECT,RAW_LOWER, RAW_UPPER)
 
 # How variable types are represented as short string (for header labels)
 VARIABLE_TYPE_SHORT_STRING_REPS = {CATEGORICAL:"cat",
@@ -32,8 +38,8 @@ VARIABLE_TYPE_STRING_REPS = {CATEGORICAL:"Categorical",
 DEFAULT_PRECISION = 3
 
 # Enumerations for calculating effect size and/or back-transform
-TRANS_TO_NORM, NORM_TO_TRANS = range(2) #
-NORMAL_SCALE, TRANSFORMED_SCALE = range(2)
+TRANS_TO_RAW, RAW_TO_TRANS = range(2) #
+RAW_SCALE, TRANSFORMED_SCALE = range(2)
 
 # Wizard 'modes'
 (CALCULATE_EFFECT_SIZE_MODE, MA_MODE, CUM_MODE, SUBGROUP_MODE, LOO_MODE,
@@ -61,7 +67,7 @@ DEFAULT_COLOR_SCHEME = {'DEFAULT_BACKGROUND_COLOR': QColor("white"),
                                              BACKGROUND: DEFAULT_BACKGROUND_COLOR},
                                       },
                         'variable_subtype' : {
-                                              CALCULATED_RESULT:
+                                              'DEFAULT_EFFECT':
                                                     {FOREGROUND: QColor(222,211,96),
                                                      BACKGROUND: DEFAULT_BACKGROUND_COLOR},
                                               },
@@ -112,6 +118,16 @@ METRIC_TEXT_SHORT = {HEDGES_D:"d",
                      RELATIVE_RATE:"ln RR",
                      FISHER_Z_TRANSFORM:"Zr",
                      GENERIC_EFFECT:"Gen. Eff."
+                     }
+
+# Text to describe metrics without regard to being transformed or not
+METRIC_TEXT_SIMPLE = {HEDGES_D:"Hedges' d",
+                      LN_RESPONSE_RATIO:"Response Ratio",
+                      ODDS_RATIO:"Odds Ratio",
+                      RATE_DIFFERENCE:"Rate Difference",
+                      RELATIVE_RATE:"Relative Rate",
+                      FISHER_Z_TRANSFORM:"Fisher's Z-transform",
+                      GENERIC_EFFECT:"Generic Effect" 
                      }
 
 METRIC_TO_ESCALC_MEASURE = {HEDGES_D: "SMD",

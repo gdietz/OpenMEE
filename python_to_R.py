@@ -389,8 +389,10 @@ def NA_to_None(value):
 
 # TODO: finish this
 def transform_effect_size(metric, source_data, direction, conf_level):
-    if direction == TRANS_TO_NORM:
-    elif direction == NORM_TO_TRANS:
+    if direction == TRANS_TO_RAW:
+        pass ###
+    elif direction == RAW_TO_TRANS:
+        pass ###
     else:
         raise Exception("Unrecognized direction")
 

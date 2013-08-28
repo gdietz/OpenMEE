@@ -11,7 +11,7 @@ from PyQt4.Qt import *
 import pdb
 import string
 from sets import Set
-#from functools import partial
+from functools import partial
 import copy
 
 # handrolled
@@ -29,7 +29,7 @@ FORBIDDEN_VARIABLE_NAMES = [LABEL_PREFIX_MARKER,]
 class ModelState:
     def __init__(self, dataset, dirty, rows_2_studies, cols_2_vars,
                  label_column, label_column_name_label, data_location_choices,
-                 previous_study_inclusion_state):
+                 previous_study_inclusion_state, column_groups):
         self.dataset   = dataset
         self.dirty     = dirty
         self.rows_2_studies = rows_2_studies
@@ -38,6 +38,7 @@ class ModelState:
         self.label_column_name_label = label_column_name_label
         self.data_location_choices = data_location_choices
         self.previous_study_inclusion_state = previous_study_inclusion_state
+        self.column_groups = column_groups
         
 
 class EETableModel(QAbstractTableModel):
@@ -45,6 +46,7 @@ class EETableModel(QAbstractTableModel):
     column_formats_changed = pyqtSignal()
     studies_changed = pyqtSignal()
     label_column_changed = pyqtSignal()
+    column_groups_changed = pyqtSignal()
     
     def __init__(self, undo_stack, user_prefs, model_state=None):
         super(EETableModel, self).__init__()
@@ -70,6 +72,9 @@ class EETableModel(QAbstractTableModel):
             (self.cols_2_vars, self.label_column) = self._make_arbitrary_mapping_of_cols_to_variables()
             self.label_column_changed.emit()
             self.label_column_name_label = "Study Labels"
+            
+            # Store groups of related variables
+            self.column_groups = []
         else:
             self.load_model_state(model_state)
         
@@ -95,6 +100,7 @@ class EETableModel(QAbstractTableModel):
                           label_column_name_label = self.label_column_name_label,
                           data_location_choices = self.data_location_choices,
                           previous_study_inclusion_state = self.previous_study_inclusion_state,
+                          column_groups = self.column_groups
                           )
         
         
@@ -109,10 +115,16 @@ class EETableModel(QAbstractTableModel):
             self.data_location_choices = state.data_location_choices
         except AttributeError: # backwards compatibility with old version of dataset w/o data_location_choices
             self.data_location_choices = {}
+            
         try:
             self.previous_study_inclusion_state = state.previous_study_inclusion_state
         except:
             self.previous_study_inclusion_state = {}
+            
+        try:
+            self.column_groups = state.column_groups
+        except:
+            self.column_groups = []
         
         # Emit signals
         self.label_column_changed.emit()
@@ -618,14 +630,23 @@ class EETableModel(QAbstractTableModel):
         
         var_type, var_subtype = variable.get_type(), variable.get_subtype()
         
+        color = QVariant()
         if role == Qt.ForegroundRole:
             color = self.user_prefs["color_scheme"]['variable'][var_type][FOREGROUND]
             if var_subtype is not None:
-                color =  self.user_prefs["color_scheme"]['variable_subtype'][var_subtype][FOREGROUND]
+                try:
+                    color =  self.user_prefs["color_scheme"]['variable_subtype'][var_subtype][FOREGROUND]
+                except KeyError:
+                    if var_subtype in EFFECT_TYPES:
+                        color =  self.user_prefs["color_scheme"]['variable_subtype']['DEFAULT_EFFECT'][FOREGROUND]
         else: # background role
             color = self.user_prefs["color_scheme"]['variable'][var_type][BACKGROUND]
             if var_subtype is not None:
-                color =  self.user_prefs["color_scheme"]['variable_subtype'][var_subtype][BACKGROUND]
+                try:
+                    color =  self.user_prefs["color_scheme"]['variable_subtype'][var_subtype][BACKGROUND]
+                except KeyError:
+                    if var_subtype in EFFECT_TYPES:
+                        color =  self.user_prefs["color_scheme"]['variable_subtype']['DEFAULT_EFFECT'][BACKGROUND]
         return color
     
     
@@ -822,14 +843,27 @@ class EETableModel(QAbstractTableModel):
         self.undo_stack.push(add_vi_cmd)
         self.undo_stack.push(add_yi_cmd)
         
-        
+
         
         variable_yi = self.get_variable_assigned_to_column(yi_col)
         variable_vi = self.get_variable_assigned_to_column(vi_col)
         
         # Set subtype (for display purposes only for now)
-        self.undo_stack.push(SetVariableSubTypeCommand(variable_yi, CALCULATED_RESULT))
-        self.undo_stack.push(SetVariableSubTypeCommand(variable_vi, CALCULATED_RESULT))
+        self.undo_stack.push(SetVariableSubTypeCommand(variable_yi, TRANS_EFFECT))
+        self.undo_stack.push(SetVariableSubTypeCommand(variable_vi, TRANS_VAR))
+        
+        # add variables to new column_group
+        col_group = self.make_new_column_group(metric=metric, name=METRIC_TEXT_SIMPLE[metric] + " column group")
+        
+        def add_vars_to_col_group():
+            col_group.set_trans_effect_size_var(self, variable_yi)
+            col_group.set_trans_variance_var(self, variable_vi)
+        def remove_vars_from_col_group():
+            col_group.unset_trans_effect_size_var()
+            col_group.unset_trans_variance_var()
+        self.undo_stack.push(GenericUndoCommand(redo_fn=add_vars_to_col_group,
+                                                undo_fn=remove_vars_from_col_group,
+                                                description="Add variables to column group"))
         
         for study, val_yi, val_vi in zip(studies, effect_sizes['yi'], effect_sizes['vi']):
             set_vi_cmd = SetVariableValueCommand(study, variable_yi, val_yi)
@@ -845,6 +879,21 @@ class EETableModel(QAbstractTableModel):
         
         self.undo_stack.endMacro()
         
+
+    def make_new_column_group(self, metric, name):
+        col_group = ColumnGroup(metric=metric, name=name)    
+        
+        redo_fn = partial(self.column_groups.append,col_group)
+        undo_fn = partial(self.column_groups.remove,col_group)
+        
+        make_col_grp_cmd = GenericUndoCommand(redo_fn=redo_fn, undo_fn=undo_fn, 
+                                              description="Make new column group")
+        self.undo_stack.push(make_col_grp_cmd)
+        
+        return col_group
+    
+    
+
         
     def sort_by_column(self, col):
         ''' sorts studies by column data (ascending). If the studies are already
@@ -882,6 +931,91 @@ class EETableModel(QAbstractTableModel):
         
     def _set_rows_to_studies(self, new_rows_to_studies):
         self.rows_2_studies = new_rows_to_studies
+        
+        
+class ColumnGroup:
+    # Stores info on related groups of columns i.e. effect size and variance, etc
+    def __init__(self, metric, name=""):
+        self.name = name
+        self.metric = metric
+        
+        self.group_data = {'raw_yi':None,
+                           'raw_lb':None,
+                           'raw_ub':None,
+                           'trans_yi':None,
+                           'trans_vi':None,
+                           }
+        
+    def isEmpty(self):
+        return any(self.group_dat.values())
+    
+    def set_name(self, name):
+        self.name = name
+    def get_name(self):
+        return self.name
+    
+    def get_metric(self):
+        return self.metric
+    
+    def set_raw_effect_size_var(self, var):
+        self.group_data['raw_yi'] = var
+    def set_raw_lower_bound_var(self, var):
+        self.group_data['raw_lb'] = var
+    def set_raw_upper_bound_var(self, var):
+        self.group_data['raw_ub'] = var
+    def set_trans_effect_size_var(self, var):
+        self.group_data['trans_yi'] = var
+    def set_trans_variance_var(self, var):
+        self.group_data['trans_vi'] = var
+        
+    def get_raw_effect_size_var(self):
+        return self.group_data['raw_yi']
+    def get_raw_lower_bound_var(self):
+        return self.group_data['raw_lb']
+    def get_raw_upper_bound_var(self):
+        return self.group_data['raw_ub']
+    def get_trans_effect_size_var(self):
+        return self.group_data['trans_yi']
+    def get_trans_variance_var(self):
+        return self.group_data['trans_vi']
+    
+    def unset_raw_effect_size_var(self):
+        self._unset_column_group('raw_yi')
+    def unset_raw_lower_bound_var(self):
+        self._unset_column_group('raw_lb')
+    def unset_raw_upper_bound_var(self):
+        self._unset_column_group('raw_ub')
+    def unset_trans_effect_size_var(self):
+        self._unset_column_group('trans_yi')
+    def unset_trans_variance_var(self):
+        self._unset_column_group('trans_vi')
+        
+    def _unset_column_group(self, key):
+        ''' unsets it in the variable as well '''
+        
+        var = self.group_data[key]
+        var.set_column_group(None)
+        self.group_data[key]=None
+        
+    def __str__(self):
+        raw_yi   = self.group_data['raw_yi']
+        raw_lb   = self.group_data['raw_lb']
+        raw_ub   = self.group_data['raw_ub']
+        trans_yi = self.group_data['trans_yi']
+        trans_vi = self.group_data['trans_vi']
+        
+        raw_yi_lbl   = None if raw_yi   is None else raw_yi.get_label()
+        raw_lb_lbl   = None if raw_lb   is None else raw_lb.get_label()
+        raw_ub_lbl   = None if raw_ub   is None else raw_ub.get_label()
+        trans_yi_lbl = None if trans_yi is None else trans_yi.get_label()
+        trans_vi_lbl = None if trans_vi is None else trans_vi.get_label()
+
+        raw_scale_str = "Raw Scale: effect [lower, upper]: %s [%s,%s]" % (raw_yi_lbl,
+                                                                          raw_lb_lbl,
+                                                                          raw_ub_lbl)
+        trans_scale_str = "Transformed Scale: effect, variance: %s, %s" % (trans_yi_lbl,
+                                                                           trans_vi_lbl,)
+        return trans_scale_str + '\n' + raw_scale_str
     
         
 ##generate_blank_list = lambda length: [None for x in range(length)]

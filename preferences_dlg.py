@@ -78,9 +78,9 @@ class PreferencesDialog(QDialog, ui_preferences.Ui_Dialog):
         elif btn == self.count_fg:
             color = self.color_scheme['variable'][COUNT][FOREGROUND]
         elif btn == self.calc_bg:
-            color = self.color_scheme['variable_subtype'][CALCULATED_RESULT][BACKGROUND]
+            color = self.color_scheme['variable_subtype']['DEFAULT_EFFECT'][BACKGROUND]
         elif btn == self.calc_fg:
-            color = self.color_scheme['variable_subtype'][CALCULATED_RESULT][FOREGROUND]
+            color = self.color_scheme['variable_subtype']['DEFAULT_EFFECT'][FOREGROUND]
         elif btn == self.default_bg:
             color = self.color_scheme['DEFAULT_BACKGROUND_COLOR']
         return color
@@ -103,9 +103,9 @@ class PreferencesDialog(QDialog, ui_preferences.Ui_Dialog):
         elif btn == self.count_fg:
             self.color_scheme['variable'][COUNT][FOREGROUND] = color
         elif btn == self.calc_bg:
-            self.color_scheme['variable_subtype'][CALCULATED_RESULT][BACKGROUND] = color
+            self.color_scheme['variable_subtype']['DEFAULT_EFFECT'][BACKGROUND] = color
         elif btn == self.calc_fg:
-            self.color_scheme['variable_subtype'][CALCULATED_RESULT][FOREGROUND] = color
+            self.color_scheme['variable_subtype']['DEFAULT_EFFECT'][FOREGROUND] = color
         elif btn == self.default_bg:
             self.color_scheme['DEFAULT_BACKGROUND_COLOR'] = color
         
@@ -130,8 +130,8 @@ class PreferencesDialog(QDialog, ui_preferences.Ui_Dialog):
         self.count_bg.setStyleSheet("background-color: %s;" % self._get_rgb_for_stylesheet(self.color_scheme['variable'][COUNT][BACKGROUND]))
         self.count_fg.setStyleSheet("background-color: %s;" % self._get_rgb_for_stylesheet(self.color_scheme['variable'][COUNT][FOREGROUND]))
         
-        self.calc_bg.setStyleSheet("background-color: %s;" % self._get_rgb_for_stylesheet(self.color_scheme['variable_subtype'][CALCULATED_RESULT][BACKGROUND]))
-        self.calc_fg.setStyleSheet("background-color: %s;" % self._get_rgb_for_stylesheet(self.color_scheme['variable_subtype'][CALCULATED_RESULT][FOREGROUND]))
+        self.calc_bg.setStyleSheet("background-color: %s;" % self._get_rgb_for_stylesheet(self.color_scheme['variable_subtype']['DEFAULT_EFFECT'][BACKGROUND]))
+        self.calc_fg.setStyleSheet("background-color: %s;" % self._get_rgb_for_stylesheet(self.color_scheme['variable_subtype']['DEFAULT_EFFECT'][FOREGROUND]))
         
         self.default_bg.setStyleSheet("background-color: %s;" % self._get_rgb_for_stylesheet(self.color_scheme['DEFAULT_BACKGROUND_COLOR']))
         
