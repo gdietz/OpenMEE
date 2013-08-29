@@ -7,11 +7,10 @@ from globals import *
 
 import ui_new_column_group_transform_effect_page
 
-
-
 class NewColumnGroupTransformEffectPage(QWizardPage, ui_new_column_group_transform_effect_page.Ui_WizardPage):
     def __init__(self, model, parent=None):
         super(NewColumnGroupTransformEffectPage, self).__init__(parent)
+        self.setupUi(self)
         
         self.model = model
         
@@ -47,20 +46,23 @@ class NewColumnGroupTransformEffectPage(QWizardPage, ui_new_column_group_transfo
         
     
     def initializePage(self):
-        self.direction = self.wizard().get_transformation_direction()
+        # set info for wizard
         self.wizard().get_new_column_group_column_selections = self.get_selections
         self.wizard().new_column_group = True
-        self.effect_var = self.wizard().get_chosen_column()
         
+        # local data
+        self.direction = self.wizard().get_transformation_direction()
+        self.effect_var_col = self.wizard().get_chosen_column()
+
         if self.direction == TRANS_TO_RAW:
             self.raw_grp_box.setVisible(False)
             self.trans_grp_box.setVisible(True)
-            self._populate_combo_box(self.trans_effect_cbo_box, self.trans_effect_columns)
+            self._add_chosen_effect_col_to_box_then_disable_it(self.trans_effect_cbo_box, self.effect_var_col)
             self._populate_combo_box(self.trans_var_cbo_box, self.trans_var_colums)
         elif self.direction == RAW_TO_TRANS:
             self.raw_grp_box.setVisible(True)
             self.trans_grp_box.setVisible(False)
-            self._populate_combo_box(self.raw_effect_cbo_box, self.raw_effect_columns)
+            self._add_chosen_effect_col_to_box_then_disable_it(self.raw_effect_cbo_box, self.effect_var_col)
             self._populate_combo_box(self.raw_lower_cbo_box,  self.raw_lower_columns)
             self._populate_combo_box(self.raw_upper_cbo_box,  self.raw_upper_colums)
 
@@ -71,7 +73,10 @@ class NewColumnGroupTransformEffectPage(QWizardPage, ui_new_column_group_transfo
         self.selections[self.box_to_selection_key[box]] = self._selected_column(box)
     
     def isComplete(self):
-        if self.direction == TRANS_TO_RAW
+        if self.direction == TRANS_TO_RAW:
+            return None not in [self.selections[TRANS_EFFECT], self.selections[TRANS_VAR]]
+        elif self.direction == RAW_TO_TRANS:
+            return None not in [self.selections[RAW_EFFECT], self.selections[RAW_LOWER], self.selections[RAW_UPPER]]
     
     def get_selections(self):
         return self.selections
@@ -100,5 +105,7 @@ class NewColumnGroupTransformEffectPage(QWizardPage, ui_new_column_group_transfo
         var = self.model.get_variable_assigned_to_column(column)
         box.addItem(var.get_label(), column) # store the chosen col
         box.setCurrentIndex(0)
-        box.setEnabled()
+        box.setEnabled(False)
         box.blockSignals(False)
+        
+        self._update_selection(box)

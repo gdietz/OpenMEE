@@ -230,6 +230,7 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
         QObject.connect(self.actionLeave_one_out, SIGNAL("triggered()"), self.loo_ma)
         QObject.connect(self.actionSubgroup, SIGNAL("triggered()"), self.subgroup_ma)
         self.actionMeta_Regression.triggered.connect(self.meta_regression)
+        self.actionTransform_Effect_Size.triggered.connect(self.transform_effect_size_bulk)
         
         
         
@@ -360,7 +361,7 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
             print("Computed these effect sizes: %s" % str(effect_sizes))
             
             
-    def transform_effect_size_bulk(self, metric, data_location, direction, conf_level=DEFAULT_CONFIDENCE_LEVEL):
+    def transform_effect_size_bulk(self, conf_level=DEFAULT_CONFIDENCE_LEVEL):
         ''' transforms the effect size given in metric from either
             
             1) normal scale to transformed scale (usually log scale) or
@@ -377,51 +378,74 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
             TODO: link new columns with existing columns when changes happen '''
         
         wizard = transform_effect_size_wizard.TransformEffectSizeWizard(model=self.model)
+        # Todo: add page to wizard to choose metric if the chosen effect size is not part of a variable group
+        metric = None ##### tmp remove later!!!!!!
         
-        if wizard.exec_():
-            self.undo_stack.beginMacro("Transforming/backtransforming effect size")
-            effect_var_to_transform = self.model.get_variable_assigned_to_column(wizard.get_chosen_column())
-            transform_direction = wizard.get_tranformation_direction()
-            if wizard.new_column_group:
-                column_selections_for_new_group = wizard.get_new_column_group_column_selections()
-                if transform_direction == TRANS_TO_RAW:
-                    raw_yi = self.model.get_variable_assigned_to_column(column_selections_for_new_group[TRANS_EFFECT])
-                    raw_vi = self.model.get_variable_assigned_to_column(column_selections_for_new_group[TRANS_VAR])
-                
-                # add variables to new column_group
-                col_group = self.model.make_new_column_group(metric=metric, name=METRIC_TEXT_SIMPLE[metric] + " column group")
-                
-                def add_vars_to_col_group():
-                    col_group.set_trans_effect_size_var(self, variable_yi)
-                    col_group.set_trans_variance_var(self, variable_vi)
-                def remove_vars_from_col_group():
-                    col_group.unset_trans_effect_size_var()
-                    col_group.unset_trans_variance_var()
-                self.undo_stack.push(GenericUndoCommand(redo_fn=add_vars_to_col_group,
-                                                        undo_fn=remove_vars_from_col_group,
-                                                        description="Add variables to column group"))
+        if not wizard.exec_():
+            return False
+            
+        effect_var_to_transform = self.model.get_variable_assigned_to_column(wizard.get_chosen_column())
+        transform_direction = wizard.get_tranformation_direction()
+        verify_transform_direction(transform_direction)
+        
+        self.undo_stack.beginMacro("Transforming/backtransforming effect size")
+        
+        # Need to make a new column group if the effect column we chose doesn't belong to one yet
+        if wizard.new_column_group:
+            print("Making new column group")
+            new_grp_cols = wizard.get_new_column_group_column_selections()
+            if transform_direction == TRANS_TO_RAW:
+                trans_yi = self.model.get_variable_assigned_to_column(new_grp_cols[TRANS_EFFECT])
+                trans_vi = self.model.get_variable_assigned_to_column(new_grp_cols[TRANS_VAR])
+                keys_to_vars = {TRANS_EFFECT:trans_yi,
+                                TRANS_VAR:trans_vi}
+            elif transform_direction == RAW_TO_TRANS:
+                raw_yi = self.model.get_variable_assigned_to_column(new_grp_cols[RAW_EFFECT])
+                raw_lb = self.model.get_variable_assigned_to_column(new_grp_cols[RAW_LOWER])
+                raw_ub = self.model.get_variable_assigned_to_column(new_grp_cols[RAW_UPPER])
+                keys_to_vars = {RAW_EFFECT:raw_yi,
+                                RAW_LOWER:raw_lb,
+                                RAW_UPPER:raw_ub}
+            
+            # make new column group and add variables to it
+            col_group = self.model.make_new_variable_group(metric=metric, name=METRIC_TEXT_SIMPLE[metric] + " column group")
+            self.undo_stack.push(GenericUndoCommand(redo_fn=partial(self.model.add_vars_to_col_group, col_group, keys_to_vars),
+                                                    undo_fn=partial(self.model.remove_vars_from_col_group, col_group, keys=keys_to_vars.keys()),
+                                                    description="Add variables to column group"))
+        else: # column group already exists
+            col_group = effect_var_to_transform.get_column_group()
+        metric = col_group.get_metric()
 
-            ### save data locations choices for this data type in the model
-            ###self.model.update_data_location_choices(data_type, data_location)
-            
-            data_location = {}
-            #if trans
-            
-            data = python_to_R.gather_data(self.model, data_location)
-            
-            try:
-                effect_sizes = python_to_R.transform_effect_size(metric, data, direction, conf_level)
-            except CrazyRError as e:
-                QMessageBox.critical(self, QString("R error"), QString(str(e)))
-                return False
-            # effect sizes is just yi and vi
-            # TODO: make a new function which does something similiar
-            #self.model.add_transformed_effect_sizes_to_model(metric, effect_sizes)
-            self.tableView.resizeColumnsToContents()
-            
-            print("Computed these effect sizes: %s" % str(results))
-            
-            self.undo_stack.endMacro()
+        data_location = {}
+        if transform_direction == TRANS_TO_RAW:
+            trans_yi = col_group.get_var_with_key(TRANS_EFFECT)
+            trans_vi = col_group.get_var_with_key(TRANS_VAR)
+            data_location = {TRANS_EFFECT:trans_yi,
+                             TRANS_VAR:trans_vi}
+        elif transform_direction == RAW_TO_TRANS:
+            raw_yi = col_group.get_var_with_key(RAW_EFFECT)
+            raw_lb = col_group.get_var_with_key(RAW_LOWER)
+            raw_ub = col_group.get_var_with_key(RAW_UPPER)
+            data_location = {RAW_EFFECT: raw_yi,
+                             RAW_LOWER: raw_lb,
+                             RAW_UPPER: raw_ub}
+        
+        
+        data = python_to_R.gather_data(self.model, data_location, vars_given_directly=True)
+        
+        try:
+            effect_sizes = python_to_R.transform_effect_size(metric, data, transform_direction, conf_level)
+        except CrazyRError as e:
+            QMessageBox.critical(self, QString("R error"), QString(str(e)))
+            return False
+        # effect sizes is just yi and vi
+        self.model.add_transformed_effect_sizes_to_model(metric, effect_sizes, transform_direction, col_group)
+        self.tableView.resizeColumnsToContents()
+        
+        #print("Computed these effect sizes: %s" % str(results))
+        
+        self.undo_stack.endMacro()
+    
     
     
     def transform_effect_size(self, metric, source_data, direction):
@@ -1048,7 +1072,8 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
                 "digits":DEFAULT_PRECISION,
                 'recent_files': RecentFilesManager(),
                 "method_params":{},
-                "color_scheme": copy.deepcopy(DEFAULT_COLOR_SCHEME)
+                "color_scheme": copy.deepcopy(DEFAULT_COLOR_SCHEME),
+                'font': QApplication.font().toString(),
                 }
 
 

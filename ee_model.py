@@ -38,7 +38,7 @@ class ModelState:
         self.label_column_name_label = label_column_name_label
         self.data_location_choices = data_location_choices
         self.previous_study_inclusion_state = previous_study_inclusion_state
-        self.column_groups = column_groups
+        self.variable_groups = column_groups
         
 
 class EETableModel(QAbstractTableModel):
@@ -74,7 +74,7 @@ class EETableModel(QAbstractTableModel):
             self.label_column_name_label = "Study Labels"
             
             # Store groups of related variables
-            self.column_groups = []
+            self.variable_groups = []
         else:
             self.load_model_state(model_state)
         
@@ -100,7 +100,7 @@ class EETableModel(QAbstractTableModel):
                           label_column_name_label = self.label_column_name_label,
                           data_location_choices = self.data_location_choices,
                           previous_study_inclusion_state = self.previous_study_inclusion_state,
-                          column_groups = self.column_groups
+                          column_groups = self.variable_groups
                           )
         
         
@@ -122,15 +122,26 @@ class EETableModel(QAbstractTableModel):
             self.previous_study_inclusion_state = {}
             
         try:
-            self.column_groups = state.column_groups
+            self.variable_groups = state.variable_groups
         except:
-            self.column_groups = []
+            self.variable_groups = []
         
         # Emit signals
         self.label_column_changed.emit()
         self.studies_changed.emit()
         self.column_formats_changed.emit()
-        
+
+
+    def add_vars_to_col_group(self, col_group, keys_to_vars):
+        for key,var in keys_to_vars.items():
+            col_group.set_var_with_key(key, var)
+
+
+    def remove_vars_from_col_group(self, col_group, keys):
+        for key in keys:
+            col_group.unset_column_group_with_key(key)
+
+
     def update_data_location_choices(self, data_type, data_locations):
         ''' data locations is a dictionary obtained from the
         calculate effect size wizard or meta-analysis wizard that maps
@@ -178,6 +189,7 @@ class EETableModel(QAbstractTableModel):
                                 "Rows-to-study ids: %s\n" % str(rows_2_study_ids),
                                 "Columns to variables: %s\n" % str(self.cols_2_vars),
                                 "Data location choices: %s\n" % str(self.data_location_choices),
+                                "Variable Groups: %s\n" % str(self.variable_groups),
                                 ])
         return summary_str + model_info
     
@@ -306,6 +318,8 @@ class EETableModel(QAbstractTableModel):
         return self._get_key_for_value(self.cols_2_vars, var)
     
     def get_variable_assigned_to_column(self, col):
+        if col is None:
+            return None
         return self.cols_2_vars[col]
     
     def get_study_assigned_to_row(self, row):
@@ -817,6 +831,104 @@ class EETableModel(QAbstractTableModel):
     def _set_dirty_bit(self, state=True):
         self.dirty = state
     
+    def add_transformed_effect_sizes_to_model(self, metric, effect_sizes, transform_direction, column_group):
+        verify_transform_direction(transform_direction)
+        
+        studies = self.get_studies_in_current_order()
+        last_occupied_col = max(self.cols_2_vars.keys())
+        
+        self.undo_stack.beginMacro("Adding transformed effect to spreadsheet")
+        
+        if transform_direction == TRANS_TO_RAW:
+            raw_yi_col = last_occupied_col+1
+            raw_lb_col = raw_yi_col + 1
+            raw_ub_col = raw_lb_col + 1
+            start_cmd = GenericUndoCommand(redo_fn=partial(self.beginInsertColumns,QModelIndex(), raw_yi_col, raw_ub_col),
+                                           undo_fn=self.endRemoveColumns)
+            end_cmd = GenericUndoCommand(redo_fn=self.endInsertColumns,
+                                         undo_fn=partial(self.beginRemoveColumns, QModelIndex(), raw_yi_col, raw_ub_col))
+            # Make new variables to hold the results of the effect size calculations
+            add_raw_yi_cmd = MakeNewVariableCommand(model=self,
+                                                    var_name=METRIC_TEXT_SHORT_RAW_SCALE[metric],
+                                                    col=raw_yi_col,
+                                                    var_type=CONTINUOUS)
+            add_raw_lb_cmd = MakeNewVariableCommand(model=self,
+                                                    var_name=METRIC_TEXT_SHORT_RAW_SCALE[metric],
+                                                    col=raw_lb_col,
+                                                    var_type=CONTINUOUS)
+            add_raw_ub_cmd = MakeNewVariableCommand(model=self,
+                                                    var_name=METRIC_TEXT_SHORT_RAW_SCALE[metric],
+                                                    col=raw_ub_col,
+                                                    var_type=CONTINUOUS)
+            variable_add_cmds = [add_raw_yi_cmd, add_raw_lb_cmd, add_raw_ub_cmd]
+        elif transform_direction == RAW_TO_TRANS:
+            trans_yi_col = last_occupied_col+1
+            trans_vi_col = trans_yi_col + 1
+            start_cmd = GenericUndoCommand(redo_fn=partial(self.beginInsertColumns,QModelIndex(), trans_yi_col, trans_vi_col),
+                                           undo_fn=self.endInsertColumns)
+            end_cmd = GenericUndoCommand(redo_fn=self.endInsertColumns,
+                                         undo_fn=partial(self.beginRemoveColumns, QModelIndex(), trans_yi_col, trans_vi_col))
+            
+            add_trans_yi_cmd = MakeNewVariableCommand(model=self,
+                                                      var_name=METRIC_TEXT_SHORT_RAW_SCALE[metric],
+                                                      col=trans_yi_col,
+                                                      var_type=CONTINUOUS)
+            add_trans_vi_cmd = MakeNewVariableCommand(model=self,
+                                                      var_name=METRIC_TEXT_SHORT_RAW_SCALE[metric],
+                                                      col=trans_vi_col,
+                                                      var_type=CONTINUOUS)
+            variable_add_cmds = [add_trans_yi_cmd, add_trans_vi_cmd]
+            
+        # Execute commands
+        self.undo_stack.push(start_cmd)
+        for cmd in variable_add_cmds:
+            self.undo_stack.push(cmd)
+            
+        # get the new variables
+        # set their subtypes
+        # add them to the column group
+        if transform_direction == RAW_TO_TRANS:
+            trans_yi = self.get_variable_assigned_to_column(trans_yi_col)
+            trans_vi = self.get_variable_assigned_to_column(trans_vi_col)
+            
+            self.undo_stack.push(SetVariableSubTypeCommand(trans_yi, TRANS_EFFECT))
+            self.undo_stack.push(SetVariableSubTypeCommand(trans_vi, TRANS_VAR))
+            
+            keys_to_vars = {TRANS_EFFECT:trans_yi,
+                            TRANS_VAR: trans_vi}
+        elif transform_direction == TRANS_TO_RAW:
+            raw_yi = self.get_variable_assigned_to_column(raw_yi_col)
+            raw_lb = self.get_variable_assigned_to_column(raw_lb_col)
+            raw_ub = self.get_variable_assigned_to_column(raw_ub_col)
+            
+            self.undo_stack.push(SetVariableSubTypeCommand(raw_yi, RAW_EFFECT))
+            self.undo_stack.push(SetVariableSubTypeCommand(raw_lb, RAW_LOWER))
+            self.undo_stack.push(SetVariableSubTypeCommand(raw_ub, RAW_UPPER))
+            
+            keys_to_vars = {RAW_EFFECT:raw_yi,
+                            RAW_LOWER:raw_lb,
+                            RAW_UPPER:raw_ub}
+        # add vars to column group
+        self.undo_stack.push(GenericUndoCommand(redo_fn=partial(self.add_vars_to_col_group,column_group, keys_to_vars),
+                                                undo_fn=partial(self.remove_vars_from_col_group(column_group, keys=keys_to_vars.keys())),
+                                                description="Add variables to column group"))
+        
+        if transform_direction == TRANS_TO_RAW:
+            for study, yi_val, lb_val, ub_val in zip(studies, effect_sizes[RAW_EFFECT],effect_sizes[RAW_LOWER],effect_sizes[RAW_UPPER]):
+                self.undo_stack.push(SetVariableValueCommand(study, raw_yi, yi_val))
+                self.undo_stack.push(SetVariableValueCommand(study, raw_lb, lb_val))
+                self.undo_stack.push(SetVariableValueCommand(study, raw_ub, ub_val))
+        elif transform_direction == RAW_TO_TRANS:
+            for study, yi_val, vi_val in zip(studies, effect_sizes[TRANS_EFFECT], effect_sizes[TRANS_VAR]):
+                self.undo_stack.push(SetVariableValueCommand(study, trans_yi, yi_val))
+                self.undo_stack.push(SetVariableValueCommand(study, trans_vi, vi_val))
+        ##########
+        self.undo_stack.push(end_cmd)
+        
+        self.undo_stack.endMacro()
+            
+        
+    
     def add_effect_sizes_to_model(self, metric, effect_sizes):
     
         studies = self.get_studies_in_current_order()
@@ -844,7 +956,6 @@ class EETableModel(QAbstractTableModel):
         self.undo_stack.push(add_yi_cmd)
         
 
-        
         variable_yi = self.get_variable_assigned_to_column(yi_col)
         variable_vi = self.get_variable_assigned_to_column(vi_col)
         
@@ -853,16 +964,11 @@ class EETableModel(QAbstractTableModel):
         self.undo_stack.push(SetVariableSubTypeCommand(variable_vi, TRANS_VAR))
         
         # add variables to new column_group
-        col_group = self.make_new_column_group(metric=metric, name=METRIC_TEXT_SIMPLE[metric] + " column group")
-        
-        def add_vars_to_col_group():
-            col_group.set_trans_effect_size_var(self, variable_yi)
-            col_group.set_trans_variance_var(self, variable_vi)
-        def remove_vars_from_col_group():
-            col_group.unset_trans_effect_size_var()
-            col_group.unset_trans_variance_var()
-        self.undo_stack.push(GenericUndoCommand(redo_fn=add_vars_to_col_group,
-                                                undo_fn=remove_vars_from_col_group,
+        col_group = self.make_new_variable_group(metric=metric, name=METRIC_TEXT_SIMPLE[metric] + " column group")
+        keys_to_vars = {TRANS_EFFECT:variable_yi,
+                        TRANS_VAR:variable_vi}
+        self.undo_stack.push(GenericUndoCommand(redo_fn=partial(self.add_vars_to_col_group, col_group, keys_to_vars),
+                                                undo_fn=partial(self.remove_vars_from_col_group, col_group, keys=keys_to_vars.keys()),
                                                 description="Add variables to column group"))
         
         for study, val_yi, val_vi in zip(studies, effect_sizes['yi'], effect_sizes['vi']):
@@ -880,11 +986,11 @@ class EETableModel(QAbstractTableModel):
         self.undo_stack.endMacro()
         
 
-    def make_new_column_group(self, metric, name):
-        col_group = ColumnGroup(metric=metric, name=name)    
+    def make_new_variable_group(self, metric, name):
+        col_group = VariableGroup(metric=metric, name=name)    
         
-        redo_fn = partial(self.column_groups.append,col_group)
-        undo_fn = partial(self.column_groups.remove,col_group)
+        redo_fn = partial(self.variable_groups.append,col_group)
+        undo_fn = partial(self.variable_groups.remove,col_group)
         
         make_col_grp_cmd = GenericUndoCommand(redo_fn=redo_fn, undo_fn=undo_fn, 
                                               description="Make new column group")
@@ -933,21 +1039,24 @@ class EETableModel(QAbstractTableModel):
         self.rows_2_studies = new_rows_to_studies
         
         
-class ColumnGroup:
-    # Stores info on related groups of columns i.e. effect size and variance, etc
+class VariableGroup:
+    # Stores info on related groups of variables i.e. effect size and variance, etc
     def __init__(self, metric, name=""):
         self.name = name
         self.metric = metric
         
-        self.group_data = {'raw_yi':None,
-                           'raw_lb':None,
-                           'raw_ub':None,
-                           'trans_yi':None,
-                           'trans_vi':None,
+        self.group_data = {RAW_EFFECT:None,
+                           RAW_LOWER:None,
+                           RAW_UPPER:None,
+                           TRANS_EFFECT:None,
+                           TRANS_VAR:None,
                            }
         
     def isEmpty(self):
-        return any(self.group_dat.values())
+        return not any(self.group_data.values())
+    
+    def isFull(self):
+        return all(self.group_data.values())
     
     def set_name(self, name):
         self.name = name
@@ -957,52 +1066,25 @@ class ColumnGroup:
     def get_metric(self):
         return self.metric
     
-    def set_raw_effect_size_var(self, var):
-        self.group_data['raw_yi'] = var
-    def set_raw_lower_bound_var(self, var):
-        self.group_data['raw_lb'] = var
-    def set_raw_upper_bound_var(self, var):
-        self.group_data['raw_ub'] = var
-    def set_trans_effect_size_var(self, var):
-        self.group_data['trans_yi'] = var
-    def set_trans_variance_var(self, var):
-        self.group_data['trans_vi'] = var
-        
-    def get_raw_effect_size_var(self):
-        return self.group_data['raw_yi']
-    def get_raw_lower_bound_var(self):
-        return self.group_data['raw_lb']
-    def get_raw_upper_bound_var(self):
-        return self.group_data['raw_ub']
-    def get_trans_effect_size_var(self):
-        return self.group_data['trans_yi']
-    def get_trans_variance_var(self):
-        return self.group_data['trans_vi']
+    def set_var_with_key(self, key, var):
+        self.group_data[key] = var
+        var.set_column_group(self)
+
+    def get_var_with_key(self, key):
+        return self.group_data[key]
     
-    def unset_raw_effect_size_var(self):
-        self._unset_column_group('raw_yi')
-    def unset_raw_lower_bound_var(self):
-        self._unset_column_group('raw_lb')
-    def unset_raw_upper_bound_var(self):
-        self._unset_column_group('raw_ub')
-    def unset_trans_effect_size_var(self):
-        self._unset_column_group('trans_yi')
-    def unset_trans_variance_var(self):
-        self._unset_column_group('trans_vi')
-        
-    def _unset_column_group(self, key):
+    def unset_column_group_with_key(self, key):
         ''' unsets it in the variable as well '''
-        
         var = self.group_data[key]
         var.set_column_group(None)
         self.group_data[key]=None
         
     def __str__(self):
-        raw_yi   = self.group_data['raw_yi']
-        raw_lb   = self.group_data['raw_lb']
-        raw_ub   = self.group_data['raw_ub']
-        trans_yi = self.group_data['trans_yi']
-        trans_vi = self.group_data['trans_vi']
+        raw_yi   = self.group_data[RAW_EFFECT]
+        raw_lb   = self.group_data[RAW_LOWER]
+        raw_ub   = self.group_data[RAW_UPPER]
+        trans_yi = self.group_data[TRANS_EFFECT]
+        trans_vi = self.group_data[TRANS_VAR]
         
         raw_yi_lbl   = None if raw_yi   is None else raw_yi.get_label()
         raw_lb_lbl   = None if raw_lb   is None else raw_lb.get_label()

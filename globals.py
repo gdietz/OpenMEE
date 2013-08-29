@@ -3,7 +3,7 @@ import os
 ###### SWITCHES #######
 # Enables additional elements of the program useful in debugging
 DEBUG_MODE = True           # mostly for printing debugging message to terminal
-SHOW_UNDO_VIEW = False
+SHOW_UNDO_VIEW = True
 SHOW_PSEUDO_CONSOLE_IN_RESULTS_WINDOW = False
 ###### END SWITCHES ######
 
@@ -15,8 +15,6 @@ CATEGORICAL, CONTINUOUS, COUNT = range(3)
 VARIABLE_TYPES = (CATEGORICAL, CONTINUOUS, COUNT)
 
 # Variables can have subtypes
-
-# ...and even sub-subtypes
 (TRANS_EFFECT, TRANS_VAR,
  RAW_EFFECT, RAW_LOWER, RAW_UPPER) = range(5)
 VARIABLE_SUBTYPES = (TRANS_EFFECT, TRANS_VAR,
@@ -41,9 +39,13 @@ DEFAULT_PRECISION = 3
 TRANS_TO_RAW, RAW_TO_TRANS = range(2) #
 RAW_SCALE, TRANSFORMED_SCALE = range(2)
 
+def verify_transform_direction(direction):
+    if direction not in [TRANS_TO_RAW, RAW_TO_TRANS]:
+        raise Exception("Unrecognized Transform Direction")
+
 # Wizard 'modes'
 (CALCULATE_EFFECT_SIZE_MODE, MA_MODE, CUM_MODE, SUBGROUP_MODE, LOO_MODE,
- META_REG_MODE, TRANSFORM_MODE) = range(6)
+ META_REG_MODE, TRANSFORM_MODE) = range(7)
  
 ANALYSIS_MODES = [MA_MODE, CUM_MODE, SUBGROUP_MODE, LOO_MODE, META_REG_MODE]
 
@@ -111,12 +113,23 @@ METRIC_TEXT = {HEDGES_D:"Hedges' d",
                GENERIC_EFFECT:"Generic Effect" 
                }
 
+# transformed (usually log) scale
 METRIC_TEXT_SHORT = {HEDGES_D:"d",
                      LN_RESPONSE_RATIO:"ln Resp.R",
                      ODDS_RATIO:"ln OR",
                      RATE_DIFFERENCE:"RD",
                      RELATIVE_RATE:"ln RR",
                      FISHER_Z_TRANSFORM:"Zr",
+                     GENERIC_EFFECT:"Gen. Eff."
+                     }
+# raw scale
+METRIC_TEXT_SHORT_RAW_SCALE = {
+                     HEDGES_D:"d",
+                     LN_RESPONSE_RATIO:"Resp.R",
+                     ODDS_RATIO:"OR",
+                     RATE_DIFFERENCE:"RD",
+                     RELATIVE_RATE:"RR",
+                     FISHER_Z_TRANSFORM:"Rz",
                      GENERIC_EFFECT:"Gen. Eff."
                      }
 

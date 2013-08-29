@@ -93,8 +93,10 @@
      <addaction name="actionSubgroup"/>
     </widget>
     <addaction name="actionCalculate_Effect_Size"/>
+    <addaction name="actionTransform_Effect_Size"/>
     <addaction name="menuMeta_Analysis"/>
     <addaction name="actionMeta_Regression"/>
+    <addaction name="separator"/>
    </widget>
    <addaction name="menuFile"/>
    <addaction name="menuEdit"/>
@@ -329,6 +331,11 @@
    </property>
    <property name="text">
     <string>Export CSV</string>
+   </property>
+  </action>
+  <action name="actionTransform_Effect_Size">
+   <property name="text">
+    <string>Transform Effect Size</string>
    </property>
   </action>
  </widget>

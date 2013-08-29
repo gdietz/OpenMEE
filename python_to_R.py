@@ -91,7 +91,7 @@ def load_in_R(fpath):
 def generate_reg_plot(file_path, params_name="plot.data"): 
     ro.r("meta.regression.plot(%s, '%s')" % (params_name, file_path))
 
-def gather_data(model, data_location):
+def gather_data(model, data_location, vars_given_directly=False):
     ''' Gathers the relevant data in one convenient location for the purpose
     of sending to R '''
     
@@ -99,8 +99,8 @@ def gather_data(model, data_location):
     studies = model.get_studies_in_current_order()
     
     data = {}
-    for k, col in data_location.items():
-        var = model.get_variable_assigned_to_column(col)
+    for k, col_or_var in data_location.items():
+        var = col_or_var if vars_given_directly else model.get_variable_assigned_to_column(col_or_var)
         data[k] = [study.get_var(var) for study in studies]
         
     data['study_labels'] = [study.get_label() for study in studies]
@@ -389,13 +389,43 @@ def NA_to_None(value):
 
 # TODO: finish this
 def transform_effect_size(metric, source_data, direction, conf_level):
+    metric_str = METRIC_TO_ESCALC_MEASURE[metric]
+    
+    verify_transform_direction(direction)
+    
     if direction == TRANS_TO_RAW:
-        pass ###
+        d = {'yi': ro.FloatVector(source_data[TRANS_EFFECT]),
+             'vi': ro.FloatVector(source_data[TRANS_VAR]),
+             }
+        source_dataf = ro.DataFrame(d)
+        r_str = "trans.to.raw(metric='%s', source.data=%s, conf.level='%d')" % (metric_str, source_dataf.r_repr(), conf_level)
     elif direction == RAW_TO_TRANS:
-        pass ###
-    else:
-        raise Exception("Unrecognized direction")
+        d = {'yi': ro.FloatVector(source_data[RAW_EFFECT]),
+             'lb': ro.FloatVector(source_data[RAW_LOWER]),
+             'ub': ro.FloatVector(source_data[RAW_UPPER]),
+             }
+        source_dataf = ro.DataFrame(d)
+        r_str = "raw.to.trans(metric='%s', source.data=%s, conf.level='%d')" % (metric_str, source_dataf.r_repr(), conf_level)
 
+    print("Executing in R: %s" % r_str)
+    result = try_n_run(lambda: ro.r(r_str))
+    result = dataframe_to_pydict(result)
+    
+    # rekey result
+    if direction == RAW_TO_TRANS:
+        result = {TRANS_EFFECT:result['yi'],
+                  TRANS_VAR:result['vi']}
+    elif direction == TRANS_TO_RAW:
+        result = {RAW_EFFECT:result['yi'],
+                  RAW_LOWER:result['lb'],
+                  RAW_UPPER:result['ub']}
+
+    return result
+
+
+    
+    
+    
 def effect_size(metric, data_type, data):
     ''' calculates effect sizes for the data given in the data where data
     is a dictionary of values obtained from columns as specified in the

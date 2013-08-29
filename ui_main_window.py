@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'main_window.ui'
 #
-# Created: Thu Aug 22 16:09:05 2013
+# Created: Thu Aug 29 14:30:01 2013
 #      by: PyQt4 UI code generator 4.10.2
 #
 # WARNING! All changes made in this file will be lost!
@@ -152,6 +152,8 @@ class Ui_MainWindow(object):
         icon10.addPixmap(QtGui.QPixmap(_fromUtf8(":/function_icon_set/images/function_icon_set/box_upload_48.png")), QtGui.QIcon.Normal, QtGui.QIcon.Off)
         self.actionExportCSV.setIcon(icon10)
         self.actionExportCSV.setObjectName(_fromUtf8("actionExportCSV"))
+        self.actionTransform_Effect_Size = QtGui.QAction(MainWindow)
+        self.actionTransform_Effect_Size.setObjectName(_fromUtf8("actionTransform_Effect_Size"))
         self.menuFile.addAction(self.actionNew)
         self.menuFile.addAction(self.actionOpen)
         self.menuFile.addAction(self.actionSave)
@@ -187,8 +189,10 @@ class Ui_MainWindow(object):
         self.menuMeta_Analysis.addAction(self.actionLeave_one_out)
         self.menuMeta_Analysis.addAction(self.actionSubgroup)
         self.menuAnalysis.addAction(self.actionCalculate_Effect_Size)
+        self.menuAnalysis.addAction(self.actionTransform_Effect_Size)
         self.menuAnalysis.addAction(self.menuMeta_Analysis.menuAction())
         self.menuAnalysis.addAction(self.actionMeta_Regression)
+        self.menuAnalysis.addSeparator()
         self.menubar.addAction(self.menuFile.menuAction())
         self.menubar.addAction(self.menuEdit.menuAction())
         self.menubar.addAction(self.menuTable.menuAction())
@@ -252,5 +256,6 @@ class Ui_MainWindow(object):
         self.actionMeta_Regression.setText(_translate("MainWindow", "Meta-Regression", None))
         self.actionImportCSV.setText(_translate("MainWindow", "Import CSV", None))
         self.actionExportCSV.setText(_translate("MainWindow", "Export CSV", None))
+        self.actionTransform_Effect_Size.setText(_translate("MainWindow", "Transform Effect Size", None))
 
 import icons_rc
