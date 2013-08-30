@@ -398,14 +398,14 @@ def transform_effect_size(metric, source_data, direction, conf_level):
              'vi': ro.FloatVector(source_data[TRANS_VAR]),
              }
         source_dataf = ro.DataFrame(d)
-        r_str = "trans.to.raw(metric='%s', source.data=%s, conf.level='%d')" % (metric_str, source_dataf.r_repr(), conf_level)
+        r_str = "trans.to.raw(metric='%s', source.data=%s, conf.level=%d)" % (metric_str, source_dataf.r_repr(), conf_level)
     elif direction == RAW_TO_TRANS:
         d = {'yi': ro.FloatVector(source_data[RAW_EFFECT]),
              'lb': ro.FloatVector(source_data[RAW_LOWER]),
              'ub': ro.FloatVector(source_data[RAW_UPPER]),
              }
         source_dataf = ro.DataFrame(d)
-        r_str = "raw.to.trans(metric='%s', source.data=%s, conf.level='%d')" % (metric_str, source_dataf.r_repr(), conf_level)
+        r_str = "raw.to.trans(metric='%s', source.data=%s, conf.level=%d)" % (metric_str, source_dataf.r_repr(), conf_level)
 
     print("Executing in R: %s" % r_str)
     result = try_n_run(lambda: ro.r(r_str))

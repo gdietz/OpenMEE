@@ -31,6 +31,13 @@ VARIABLE_TYPE_SHORT_STRING_REPS = {CATEGORICAL:"cat",
 VARIABLE_TYPE_STRING_REPS = {CATEGORICAL:"Categorical",
                              CONTINUOUS:"Continuous",
                              COUNT:"Count",}
+# How variable subtypes are represented as normal length strings
+VARIABLE_SUBTYPE_STRING_REPS = {TRANS_EFFECT: "Trans. Effect",
+                                TRANS_VAR   : "Trans. Var",
+                                RAW_EFFECT  : "Raw Effect",
+                                RAW_LOWER   : "Raw lb.", 
+                                RAW_UPPER   : "Raw ub.",
+                                }
 
 # Default # of digits for representing floating point numbers
 DEFAULT_PRECISION = 3

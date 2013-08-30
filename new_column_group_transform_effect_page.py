@@ -13,6 +13,7 @@ class NewColumnGroupTransformEffectPage(QWizardPage, ui_new_column_group_transfo
         self.setupUi(self)
         
         self.model = model
+        self.metric = None
         
         self.selections = {TRANS_EFFECT:None,
                            TRANS_VAR:None,
@@ -49,6 +50,7 @@ class NewColumnGroupTransformEffectPage(QWizardPage, ui_new_column_group_transfo
         # set info for wizard
         self.wizard().get_new_column_group_column_selections = self.get_selections
         self.wizard().new_column_group = True
+        self.wizard().get_new_column_group_metric = self.get_metric
         
         # local data
         self.direction = self.wizard().get_transformation_direction()
@@ -69,8 +71,20 @@ class NewColumnGroupTransformEffectPage(QWizardPage, ui_new_column_group_transfo
         for box in self.trans_boxes + self.raw_boxes:
             QObject.connect(box, SIGNAL("currentIndexChanged(int)"), partial(self._update_selection, box))
     
+        self._populate_metric_box(self.metric_cbo_box)
+        self.metric_cbo_box.currentIndexChanged[int].connect(self._update_metric_choice)
+        
     def _update_selection(self, box):
         self.selections[self.box_to_selection_key[box]] = self._selected_column(box)
+        
+        self.completeChanged.emit()
+        
+    def _update_metric_choice(self):
+        item_data = self.metric_cbo_box.itemData(self.metric_cbo_box.currentIndex())
+        self.metric = item_data.toInt()[0]
+        
+        
+        self.completeChanged.emit()
     
     def isComplete(self):
         if self.direction == TRANS_TO_RAW:
@@ -80,6 +94,9 @@ class NewColumnGroupTransformEffectPage(QWizardPage, ui_new_column_group_transfo
     
     def get_selections(self):
         return self.selections
+    
+    def get_metric(self):
+        return self.metric
         
     def _selected_column(self, combo_box):
         item_data = combo_box.itemData(combo_box.currentIndex())
@@ -98,6 +115,19 @@ class NewColumnGroupTransformEffectPage(QWizardPage, ui_new_column_group_transfo
             box.addItem(var.get_label(), col) # store the chosen col
         box.setCurrentIndex(0)
         box.blockSignals(False)
+        
+    def _populate_metric_box(self, box):
+        metrics = METRIC_TEXT_SIMPLE.keys()
+        metrics.sort(key=lambda metric:METRIC_TEXT_SIMPLE[metric])
+        
+        box.blockSignals(True)
+        box.clear()
+        for metric in metrics:
+            box.addItem(METRIC_TEXT_SIMPLE[metric], metric)
+        box.setCurrentIndex(0)
+        box.blockSignals(False)
+        
+        self._update_metric_choice()
         
     def _add_chosen_effect_col_to_box_then_disable_it(self, box, column):
         box.blockSignals(True)

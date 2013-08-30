@@ -311,7 +311,7 @@ class EETableModel(QAbstractTableModel):
         self.endResetModel()
 
 
-    def _get_column_assigned_to_variable(self, var):
+    def get_column_assigned_to_variable(self, var):
         ''' Returns the index of the column assigned to the variable with name
         var_name '''
         
@@ -435,7 +435,7 @@ class EETableModel(QAbstractTableModel):
         ''' Deletes a variable from the collection and removes it from the
         mapping of columns to variables '''
         
-        col = self._get_column_assigned_to_variable(var)
+        col = self.get_column_assigned_to_variable(var)
         
         self.dataset.remove_variable(var)
         del self.cols_2_vars[col]
@@ -853,11 +853,11 @@ class EETableModel(QAbstractTableModel):
                                                     col=raw_yi_col,
                                                     var_type=CONTINUOUS)
             add_raw_lb_cmd = MakeNewVariableCommand(model=self,
-                                                    var_name=METRIC_TEXT_SHORT_RAW_SCALE[metric],
+                                                    var_name="lb(%s)" % METRIC_TEXT_SHORT_RAW_SCALE[metric],
                                                     col=raw_lb_col,
                                                     var_type=CONTINUOUS)
             add_raw_ub_cmd = MakeNewVariableCommand(model=self,
-                                                    var_name=METRIC_TEXT_SHORT_RAW_SCALE[metric],
+                                                    var_name="ub(%s)" % METRIC_TEXT_SHORT_RAW_SCALE[metric],
                                                     col=raw_ub_col,
                                                     var_type=CONTINUOUS)
             variable_add_cmds = [add_raw_yi_cmd, add_raw_lb_cmd, add_raw_ub_cmd]
@@ -870,11 +870,11 @@ class EETableModel(QAbstractTableModel):
                                          undo_fn=partial(self.beginRemoveColumns, QModelIndex(), trans_yi_col, trans_vi_col))
             
             add_trans_yi_cmd = MakeNewVariableCommand(model=self,
-                                                      var_name=METRIC_TEXT_SHORT_RAW_SCALE[metric],
+                                                      var_name=METRIC_TEXT_SHORT[metric],
                                                       col=trans_yi_col,
                                                       var_type=CONTINUOUS)
             add_trans_vi_cmd = MakeNewVariableCommand(model=self,
-                                                      var_name=METRIC_TEXT_SHORT_RAW_SCALE[metric],
+                                                      var_name="Var(%s)" % METRIC_TEXT_SHORT[metric],
                                                       col=trans_vi_col,
                                                       var_type=CONTINUOUS)
             variable_add_cmds = [add_trans_yi_cmd, add_trans_vi_cmd]
@@ -891,8 +891,8 @@ class EETableModel(QAbstractTableModel):
             trans_yi = self.get_variable_assigned_to_column(trans_yi_col)
             trans_vi = self.get_variable_assigned_to_column(trans_vi_col)
             
-            self.undo_stack.push(SetVariableSubTypeCommand(trans_yi, TRANS_EFFECT))
-            self.undo_stack.push(SetVariableSubTypeCommand(trans_vi, TRANS_VAR))
+            self.undo_stack.push(SetVariableSubTypeCommand(model=self, variable=trans_yi, new_subtype=TRANS_EFFECT))
+            self.undo_stack.push(SetVariableSubTypeCommand(model=self, variable=trans_vi, new_subtype=TRANS_VAR))
             
             keys_to_vars = {TRANS_EFFECT:trans_yi,
                             TRANS_VAR: trans_vi}
@@ -901,16 +901,16 @@ class EETableModel(QAbstractTableModel):
             raw_lb = self.get_variable_assigned_to_column(raw_lb_col)
             raw_ub = self.get_variable_assigned_to_column(raw_ub_col)
             
-            self.undo_stack.push(SetVariableSubTypeCommand(raw_yi, RAW_EFFECT))
-            self.undo_stack.push(SetVariableSubTypeCommand(raw_lb, RAW_LOWER))
-            self.undo_stack.push(SetVariableSubTypeCommand(raw_ub, RAW_UPPER))
+            self.undo_stack.push(SetVariableSubTypeCommand(model=self, variable=raw_yi, new_subtype=RAW_EFFECT))
+            self.undo_stack.push(SetVariableSubTypeCommand(model=self, variable=raw_lb, new_subtype=RAW_LOWER))
+            self.undo_stack.push(SetVariableSubTypeCommand(model=self, variable=raw_ub, new_subtype=RAW_UPPER))
             
             keys_to_vars = {RAW_EFFECT:raw_yi,
                             RAW_LOWER:raw_lb,
                             RAW_UPPER:raw_ub}
         # add vars to column group
         self.undo_stack.push(GenericUndoCommand(redo_fn=partial(self.add_vars_to_col_group,column_group, keys_to_vars),
-                                                undo_fn=partial(self.remove_vars_from_col_group(column_group, keys=keys_to_vars.keys())),
+                                                undo_fn=partial(self.remove_vars_from_col_group,column_group, keys=keys_to_vars.keys()),
                                                 description="Add variables to column group"))
         
         if transform_direction == TRANS_TO_RAW:
@@ -960,8 +960,8 @@ class EETableModel(QAbstractTableModel):
         variable_vi = self.get_variable_assigned_to_column(vi_col)
         
         # Set subtype (for display purposes only for now)
-        self.undo_stack.push(SetVariableSubTypeCommand(variable_yi, TRANS_EFFECT))
-        self.undo_stack.push(SetVariableSubTypeCommand(variable_vi, TRANS_VAR))
+        self.undo_stack.push(SetVariableSubTypeCommand(model=self, variable=variable_yi, new_subtype=TRANS_EFFECT))
+        self.undo_stack.push(SetVariableSubTypeCommand(model=self, variable=variable_vi, new_subtype=TRANS_VAR))
         
         # add variables to new column_group
         col_group = self.make_new_variable_group(metric=metric, name=METRIC_TEXT_SIMPLE[metric] + " column group")
@@ -1078,6 +1078,13 @@ class VariableGroup:
         var = self.group_data[key]
         var.set_column_group(None)
         self.group_data[key]=None
+        
+    def get_var_key(self, var):
+        for k,v in self.group_data.items():
+            if v==var:
+                return k
+        raise KeyError("No such variable in the group")
+    
         
     def __str__(self):
         raw_yi   = self.group_data[RAW_EFFECT]
@@ -1249,9 +1256,10 @@ class SetVariableValueCommand(QUndoCommand):
         
         
 class SetVariableSubTypeCommand(QUndoCommand):
-    def __init__(self, variable, new_subtype):
+    def __init__(self, model, variable, new_subtype):
         super(SetVariableSubTypeCommand, self).__init__()
         
+        self.model = model
         self.variable = variable
         self.new_subtype = new_subtype
         self.old_subtype = variable.get_subtype()
@@ -1259,12 +1267,23 @@ class SetVariableSubTypeCommand(QUndoCommand):
     def redo(self):
         if DEBUG_MODE: print("redo: set variable subtype command")
         self.variable.set_subtype(self.new_subtype)
+        
+        self.emit_change_signals_from_model()
     
     def undo(self):
         if DEBUG_MODE: print("undo: set variable subtype command")
         self.variable.set_subtype(self.old_subtype)
-
-
+        
+        self.emit_change_signals_from_model()
+        
+    def emit_change_signals_from_model(self):
+        col = self.model.get_column_assigned_to_variable(self.variable)
+        start_index = self.model.createIndex(0,col)
+        end_index = self.model.createIndex(self.model.rowCount()-1,col)
+        self.model.emit(SIGNAL("dataChanged(QModelIndex,QModelIndex)"),
+          start_index, end_index)
+        self.model.headerDataChanged.emit(Qt.Horizontal, col, col)
+        
 class EmitDataChangedCommand(QUndoCommand):
     ''' Not really a command, just the last thing called @ the end of the macro
     in setData in order to notify the view that the model has changed '''
@@ -1555,17 +1574,32 @@ class ChangeVariableFormatCommand(QUndoCommand):
         self.precision = precision
         
         self.original_var_type = variable.get_type()
+        self.original_subtype = variable.get_subtype()
+        self.original_variable_group = variable.get_column_group()
+        self.key_var_group = None
+        if self.original_variable_group is not None:
+            self.key_var_group = self.original_variable_group.get_var_key(self.variable)
+
         # dictionary mapping studies to their original values for the given variable
         self.orignal_vals = {}
         
     def redo(self):
         self._store_original_data_values_for_variable()
         self.model.change_variable_type(self.variable, self.target_type, self.precision)
+        
+        self.variable.set_subtype(None)
+        if self.key_var_group:
+            self.original_variable_group.unset_column_group_with_key(self.key_var_group)
+
         self.model.dirty = True
         
     def undo(self):
         self.model.change_variable_type(self.variable, self.original_var_type, self.precision)
         self._restore_orignal_data_values_for_variable()
+        
+        self.variable.set_subtype(self.original_subtype)
+        if self.key_var_group:
+            self.original_variable_group.set_var_with_key(key=self.key_var_group, var=self.variable)
         
     def _store_original_data_values_for_variable(self):
         for study in self.model.dataset.get_studies():

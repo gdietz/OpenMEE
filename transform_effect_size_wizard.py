@@ -28,7 +28,9 @@ class TransformEffectSizeWizard(QtGui.QWizard):
         self.get_transformation_direction = None # will be a callable
         
         self.get_new_column_group_column_selections = None
+        self.get_new_column_group_metric = None
         self.new_column_group = False
+        
         
         QObject.connect(self, SIGNAL("currentIdChanged(int)"), self._change_size)
     

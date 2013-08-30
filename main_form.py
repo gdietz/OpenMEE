@@ -98,6 +98,9 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
         set all menu options pertaining to 
         copy/paste to (boolean) b.
         '''
+        
+        print("Toggling copy pasta %d" % b)
+        
         self.actionCopy.setEnabled(b)
         self.actionPaste.setEnabled(b)
         self.actionCut.setEnabled(b)
@@ -259,11 +262,12 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
     
 
         # QObject.connect(self.model, SIGNAL("DataError"), self.warning_msg)
-        QObject.connect(self.tableView.selectionModel(), 
-                            SIGNAL("selectionChanged(QItemSelection, QItemSelection)"), 
-                            self.table_selection_changed)
+#        QObject.connect(self.tableView.selectionModel(), 
+#                            SIGNAL("selectionChanged(QItemSelection, QItemSelection)"), 
+#                            self.table_selection_changed)
 
     def table_selection_changed(self):
+        print("Table selection changed")
         anything_selected = False
         selected_indexes = self.tableView.selectionModel().selectedIndexes()
         upper_left_index  = self._upper_left(selected_indexes)
@@ -300,6 +304,12 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
     def disconnect_model_connections(self):
         QObject.disconnect(self.model, SIGNAL("DataError"), self.warning_msg)
         QObject.disconnect(self.model, SIGNAL("dataChanged(QModelIndex, QModelIndex)"), self.change_index_after_data_edited)
+        QObject.disconnect(self.tableView.selectionModel(), 
+                    SIGNAL("selectionChanged(QItemSelection, QItemSelection)"), 
+                    self.table_selection_changed)
+        
+        
+        
         #QObject.disconnect(self.model, SIGNAL("dataChanged(QModelIndex, QModelIndex)"), self.tableView.resizeColumnsToContents)
         
         self.model.column_formats_changed.disconnect(self.toggle_analyses_enable_status)
@@ -310,6 +320,13 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
     def make_model_connections(self):
         QObject.connect(self.model, SIGNAL("DataError"), self.warning_msg)
         QObject.connect(self.model, SIGNAL("dataChanged(QModelIndex, QModelIndex)"), self.change_index_after_data_edited)
+        QObject.connect(self.tableView.selectionModel(), 
+                    SIGNAL("selectionChanged(QItemSelection, QItemSelection)"), 
+                    self.table_selection_changed)
+        
+        
+        
+        
         #QObject.connect(self.model, SIGNAL("dataChanged(QModelIndex, QModelIndex)"), self.tableView.resizeColumnsToContents) # was making responsiveness of tableView slow
     
         self.model.column_formats_changed.connect(self.toggle_analyses_enable_status)
@@ -361,7 +378,7 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
             print("Computed these effect sizes: %s" % str(effect_sizes))
             
             
-    def transform_effect_size_bulk(self, conf_level=DEFAULT_CONFIDENCE_LEVEL):
+    def transform_effect_size_bulk(self):
         ''' transforms the effect size given in metric from either
             
             1) normal scale to transformed scale (usually log scale) or
@@ -377,9 +394,10 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
             
             TODO: link new columns with existing columns when changes happen '''
         
+        
+        conf_level=DEFAULT_CONFIDENCE_LEVEL # TODO: ask user what conf. level they want to transform at
+        
         wizard = transform_effect_size_wizard.TransformEffectSizeWizard(model=self.model)
-        # Todo: add page to wizard to choose metric if the chosen effect size is not part of a variable group
-        metric = None ##### tmp remove later!!!!!!
         
         if not wizard.exec_():
             return False
@@ -394,6 +412,7 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
         if wizard.new_column_group:
             print("Making new column group")
             new_grp_cols = wizard.get_new_column_group_column_selections()
+            metric = wizard.get_new_column_group_metric()
             if transform_direction == TRANS_TO_RAW:
                 trans_yi = self.model.get_variable_assigned_to_column(new_grp_cols[TRANS_EFFECT])
                 trans_vi = self.model.get_variable_assigned_to_column(new_grp_cols[TRANS_VAR])
@@ -1006,7 +1025,6 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
             
             # Construct undo/redo command
             # TODO: warn user about permanent loss of precision upon converting a double to an int
-            #convert_to_target = partial(self.model.change_variable_type, var_name, target_conversion, self.model.get_precision())
             convert_to_target = ee_model.ChangeVariableFormatCommand(
                                     model=self.model,
                                     variable=var,
@@ -1019,6 +1037,15 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
             action = change_format_menu.addAction("--> %s" % variable_type_str)
             QObject.connect(action, SIGNAL("triggered()"), partial(self.undo_stack.push, convert_to_target))
             QObject.connect(change_format_menu, SIGNAL("hovered(QAction*)"), self.status_from_action)
+
+        if var.get_type() == CONTINUOUS and var.get_subtype() is None:
+            for target in EFFECT_TYPES:
+                subtype_str = VARIABLE_SUBTYPE_STRING_REPS[target]
+                set_subtype_cmd = ee_model.SetVariableSubTypeCommand(model=self.model,
+                                                                     variable=var,
+                                                                     new_subtype=target)
+                action = change_format_menu.addAction("----> %s" % subtype_str)
+                action.triggered.connect(partial(self.undo_stack.push,set_subtype_cmd))
 
         return change_format_menu
     
@@ -1286,7 +1313,7 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
                     # one event; i.e., when undo is called, it undos the
                     # whole paste
                     index = self.model.createIndex(origin_row+src_row, origin_col+src_col)
-                    value = str(source_content[src_row][src_col].encode('ascii','ignore'))
+                    value = str(source_content[src_row][src_col]).encode('ascii','ignore')
                     setdata_ok = self.model.setData(index, QVariant(value))
                     if not setdata_ok:
                         cancel_macro_creation_and_revert_state()
