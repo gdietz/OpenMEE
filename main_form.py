@@ -758,7 +758,7 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
             
             # delete column
             delete_column_action = context_menu.addAction("Remove %s" % ('variable' if is_variable_column else 'label column'))
-            QAction.connect(delete_column_action, SIGNAL("triggered()"), lambda: self.model.removeColumn(column_clicked))
+            QAction.connect(delete_column_action, SIGNAL("triggered()"), partial(self.remove_column, column_clicked))
             
             # insert column
             insert_column_action = context_menu.addAction("Insert column")
@@ -776,6 +776,39 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
             QObject.connect(make_new_categorical_variable_action, SIGNAL("triggered()"), partial(self.make_new_variable_at_col, col=column_clicked,var_type=CATEGORICAL))
         
         context_menu.popup(QCursor.pos())
+        
+    def remove_column(self, column):
+        is_variable_column = self.model.column_assigned_to_variable(column)
+        
+        # Remove other columns @ same scale in var_group
+        if is_variable_column:
+            var = self.model.get_variable_assigned_to_column(column)
+            var_group = var.get_column_group()
+            if var_group is not None:
+                var_is_trans = var_group.get_var_key(var) in [TRANS_EFFECT, TRANS_VAR]
+                if var_is_trans:
+                    keylist = [TRANS_EFFECT, TRANS_VAR]
+                else:
+                    keylist = [RAW_EFFECT, RAW_LOWER, RAW_UPPER]
+                
+                self.undo_stack.beginMacro("Deleting all columns at same scale as selected column to delete")
+                for var_key in keylist:
+                    othervar = var_group.get_var_with_key(var_key)
+                    if othervar is not None:
+                        other_var_col = self.model.get_column_assigned_to_variable(othervar)
+                        self.model.removeColumn(other_var_col)
+                
+                # Delete var group if it is empty now
+                if var_group.isEmpty():
+                    # resume from here
+                        
+                self.undo_stack.endMacro()
+                return
+            
+            #TODO finish this !!! Remove other columns @ same scale in var_group
+            #delete the var group if it is empty after
+            
+        self.model.removeColumn(column)
         
     def mark_column_as_label(self, col):
         ''' Should only occur for columns of CATEGORICAL type and only for a
