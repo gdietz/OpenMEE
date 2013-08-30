@@ -20,8 +20,12 @@ class ChooseEffectColForTransformationPage(QWizardPage, ui_choose_effect_col_for
         self.effect_size_columns = self.model.get_continuous_columns()
         effect_size_subtypes = [TRANS_EFFECT, RAW_EFFECT]
         self.effect_size_columns = [col for col in self.effect_size_columns if self.model.get_variable_assigned_to_column(col).get_subtype() in effect_size_subtypes]
-        # TODO above: don't show effect columns for which the other scaled effect column already exists i.e. if the variable group is fully occupied
-        
+        def include_col(col):
+            col_group = self.model.get_variable_assigned_to_column(col).get_column_group()
+            if col_group is not None and col_group.isFull():
+                return False
+            return True
+        self.effect_size_columns = [col for col in self.effect_size_columns if include_col(col)]
         
         # populate combo box
         self._populate_combo_box(self.comboBox, self.effect_size_columns)

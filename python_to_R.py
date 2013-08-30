@@ -387,7 +387,7 @@ def NA_to_None(value):
         return None
     return value
 
-# TODO: finish this
+
 def transform_effect_size(metric, source_data, direction, conf_level):
     metric_str = METRIC_TO_ESCALC_MEASURE[metric]
     

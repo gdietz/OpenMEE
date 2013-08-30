@@ -440,6 +440,12 @@ class EETableModel(QAbstractTableModel):
         self.dataset.remove_variable(var)
         del self.cols_2_vars[col]
         
+        # remove variable from variable group if it exists
+        var_group = var.get_column_group()
+        if var_group:
+            key = var_group.get_var_key(var)
+            var_group.unset_column_group_with_key(key)
+        
         # Emit signal
         self.column_formats_changed.emit()
         
@@ -1328,7 +1334,11 @@ class RemoveColumnsCommand(QUndoCommand):
         
         # 2-level dictionary storing the study values for the removed variables
         # vars-->dictionary(studies-->values)
-        self.variables_2_studies_2_values = {} 
+        self.variables_2_studies_2_values = {}
+        
+        # mapping of vars--> (variable_group, key_in_group)
+        self.variable_group_info = {}
+        
         
         # Save info from cols that will be removed
         for col in range(self.column, self.column+self.count):
@@ -1407,6 +1417,11 @@ class RemoveColumnsCommand(QUndoCommand):
         for study in self.model.dataset.get_studies():
             self.variables_2_studies_2_values[var][study] = study.get_var(var)
             
+        # Store data about variable's variable_group
+        var_group = var.get_column_group()
+        key = var_group.get_var_key(var) if var_group else None
+        self.variable_group_info[var] = (var_group,key)
+            
     def _restore_variable_column_data(self, col):
         var = self.removed_cols_2_vars[col]
         
@@ -1420,6 +1435,11 @@ class RemoveColumnsCommand(QUndoCommand):
         for study in self.model.dataset.get_studies():
             value = self.variables_2_studies_2_values[var][study]
             study.set_var(var, value)
+            
+        # reassign variable to its variable group (if it exists)
+        var_group,key = self.variable_group_info[var]
+        if var_group:
+            var_group.set_var_with_key(key=key, var=var)
         
         
 class RemoveRowsCommand(QUndoCommand):
