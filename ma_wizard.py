@@ -34,13 +34,14 @@ class MetaAnalysisWizard(QtGui.QWizard):
         self.setPage(Page_DataLocation,     DataLocationPage(model=model, mode=MA_MODE))
         
         self.setPage(Page_MethodsAndParameters, self.methods_and_params_page_instance)
+        self.setPage(Page_RefineStudies,    RefineStudiesPage(model=model)) ###
         if mode==SUBGROUP_MODE:
             self.setPage(Page_SubgroupVariable, SubgroupVariablePage(model=model))
         elif mode==META_REG_MODE:
             self.setPage(Page_SelectCovariates, SelectCovariatesPage(model=model))
-            self.setPage(Page_RefineStudies, RefineStudiesPage(model=model, mode=META_REG_MODE))
-        else:
-            self.setPage(Page_RefineStudies,    RefineStudiesPage(model=model))
+            self.setPage(Page_RefineStudies, RefineStudiesPage(model=model, mode=mode))
+#        else:
+#            self.setPage(Page_RefineStudies,    RefineStudiesPage(model=model))
         
         self.setStartId(Page_ChooseEffectSize)
         self.setWizardStyle(QWizard.ClassicStyle)

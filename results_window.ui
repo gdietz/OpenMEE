@@ -71,6 +71,9 @@
            <property name="toolTip">
             <string/>
            </property>
+           <property name="alignment">
+            <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
+           </property>
           </widget>
          </widget>
         </item>

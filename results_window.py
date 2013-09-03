@@ -89,6 +89,11 @@ class ResultsWindow(QMainWindow, ui_results_window.Ui_ResultsWindow):
         self.items_to_coords = {}
         self.texts = results["texts"]
 
+        self.groupings = [["Likelihood","nlr","plr"],
+                          ["sens","spec"],
+                          ["Subgroup",],
+                          ["Cumulative",],
+                          ["Leave-one-out",],]
 
         # first add the text to self.scene
         self.add_text()
@@ -138,9 +143,9 @@ class ResultsWindow(QMainWindow, ui_results_window.Ui_ResultsWindow):
         if self.image_order is None:
             # add to the arguments to make more groups, also make sure to add them
             # in add_text
-            grouped_images = self._group_items(ungrouped_images,
-                                               ["Likelihood","nlr","plr"],
-                                               ["sens","spec"])
+            grouped_images = self._group_items(ungrouped_images, self.groupings)
+                                               #["Likelihood","nlr","plr"],
+                                               #["sens","spec"])
             ordered_images = grouped_images
         
         
@@ -196,9 +201,10 @@ class ResultsWindow(QMainWindow, ui_results_window.Ui_ResultsWindow):
         
         # add to the arguments to make more groups, also make sure to add them
         # in add_images
-        grouped_items = self._group_items(self.texts.items(),
-                                          ["Likelihood","nlr","plr"],
-                                          ["sens","spec"])
+        grouped_items = self._group_items(self.texts.items(), self.groupings)
+                                          
+                                         # ["Likelihood","nlr","plr"],
+                                        #  ["sens","spec"])
         
         for title, text in grouped_items:
             try:
@@ -214,7 +220,7 @@ class ResultsWindow(QMainWindow, ui_results_window.Ui_ResultsWindow):
             except:
                 pass
     
-    def _group_items(self, items, *groups):
+    def _group_items(self, items, groups):
         '''Groups items together if their title contains an element in a group list.
         items is a tuple of key,value pairs i.e. (title,text)
         Each group is a list of strings to which item titles should be matched
@@ -245,6 +251,16 @@ class ResultsWindow(QMainWindow, ui_results_window.Ui_ResultsWindow):
         result = []
         for x in grouped_items:
             result.extend(x)
+        
+        # Move references to the start
+        ref_index = None
+        for index, item in enumerate(result):
+            if item[0].lower()=="references":
+                ref_index = index
+        if ref_index is not None:
+            ref_item = result.pop(ref_index)
+            result.insert(0, ref_item)
+        
         return result
 
                         
@@ -263,10 +279,9 @@ class ResultsWindow(QMainWindow, ui_results_window.Ui_ResultsWindow):
         print "  title at: %s" % self.y_coord
         self.scene.addItem(text)
         qt_item = QTreeWidgetItem(self.nav_tree, [title])
-        self.scene.setSceneRect(0, 0, self.scene.width(), self.y_coord + padding)
+        self.scene.setSceneRect(0, 0, self.scene.width(), self.y_coord + text.boundingRect().height() + padding)
         print("  Setting position at (%d,%d)" % (self.x_coord, self.y_coord))                        
         text.setPos(self.position()) #####
-        #self.y_coord += padding
         self.y_coord += text.boundingRect().height()
         return qt_item
 
@@ -280,14 +295,12 @@ class ResultsWindow(QMainWindow, ui_results_window.Ui_ResultsWindow):
         txt_item.setToolTip("To copy the text:\n1) Right click on the text and choose \"Select All\".\n2) Right click again and choose \"Copy\".")
         txt_item.setTextInteractionFlags(Qt.TextSelectableByMouse)
         self.scene.addItem(txt_item)
-        # fix for issue #149; was formerly txt_item.boundingRect().size().height()
-        
-        #self.y_coord += txt_item.boundingRect.height()  #ROW_HEIGHT*text.count("\n")
+
         self.scene.setSceneRect(0, 0, max(self.scene.width(),
                                           txt_item.boundingRect().size().width()),
-                                          self.y_coord+padding)
+                                          self.y_coord+txt_item.boundingRect().height()+padding)
         
-        self.y_coord += txt_item.boundingRect().height() ###
+        self.y_coord += txt_item.boundingRect().height()
         txt_item.setPos(position)
         
         return (txt_item.boundingRect(), position)
@@ -323,17 +336,16 @@ class ResultsWindow(QMainWindow, ui_results_window.Ui_ResultsWindow):
         item = QGraphicsPixmapItem(pixmap)
         item.setToolTip("To save the image:\nright-click on the image and choose \"save image as\".\nSave as png will correctly render non-latin fonts but does not respect changes to plot made through 'edit_plot ...'")
         
-        
         self.y_coord += item.boundingRect().size().height()
 #        item.setFlags(QGraphicsItem.ItemIsSelectable|
 #                      QGraphicsItem.ItemIsMovable)
         item.setFlags(QGraphicsItem.ItemIsSelectable)
 
 
-        self.scene.setSceneRect(0, 0, \
-                                   max(self.scene.width(), \
-                                   item.boundingRect().size().width()),\
-                                   self.y_coord+padding)
+        self.scene.setSceneRect(0, 0,
+                                max(self.scene.width(),
+                                    item.boundingRect().size().width()),
+                                self.y_coord+item.boundingRect().size().height()+padding)
 
         print "creating item @:%s" % position
         
@@ -452,7 +464,6 @@ class ResultsWindow(QMainWindow, ui_results_window.Ui_ResultsWindow):
     def position(self):
         point = QPoint(self.x_coord, self.y_coord)
         return self.graphics_view.mapToScene(point)
-
 
 if __name__ == "__main__":
     

@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'results_window.ui'
 #
-# Created: Tue Aug  6 15:31:14 2013
+# Created: Tue Sep  3 14:02:54 2013
 #      by: PyQt4 UI code generator 4.10.2
 #
 # WARNING! All changes made in this file will be lost!
@@ -59,6 +59,7 @@ class Ui_ResultsWindow(object):
         self.nav_tree.headerItem().setText(0, _fromUtf8("1"))
         self.graphics_view = QtGui.QGraphicsView(self.results_nav_splitter)
         self.graphics_view.setToolTip(_fromUtf8(""))
+        self.graphics_view.setAlignment(QtCore.Qt.AlignLeading|QtCore.Qt.AlignLeft|QtCore.Qt.AlignTop)
         self.graphics_view.setObjectName(_fromUtf8("graphics_view"))
         self.horizontalLayout.addWidget(self.results_nav_splitter)
         self.psuedo_console = QtGui.QTextEdit(self.splitter)
