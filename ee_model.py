@@ -993,6 +993,7 @@ class EETableModel(QAbstractTableModel):
         
 
     def make_new_variable_group(self, metric, name):
+        print("Making new column group")
         col_group = VariableGroup(metric=metric, name=name)    
         
         redo_fn = partial(self.variable_groups.append,col_group)
@@ -1005,6 +1006,15 @@ class EETableModel(QAbstractTableModel):
         return col_group
     
     
+    def remove_variable_group(self, var_group):
+        redo_fn = partial(self.variable_groups.remove,var_group)
+        undo_fn = partial(self.variable_groups.append,var_group)
+        
+        remove_var_group_cmd = GenericUndoCommand(redo_fn=redo_fn,
+                                                  undo_fn=undo_fn,
+                                                  description="Remove variable group")
+        self.undo_stack.push(remove_var_group_cmd)
+        return var_group
 
         
     def sort_by_column(self, col):

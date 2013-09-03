@@ -800,13 +800,10 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
                 
                 # Delete var group if it is empty now
                 if var_group.isEmpty():
-                    # resume from here
+                    self.model.remove_variable_group(var_group) # undoable
                         
                 self.undo_stack.endMacro()
                 return
-            
-            #TODO finish this !!! Remove other columns @ same scale in var_group
-            #delete the var group if it is empty after
             
         self.model.removeColumn(column)
         
