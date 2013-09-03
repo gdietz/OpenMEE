@@ -259,7 +259,7 @@ class ResultsWindow(QMainWindow, ui_results_window.Ui_ResultsWindow):
                 ref_index = index
         if ref_index is not None:
             ref_item = result.pop(ref_index)
-            result.insert(0, ref_item)
+            result.append(ref_item)
         
         return result
 
