@@ -1,3 +1,9 @@
+################
+#              #
+# George Dietz #
+# CEBM@Brown   #
+#              #
+################
 
 import sys
 import time

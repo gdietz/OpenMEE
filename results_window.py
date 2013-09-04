@@ -1,6 +1,7 @@
 #############################################
 #                                           #
 #  Byron C. Wallace                         #
+#  George Dietz                             #
 #  Brown University                         #
 #  OpenMeta[analyst]                        #
 #                                           #
@@ -202,9 +203,6 @@ class ResultsWindow(QMainWindow, ui_results_window.Ui_ResultsWindow):
         # add to the arguments to make more groups, also make sure to add them
         # in add_images
         grouped_items = self._group_items(self.texts.items(), self.groupings)
-                                          
-                                         # ["Likelihood","nlr","plr"],
-                                        #  ["sens","spec"])
         
         for title, text in grouped_items:
             try:

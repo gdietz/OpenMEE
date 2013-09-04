@@ -1,3 +1,10 @@
+################
+#              #
+# George Dietz #
+# CEBM@Brown   #
+#              #
+################
+
 
 from PyQt4 import QtCore, QtGui
 from PyQt4.Qt import *

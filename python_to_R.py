@@ -1,6 +1,12 @@
+##################
+#                #
+# George Dietz   #
+# Byron Wallace  #
+# CEBM@Brown     #
+#                #
+##################
+
 import math
-
-
 
 from globals import *
 

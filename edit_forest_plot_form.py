@@ -1,3 +1,13 @@
+#################
+#               #
+# George Dietz  #
+# Byron Wallace #
+# CEBM@Brown    ####################################################
+#                                                                  #
+# Slightly modified version of the same thing from OpenMetaAnalyst #
+#                                                                  #
+####################################################################
+
 #import pdb
 #import os
 

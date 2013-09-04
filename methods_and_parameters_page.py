@@ -1,3 +1,14 @@
+##################
+#                #
+# George Dietz   #
+# Byron Wallace  #
+# CEBM@Brown     #################
+#                                #
+# This is basically a modified   #
+# version of the same thing from #
+# OpenMetaAnalyst                #
+##################################
+
 from PyQt4 import QtCore, QtGui
 from PyQt4.Qt import *
 

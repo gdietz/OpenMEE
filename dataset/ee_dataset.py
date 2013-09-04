@@ -1,8 +1,9 @@
-#########################
-#                       #
-# Author: George Dietz  #
-#                       #
-#########################
+#################
+#               #
+# George Dietz  #
+# CEBM@Brown    #
+#               #
+#################
 
 from globals import *
 import study_collection

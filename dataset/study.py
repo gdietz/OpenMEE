@@ -1,8 +1,9 @@
-#########################
-#                       #
-# Author: George Dietz  #
-#                       #
-#########################
+#################
+#               #
+# George Dietz  #
+# CEBM@Brown    #
+#               #
+#################
 
 class Study:
     # Study holds a collection of variables

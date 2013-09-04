@@ -1,3 +1,10 @@
+##################
+#                #
+# George Dietz   #
+# CEBM@Brown     #
+#                #
+##################
+
 from functools import partial
 
 from PyQt4 import QtCore, QtGui

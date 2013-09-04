@@ -1,3 +1,10 @@
+#################
+#               #
+# George Dietz  #
+# CEBM@Brown    #
+#               #
+#################
+
 import csv
 
 from PyQt4 import QtCore, QtGui

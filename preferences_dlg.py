@@ -1,3 +1,10 @@
+##################
+#                #
+# George Dietz   #
+# CEBM@Brown     #
+#                #
+##################
+
 import copy
 from functools import partial
 

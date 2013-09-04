@@ -1,13 +1,16 @@
+#################
+#               #
+# George Dietz  #
+# CEBM@Brown    #
+#               #
+#################
+
 #from functools import partial
 
 from PyQt4 import QtCore, QtGui
 from PyQt4.Qt import *
 
 from globals import *
-
-
-
-
 
 class DataLocationPage(QWizardPage):
     def __init__(self, model, mode=None, parent=None):

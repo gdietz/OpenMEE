@@ -1,3 +1,9 @@
+##################
+#                #
+# George Dietz   #
+# CEBM@Brown     #
+#                #
+##################
 
 #from functools import partial
 
