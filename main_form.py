@@ -580,12 +580,6 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
                 make_r_object()
             else:
                 make_r_object(generic_effect=True)
-                                    
-#            python_to_R.dataset_to_simple_continuous_robj(model=self.model,
-#                                              included_studies=included_studies,
-#                                              data_location=data_location,
-#                                              data_type=data_type, 
-#                                              covs_to_include=covs_to_include)
         
         result = python_to_R.run_meta_regression(metric=metric, fixed_effects=fixed_effects, conf_level=conf_level)
         self.analysis(result)

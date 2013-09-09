@@ -682,7 +682,6 @@ def parse_out_results(result):
                 references_str += str(i+1) + ". " + ref + "\n"
             
             text_d[text_n] = references_str
-
         else:
             text_d[text_n]=str(text)
             
@@ -796,7 +795,7 @@ def run_meta_regression(metric, fixed_effects=False, data_name="tmp_obj",
               "measure": METRIC_TO_ESCALC_MEASURE[metric]}
     params_df = ro.r['data.frame'](**params)
 
-    # create a lit of covariate objects on the R side
+    # create a list of covariate objects on the R side
     r_str = "%s<- meta.regression(%s, %s)" % \
                             (results_name, data_name, str(params_df.r_repr()))
 
