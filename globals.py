@@ -10,7 +10,7 @@ import os
 ###### SWITCHES #######
 # Enables additional elements of the program useful in debugging
 DEBUG_MODE = True           # mostly for printing debugging message to terminal
-SHOW_UNDO_VIEW = True
+SHOW_UNDO_VIEW = False
 SHOW_PSEUDO_CONSOLE_IN_RESULTS_WINDOW = False
 ###### END SWITCHES ######
 
@@ -73,7 +73,7 @@ DEFAULT_COLOR_SCHEME = {'DEFAULT_BACKGROUND_COLOR': QColor("white"),
                                   BACKGROUND: DEFAULT_BACKGROUND_COLOR},
                         'variable' : {
                                       CATEGORICAL:
-                                            {FOREGROUND: QColor(238,238,230),
+                                            {FOREGROUND: QColor(0,0,0),
                                              BACKGROUND: DEFAULT_BACKGROUND_COLOR},
                                       COUNT:
                                             {FOREGROUND: QColor(242,38,111),
@@ -84,8 +84,8 @@ DEFAULT_COLOR_SCHEME = {'DEFAULT_BACKGROUND_COLOR': QColor("white"),
                                       },
                         'variable_subtype' : {
                                               'DEFAULT_EFFECT':
-                                                    {FOREGROUND: QColor(222,211,96),
-                                                     BACKGROUND: DEFAULT_BACKGROUND_COLOR},
+                                                    {FOREGROUND: QColor(0,0,0),
+                                                     BACKGROUND: QColor(222,211,96)},
                                               },
                         }
 
