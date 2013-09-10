@@ -544,6 +544,7 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
             included_covariates = wizard.get_included_covariates()
             fixed_effects = wizard.using_fixed_effects()
             conf_level = wizard.get_confidence_level()
+            cov_2_ref_values = wizard.cov_2_ref_values
             
             # save data locations choices for this data type in the model
             self.model.update_data_location_choices(data_type, data_location)
@@ -556,12 +557,14 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
             self.run_meta_regression(metric, data_type, included_studies,
                                      data_location,
                                      covs_to_include=included_covariates,
+                                     covariate_reference_values = cov_2_ref_values,
                                      fixed_effects=fixed_effects,
                                      conf_level=conf_level)
         
         
     def run_meta_regression(self, metric, data_type, included_studies,
                             data_location, covs_to_include,
+                            covariate_reference_values,
                             fixed_effects, conf_level):
         
         if OMA_CONVENTION[data_type] == "binary":
@@ -569,13 +572,15 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
                                                       included_studies=included_studies,
                                                       data_location=data_location,
                                                       covs_to_include=covs_to_include,
+                                                      covariate_reference_values=covariate_reference_values,
                                                       include_raw_data=False)
         elif OMA_CONVENTION[data_type] == "continuous":
             make_r_object = partial(python_to_R.dataset_to_simple_continuous_robj, model=self.model,
                                               included_studies=included_studies,
                                               data_location=data_location,
                                               data_type=data_type, 
-                                              covs_to_include=covs_to_include)
+                                              covs_to_include=covs_to_include,
+                                              covariate_reference_values=covariate_reference_values)
             if metric != GENERIC_EFFECT:
                 make_r_object()
             else:

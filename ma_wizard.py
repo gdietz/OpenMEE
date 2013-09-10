@@ -16,8 +16,11 @@ from refine_studies_page import RefineStudiesPage
 from methods_and_parameters_page import MethodsAndParametersPage
 from subgroup_variable_page import SubgroupVariablePage
 from select_covariates_page import SelectCovariatesPage
+from reference_value_page import ReferenceValuePage
 
-Page_ChooseEffectSize, Page_DataLocation, Page_RefineStudies, Page_MethodsAndParameters, Page_SubgroupVariable, Page_SelectCovariates = range(6)
+(Page_ChooseEffectSize, Page_DataLocation, Page_RefineStudies,
+Page_MethodsAndParameters, Page_SubgroupVariable, Page_SelectCovariates,
+Page_ReferenceValues) = range(7)
 class MetaAnalysisWizard(QtGui.QWizard):
     def __init__(self, model, meta_f_str=None, mode = MA_MODE, parent=None):
         super(MetaAnalysisWizard, self).__init__(parent)
@@ -34,6 +37,7 @@ class MetaAnalysisWizard(QtGui.QWizard):
         self.covariates_included_table = None
         self.using_fixed_effects = None # will be a callable returning a boolean
         self.get_confidence_level = None # will be a callable returning a double
+        self.cov_2_ref_values = {}
         
         self.methods_and_params_page_instance = MethodsAndParametersPage(model=model, meta_f_str=meta_f_str)
         
@@ -41,14 +45,13 @@ class MetaAnalysisWizard(QtGui.QWizard):
         self.setPage(Page_DataLocation,     DataLocationPage(model=model, mode=MA_MODE))
         
         self.setPage(Page_MethodsAndParameters, self.methods_and_params_page_instance)
-        self.setPage(Page_RefineStudies,    RefineStudiesPage(model=model)) ###
+        self.setPage(Page_RefineStudies,    RefineStudiesPage(model=model))
         if mode==SUBGROUP_MODE:
             self.setPage(Page_SubgroupVariable, SubgroupVariablePage(model=model))
         elif mode==META_REG_MODE:
             self.setPage(Page_SelectCovariates, SelectCovariatesPage(model=model))
             self.setPage(Page_RefineStudies, RefineStudiesPage(model=model, mode=mode))
-#        else:
-#            self.setPage(Page_RefineStudies,    RefineStudiesPage(model=model))
+            self.setPage(Page_ReferenceValues, ReferenceValuePage())
         
         self.setStartId(Page_ChooseEffectSize)
         self.setWizardStyle(QWizard.ClassicStyle)
@@ -87,6 +90,12 @@ class MetaAnalysisWizard(QtGui.QWizard):
         included_studies = [study for study in all_studies if self.studies_included_table[study]==True]
         return included_studies
 
+    def categorical_covariates_selected(self):
+        included_covariates = self.get_included_covariates()
+        categorical_covariates = [cov for cov in included_covariates if cov.get_type()==CATEGORICAL]
+        return len(categorical_covariates) > 0
+    
+    
 
     def nextId(self):
         if self.mode==SUBGROUP_MODE:
@@ -109,6 +118,11 @@ class MetaAnalysisWizard(QtGui.QWizard):
             elif self.currentId() == Page_SelectCovariates:
                 return Page_RefineStudies
             elif self.currentId() == Page_RefineStudies:
+                if self.categorical_covariates_selected():
+                    return Page_ReferenceValues
+                else:
+                    return -1
+            elif self.currentId() == Page_ReferenceValues:
                 return -1
         else:
             if self.currentId() == Page_ChooseEffectSize:

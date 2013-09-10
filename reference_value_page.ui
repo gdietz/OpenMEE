@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>WizardPage</class>
+ <widget class="QWizardPage" name="WizardPage">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>473</width>
+    <height>251</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>Reference Values</string>
+  </property>
+  <property name="title">
+   <string>Reference Value</string>
+  </property>
+  <property name="subTitle">
+   <string>Choose reference value(s):</string>
+  </property>
+  <layout class="QVBoxLayout" name="verticalLayout">
+   <item>
+    <widget class="QLabel" name="label">
+     <property name="text">
+      <string>You have selected some categorical covariates. If you would like to set their reference values, please do so now.</string>
+     </property>
+     <property name="wordWrap">
+      <bool>true</bool>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <widget class="QSplitter" name="splitter">
+     <property name="orientation">
+      <enum>Qt::Horizontal</enum>
+     </property>
+     <widget class="QListWidget" name="cov_listWidget">
+      <item>
+       <property name="text">
+        <string>cov 1</string>
+       </property>
+      </item>
+      <item>
+       <property name="text">
+        <string>cov 2</string>
+       </property>
+      </item>
+      <item>
+       <property name="text">
+        <string>cov 3</string>
+       </property>
+      </item>
+     </widget>
+     <widget class="QListWidget" name="val_listWidget">
+      <item>
+       <property name="text">
+        <string>value1</string>
+       </property>
+      </item>
+      <item>
+       <property name="text">
+        <string>value2</string>
+       </property>
+      </item>
+      <item>
+       <property name="text">
+        <string>value3</string>
+       </property>
+      </item>
+     </widget>
+    </widget>
+   </item>
+  </layout>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>

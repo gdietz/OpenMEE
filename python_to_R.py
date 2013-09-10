@@ -177,7 +177,9 @@ def studies_have_point_estimates(studies, data_location, model):
     
 
 def dataset_to_simple_binary_robj(model, included_studies, data_location, var_name="tmp_obj", 
-                                  include_raw_data=True, covs_to_include=[], one_arm=False
+                                  include_raw_data=True, covs_to_include=[],
+                                  covariate_reference_values={},
+                                  one_arm=False
                                   ):
     '''
     This converts an EETableModel to an OpenMetaData (OMData) R object. We use type EETableModel
@@ -209,7 +211,9 @@ def dataset_to_simple_binary_robj(model, included_studies, data_location, var_na
     ests_str = ", ".join(_to_strs(ests))
     SEs_str = ", ".join(_to_strs(SEs))
     
-    cov_str = list_of_cov_value_objects_str(studies=included_studies, cov_list=covs_to_include)
+    cov_str = list_of_cov_value_objects_str(studies=included_studies,
+                                            cov_list=covs_to_include, 
+                                            cov_to_ref_var=covariate_reference_values)
     
 
     # first try and construct an object with raw data
@@ -284,7 +288,9 @@ def dataset_to_simple_binary_robj(model, included_studies, data_location, var_na
 def dataset_to_simple_continuous_robj(model, included_studies, data_location,
                                       data_type, 
                                       var_name="tmp_obj",
-                                      covs_to_include=[], one_arm=False, generic_effect=False):
+                                      covs_to_include=[],
+                                      covariate_reference_values={},
+                                      one_arm=False, generic_effect=False):
     r_str = None
     
     ###study_ids = [study.get_id() for study in included_studies]
@@ -302,7 +308,9 @@ def dataset_to_simple_continuous_robj(model, included_studies, data_location,
     ests_str = ", ".join(_to_strs(ests))
     SEs_str = ", ".join(_to_strs(SEs))
     
-    cov_str = list_of_cov_value_objects_str(studies=included_studies, cov_list=covs_to_include)
+    cov_str = list_of_cov_value_objects_str(studies=included_studies,
+                                            cov_list=covs_to_include,
+                                            cov_to_ref_var=covariate_reference_values)
 
 
     # first try and construct an object with raw data -- note that if
@@ -1000,23 +1008,27 @@ def write_out_plot_data(params_out_path, plot_data_name="plot.data"):
 
 ######### DEAL WITH COVARIATES #########
 
-def list_of_cov_value_objects_str(studies, cov_list=[]):
+def list_of_cov_value_objects_str(studies, cov_list=[], cov_to_ref_var={}):
     ''' makes r_string of covariate objects with their values '''
     
     r_cov_str = []
     for cov in cov_list:
-        r_cov_str.append(_gen_cov_vals_obj_str(cov, studies))
+        ref_var = None
+        if cov in cov_to_ref_var:
+            ref_var = cov_to_ref_var[cov]
+        r_cov_str.append(_gen_cov_vals_obj_str(cov, studies, str(ref_var)))
     r_cov_str = "list(" + ",".join(r_cov_str) + ")"
 
     return r_cov_str
 
 
-def _gen_cov_vals_obj_str(cov, studies):
+def _gen_cov_vals_obj_str(cov, studies, ref_var=None):
     ''' makes an R-evalable string to generate a covariate in R'''
     
     values_str, cov_vals = cov_to_str(cov, studies, named_list=False, return_cov_vals=True)
-    ref_var = cov_vals[0].replace("'", "") # arbitrary
-
+    if ref_var is None: # just take the first value if unspecified
+        ref_var = cov_vals[0].replace("'", "") # arbitrary
+    
     ## setting the reference variable to the first entry
     # for now -- this only matters for factors, obviously
 
