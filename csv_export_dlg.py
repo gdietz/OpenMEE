@@ -89,8 +89,8 @@ class CSVExportDialog(QDialog, ui_csv_export_dlg.Ui_Dialog):
             
     
     def model_as_matrix(self, include_headers=True):
-        row_count = self.model.get_max_occupied_row()+1
-        col_count = self.model.get_max_occupied_col()+1
+        row_count = self.model.calculate_max_occupied_row()+1
+        col_count = self.model.calculate_max_occupied_col()+1
         
         matrix = []
         

@@ -14,6 +14,8 @@ import ui_csv_import_dlg
 
 from ee_model import EETableModel
 
+MAX_PREVIEW_ROWS = 10
+
 class CSVImportDialog(QDialog, ui_csv_import_dlg.Ui_CSVImportDialog):
     def __init__(self, parent=None):
         super(CSVImportDialog, self).__init__(parent)
@@ -34,6 +36,7 @@ class CSVImportDialog(QDialog, ui_csv_import_dlg.Ui_CSVImportDialog):
     
     def isOk(self):
         # We must have a file selected
+        
         if not self.file_path:
             self.buttonBox.button(QDialogButtonBox.Ok).setEnabled(False)
             return
@@ -80,6 +83,7 @@ class CSVImportDialog(QDialog, ui_csv_import_dlg.Ui_CSVImportDialog):
             QMessageBox.warning(self, "Whoops", "Something went wrong while trying to import csv, try again")
             self.imported_data_ok = False
             return False
+            raise e
         
         num_rows = len(self.imported_data)
         num_cols = len(self.imported_data[0])
@@ -92,6 +96,7 @@ class CSVImportDialog(QDialog, ui_csv_import_dlg.Ui_CSVImportDialog):
         if not self._num_cols_consistent(self.imported_data):
             QMessageBox.warning(self, "Uh-oh", "The number of columns in the file is not consistent, did you choose the right delimiter?")
             return False
+        
         
         # set up table
         self.preview_table.setRowCount(num_rows)
@@ -108,6 +113,9 @@ class CSVImportDialog(QDialog, ui_csv_import_dlg.Ui_CSVImportDialog):
                 item = QTableWidgetItem(QString(self.imported_data[row][col]))
                 item.setFlags(Qt.NoItemFlags)
                 self.preview_table.setItem(row,col,item)
+                
+            if row >= MAX_PREVIEW_ROWS:
+                break
         self.preview_table.resizeRowsToContents()
         self.preview_table.resizeColumnsToContents()
         
@@ -131,16 +139,26 @@ class CSVImportDialog(QDialog, ui_csv_import_dlg.Ui_CSVImportDialog):
             self.imported_data = []
             if self._hasHeaders():
                 self.headers = reader.next()
+                
+            # handle missing missing data string
+            missing_data_string = str(self.missing_data_le.text())
             for row in reader:
-                # handle missing missing data string
-                missing_data_string = str(self.missing_data_le.text())
-                convert_missing_data_to_empty_str = lambda x: '' if x==missing_data_string else x
-                row = [convert_missing_data_to_empty_str(cell) for cell in row ]
+                def process_cell(cell):
+                    convert_missing_data_to_empty_str = lambda x: '' if x==missing_data_string else x
+                    normalize_cell_format = lambda cell_content: cell_content.decode('ascii','replace')
+                    conv_cell=convert_missing_data_to_empty_str(cell)
+                    conv_cell=normalize_cell_format(cell)
+                    #pyqtRemoveInputHook()
+                    #import pdb; pdb.set_trace()
+                    return conv_cell
+                row = [process_cell(cell) for cell in row]
                 self.imported_data.append(row)
                 
+                
+                #yield row
             
                 
-        self.print_extracted_data() # just for debugging
+        #self.print_extracted_data() # just for debugging
         
     def print_extracted_data(self):
         print("Data extracted from csv:")

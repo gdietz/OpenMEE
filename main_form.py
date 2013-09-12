@@ -16,6 +16,7 @@ from functools import partial
 #from sets import Set
 from collections import deque
 import pickle
+import cProfile
 
 import ui_main_window
 import calculate_effect_sizes_wizard
@@ -274,6 +275,8 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
 #                            self.table_selection_changed)
 
     def table_selection_changed(self):
+        if self.model.paste_mode:
+            return
         print("Table selection changed")
         anything_selected = False
         selected_indexes = self.tableView.selectionModel().selectedIndexes()
@@ -311,13 +314,12 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
     def disconnect_model_connections(self):
         QObject.disconnect(self.model, SIGNAL("DataError"), self.warning_msg)
         QObject.disconnect(self.model, SIGNAL("dataChanged(QModelIndex, QModelIndex)"), self.change_index_after_data_edited)
-        QObject.disconnect(self.tableView.selectionModel(), 
+        #QObject.disconnect(self.tableView.selectionModel(), 
+        #            SIGNAL("selectionChanged(QItemSelection, QItemSelection)"), 
+        #            self.table_selection_changed)
+        QObject.disconnect(self.tableView_selection_model, 
                     SIGNAL("selectionChanged(QItemSelection, QItemSelection)"), 
                     self.table_selection_changed)
-        
-        
-        
-        #QObject.disconnect(self.model, SIGNAL("dataChanged(QModelIndex, QModelIndex)"), self.tableView.resizeColumnsToContents)
         
         self.model.column_formats_changed.disconnect(self.toggle_analyses_enable_status)
         self.model.studies_changed.disconnect(self.toggle_analyses_enable_status)
@@ -327,14 +329,13 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
     def make_model_connections(self):
         QObject.connect(self.model, SIGNAL("DataError"), self.warning_msg)
         QObject.connect(self.model, SIGNAL("dataChanged(QModelIndex, QModelIndex)"), self.change_index_after_data_edited)
-        QObject.connect(self.tableView.selectionModel(), 
+        #QObject.connect(self.tableView.selectionModel(), 
+        #            SIGNAL("selectionChanged(QItemSelection, QItemSelection)"), 
+        #            self.table_selection_changed)
+        self.tableView_selection_model = self.tableView.selectionModel()
+        QObject.connect(self.tableView_selection_model, 
                     SIGNAL("selectionChanged(QItemSelection, QItemSelection)"), 
                     self.table_selection_changed)
-        
-        
-        
-        
-        #QObject.connect(self.model, SIGNAL("dataChanged(QModelIndex, QModelIndex)"), self.tableView.resizeColumnsToContents) # was making responsiveness of tableView slow
     
         self.model.column_formats_changed.connect(self.toggle_analyses_enable_status)
         self.model.studies_changed.connect(self.toggle_analyses_enable_status)
@@ -480,11 +481,7 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
         
         target_results = {}
         
-        # TODO: finish this
-        #if 
-        
-        
-        
+        # TODO: finish this if we want to do invidual transformation (like for issue #
         return target_results
         
             
@@ -664,7 +661,8 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
         # a tad less zippy, but I think it's infinitely
         # preferable to ellipses all over the place
         # (and honestly, it's not that slow)
-        self.tableView.resizeColumnsToContents()
+        if not self.model.paste_mode:
+            self.tableView.resizeColumnsToContents()
         
     def warning_msg(self, title="mystery warning", msg="a mysterious warning"):
         warning_box = QMessageBox(self)
@@ -823,14 +821,15 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
         # build up undo command 
         redo = lambda: self.model.mark_column_as_label(col)
         undo = lambda: self.model.unmark_column_as_label(col)
-        on_entry = lambda: self.model.beginResetModel()
-        on_exit = lambda: self.model.endResetModel()
+        on_exit = lambda: self.model.emit_change_signals_for_col(col)
         mark_column_as_label_cmd = GenericUndoCommand(redo_fn=redo, undo_fn=undo,
-                                                  on_redo_entry=on_entry, on_redo_exit=on_exit,
-                                                  on_undo_entry=on_entry, on_undo_exit=on_exit,
+                                                  on_redo_exit=on_exit,
+                                                  on_undo_exit=on_exit,
                                                   description="Mark column '%s' as label" % variable_name)
         self.undo_stack.push(mark_column_as_label_cmd)
         self.model._set_dirty_bit()
+        
+
         
     def unmark_column_as_label(self, col):
         ''' Unmarks column as label and makes it a CATEGORICAL variable '''
@@ -840,12 +839,11 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
         # build up undo command
         redo = lambda: self.model.unmark_column_as_label(col)
         undo = lambda: self.model.mark_column_as_label(col)
-        on_entry = lambda: self.model.beginResetModel()
-        on_exit = lambda: self.model.endResetModel()
+        on_exit = lambda: self.model.emit_change_signals_for_col(col)
         unmark_column_as_label_cmd = GenericUndoCommand(
                                             redo_fn=redo, undo_fn=undo,
-                                            on_redo_entry=on_entry, on_redo_exit=on_exit,
-                                            on_undo_entry=on_entry, on_undo_exit=on_exit,
+                                            on_redo_exit=on_exit,
+                                            on_undo_exit=on_exit,
                                             description="Unmark column '%s' as label" % label_column_name)
         self.undo_stack.push(unmark_column_as_label_cmd)
         self.model._set_dirty_bit()
@@ -857,10 +855,10 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
             name = var_name
         
         self.undo_stack.beginMacro(QString("Make a new variable at col %d" % col))
-        
-        start_cmd = GenericUndoCommand(redo_fn=self.model.beginResetModel,
-                                       undo_fn=self.model.endResetModel,
-                                       on_undo_exit=self.tableView.resizeColumnsToContents)
+        resize_columns = self.tableView.resizeColumnsToContents if not self.model.paste_mode else do_nothing
+        start_cmd = GenericUndoCommand(redo_fn=do_nothing,
+                                       undo_fn=lambda: self.model.emit_change_signals_for_col(col),
+                                       on_undo_exit=resize_columns)
         self.undo_stack.push(start_cmd)
         
         make_new_variable_cmd = ee_model.MakeNewVariableCommand(
@@ -868,9 +866,9 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
                         var_type=var_type)
         self.undo_stack.push(make_new_variable_cmd)
         
-        end_cmd = GenericUndoCommand(undo_fn=self.model.beginResetModel,
-                                     redo_fn=self.model.endResetModel,
-                                     on_redo_exit=self.tableView.resizeColumnsToContents)
+        end_cmd = GenericUndoCommand(undo_fn=do_nothing,
+                                     redo_fn=lambda: self.model.emit_change_signals_for_col(col),
+                                     on_redo_exit=resize_columns)
         self.undo_stack.push(end_cmd)
         self.undo_stack.endMacro()
         
@@ -909,9 +907,9 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
             undo = partial(self.model.change_variable_name, var, new_name=initial_name)
             description = "Renamed variable '%s' to '%s'" % (initial_name, proposed_name)
         
-        
+        resize_columns = self.tableView.resizeColumnsToContents if not self.model.paste_mode else do_nothing
         rename_column_command = GenericUndoCommand(redo_fn=redo, undo_fn=undo,
-                                                   on_redo_exit=self.tableView.resizeColumnsToContents,
+                                                   on_redo_exit=resize_columns,
                                                    description=description)
         self.undo_stack.push(rename_column_command)
         self.model._set_dirty_bit()
@@ -1299,9 +1297,51 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
         print "copied str: %s" % copied_str
         return copied_str
 
+    def source_content_large(self, source_content):
+        # disable certain undo commands to make pasting faster
+        nrows = len(source_content)
+        ncols = len(source_content[0])
+        ncells = nrows*ncols
+        if ncells > MAX_CELL_PASTE_UNDOABLE:
+            return True
+        else:
+            return False
+    
+    def prompt_paste_even_though_not_undoable(self):
+        msgBox = QMessageBox()
+        msgBox.setText("You are pasting a lot of cells, this action is not undoable.")
+        msgBox.setInformativeText("Do you want to continue?")
+        msgBox.setStandardButtons(QMessageBox.Ok|QMessageBox.Cancel)
+        msgBox.setDefaultButton(QMessageBox.Ok)
+        if msgBox.exec_() == QMessageBox.Ok:
+            return True
+        else:
+            return
 
+    def paste_wrapper(self, upper_left_index, source_content,
+                       progress_bar_title="Pasting",
+                       progress_bar_label=""):
+        pr=cProfile.Profile()
+        pr.enable()
+        
+        if not self.model.paste_mode:
+            if self.source_content_large(source_content):
+                if self.prompt_paste_even_though_not_undoable():
+                    self.model.paste_mode=True
+                else:
+                    self.model.paste_mode=False
+                    return
 
-    def paste_contents(self, upper_left_index, source_content, progress_bar_title="Pasting", progress_bar_label=""):
+        
+        self.paste_contents(upper_left_index, source_content)
+        
+        pr.disable()
+        pr.create_stats()
+        pr.print_stats(sort='cumulative')
+
+    def paste_contents(self, upper_left_index, source_content,
+                       progress_bar_title="Pasting",
+                       progress_bar_label=""):
         '''
         paste the content in source_content into the matrix starting at the upper_left_coord
         cell. new rows will be added as needed; existing data will be overwritten
@@ -1332,41 +1372,58 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
         # temporarily disable sorting to prevent automatic sorting of pasted data.
         # (note: this is consistent with Excel's approach.)
         self.model.blockSignals(True)
+        self.undo_stack.blockSignals(True)
+        self.tableView_selection_model.blockSignals(True)
+        
+        
         self.undo_stack.beginMacro(QString("Pasting"))
         self.undo_stack.push(GenericUndoCommand(redo_fn=do_nothing,
                                                 undo_fn=self.tableView.resizeColumnsToContents))
         
         nrows = len(source_content)
         ncols = len(source_content[0])
+        ncells = nrows*ncols
+
         progress_dlg = QProgressDialog(QString(progress_bar_title),QString("cancel"),0,(nrows-1)*(ncols-1),parent=self)
         progress_dlg.setWindowModality(Qt.WindowModal)
         for src_row in range(len(source_content)):
             for src_col in range(len(source_content[0])):
-                progress_dlg.setValue(src_row*ncols + src_col)
-                QApplication.processEvents()
-                try:
-                    # note that we treat all of the data pasted as
-                    # one event; i.e., when undo is called, it undos the
-                    # whole paste
-                    index = self.model.createIndex(origin_row+src_row, origin_col+src_col)
-                    value = str(source_content[src_row][src_col]).encode('ascii','ignore')
-                    setdata_ok = self.model.setData(index, QVariant(value))
-                    if not setdata_ok:
-                        cancel_macro_creation_and_revert_state()
-                except Exception, e:
-                    #import pdb; pdb.set_trace()
-                    progress_dlg.setValue(progress_dlg.maximum())
-                    print "whoops, exception while pasting: %s" % e
-                    print("Row, col: %d, %d" % (src_row,src_col))
-                    raise e
-        progress_dlg.setValue(progress_dlg.maximum())               
-                    
+                new_progress_val = src_row*ncols + src_col
+                if new_progress_val % 100 == 0:
+                    progress_dlg.setValue(new_progress_val)
+                    QApplication.processEvents()
+                #try:
+                # note that we treat all of the data pasted as
+                # one event; i.e., when undo is called, it undos the
+                # whole paste
+                index = self.model.createIndex(origin_row+src_row, origin_col+src_col)
+                unicode_value = unicode(source_content[src_row][src_col])
+                in_ascii = unicode_value.encode('ascii','replace')
+                value = str(in_ascii)
+                setdata_ok = self.model.setData(index, QVariant(value))
+                if not setdata_ok:
+                    cancel_macro_creation_and_revert_state()
+                #except Exception, e:
+                #    #import pdb; pdb.set_trace()
+                #    progress_dlg.setValue(progress_dlg.maximum())
+                #    print "whoops, exception while pasting: %s" % e
+                #    print("Row, col: %d, %d" % (src_row,src_col))
+                #    raise e
+        #progress_dlg.setValue(progress_dlg.maximum())               
+        progress_dlg.close()
                     
         self.undo_stack.push(GenericUndoCommand(redo_fn=self.tableView.resizeColumnsToContents,
                                                 undo_fn=do_nothing))
         self.undo_stack.endMacro()
-
+        if not self.model.paste_mode:
+            self.undo_stack.clear()
+        
+        self.tableView_selection_model.blockSignals(False)
+        self.undo_stack.blockSignals(False)
         self.model.blockSignals(False)
+        self.update_undo_enable_status()
+        
+        print("resetting model")
         self.model.reset()
         
     def _is_blank_row(self, r):
@@ -1396,8 +1453,8 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
         print("new content: %s" % new_content)
         print("upper left index:")
         print(self._print_index(upper_left_index))
-        
-        self.paste_contents(upper_left_index, new_content)
+    
+        self.paste_wrapper(upper_left_index, new_content)
         
 ######################## END COPY & PASTE #####################
 
@@ -1412,14 +1469,40 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
             matrix = data['data']
             headers = data['headers']
             
+            if self.source_content_large(matrix):
+                if self.prompt_paste_even_though_not_undoable():
+                    paste_mode=True
+                else:
+                    paste_mode=False
+                    return
+                
             self.new_dataset()
-            
+            self.model.paste_mode = paste_mode
             start_index = self.model.createIndex(0,0)
             
+            
+            
+
+
+
+
+
+            
+            progress_dlg = QProgressDialog(QString("Making column headers"),QString("cancel"),0,len(headers)-1,parent=self)
+            progress_dlg.setWindowModality(Qt.WindowModal)
+            progress_dlg.raise_()
             if headers != []:
+                self.tableView_selection_model.blockSignals(True)
                 for col,header in enumerate(headers):
                     self.make_new_variable_at_col(col, var_type=CATEGORICAL, var_name=str(header))
-            self.paste_contents(start_index, matrix)
+                    new_progress_val = col+1
+                    if new_progress_val % 15 == 0:
+                        progress_dlg.setValue(new_progress_val)
+                        QApplication.processEvents()
+                progress_dlg.close()
+                self.tableView_selection_model.blockSignals(False)
+            self.paste_wrapper(start_index, matrix)
+            
             
             self.undo_stack.clear()
                 

@@ -21,6 +21,8 @@ from PyQt4.Qt import *
 CATEGORICAL, CONTINUOUS, COUNT = range(3)
 VARIABLE_TYPES = (CATEGORICAL, CONTINUOUS, COUNT)
 
+MAX_CELL_PASTE_UNDOABLE = 1000
+
 # Variables can have subtypes
 (TRANS_EFFECT, TRANS_VAR,
  RAW_EFFECT, RAW_LOWER, RAW_UPPER) = range(5)
@@ -56,6 +58,14 @@ RAW_SCALE, TRANSFORMED_SCALE = range(2)
 def verify_transform_direction(direction):
     if direction not in [TRANS_TO_RAW, RAW_TO_TRANS]:
         raise Exception("Unrecognized Transform Direction")
+    
+def cancel_macro_creation_and_revert_state(undo_stack):
+    ''' Ends creation of macro (in progress) and reverts the state of
+    the model to before the macro began to be created '''
+    
+    #print("Cancelling macro creation and reverting")
+    undo_stack.endMacro()
+    undo_stack.undo()
 
 # Wizard 'modes'
 (CALCULATE_EFFECT_SIZE_MODE, MA_MODE, CUM_MODE, SUBGROUP_MODE, LOO_MODE,

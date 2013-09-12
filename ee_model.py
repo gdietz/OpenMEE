@@ -59,6 +59,8 @@ class EETableModel(QAbstractTableModel):
         if "color_scheme" not in self.user_prefs:
             self.user_prefs["color_scheme"]=DEFAULT_COLOR_SCHEME
         
+        self.max_occupied_row = None
+        self.max_occupied_col = None
         
         if model_state is None:
             self.dataset = EEDataSet()
@@ -78,7 +80,8 @@ class EETableModel(QAbstractTableModel):
             self.variable_groups = []
         else:
             self.load_model_state(model_state)
-        
+            self.calculate_max_occupied_row()
+            self.calculate_max_occupied_col()
         
         self.default_headers = self._generate_header_string(ADDITIONAL_COLS)
         # for rowCount() and colCount()
@@ -86,6 +89,8 @@ class EETableModel(QAbstractTableModel):
         self.collimit = ADDITIONAL_COLS
         self.change_column_count_if_needed()
         self.change_row_count_if_needed()
+        
+        self.paste_mode = False # state to set/reset while pasting/importing
         
     def set_user_prefs(self, user_prefs):
         self.user_prefs = user_prefs
@@ -260,11 +265,10 @@ class EETableModel(QAbstractTableModel):
         
     def change_row_count_if_needed(self):
         old_row_limit = self.rowlimit
-        max_occupied_row = self.get_max_occupied_row()
-        if max_occupied_row is None:
+        if self.max_occupied_row is None:
             new_row_limit = ADDITIONAL_ROWS
         else:
-            nearest_row_increment = int(round(float(max_occupied_row)/ADDITIONAL_ROWS) * ADDITIONAL_ROWS)
+            nearest_row_increment = int(round(float(self.max_occupied_row)/ADDITIONAL_ROWS) * ADDITIONAL_ROWS)
             new_row_limit = nearest_row_increment + ADDITIONAL_ROWS
         if new_row_limit != old_row_limit:
             self.rowlimit = new_row_limit
@@ -273,11 +277,10 @@ class EETableModel(QAbstractTableModel):
             
     def change_column_count_if_needed(self):
         old_col_limit = self.collimit
-        max_occupied_col = self.get_max_occupied_col()
-        if max_occupied_col is None:
+        if self.max_occupied_col is None:
             new_col_limit = ADDITIONAL_COLS
         else:
-            nearest_col_increment = int(round(float(max_occupied_col)/ADDITIONAL_COLS) * ADDITIONAL_COLS)
+            nearest_col_increment = int(round(float(self.max_occupied_col)/ADDITIONAL_COLS) * ADDITIONAL_COLS)
             new_col_limit = nearest_col_increment + ADDITIONAL_COLS
         if new_col_limit != old_col_limit:
             self.collimit = new_col_limit
@@ -287,29 +290,41 @@ class EETableModel(QAbstractTableModel):
     def columnCount(self, index=QModelIndex()):
         return self.collimit
     
-    def get_max_occupied_row(self):
+    def emit_change_signals_for_col(self, col, header_only=False, data_only=False):
+        start_index = self.createIndex(0,col)
+        end_index = self.createIndex(self.rowCount()-1,col)
+        if not header_only:
+            self.emit(SIGNAL("dataChanged(QModelIndex,QModelIndex)"),
+                      start_index, end_index)
+        if data_only:
+            return
+        self.headerDataChanged.emit(Qt.Horizontal, col, col)
+    
+    def calculate_max_occupied_row(self):
         ''' Returns the highest numbered row index of the occupied rows
             returns None if no rows are occupied '''
         
         occupied_rows = self.rows_2_studies.keys()
         if len(occupied_rows) == 0:
+            self.max_occupied_row = None
             return None
         else:
-            return max(occupied_rows)
+            self.max_occupied_row = max(occupied_rows)
+            return self.max_occupied_row
         
-    def get_max_occupied_col(self):
+    def calculate_max_occupied_col(self):
         occupied_cols = Set(self.cols_2_vars.keys())
         if self.label_column is not None:
             occupied_cols.add(self.label_column)
-        max_occupied_col = max(occupied_cols) if len(occupied_cols) != 0 else None
+        self.max_occupied_col = max_occupied_col = max(occupied_cols) if len(occupied_cols) != 0 else None
         return max_occupied_col
 
     def change_variable_name(self, var, new_name):
         ''' Change the name of a variable '''
         
-        self.beginResetModel()
         var.set_label(new_name)
-        self.endResetModel()
+        col = self.get_column_assigned_to_variable(var)
+        self.emit_change_signals_for_col(col, header_only=True)
 
 
     def get_column_assigned_to_variable(self, var):
@@ -374,9 +389,9 @@ class EETableModel(QAbstractTableModel):
     def change_label_column_name(self, new_name):
         ''' Changes the name of the label column '''
         
-        self.beginResetModel()
         self.label_column_name_label = new_name
-        self.endResetModel()
+        col = self.label_column
+        self.emit_change_signals_for_col(col, header_only=True)
         
     def get_column_name(self, column_index):
         ''' Returns the column name if we store a reference to it,
@@ -392,9 +407,10 @@ class EETableModel(QAbstractTableModel):
         return self.dataset.can_convert_variable_to_type(var, new_type)
     
     def change_variable_type(self, var, new_type, precision):
-        self.beginResetModel()
         self.dataset.change_variable_type(var, new_type, precision)
-        self.endResetModel()
+        
+        col = self.get_column_assigned_to_variable(var)
+        self.emit_change_signals_for_col(col)
         
         # Emit signal
         self.column_formats_changed.emit()
@@ -579,7 +595,7 @@ class EETableModel(QAbstractTableModel):
         
         #if not index.isValid():
         #    return QVariant()
-        #max_occupied_row = self.get_max_occupied_row()
+        #max_occupied_row = self.calculate_max_occupied_row()
         #if role!=Qt.BackgroundRole and max_occupied_row and not (0 <= index.row() <= max_occupied_row):
         #    return QVariant()
         
@@ -722,23 +738,19 @@ class EETableModel(QAbstractTableModel):
         
         value_blank = (value == QVariant()) or (value is None) or (str(value.toString()) == "") 
         
-        def cancel_macro_creation_and_revert_state():
-            ''' Ends creation of macro (in progress) and reverts the state of
-            the model to before the macro began to be created '''
-            
-            #print("Cancelling macro creation and reverting")
-            self.undo_stack.endMacro()
-            self.undo_stack.undo()
-        
         # For doing/undoing all the sub_actions in one go
         # The emit data changed is so that it will be called LAST when the
         # macro is undone
-        self.undo_stack.beginMacro(QString("SetDataMacro: (%d,%d), value: '%s'" % (row,col, value.toString())))
-        self.undo_stack.push(EmitDataChangedCommand(model=self, index=index))
+        if not self.paste_mode:
+            self.undo_stack.beginMacro(QString("SetDataMacro: (%d,%d), value: '%s'" % (row,col, value.toString())))
+        
+        if not self.paste_mode:
+            self.undo_stack.push(EmitDataChangedCommand(model=self, index=index))
         
         if not row_has_study: # no study on this row yet, we will make one
             if value_blank:
-                cancel_macro_creation_and_revert_state()
+                if not self.paste_mode:
+                    cancel_macro_creation_and_revert_state(self.undo_stack)
                 return True
             self.undo_stack.push(MakeStudyCommand(model=self, row=row))
             
@@ -750,13 +762,15 @@ class EETableModel(QAbstractTableModel):
             if proposed_label != existing_label:
                 self.undo_stack.push(SetStudyLabelCommand(study=study, new_label=proposed_label))
             else:
-                cancel_macro_creation_and_revert_state()
+                if not self.paste_mode:
+                    cancel_macro_creation_and_revert_state(self.undo_stack)
                 return True
         else: # we are in a variable column (initialized or not)
             make_new_variable = not self.column_assigned_to_variable(col)
             if make_new_variable: # make a new variable and give it the default column header name
                 if value_blank:
-                    cancel_macro_creation_and_revert_state()
+                    if not self.paste_mode:
+                        cancel_macro_creation_and_revert_state(self.undo_stack)
                     return True
                 new_var_name = str(self.get_default_header(col))
                 self.undo_stack.push(MakeNewVariableCommand(model=self, var_name=new_var_name, col=col))
@@ -770,11 +784,16 @@ class EETableModel(QAbstractTableModel):
             can_convert_value_to_desired_type = self.dataset.can_convert_var_value_to_type(var_type, value_as_string)
             if not can_convert_value_to_desired_type:
                 self.emit(SIGNAL("DataError"), QString("Impossible Data Conversion"), QString("Cannot convert '%s' to %s data type" % (value_as_string, VARIABLE_TYPE_STRING_REPS[var_type])))
-                cancel_macro_creation_and_revert_state()
+                if not self.paste_mode:
+                    cancel_macro_creation_and_revert_state(self.undo_stack)
                 return False
                 
             formatted_value = self._convert_input_value_to_correct_type_for_assignment(value_as_string, var_type)
-            self.undo_stack.push(SetVariableValueCommand(study=study, variable=var, value=formatted_value))
+            
+            if not self.paste_mode:
+                self.undo_stack.push(SetVariableValueCommand(study=study, variable=var, value=formatted_value))
+            else: # we are pasting something large
+                study.set_var(var, formatted_value)
             
         # If variables and label for this study are all blank, remove the
         # study from the dataset
@@ -783,14 +802,15 @@ class EETableModel(QAbstractTableModel):
             
         
         # End of the macro for undo/redo
-        self.undo_stack.push(EmitDataChangedCommand(model=self, index=index))
-        self.undo_stack.endMacro()
+        if not self.paste_mode:
+            self.undo_stack.push(EmitDataChangedCommand(model=self, index=index))
+            self.undo_stack.endMacro()
         
         self.dirty = True
         self.change_row_count_if_needed()
         self.change_column_count_if_needed()
-        self.emit(SIGNAL("dataChanged(QModelIndex,QModelIndex)"),
-                  index, index)
+        #self.emit(SIGNAL("dataChanged(QModelIndex,QModelIndex)"),
+        #          index, index)
         return True
     
     
@@ -946,8 +966,12 @@ class EETableModel(QAbstractTableModel):
     
         self.undo_stack.beginMacro(QString("Adding effect size to spreadsheet"))
         
-        start_cmd = GenericUndoCommand(redo_fn=self.beginResetModel,
-                                      undo_fn=self.endResetModel,)
+        
+        def emit_change_signals():
+            self.emit_change_signals_for_col(yi_col)
+            self.emit_change_signals_for_col(vi_col)
+        start_cmd = GenericUndoCommand(redo_fn=do_nothing,
+                                      undo_fn=emit_change_signals)
         self.undo_stack.push(start_cmd)
         ##################################################################
         # Make new variables to hold the effect size calculations
@@ -985,8 +1009,8 @@ class EETableModel(QAbstractTableModel):
             self.undo_stack.push(set_yi_cmd)
             
         ##################################################################
-        end_cmd = GenericUndoCommand(redo_fn=self.endResetModel,
-                                     undo_fn=self.beginResetModel)
+        end_cmd = GenericUndoCommand(redo_fn=emit_change_signals,
+                                     undo_fn=do_nothing)
         self.undo_stack.push(end_cmd)
         
         
@@ -1045,10 +1069,10 @@ class EETableModel(QAbstractTableModel):
         undo_f = lambda: self._set_rows_to_studies(old_rows_to_studies)
         
         sort_cmd = GenericUndoCommand(redo_fn=redo_f, undo_fn=undo_f,
-                                      on_undo_entry=self.beginResetModel,
-                                      on_undo_exit=self.endResetModel,
-                                      on_redo_entry=self.beginResetModel,
-                                      on_redo_exit=self.endResetModel)
+                                      on_undo_entry=do_nothing,
+                                      on_undo_exit=lambda: self.emit_change_signals_for_col(col),
+                                      on_redo_entry=do_nothing,
+                                      on_redo_exit=lambda: self.emit_change_signals_for_col(col))
         self.undo_stack.push(sort_cmd)
         
         
@@ -1151,6 +1175,8 @@ class MakeStudyCommand(QUndoCommand):
         self.study = None
         self.model.dirty = True
         
+        self.old_max_occupied_row = self.model.max_occupied_row
+        
         
     def redo(self):
         if DEBUG_MODE: print("redo: make new study_command")
@@ -1160,6 +1186,8 @@ class MakeStudyCommand(QUndoCommand):
         else:            # we should always be here on subsequent runs of redo
             model.dataset.add_existing_study(self.study)
         model.rows_2_studies[self.row] = self.study
+        if self.model.max_occupied_row is None or self.model.max_occupied_row < self.row:
+            self.model.max_occupied_row = self.row
         
         # emit signal
         self.model.studies_changed.emit()
@@ -1170,6 +1198,7 @@ class MakeStudyCommand(QUndoCommand):
         if DEBUG_MODE:
             print("undo: make new study_command")
         self.model.remove_study(self.study)
+        self.model.max_occupied_row = self.old_max_occupied_row
         
 
 class RemoveStudyCommand(QUndoCommand):
@@ -1184,16 +1213,21 @@ class RemoveStudyCommand(QUndoCommand):
         self.study = self.model.rows_2_studies[self.row]
         
         self.model.dirty = True
+        self.old_max_occupied_row = self.model.max_occupied_row
         
     def redo(self):
         if DEBUG_MODE:
             print("redo: remove study")
         self.model.remove_study(self.study)
+        if self.row == self.model.max_occupied_row:
+            self.model.calculate_max_occupied_row()
         
     def undo(self):
         if DEBUG_MODE: print("undo: remove study")
         self.model.dataset.add_existing_study(self.study)
         self.model.rows_2_studies[self.row]=self.study
+        
+        self.model.max_occupied_row = self.old_max_occupied_row
         
         #emit signal
         self.model.studies_changed.emit()
@@ -1235,7 +1269,7 @@ class MakeNewVariableCommand(QUndoCommand):
         
         self.setText(QString("Created variable '%s'" % self.var_name))
         self.model.dirty = True
-        
+        self.old_max_occupied_col = self.model.max_occupied_col
         
     def redo(self):
         if DEBUG_MODE: print("redo: make new variable_command")
@@ -1244,10 +1278,13 @@ class MakeNewVariableCommand(QUndoCommand):
         else:
             self.model.dataset.add_existing_variable(self.var)
         self.model.cols_2_vars[self.col] = self.var
+        if self.model.max_occupied_col is None or self.model.max_occupied_col < self.col:
+            self.model.max_occupied_col = self.col
         
     def undo(self):
         if DEBUG_MODE: print("undo: make new variable_command")
         self.model.remove_variable(self.var)
+        self.model.max_occupied_col=self.old_max_occupied_col
         
 
 class SetVariableValueCommand(QUndoCommand):
@@ -1360,7 +1397,7 @@ class RemoveColumnsCommand(QUndoCommand):
                 self._store_variable_column_data(col) # variable index, variable data in studies
                 
         self.model.dirty = True
-
+        self.old_max_occupied_col = self.model.max_occupied_col
         
     def redo(self):
         self.model.beginRemoveColumns(QModelIndex(), self.column, self.column + self.count - 1)
@@ -1382,6 +1419,7 @@ class RemoveColumnsCommand(QUndoCommand):
                 self.cols_to_shift.append(col)
         self.model.shift_column_assignments(self.cols_to_shift, -self.count)
         
+        self.model.calculate_max_occupied_col()
         self.model.endRemoveColumns()
         
         
@@ -1400,6 +1438,7 @@ class RemoveColumnsCommand(QUndoCommand):
         for col in self.removed_cols_2_vars.keys():
             self._restore_variable_column_data(col)
         
+        self.model.max_occupied_col=self.old_max_occupied_col
         self.model.endInsertColumns()
     
     def restore_label_column(self):
