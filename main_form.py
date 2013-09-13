@@ -1321,9 +1321,7 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
     def paste_wrapper(self, upper_left_index, source_content,
                        progress_bar_title="Pasting",
                        progress_bar_label=""):
-        pr=cProfile.Profile()
-        pr.enable()
-        
+
         if not self.model.paste_mode:
             if self.source_content_large(source_content):
                 if self.prompt_paste_even_though_not_undoable():
@@ -1331,11 +1329,12 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
                 else:
                     self.model.paste_mode=False
                     return
-
         
+        pr=cProfile.Profile()
+        pr.enable()
         self.paste_contents(upper_left_index, source_content)
-        
         pr.disable()
+        
         pr.create_stats()
         pr.print_stats(sort='cumulative')
 
@@ -1479,14 +1478,6 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
             self.new_dataset()
             self.model.paste_mode = paste_mode
             start_index = self.model.createIndex(0,0)
-            
-            
-            
-
-
-
-
-
             
             progress_dlg = QProgressDialog(QString("Making column headers"),QString("cancel"),0,len(headers)-1,parent=self)
             progress_dlg.setWindowModality(Qt.WindowModal)

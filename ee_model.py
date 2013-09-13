@@ -268,8 +268,8 @@ class EETableModel(QAbstractTableModel):
         if self.max_occupied_row is None:
             new_row_limit = ADDITIONAL_ROWS
         else:
-            nearest_row_increment = int(round(float(self.max_occupied_row)/ADDITIONAL_ROWS) * ADDITIONAL_ROWS)
-            new_row_limit = nearest_row_increment + ADDITIONAL_ROWS
+            nearest_row_increment = round(float(self.max_occupied_row)/ADDITIONAL_ROWS) * ADDITIONAL_ROWS
+            new_row_limit = int(nearest_row_increment + ADDITIONAL_ROWS)
         if new_row_limit != old_row_limit:
             self.rowlimit = new_row_limit
             self.beginResetModel()
@@ -280,8 +280,8 @@ class EETableModel(QAbstractTableModel):
         if self.max_occupied_col is None:
             new_col_limit = ADDITIONAL_COLS
         else:
-            nearest_col_increment = int(round(float(self.max_occupied_col)/ADDITIONAL_COLS) * ADDITIONAL_COLS)
-            new_col_limit = nearest_col_increment + ADDITIONAL_COLS
+            nearest_col_increment = round(float(self.max_occupied_col)/ADDITIONAL_COLS) * ADDITIONAL_COLS
+            new_col_limit = int(nearest_col_increment + ADDITIONAL_COLS)
         if new_col_limit != old_col_limit:
             self.collimit = new_col_limit
             self.beginResetModel()
@@ -534,6 +534,19 @@ class EETableModel(QAbstractTableModel):
         
         return new_var
 
+    def make_study_at_row(self,row):
+        study = self.dataset.make_new_study()
+        self.rows_2_studies[row] = study
+        if self.max_occupied_row is None or self.max_occupied_row < row:
+            self.max_occupied_row = row
+        # emit signal
+        self.studies_changed.emit()
+        
+    def make_variable_at_column(self, col, var_name, var_type=CATEGORICAL):
+        var = self.make_new_variable(label=var_name, var_type=var_type)
+        self.cols_2_vars[col] = var
+        if self.max_occupied_col is None or self.max_occupied_col < col:
+            self.max_occupied_col = col
          
     def unmark_column_as_label(self, column_index):
         '''
@@ -725,7 +738,7 @@ class EETableModel(QAbstractTableModel):
 
 
     def setData(self, index, value, role=Qt.EditRole):
-        if not index.isValid() and not (0 <= index.row() < self.columnCount()):
+        if not index.isValid() and not (0 <= index.row() < self.rowCount()):
             return False
         if role != Qt.EditRole:
             print("No implementation written when role != Qt.EditRole")
@@ -735,16 +748,15 @@ class EETableModel(QAbstractTableModel):
         row, col = index.row(), index.column()
         row_has_study = row in self.rows_2_studies
         is_label_col = col == self.label_column
+        value_as_string = str(value.toString())
         
-        value_blank = (value == QVariant()) or (value is None) or (str(value.toString()) == "") 
+        value_blank = (value == QVariant()) or (value is None) or (value_as_string == "") 
         
         # For doing/undoing all the sub_actions in one go
         # The emit data changed is so that it will be called LAST when the
         # macro is undone
         if not self.paste_mode:
-            self.undo_stack.beginMacro(QString("SetDataMacro: (%d,%d), value: '%s'" % (row,col, value.toString())))
-        
-        if not self.paste_mode:
+            self.undo_stack.beginMacro(QString("SetDataMacro: (%d,%d), value: '%s'" % (row,col, value_as_string)))
             self.undo_stack.push(EmitDataChangedCommand(model=self, index=index))
         
         if not row_has_study: # no study on this row yet, we will make one
@@ -752,15 +764,21 @@ class EETableModel(QAbstractTableModel):
                 if not self.paste_mode:
                     cancel_macro_creation_and_revert_state(self.undo_stack)
                 return True
-            self.undo_stack.push(MakeStudyCommand(model=self, row=row))
+            if not self.paste_mode:
+                self.undo_stack.push(MakeStudyCommand(model=self, row=row))
+            else:
+                self.make_study_at_row(row)
             
         study = self.rows_2_studies[row]
         
         if is_label_col:
             existing_label = study.get_label()
-            proposed_label = str(value.toString()) if not value_blank else None
+            proposed_label = value_as_string if not value_blank else None
             if proposed_label != existing_label:
-                self.undo_stack.push(SetStudyLabelCommand(study=study, new_label=proposed_label))
+                if not self.paste_mode:
+                    self.undo_stack.push(SetStudyLabelCommand(study=study, new_label=proposed_label))
+                else:
+                    self.study.set_label(self.new_label)
             else:
                 if not self.paste_mode:
                     cancel_macro_creation_and_revert_state(self.undo_stack)
@@ -773,13 +791,16 @@ class EETableModel(QAbstractTableModel):
                         cancel_macro_creation_and_revert_state(self.undo_stack)
                     return True
                 new_var_name = str(self.get_default_header(col))
-                self.undo_stack.push(MakeNewVariableCommand(model=self, var_name=new_var_name, col=col))
+                if not self.paste_mode:
+                    self.undo_stack.push(MakeNewVariableCommand(model=self, var_name=new_var_name, col=col))
+                else:
+                    self.make_variable_at_column(col=col, var_name=new_var_name)
 
             var = self.cols_2_vars[col]
             var_name = var.get_label()
             var_type = var.get_type()
             
-            value_as_string = str(value.toString())
+            
             # Set value in study for variable
             can_convert_value_to_desired_type = self.dataset.can_convert_var_value_to_type(var_type, value_as_string)
             if not can_convert_value_to_desired_type:
@@ -807,8 +828,14 @@ class EETableModel(QAbstractTableModel):
             self.undo_stack.endMacro()
         
         self.dirty = True
-        self.change_row_count_if_needed()
-        self.change_column_count_if_needed()
+        if not self.paste_mode:
+            self.change_row_count_if_needed()
+            self.change_column_count_if_needed()
+        else: # don't check unnessarily (optimization)
+            if row > self.rowlimit-10:
+                self.change_row_count_if_needed()
+            if col > self.collimit-10:
+                self.change_column_count_if_needed()
         #self.emit(SIGNAL("dataChanged(QModelIndex,QModelIndex)"),
         #          index, index)
         return True

@@ -53,9 +53,7 @@ class Study:
         ''' returns True if the study contains no information i.e. if the label
         is blank, and it stores no data for any variables '''
         
-        if self.get_label():
-            return False
-        if len(self.variables) > 0:
+        if self.label or len(self.variables) > 0:
             return False
         return True
         
