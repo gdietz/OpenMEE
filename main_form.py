@@ -1374,14 +1374,14 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
         self.undo_stack.blockSignals(True)
         self.tableView_selection_model.blockSignals(True)
         
-        
-        self.undo_stack.beginMacro(QString("Pasting"))
-        self.undo_stack.push(GenericUndoCommand(redo_fn=do_nothing,
-                                                undo_fn=self.tableView.resizeColumnsToContents))
+        if not self.model.paste_mode:
+            self.undo_stack.beginMacro(QString("Pasting"))
+            self.undo_stack.push(GenericUndoCommand(redo_fn=do_nothing,
+                                 undo_fn=self.tableView.resizeColumnsToContents))
         
         nrows = len(source_content)
         ncols = len(source_content[0])
-        ncells = nrows*ncols
+        #ncells = nrows*ncols
 
         progress_dlg = QProgressDialog(QString(progress_bar_title),QString("cancel"),0,(nrows-1)*(ncols-1),parent=self)
         progress_dlg.setWindowModality(Qt.WindowModal)
@@ -1400,8 +1400,9 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
                 in_ascii = unicode_value.encode('ascii','replace')
                 value = str(in_ascii)
                 setdata_ok = self.model.setData(index, QVariant(value))
-                if not setdata_ok:
-                    cancel_macro_creation_and_revert_state()
+                if not self.model.paste_mode:
+                    if not setdata_ok:
+                        cancel_macro_creation_and_revert_state()
                 #except Exception, e:
                 #    #import pdb; pdb.set_trace()
                 #    progress_dlg.setValue(progress_dlg.maximum())
@@ -1411,11 +1412,14 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
         #progress_dlg.setValue(progress_dlg.maximum())               
         progress_dlg.close()
                     
-        self.undo_stack.push(GenericUndoCommand(redo_fn=self.tableView.resizeColumnsToContents,
-                                                undo_fn=do_nothing))
-        self.undo_stack.endMacro()
-        if not self.model.paste_mode:
+        
+        if self.model.paste_mode:
             self.undo_stack.clear()
+            self.tableView.resizeColumnsToContents()
+        else:
+            self.undo_stack.push(GenericUndoCommand(redo_fn=self.tableView.resizeColumnsToContents,
+                                                undo_fn=do_nothing))
+            self.undo_stack.endMacro()
         
         self.tableView_selection_model.blockSignals(False)
         self.undo_stack.blockSignals(False)
