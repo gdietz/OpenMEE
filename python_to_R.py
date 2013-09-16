@@ -1039,7 +1039,8 @@ def list_of_cov_value_objects_str(studies, cov_list=[], cov_to_ref_var={}):
         ref_var = None
         if cov in cov_to_ref_var:
             ref_var = cov_to_ref_var[cov]
-        r_cov_str.append(_gen_cov_vals_obj_str(cov, studies, str(ref_var)))
+        ref_var_as_string = str(ref_var) if ref_var is not None else None
+        r_cov_str.append(_gen_cov_vals_obj_str(cov, studies, ref_var_as_string))
     r_cov_str = "list(" + ",".join(r_cov_str) + ")"
 
     return r_cov_str
