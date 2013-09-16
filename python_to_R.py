@@ -128,28 +128,51 @@ def None_to_NA(value, value_type):
                         }
     return value_type_to_NA[value_type]
 
+def keys_in_dictionary(keys, dictionary):
+    return set(keys) <= set(dictionary.keys())
+        
+
 def studies_have_raw_data(studies, data_type, data_location, model, first_arm_only=False):
     ''' True iff all the studies in 'studies' have 'raw' data for the currently
     selected outcome. If the metric is one-arm, we only check the raw data corresponding to that arm'''
     
     if data_type == MEANS_AND_STD_DEVS:
+        if not keys_in_dictionary(['experimental_mean',
+                                   'experimental_std_dev',
+                                   'experimental_sample_size'], data_location):
+            return False
         columns_to_check = [data_location['experimental_mean'],
                             data_location['experimental_std_dev'],
                             data_location['experimental_sample_size'],]
         if not first_arm_only: # add additional columns to check
+            if not keys_in_dictionary(['control_mean',
+                                       'control_std_dev',
+                                       'control_sample_size'], data_location):
+                return False
             columns_to_check.extend([data_location['control_mean'],
                                      data_location['control_std_dev'],
                                      data_location['control_sample_size'],])
         
     elif data_type == TWO_BY_TWO_CONTINGENCY_TABLE:
+        if not keys_in_dictionary(['experimental_response',
+                                   'experimental_noresponse'], data_location):
+            return False
+        
         columns_to_check = [data_location['experimental_response'],
                             data_location['experimental_noresponse'],]
+        
         if not first_arm_only:
+            if not keys_in_dictionary(['control_response',
+                                       'control_noresponse'], data_location):
+                return False
             columns_to_check.extend([data_location['control_response'],
                                      data_location['control_noresponse'],
                                      ])
 
     elif data_type == CORRELATION_COEFFICIENTS:
+        if not keys_in_dictionary(['correlation',
+                                   'sample_size'], data_location):
+            return False
         columns_to_check = [data_location['correlation'],
                             data_location['sample_size'],]
     else:
@@ -753,7 +776,7 @@ def run_binary_ma(function_name, params, res_name="result", bin_data_name="tmp_o
     r_str = "%s<-%s(%s, %s)" % (res_name, function_name, bin_data_name,\
                                     params_df.r_repr())
     print "\n\n(run_binary_ma): executing:\n %s\n" % r_str
-    ro.r(r_str)
+    try_n_run(lambda: ro.r(r_str))
     result = ro.r("%s" % res_name)
     return parse_out_results(result)
 
@@ -761,7 +784,7 @@ def run_continuous_ma(function_name, params, res_name = "result", cont_data_name
     params_df = ro.r['data.frame'](**params)
     r_str = "%s<-%s(%s, %s)" % (res_name, function_name, cont_data_name, params_df.r_repr())
     print "\n\n(run_continuous_ma): executing:\n %s\n" % r_str
-    ro.r(r_str)
+    try_n_run(lambda: ro.r(r_str))
     result = ro.r("%s" % res_name)
     return parse_out_results(result)
 
@@ -778,7 +801,7 @@ def run_meta_method(meta_function_name, function_name, params, \
 
     print "\n\n(run_meta_method): executing:\n %s\n" % r_str
 
-    ro.r(r_str)
+    try_n_run(lambda: ro.r(r_str))
     result = ro.r("%s" % res_name)
     
     # parse out text field(s). note that "plot names" is 'reserved', i.e., it's
@@ -812,7 +835,7 @@ def run_meta_regression(metric, fixed_effects=False, data_name="tmp_obj",
 
     ### TODO -- this is hacky
 
-    ro.r(r_str)
+    try_n_run(lambda: ro.r(r_str))
     result = ro.r("%s" % results_name)
 
     if "try-error" in str(result):
