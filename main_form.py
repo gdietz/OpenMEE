@@ -324,7 +324,7 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
         self.model.column_formats_changed.disconnect(self.toggle_analyses_enable_status)
         self.model.studies_changed.disconnect(self.toggle_analyses_enable_status)
         self.model.label_column_changed.disconnect(self.toggle_analyses_enable_status)
-        
+        self.model.duplicate_label.disconnect(self.duplicate_label_attempt)
         
     def make_model_connections(self):
         QObject.connect(self.model, SIGNAL("DataError"), self.warning_msg)
@@ -340,6 +340,10 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
         self.model.column_formats_changed.connect(self.toggle_analyses_enable_status)
         self.model.studies_changed.connect(self.toggle_analyses_enable_status)
         self.model.label_column_changed.connect(self.toggle_analyses_enable_status)
+        self.model.duplicate_label.connect(self.duplicate_label_attempt)
+        
+    def duplicate_label_attempt(self):
+        QMessageBox.critical(self, "Attempted duplicate label", "Labels must be unique")
     
     def adjust_preferences(self):
         form = preferences_dlg.PreferencesDialog(color_scheme=self.user_prefs['color_scheme'],
@@ -514,10 +518,11 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
             else:
                 covs_to_include = []
                 
-                
-            self.run_ma(included_studies, data_type, metric, data_location,
+            try:
+                self.run_ma(included_studies, data_type, metric, data_location,
                         current_param_vals, chosen_method, meta_f_str, covs_to_include=covs_to_include)
-            
+            except CrazyRError as e:
+                QMessageBox.critical(self, "Oops", str(e))
     def cum_ma(self):
         self.meta_analysis(meta_f_str="cum.ma")
         
@@ -550,13 +555,16 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
             self.model.update_previously_included_studies(study_inclusion_state)
             
                 
-                
-            self.run_meta_regression(metric, data_type, included_studies,
+            try:
+                self.run_meta_regression(metric, data_type, included_studies,
                                      data_location,
                                      covs_to_include=included_covariates,
                                      covariate_reference_values = cov_2_ref_values,
                                      fixed_effects=fixed_effects,
                                      conf_level=conf_level)
+            except CrazyRError as e:
+                QMessageBox.critical(self, "Oops", str(e))
+
         
         
     def run_meta_regression(self, metric, data_type, included_studies,
@@ -816,11 +824,39 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
         column which is not already the label column
         (the check happens elsewhere) '''
         
-        variable_name = self.model.get_variable_assigned_to_column(col).get_label()
-         
+        variable = self.model.get_variable_assigned_to_column(col)
+        variable_name = variable.get_label()
+        
+        # Ensure that study labels are unique
+        distinct_study_labels = {} # map labels to # of times used
+        overridden_study_labels = {}
+        original_study_labels = {}
+        studies = self.model.get_studies_in_current_order()
+        for study in studies:
+            proposed_label = study.get_var(variable)
+            if proposed_label is None:
+                    proposed_label = ''
+            if proposed_label not in distinct_study_labels:
+                distinct_study_labels[proposed_label] = 1
+            else:
+                distinct_study_labels[proposed_label] += 1
+                original_study_labels[study] = proposed_label
+            num_times_used = distinct_study_labels[proposed_label]
+            if num_times_used > 1:
+                proposed_label = proposed_label+'-'+str(num_times_used)
+                distinct_study_labels[proposed_label] = 1
+                overridden_study_labels[study] = proposed_label
+        if overridden_study_labels != {}:
+            choice = QMessageBox.warning(self, "Warning",
+                        "Variable names need to be unique. If you continue, labels will be slightly altered to ensure uniqueness (by appending #s to the end). Do you want to continue?",
+                        QMessageBox.Ok | QMessageBox.Cancel)
+            if choice == QMessageBox.Cancel:
+                return # do nothing
+            
+             
         # build up undo command 
-        redo = lambda: self.model.mark_column_as_label(col)
-        undo = lambda: self.model.unmark_column_as_label(col)
+        redo = lambda: self.model.mark_column_as_label(col, overridden_study_labels)
+        undo = lambda: self.model.unmark_column_as_label(col, original_study_labels)
         on_exit = lambda: self.model.emit_change_signals_for_col(col)
         mark_column_as_label_cmd = GenericUndoCommand(redo_fn=redo, undo_fn=undo,
                                                   on_redo_exit=on_exit,

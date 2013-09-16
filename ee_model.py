@@ -48,6 +48,7 @@ class EETableModel(QAbstractTableModel):
     studies_changed = pyqtSignal()
     label_column_changed = pyqtSignal()
     column_groups_changed = pyqtSignal()
+    duplicate_label = pyqtSignal()
     
     def __init__(self, undo_stack, user_prefs, model_state=None):
         super(EETableModel, self).__init__()
@@ -415,7 +416,7 @@ class EETableModel(QAbstractTableModel):
         # Emit signal
         self.column_formats_changed.emit()
         
-    def mark_column_as_label(self, column_index):
+    def mark_column_as_label(self, column_index, overridden_studies_2_labels={}):
         ''' Sets the contents of this column as the labels for the studies in the column '''
         
         # Only one column can be set as the label column at a time
@@ -428,10 +429,15 @@ class EETableModel(QAbstractTableModel):
         studies = self.dataset.get_studies()
         for study in studies:
             label = study.get_var(var)
-            if label is not None:
-                study.set_label(str(label))
+            #if label is not None:
+            if study in overridden_studies_2_labels:
+                study.set_label(overridden_studies_2_labels[study])
             else:
-                study.set_label(None)
+                if label is None:
+                    label = ''
+                study.set_label(str(label))
+            #else:
+            #    study.set_label(None)
         
         # Set label column label to the name of the variable
         self.label_column_name_label = var.get_label()
@@ -548,7 +554,7 @@ class EETableModel(QAbstractTableModel):
         if self.max_occupied_col is None or self.max_occupied_col < col:
             self.max_occupied_col = col
          
-    def unmark_column_as_label(self, column_index):
+    def unmark_column_as_label(self, column_index, original_study_labels={}): # original study labels is a mapping of those studies whose labels were changed to their original values
         '''
         Unmark the column as the label column.
         Turns the column into a categorical variable '''
@@ -567,7 +573,10 @@ class EETableModel(QAbstractTableModel):
         # Set labels to None in studies
         studies = self.dataset.get_studies()
         for study in studies:
-            value = study.get_label()
+            if study in original_study_labels:
+                value = original_study_labels[study]
+            else:
+                value = study.get_label()
             # converts the value from a string to a string (overkill but whatever)
             value = self.dataset.convert_var_value_to_type(CATEGORICAL, CATEGORICAL, value)
             study.set_var(new_var, value)
@@ -774,7 +783,18 @@ class EETableModel(QAbstractTableModel):
         if is_label_col:
             existing_label = study.get_label()
             proposed_label = value_as_string if not value_blank else None
-            if proposed_label != existing_label:
+            
+            def label_valid():
+                if proposed_label == existing_label:
+                    return False
+                # check for duplicate labels
+                current_labels = set([study.get_label() for study in self.get_studies_in_current_order()])
+                if proposed_label in current_labels:
+                    self.duplicate_label.emit()
+                    return False
+                return True
+            
+            if label_valid():
                 if not self.paste_mode:
                     self.undo_stack.push(SetStudyLabelCommand(study=study, new_label=proposed_label))
                 else:
@@ -783,6 +803,7 @@ class EETableModel(QAbstractTableModel):
                 if not self.paste_mode:
                     cancel_macro_creation_and_revert_state(self.undo_stack)
                 return True
+
         else: # we are in a variable column (initialized or not)
             make_new_variable = not self.column_assigned_to_variable(col)
             if make_new_variable: # make a new variable and give it the default column header name
