@@ -548,6 +548,8 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
             conf_level = wizard.get_confidence_level()
             cov_2_ref_values = wizard.cov_2_ref_values
             
+            print("Cov to ref values: %s" % str(cov_2_ref_values))
+            
             # save data locations choices for this data type in the model
             self.model.update_data_location_choices(data_type, data_location)
             

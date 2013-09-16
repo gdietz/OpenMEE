@@ -46,8 +46,11 @@ class ReferenceValuePage(QWizardPage, ui_reference_value_page.Ui_WizardPage):
         self.cov_listWidget.currentItemChanged.connect(self.left_list_item_changed)
         self.val_listWidget.currentItemChanged.connect(self.right_list_item_changed)
         
+        
         self._populate_left_list(self.categorical_covariates)
     
+        
+        
         
     def cleanupPage(self):
         QWizardPage.cleanupPage(self)
@@ -130,7 +133,8 @@ class ReferenceValuePage(QWizardPage, ui_reference_value_page.Ui_WizardPage):
                 val = study.get_var(cov)
                 if val is not None and val is not "":
                     levels.add(val)
-                    if cov not in self.cov_to_ref_level:
+                    if cov not in self.cov_to_ref_level: # set defaults
                         self.cov_to_ref_level[cov]=val
             cov_to_levels[cov]=levels
+        self.wizard().cov_2_ref_values = self.cov_to_ref_level
         return cov_to_levels   
