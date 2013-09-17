@@ -114,10 +114,10 @@ class MetaAnalysisWizard(QtGui.QWizard):
             if self.currentId() == Page_ChooseEffectSize:
                 return Page_DataLocation
             elif self.currentId() == Page_DataLocation:
-                return Page_SelectCovariates
-            elif self.currentId() == Page_SelectCovariates:
                 return Page_RefineStudies
             elif self.currentId() == Page_RefineStudies:
+                return Page_SelectCovariates
+            elif self.currentId() == Page_SelectCovariates:
                 if self.categorical_covariates_selected():
                     return Page_ReferenceValues
                 else:

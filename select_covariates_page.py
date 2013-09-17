@@ -19,15 +19,9 @@ class SelectCovariatesPage(QWizardPage, ui_select_covariates_page.Ui_WizardPage)
         self.setupUi(self)
         
         self.model = model
-        
-
+    
         #self.covariate_listWidget
         
-        self.items_to_covariates = {}
-        self.covariate_include_status = {}
-        self.init_covariate_include_status()
-        self._populate_covariate_list()
-        self.update_conf_level(DEFAULT_CONFIDENCE_LEVEL)
         
         
         self.covariate_listWidget.itemChanged.connect(self.update_covariate_include_status)
@@ -65,6 +59,13 @@ class SelectCovariatesPage(QWizardPage, ui_select_covariates_page.Ui_WizardPage)
     
     
     def initializePage(self):
+        self.items_to_covariates = {}
+        self.covariate_include_status = {}
+        self.init_covariate_include_status()
+        
+        self._populate_covariate_list()
+        self.update_conf_level(DEFAULT_CONFIDENCE_LEVEL)
+        
         self.wizard().covariates_included_table = self.covariate_include_status
         self.wizard().using_fixed_effects = self.fixed_effects_radio_btn.isChecked
         self.wizard().get_confidence_level = self.get_confidence_level
@@ -95,17 +96,28 @@ class SelectCovariatesPage(QWizardPage, ui_select_covariates_page.Ui_WizardPage)
         categorical_covariates = self._get_sorted_categorical_covariates()
         count_covariates = self._get_sorted_count_covariates()
         
+        included_studies = self.wizard().get_included_studies_in_proper_order()
+        
+        
         def add_list_of_covariates(covariates, suffix = ""):
             for cov in covariates:
+                # included studies have values for this covariate
+                covariate_valid = self.covariate_valid_given_included_studies(included_studies, cov)
+                
                 label = cov.get_label()
                 if label is None:
                     label = ""
                 label += " "+suffix
-                
+                if not covariate_valid:
+                    label += " MISSING VALUES EXIST FOR INCLUDED STUDIES"
                 item = QListWidgetItem(label)
                 self.items_to_covariates[item] = cov
-                item.setCheckState(Qt.Unchecked)
-                item.setFlags(item.flags()|Qt.ItemIsUserCheckable)
+                if covariate_valid:
+                    item.setCheckState(Qt.Unchecked)
+                    item.setFlags(item.flags()|Qt.ItemIsUserCheckable)
+                else:
+                    item.setCheckState(Qt.Unchecked)
+                    item.setFlags(Qt.ItemIsSelectable)
                 self.covariate_listWidget.addItem(item)
         
         add_list_of_covariates(continuous_covariates, suffix="(continuous)")
@@ -115,3 +127,10 @@ class SelectCovariatesPage(QWizardPage, ui_select_covariates_page.Ui_WizardPage)
         
         
         self.covariate_listWidget.blockSignals(False)
+        
+    def covariate_valid_given_included_studies(self, included_studies, covariate):
+        value_is_empty = lambda val: val==None or str(val)==""
+        for study in included_studies:
+            if value_is_empty(study.get_var(covariate)):
+                return False
+        return True
