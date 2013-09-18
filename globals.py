@@ -6,11 +6,12 @@
 ################
 
 import os
+import cProfile
 
 ###### SWITCHES #######
 # Enables additional elements of the program useful in debugging
 DEBUG_MODE = True           # mostly for printing debugging message to terminal
-SHOW_UNDO_VIEW = True
+SHOW_UNDO_VIEW = False
 SHOW_PSEUDO_CONSOLE_IN_RESULTS_WINDOW = False
 ###### END SWITCHES ######
 
@@ -352,3 +353,16 @@ def seems_sane(xticks):
 # normalizing new lines, e.g., for pasting
 # use QRegExp to manipulate QStrings (rather than re)
 newlines_re  = QRegExp('(\r\n|\r|\r)')
+
+def profile_this(function):
+    def _profile_this(*args, **kw):
+        # Profiling Decorator
+        pr=cProfile.Profile()
+        pr.enable()
+        result = function(*args, **kw)
+        pr.disable()
+        pr.create_stats()
+        pr.print_stats(sort='cumulative')
+        
+        return result
+    return _profile_this

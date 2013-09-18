@@ -325,6 +325,7 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
         self.model.studies_changed.disconnect(self.toggle_analyses_enable_status)
         self.model.label_column_changed.disconnect(self.toggle_analyses_enable_status)
         self.model.duplicate_label.disconnect(self.duplicate_label_attempt)
+        self.model.should_resize_column.disconnect(self.resize_column)
         
     def make_model_connections(self):
         QObject.connect(self.model, SIGNAL("DataError"), self.warning_msg)
@@ -341,6 +342,7 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
         self.model.studies_changed.connect(self.toggle_analyses_enable_status)
         self.model.label_column_changed.connect(self.toggle_analyses_enable_status)
         self.model.duplicate_label.connect(self.duplicate_label_attempt)
+        self.model.should_resize_column.connect(self.resize_column)
         
     def duplicate_label_attempt(self):
         QMessageBox.critical(self, "Attempted duplicate label", "Labels must be unique")
@@ -659,7 +661,7 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
             form = results_window.ResultsWindow(results, parent=self)
             form.show()
         
-    
+    #@profile_this
     def change_index_after_data_edited(self, index_top_left, index_bottom_right):        
         row, col = index_top_left.row(), index_top_left.column()
         row += 1
@@ -667,12 +669,17 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
             self.tableView.setFocus()
             new_index = self.model.createIndex(row,col)
             self.tableView.setCurrentIndex(new_index)
-        # issue #13. I realize this makes the UI
-        # a tad less zippy, but I think it's infinitely
-        # preferable to ellipses all over the place
-        # (and honestly, it's not that slow)
         if not self.model.paste_mode:
-            self.tableView.resizeColumnsToContents()
+            end_row, end_col = index_bottom_right.row(), index_bottom_right.column()
+            ncols = end_col-col + 1
+            if ncols >= 10:
+                self.tableView.resizeColumnsToContents()
+            #else: this is handled by resize_column when the appropriate signal comes out of the model
+                    
+    def resize_column(self, col):
+        print("resizing column %d" % col)
+        self.tableView.resizeColumnToContents(col)
+        
         
     def warning_msg(self, title="mystery warning", msg="a mysterious warning"):
         warning_box = QMessageBox(self)
@@ -1368,13 +1375,12 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
                     self.model.paste_mode=False
                     return
         
-        pr=cProfile.Profile()
-        pr.enable()
+        #pr=cProfile.Profile()
+        #pr.enable()
         self.paste_contents(upper_left_index, source_content)
-        pr.disable()
-        
-        pr.create_stats()
-        pr.print_stats(sort='cumulative')
+        #pr.disable()
+        #pr.create_stats()
+        #pr.print_stats(sort='cumulative')
 
     def paste_contents(self, upper_left_index, source_content,
                        progress_bar_title="Pasting",

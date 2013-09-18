@@ -49,6 +49,7 @@ class EETableModel(QAbstractTableModel):
     label_column_changed = pyqtSignal()
     column_groups_changed = pyqtSignal()
     duplicate_label = pyqtSignal()
+    should_resize_column = pyqtSignal(int)
     
     def __init__(self, undo_stack, user_prefs, model_state=None):
         super(EETableModel, self).__init__()
@@ -62,6 +63,7 @@ class EETableModel(QAbstractTableModel):
         
         self.max_occupied_row = None
         self.max_occupied_col = None
+        self.col_2_max_length = {} # the values in this dict will only be valid if not much messing around has happened
         
         if model_state is None:
             self.dataset = EEDataSet()
@@ -83,6 +85,7 @@ class EETableModel(QAbstractTableModel):
             self.load_model_state(model_state)
             self.calculate_max_occupied_row()
             self.calculate_max_occupied_col()
+            self.calculate_max_col_lengths()
         
         self.default_headers = self._generate_header_string(ADDITIONAL_COLS)
         # for rowCount() and colCount()
@@ -319,6 +322,37 @@ class EETableModel(QAbstractTableModel):
             occupied_cols.add(self.label_column)
         self.max_occupied_col = max_occupied_col = max(occupied_cols) if len(occupied_cols) != 0 else None
         return max_occupied_col
+    
+#    def calculate_max_col_lengths(self, cols_to_eval=[]):
+#        study_rows = self.rows_2_studies.keys()
+#        self.col_2_max_length = {}
+#
+#        if len(cols_to_eval)==0:
+#            cols_to_eval = self.cols_2_vars.keys()
+#        for col in cols_to_eval:
+#            col_content_lengths = set()
+#            col_content_lengths = [el_len(row,col) for row in study_rows]
+#            if len(col_content_lengths) == 0:
+#                self.col_2_max_length[col] = 0
+#            else:
+#                self.col_2_max_length[col] = max(col_content_lengths)
+    
+    def el_len(self, row, col): # element length
+            index = self.createIndex(row, col)
+            value = str(self.data(index, role=Qt.DisplayRole).toString())
+            return len(value)
+    
+    def len_largest_element_of_col(self, col):
+        study_rows = self.rows_2_studies.keys()
+        lengths = set([self.el_len(row,col) for row in study_rows])
+        return 0 if len(lengths) == 0 else max(lengths)
+    
+    def get_max_length_in_col(self, col):
+        try:
+            return self.col_2_max_length[col]
+        except KeyError:
+            return 0
+    
 
     def change_variable_name(self, var, new_name):
         ''' Change the name of a variable '''
@@ -745,7 +779,7 @@ class EETableModel(QAbstractTableModel):
             return QVariant(int(section + 1))
         
 
-
+    #@profile_this
     def setData(self, index, value, role=Qt.EditRole):
         if not index.isValid() and not (0 <= index.row() < self.rowCount()):
             return False
@@ -797,6 +831,7 @@ class EETableModel(QAbstractTableModel):
             if label_valid():
                 if not self.paste_mode:
                     self.undo_stack.push(SetStudyLabelCommand(study=study, new_label=proposed_label))
+                    self.adjust_max_length_for_col(col, existing_label, proposed_label)
                 else:
                     self.study.set_label(self.new_label)
             else:
@@ -832,8 +867,11 @@ class EETableModel(QAbstractTableModel):
                 
             formatted_value = self._convert_input_value_to_correct_type_for_assignment(value_as_string, var_type)
             
+            
             if not self.paste_mode:
+                old_value = study.get_var(var)
                 self.undo_stack.push(SetVariableValueCommand(study=study, variable=var, value=formatted_value))
+                self.adjust_max_length_for_col(col, old_value, formatted_value)
             else: # we are pasting something large
                 study.set_var(var, formatted_value)
             
@@ -860,6 +898,20 @@ class EETableModel(QAbstractTableModel):
         #self.emit(SIGNAL("dataChanged(QModelIndex,QModelIndex)"),
         #          index, index)
         return True
+    
+    def adjust_max_length_for_col(self, col, old_value, new_value):
+        # convert to strings
+        old_value = str(old_value) if old_value is not None else ''
+        new_value = str(new_value) if new_value is not None else ''
+        old_value_length = len(old_value)
+        new_value_length = len(new_value)
+        
+        if new_value_length > self.get_max_length_in_col(col):
+            self.col_2_max_length[col] = new_value_length
+            # emit signal to reset size of this column
+            ##
+            self.should_resize_column.emit(col)
+            
     
     
     def _emitdatachanged(self, model, index):

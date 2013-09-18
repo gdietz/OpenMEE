@@ -29,6 +29,8 @@ class RefineStudiesPage(QWizardPage, ui_refine_studies_page.Ui_WizardPage):
         self.model = model
         self.mode=mode
         
+        self.studies_included_dict = {}
+        
         self.studies = self.model.get_studies_in_current_order()
         
         self.categorical_variables = self.model.get_variables(var_type=CATEGORICAL)
@@ -108,29 +110,8 @@ class RefineStudiesPage(QWizardPage, ui_refine_studies_page.Ui_WizardPage):
             reason = "Effect size or variance missing"
             return (includable, reason)
         
-        def all_included_covariates_present_for_study():
-            included_covariates = self.wizard().get_included_covariates()
-            
-            covariate_labels_for_which_the_study_lacks_values = []
-            
-            all_present = True
-            for cov in included_covariates:
-                if study.get_var(cov) is None:
-                    all_present = False
-                    label = cov.getlabel()
-                    if label is None:
-                        label="(NO LABEL)"
-                    covariate_labels_for_which_the_study_lacks_values.append(label)
-            
-            reason = ""
-            if not all_present:
-                reason = "Covariate labels missing for covariate(s): %s" % ', '.join(covariate_labels_for_which_the_study_lacks_values)
-            return (all_present, reason)
         
         includable, reason = effect_size_and_var_present()
-        if includable and self.mode==META_REG_MODE:
-            includable, reason = all_included_covariates_present_for_study()
-        # reason not an empty string only iff includable is False
         return (includable, reason)
     
     def print_old_new(self, old, new):
