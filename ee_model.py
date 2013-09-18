@@ -85,7 +85,6 @@ class EETableModel(QAbstractTableModel):
             self.load_model_state(model_state)
             self.calculate_max_occupied_row()
             self.calculate_max_occupied_col()
-            self.calculate_max_col_lengths()
         
         self.default_headers = self._generate_header_string(ADDITIONAL_COLS)
         # for rowCount() and colCount()
