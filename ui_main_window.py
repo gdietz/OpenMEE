@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'main_window.ui'
 #
-# Created: Thu Aug 29 14:30:01 2013
+# Created: Thu Sep 19 11:52:26 2013
 #      by: PyQt4 UI code generator 4.10.2
 #
 # WARNING! All changes made in this file will be lost!
@@ -154,6 +154,8 @@ class Ui_MainWindow(object):
         self.actionExportCSV.setObjectName(_fromUtf8("actionExportCSV"))
         self.actionTransform_Effect_Size = QtGui.QAction(MainWindow)
         self.actionTransform_Effect_Size.setObjectName(_fromUtf8("actionTransform_Effect_Size"))
+        self.actionMeta_cond_mean = QtGui.QAction(MainWindow)
+        self.actionMeta_cond_mean.setObjectName(_fromUtf8("actionMeta_cond_mean"))
         self.menuFile.addAction(self.actionNew)
         self.menuFile.addAction(self.actionOpen)
         self.menuFile.addAction(self.actionSave)
@@ -192,6 +194,7 @@ class Ui_MainWindow(object):
         self.menuAnalysis.addAction(self.actionTransform_Effect_Size)
         self.menuAnalysis.addAction(self.menuMeta_Analysis.menuAction())
         self.menuAnalysis.addAction(self.actionMeta_Regression)
+        self.menuAnalysis.addAction(self.actionMeta_cond_mean)
         self.menuAnalysis.addSeparator()
         self.menubar.addAction(self.menuFile.menuAction())
         self.menubar.addAction(self.menuEdit.menuAction())
@@ -257,5 +260,6 @@ class Ui_MainWindow(object):
         self.actionImportCSV.setText(_translate("MainWindow", "Import CSV", None))
         self.actionExportCSV.setText(_translate("MainWindow", "Export CSV", None))
         self.actionTransform_Effect_Size.setText(_translate("MainWindow", "Transform Effect Size", None))
+        self.actionMeta_cond_mean.setText(_translate("MainWindow", "Meta-Regression-Based Conditional Means", None))
 
 import icons_rc

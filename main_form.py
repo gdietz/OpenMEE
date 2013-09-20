@@ -242,6 +242,7 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
         QObject.connect(self.actionSubgroup, SIGNAL("triggered()"), self.subgroup_ma)
         self.actionMeta_Regression.triggered.connect(self.meta_regression)
         self.actionTransform_Effect_Size.triggered.connect(self.transform_effect_size_bulk)
+        self.actionMeta_cond_mean.triggered.connect(self.meta_regression_conditional_means)
         
         
         
@@ -568,6 +569,45 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
                                      conf_level=conf_level)
             except CrazyRError as e:
                 QMessageBox.critical(self, "Oops", str(e))
+                
+                
+    def meta_regression_conditional_means(self):
+        wizard = ma_wizard.MetaAnalysisWizard(model=self.model,
+                                              mode=META_REG_COND_MEANS,
+                                              parent=self)
+        
+        if wizard.exec_():
+            data_type = wizard.selected_data_type
+            metric = wizard.selected_metric
+            data_location = wizard.data_location
+            included_studies = wizard.get_included_studies_in_proper_order()
+            study_inclusion_state = wizard.studies_included_table
+            included_covariates = wizard.get_included_covariates()
+            fixed_effects = wizard.using_fixed_effects()
+            conf_level = wizard.get_confidence_level()
+            selected_cov, covs_to_values = wizard.get_meta_reg_cond_means_info()
+            
+            #####cov_2_ref_values = wizard.cov_2_ref_values
+            
+            ####print("Cov to ref values: %s" % str(cov_2_ref_values))
+            
+            # save data locations choices for this data type in the model
+            self.model.update_data_location_choices(data_type, data_location)
+            
+            # save which studies were included on last meta-regression
+            self.model.update_previously_included_studies(study_inclusion_state)
+            
+            print("Selected cov: %s\nValues chosen for others: %s" % (selected_cov.get_label(), covs_to_values))
+            
+#            try:
+#                self.run_meta_regression(metric, data_type, included_studies,
+#                                     data_location,
+#                                     covs_to_include=included_covariates,
+#                                     covariate_reference_values = cov_2_ref_values,
+#                                     fixed_effects=fixed_effects,
+#                                     conf_level=conf_level)
+#            except CrazyRError as e:
+#                QMessageBox.critical(self, "Oops", str(e))
 
         
         

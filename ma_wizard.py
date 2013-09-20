@@ -17,10 +17,11 @@ from methods_and_parameters_page import MethodsAndParametersPage
 from subgroup_variable_page import SubgroupVariablePage
 from select_covariates_page import SelectCovariatesPage
 from reference_value_page import ReferenceValuePage
+from meta_reg_cond_means import CondMeansPage
 
 (Page_ChooseEffectSize, Page_DataLocation, Page_RefineStudies,
 Page_MethodsAndParameters, Page_SubgroupVariable, Page_SelectCovariates,
-Page_ReferenceValues) = range(7)
+Page_ReferenceValues, Page_CondMeans) = range(8)
 class MetaAnalysisWizard(QtGui.QWizard):
     def __init__(self, model, meta_f_str=None, mode = MA_MODE, parent=None):
         super(MetaAnalysisWizard, self).__init__(parent)
@@ -51,6 +52,10 @@ class MetaAnalysisWizard(QtGui.QWizard):
         elif mode==META_REG_MODE:
             self.setPage(Page_SelectCovariates, SelectCovariatesPage(model=model))
             self.setPage(Page_ReferenceValues, ReferenceValuePage())
+        elif mode==META_REG_COND_MEANS:
+            self.setPage(Page_SelectCovariates, SelectCovariatesPage(model=model))
+            self.cond_means_pg = CondMeansPage(model=model, selected_cov=None, cov_value_settings={})
+            self.setPage(Page_CondMeans, self.cond_means_pg)
         
         self.setStartId(Page_ChooseEffectSize)
         self.setWizardStyle(QWizard.ClassicStyle)
@@ -69,6 +74,7 @@ class MetaAnalysisWizard(QtGui.QWizard):
         
     def get_subgroup_variable_column(self):
         return self.subgroup_variable_column
+
     
     def get_subgroup_variable(self):
         if self.subgroup_variable_column is None:
@@ -94,7 +100,9 @@ class MetaAnalysisWizard(QtGui.QWizard):
         categorical_covariates = [cov for cov in included_covariates if cov.get_type()==CATEGORICAL]
         return len(categorical_covariates) > 0
     
-    
+    def get_meta_reg_cond_means_info(self):
+        # returns a tuple (cat. cov to stratify over, the values for the other covariates)
+        return self.cond_means_pg.get_meta_reg_cond_means_data()
 
     def nextId(self):
         if self.mode==SUBGROUP_MODE:
@@ -122,6 +130,17 @@ class MetaAnalysisWizard(QtGui.QWizard):
                 else:
                     return -1
             elif self.currentId() == Page_ReferenceValues:
+                return -1
+        elif self.mode == META_REG_COND_MEANS:
+            if self.currentId() == Page_ChooseEffectSize:
+                return Page_DataLocation
+            elif self.currentId() == Page_DataLocation:
+                return Page_RefineStudies
+            elif self.currentId() == Page_RefineStudies:
+                return Page_SelectCovariates
+            elif self.currentId() == Page_SelectCovariates:
+                return Page_CondMeans
+            elif self.currentId() == Page_CondMeans:
                 return -1
         else:
             if self.currentId() == Page_ChooseEffectSize:

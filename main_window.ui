@@ -96,6 +96,7 @@
     <addaction name="actionTransform_Effect_Size"/>
     <addaction name="menuMeta_Analysis"/>
     <addaction name="actionMeta_Regression"/>
+    <addaction name="actionMeta_cond_mean"/>
     <addaction name="separator"/>
    </widget>
    <addaction name="menuFile"/>
@@ -336,6 +337,11 @@
   <action name="actionTransform_Effect_Size">
    <property name="text">
     <string>Transform Effect Size</string>
+   </property>
+  </action>
+  <action name="actionMeta_cond_mean">
+   <property name="text">
+    <string>Meta-Regression-Based Conditional Means</string>
    </property>
   </action>
  </widget>
