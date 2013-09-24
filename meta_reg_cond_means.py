@@ -25,7 +25,6 @@ class CondMeansPage(QWizardPage, ui_meta_reg_cond_means.Ui_WizardPage):
         self.selected_cov = selected_cov
         self.cov_value_settings = cov_value_settings
         
-        # TODO finish this
         self.choose_cov_comboBox.currentIndexChanged.connect(self._update_selected_cov_for_stratification)
         self.cat_listWidget.currentItemChanged.connect(self._cat_listWidgetItemChanged)
         self.cont_listWidget.currentItemChanged.connect(self._cont_listWidgetItemChanged)
@@ -68,6 +67,13 @@ class CondMeansPage(QWizardPage, ui_meta_reg_cond_means.Ui_WizardPage):
         self.selected_cov = self.cov_id_to_cov[cov_id]
         
         self.item_2_cov = {}
+        
+        # clear combo box and linedit:
+        self._block_widget_signals(True)
+        self.cont_le.setText("")
+        self.cat_cbo_box.clear()
+        self._block_widget_signals(False)
+        
         self._populate_listwidget(self.cont_listWidget, self.continuous_covariates)
         self._populate_listwidget(self.cat_listWidget, [cov for cov in self.categorical_covariates if cov != self.selected_cov])
         
@@ -186,32 +192,5 @@ class CondMeansPage(QWizardPage, ui_meta_reg_cond_means.Ui_WizardPage):
         return (self.selected_cov, self.cov_value_settings)
         
     
-    
-    
-#    def initializePage(self):
-#        self.items_to_covariates = {}
-#        self.covariate_include_status = {}
-#        self.init_covariate_include_status()
-#        
-#        self._populate_covariate_list()
-#        self.update_conf_level(DEFAULT_CONFIDENCE_LEVEL)
-#        
-#        self.wizard().covariates_included_table = self.covariate_include_status
-#        self.wizard().using_fixed_effects = self.fixed_effects_radio_btn.isChecked
-#        self.wizard().get_confidence_level = self.get_confidence_level
-#        
-#    def _get_sorted_continuous_covariates(self):
-#        continuous_covariates = self.model.get_variables(CONTINUOUS)
-#        continuous_covariates.sort(key=lambda cov_var: cov_var.get_label().lower())
-#        return continuous_covariates
-#    
-#    def _get_sorted_categorical_covariates(self):
-#        categorical_covariates = self.model.get_variables(CATEGORICAL)
-#        categorical_covariates.sort(key=lambda cov_var: cov_var.get_label().lower())
-#        return categorical_covariates
-#    
-#    def _get_sorted_count_covariates(self):
-#        count_covariates = self.model.get_variables(COUNT)
-#        count_covariates.sort(key=lambda cov_var: cov_var.get_label().lower())
-#        return count_covariates
+
     

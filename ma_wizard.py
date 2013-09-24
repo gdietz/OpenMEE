@@ -125,10 +125,11 @@ class MetaAnalysisWizard(QtGui.QWizard):
             elif self.currentId() == Page_RefineStudies:
                 return Page_SelectCovariates
             elif self.currentId() == Page_SelectCovariates:
-                if self.categorical_covariates_selected():
-                    return Page_ReferenceValues
-                else:
-                    return -1
+                #if self.categorical_covariates_selected():
+                #    return Page_ReferenceValues
+                #else:
+                #    return -1
+                return Page_ReferenceValues
             elif self.currentId() == Page_ReferenceValues:
                 return -1
         elif self.mode == META_REG_COND_MEANS:

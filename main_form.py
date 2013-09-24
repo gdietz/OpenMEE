@@ -587,6 +587,8 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
             conf_level = wizard.get_confidence_level()
             selected_cov, covs_to_values = wizard.get_meta_reg_cond_means_info()
             
+            
+            
             #####cov_2_ref_values = wizard.cov_2_ref_values
             
             ####print("Cov to ref values: %s" % str(cov_2_ref_values))
@@ -597,24 +599,28 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
             # save which studies were included on last meta-regression
             self.model.update_previously_included_studies(study_inclusion_state)
             
-            print("Selected cov: %s\nValues chosen for others: %s" % (selected_cov.get_label(), covs_to_values))
+            print("---------------------\nSelected cov: %s\nValues chosen for others:" % selected_cov.get_label())
+            for k,v in covs_to_values.items():
+                print("%s: %s" % (k.get_label(),str(v)))
             
-#            try:
-#                self.run_meta_regression(metric, data_type, included_studies,
-#                                     data_location,
-#                                     covs_to_include=included_covariates,
-#                                     covariate_reference_values = cov_2_ref_values,
-#                                     fixed_effects=fixed_effects,
-#                                     conf_level=conf_level)
-#            except CrazyRError as e:
-#                QMessageBox.critical(self, "Oops", str(e))
+            try:
+                self.run_meta_regression(metric, data_type, included_studies,
+                                     data_location,
+                                     covs_to_include=included_covariates,
+                                     fixed_effects=fixed_effects,
+                                     conf_level=conf_level,
+                                     selected_cov=selected_cov, covs_to_values=covs_to_values)
+            except CrazyRError as e:
+                QMessageBox.critical(self, "Oops", str(e))
 
         
         
     def run_meta_regression(self, metric, data_type, included_studies,
                             data_location, covs_to_include,
-                            covariate_reference_values,
-                            fixed_effects, conf_level):
+                            fixed_effects, conf_level,
+                            covariate_reference_values={},
+                            selected_cov = None, covs_to_values = None,
+                            ):
         
         if OMA_CONVENTION[data_type] == "binary":
             python_to_R.dataset_to_simple_binary_robj(model=self.model,
@@ -635,7 +641,11 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
             else:
                 make_r_object(generic_effect=True)
         
-        result = python_to_R.run_meta_regression(metric=metric, fixed_effects=fixed_effects, conf_level=conf_level)
+        #print("inspecting r object time")
+        #pyqtRemoveInputHook()
+        #import pdb; pdb.set_trace()
+        
+        result = python_to_R.run_meta_regression(metric=metric, fixed_effects=fixed_effects, conf_level=conf_level, selected_cov=selected_cov, covs_to_values = covs_to_values)
         self.analysis(result)
         
         

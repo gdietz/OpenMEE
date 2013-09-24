@@ -305,6 +305,15 @@ def dataset_to_simple_binary_robj(model, included_studies, data_location, var_na
     print "executing: %s" % r_str
     ro.r(r_str)
     print "ok."
+    
+    
+    
+    
+    #print("Inspecting R object time")
+    #pyqtRemoveInputHook()
+    #import pdb; pdb.set_trace()
+    
+    
     return r_str
 
 
@@ -395,6 +404,11 @@ def dataset_to_simple_continuous_robj(model, included_studies, data_location,
     print "executing: %s" % r_str
     ro.r(r_str)
     print "ok."
+    
+    
+
+    
+    
     return r_str
 
 def _to_strs(v):
@@ -811,7 +825,8 @@ def run_meta_method(meta_function_name, function_name, params, \
 
 def run_meta_regression(metric, fixed_effects=False, data_name="tmp_obj",
                         results_name="results_obj", 
-                        conf_level=DEFAULT_CONFIDENCE_LEVEL): 
+                        conf_level=DEFAULT_CONFIDENCE_LEVEL,
+                        selected_cov=None, covs_to_values = None): 
     
     if conf_level is None:
         raise ValueError("Confidence level must be specified")
@@ -825,10 +840,19 @@ def run_meta_regression(metric, fixed_effects=False, data_name="tmp_obj",
               "rm.method": "ML",
               "measure": METRIC_TO_ESCALC_MEASURE[metric]}
     params_df = ro.r['data.frame'](**params)
-
-    # create a list of covariate objects on the R side
-    r_str = "%s<- meta.regression(%s, %s)" % \
-                            (results_name, data_name, str(params_df.r_repr()))
+    
+    
+    if (selected_cov, covs_to_values) != (None, None):
+        meta_reg_d = {'chosen.cov.name':selected_cov.get_label()}
+        for cov, value in covs_to_values.items():
+            meta_reg_d[cov.get_label()]=value
+            
+        r_str = "%s<- meta.regression(%s, %s, %s)" % \
+                    (results_name, data_name, str(params_df.r_repr()), ro.DataFrame(meta_reg_d).r_repr())
+    else: 
+        # create a list of covariate objects on the R side
+        r_str = "%s<- meta.regression(%s, %s)" % \
+                                (results_name, data_name, str(params_df.r_repr()))
 
 
     print "\n\n(run_meta_regression): executing:\n %s\n" % r_str
