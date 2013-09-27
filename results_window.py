@@ -157,7 +157,10 @@ class ResultsWindow(QMainWindow, ui_results_window.Ui_ResultsWindow):
             # first add the title
             qt_item = self.add_title(title)
 
-            pixmap = self.generate_pixmap(image)
+            if title == "Histogram":
+                pixmap = self.generate_pixmap(image, custom_scale=1)
+            else:
+                pixmap = self.generate_pixmap(image)
             
             # if there is a parameters object associated with this object
             # (i.e., it is a forest plot of some variety), we pass it along
@@ -174,7 +177,7 @@ class ResultsWindow(QMainWindow, ui_results_window.Ui_ResultsWindow):
             
 
 
-    def generate_pixmap(self, image):
+    def generate_pixmap(self, image, custom_scale=None):
         # now the image
         pixmap = QPixmap(image)
         
@@ -182,8 +185,12 @@ class ResultsWindow(QMainWindow, ui_results_window.Ui_ResultsWindow):
         # we scale to address issue #23.
         # should probably pick a 'target' width/height, in case
         # others generate smaller images by default.
-        scaled_width = SCALE_P*pixmap.width()
-        scaled_height = SCALE_P*pixmap.height()
+        if custom_scale is not None:
+            scaled_width = custom_scale*pixmap.width()
+            scaled_height = custom_scale*pixmap.height()
+        else:
+            scaled_width = SCALE_P*pixmap.width()
+            scaled_height = SCALE_P*pixmap.height()
         
 
         if scaled_width > self.scene.width():
@@ -206,6 +213,7 @@ class ResultsWindow(QMainWindow, ui_results_window.Ui_ResultsWindow):
         
         for title, text in grouped_items:
             try:
+                text = text.replace("\\n","\n") # manual escaping
                 print "title: %s; text: %s" % (title, text)
                 cur_y = max(0, self.y_coord)
                 print "cur_y: %s" % cur_y

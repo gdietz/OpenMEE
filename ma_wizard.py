@@ -18,10 +18,11 @@ from subgroup_variable_page import SubgroupVariablePage
 from select_covariates_page import SelectCovariatesPage
 from reference_value_page import ReferenceValuePage
 from meta_reg_cond_means import CondMeansPage
+from bootstrap_page import BootstrapPage
 
 (Page_ChooseEffectSize, Page_DataLocation, Page_RefineStudies,
 Page_MethodsAndParameters, Page_SubgroupVariable, Page_SelectCovariates,
-Page_ReferenceValues, Page_CondMeans) = range(8)
+Page_ReferenceValues, Page_CondMeans, Page_Bootstrap) = range(9)
 class MetaAnalysisWizard(QtGui.QWizard):
     def __init__(self, model, meta_f_str=None, mode = MA_MODE, parent=None):
         super(MetaAnalysisWizard, self).__init__(parent)
@@ -56,6 +57,9 @@ class MetaAnalysisWizard(QtGui.QWizard):
             self.setPage(Page_SelectCovariates, SelectCovariatesPage(model=model))
             self.cond_means_pg = CondMeansPage(model=model, selected_cov=None, cov_value_settings={})
             self.setPage(Page_CondMeans, self.cond_means_pg)
+        elif mode==BOOTSTRAP:
+            self.bootstrap_page = BootstrapPage()
+            self.setPage(Page_Bootstrap, self.bootstrap_page)
         
         self.setStartId(Page_ChooseEffectSize)
         self.setWizardStyle(QWizard.ClassicStyle)
@@ -67,6 +71,9 @@ class MetaAnalysisWizard(QtGui.QWizard):
     def _change_size(self, pageid):
         print("changing size")
         self.adjustSize()
+        
+    def get_bootstrap_params(self):
+        return self.bootstrap_page.get_bootstrap_params()
         
     def get_included_covariates(self):
         included_covariates = [cov for cov,should_include in self.covariates_included_table.iteritems() if should_include]
@@ -142,6 +149,17 @@ class MetaAnalysisWizard(QtGui.QWizard):
             elif self.currentId() == Page_SelectCovariates:
                 return Page_CondMeans
             elif self.currentId() == Page_CondMeans:
+                return -1
+        elif self.mode == BOOTSTRAP:
+            if self.currentId() == Page_ChooseEffectSize:
+                return Page_DataLocation
+            elif self.currentId() == Page_DataLocation:
+                return Page_RefineStudies
+            elif self.currentId() == Page_RefineStudies:
+                return Page_MethodsAndParameters
+            elif self.currentId() == Page_MethodsAndParameters:
+                return Page_Bootstrap
+            elif self.currentId() == Page_Bootstrap:
                 return -1
         else:
             if self.currentId() == Page_ChooseEffectSize:

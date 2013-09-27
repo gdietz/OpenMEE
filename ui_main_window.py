@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'main_window.ui'
 #
-# Created: Thu Sep 19 11:52:26 2013
+# Created: Fri Sep 27 11:01:38 2013
 #      by: PyQt4 UI code generator 4.10.2
 #
 # WARNING! All changes made in this file will be lost!
@@ -156,6 +156,8 @@ class Ui_MainWindow(object):
         self.actionTransform_Effect_Size.setObjectName(_fromUtf8("actionTransform_Effect_Size"))
         self.actionMeta_cond_mean = QtGui.QAction(MainWindow)
         self.actionMeta_cond_mean.setObjectName(_fromUtf8("actionMeta_cond_mean"))
+        self.actionBootstrapped_Meta_Analysis = QtGui.QAction(MainWindow)
+        self.actionBootstrapped_Meta_Analysis.setObjectName(_fromUtf8("actionBootstrapped_Meta_Analysis"))
         self.menuFile.addAction(self.actionNew)
         self.menuFile.addAction(self.actionOpen)
         self.menuFile.addAction(self.actionSave)
@@ -196,6 +198,7 @@ class Ui_MainWindow(object):
         self.menuAnalysis.addAction(self.actionMeta_Regression)
         self.menuAnalysis.addAction(self.actionMeta_cond_mean)
         self.menuAnalysis.addSeparator()
+        self.menuAnalysis.addAction(self.actionBootstrapped_Meta_Analysis)
         self.menubar.addAction(self.menuFile.menuAction())
         self.menubar.addAction(self.menuEdit.menuAction())
         self.menubar.addAction(self.menuTable.menuAction())
@@ -261,5 +264,6 @@ class Ui_MainWindow(object):
         self.actionExportCSV.setText(_translate("MainWindow", "Export CSV", None))
         self.actionTransform_Effect_Size.setText(_translate("MainWindow", "Transform Effect Size", None))
         self.actionMeta_cond_mean.setText(_translate("MainWindow", "Meta-Regression-Based Conditional Means", None))
+        self.actionBootstrapped_Meta_Analysis.setText(_translate("MainWindow", "Bootstrapped Meta-Analysis", None))
 
 import icons_rc

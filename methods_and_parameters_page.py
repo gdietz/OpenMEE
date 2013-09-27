@@ -23,8 +23,6 @@ class MethodsAndParametersPage(QWizardPage, ui_methods_and_parameters_page.Ui_Wi
         self.setupUi(self)
         
         self.external_params = external_params
-        
-
         self.model = model
         self.meta_f_str = meta_f_str
         

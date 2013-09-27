@@ -35,6 +35,7 @@ class SubgroupVariablePage(QWizardPage, ui_subgroup_variable_page.Ui_subgroup_va
         ''' populates combo box with categorical variable choices '''
         
         self.comboBox.blockSignals(True)
+        self.comboBox.clear()
         key_fn = lambda col: self.model.get_variable_assigned_to_column(col).get_label() # sort by column label
         for col in sorted(columns, key=key_fn):
             var = self.model.get_variable_assigned_to_column(col)
@@ -49,7 +50,6 @@ class SubgroupVariablePage(QWizardPage, ui_subgroup_variable_page.Ui_subgroup_va
         current_variable_col = self.selected_column(self.comboBox)
         # update data location in wizard
         self.wizard().subgroup_variable_column = current_variable_col
-        #self.emit(SIGNAL("completeChanged()"))
     
     def selected_column(self, combo_box):
         item_data = combo_box.itemData(combo_box.currentIndex())
