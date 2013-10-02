@@ -240,10 +240,11 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
         QObject.connect(self.actionCumulative, SIGNAL("triggered()"), self.cum_ma)
         QObject.connect(self.actionLeave_one_out, SIGNAL("triggered()"), self.loo_ma)
         QObject.connect(self.actionSubgroup, SIGNAL("triggered()"), self.subgroup_ma)
-        self.actionMeta_Regression.triggered.connect(self.meta_regression)
+        self.actionMeta_Regression.triggered.connect(lambda: self.meta_regression(mode=META_REG_MODE))
         self.actionTransform_Effect_Size.triggered.connect(self.transform_effect_size_bulk)
         self.actionMeta_cond_mean.triggered.connect(self.meta_regression_conditional_means)
         self.actionBootstrapped_Meta_Analysis.triggered.connect(self.bootstrap_ma)
+        self.actionBootstrapped_Meta_Regression.triggered.connect(lambda: self.meta_regression(mode=BOOTSTRAP_META_REG))
         
         
         
@@ -496,10 +497,10 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
             
     def meta_analysis(self, meta_f_str=None, mode = MA_MODE):
         
-        if mode == BOOTSTRAP:
+        if mode == BOOTSTRAP_MA:
             wizard = ma_wizard.MetaAnalysisWizard(model=self.model,
                                       meta_f_str=meta_f_str,
-                                      mode=BOOTSTRAP,
+                                      mode=BOOTSTRAP_MA,
                                       parent=self)
         elif mode == SUBGROUP_MODE:
             wizard = ma_wizard.MetaAnalysisWizard(model=self.model,
@@ -522,7 +523,7 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
             chosen_method = wizard.get_current_method()
             study_inclusion_state = wizard.studies_included_table
             subgroup_variable = wizard.get_subgroup_variable()
-            if mode==BOOTSTRAP:
+            if mode==BOOTSTRAP_MA:
                 current_param_vals.update(wizard.get_bootstrap_params())
                     
             
@@ -550,14 +551,14 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
         self.meta_analysis(meta_f_str="loo.ma")
         
     def bootstrap_ma(self):
-        self.meta_analysis(meta_f_str="bootstrap", mode=BOOTSTRAP)
+        self.meta_analysis(meta_f_str="bootstrap", mode=BOOTSTRAP_MA)
         
     def subgroup_ma(self):
         self.meta_analysis(meta_f_str="subgroup.ma", mode=SUBGROUP_MODE)
     
-    def meta_regression(self):
+    def meta_regression(self, mode = META_REG_MODE):
         wizard = ma_wizard.MetaAnalysisWizard(model=self.model,
-                                              mode=META_REG_MODE,
+                                              mode=mode,
                                               parent=self)
         
         if wizard.exec_():
@@ -570,8 +571,9 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
             fixed_effects = wizard.using_fixed_effects()
             conf_level = wizard.get_confidence_level()
             cov_2_ref_values = wizard.cov_2_ref_values
+            bootstrap_params = wizard.get_bootstrap_params() if mode in [BOOTSTRAP_META_REG, BOOTSTRAP_META_REG_COND_MEANS] else {}
             
-            print("Cov to ref values: %s" % str(cov_2_ref_values))
+            print("Covariates to reference values: %s" % str(cov_2_ref_values))
             
             # save data locations choices for this data type in the model
             self.model.update_data_location_choices(data_type, data_location)
@@ -581,12 +583,16 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
             
                 
             try:
-                self.run_meta_regression(metric, data_type, included_studies,
-                                     data_location,
-                                     covs_to_include=included_covariates,
-                                     covariate_reference_values = cov_2_ref_values,
-                                     fixed_effects=fixed_effects,
-                                     conf_level=conf_level)
+                self.run_meta_regression(metric,
+                                         data_type,
+                                         included_studies,
+                                         data_location,
+                                         covs_to_include=included_covariates,
+                                         covariate_reference_values = cov_2_ref_values,
+                                         fixed_effects=fixed_effects,
+                                         conf_level=conf_level,
+                                         mode=mode,
+                                         bootstrap_params=bootstrap_params) # for bootstrapping
             except CrazyRError as e:
                 QMessageBox.critical(self, "Oops", str(e))
                 
@@ -640,7 +646,8 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
                             fixed_effects, conf_level,
                             covariate_reference_values={},
                             selected_cov = None, covs_to_values = None,
-                            ):
+                            mode=META_REG_MODE,
+                            bootstrap_params={}):
         
         if OMA_CONVENTION[data_type] == "binary":
             python_to_R.dataset_to_simple_binary_robj(model=self.model,
@@ -665,10 +672,18 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
         #pyqtRemoveInputHook()
         #import pdb; pdb.set_trace()
         
-        result = python_to_R.run_meta_regression(metric=metric,
-                                                 fixed_effects=fixed_effects,
-                                                 conf_level=conf_level,
-                                                 selected_cov=selected_cov, covs_to_values = covs_to_values)
+        if mode in [BOOTSTRAP_MA, BOOTSTRAP_META_REG, BOOTSTRAP_META_REG_COND_MEANS]:
+            result = python_to_R.run_bootstrap_meta_regression(metric=metric,
+                                                               fixed_effects=fixed_effects,
+                                                               conf_level=conf_level,
+                                                               selected_cov=selected_cov, covs_to_values = covs_to_values,
+                                                               data_type=OMA_CONVENTION[data_type],
+                                                               bootstrap_params = bootstrap_params)
+        else:
+            result = python_to_R.run_meta_regression(metric=metric,
+                                                     fixed_effects=fixed_effects,
+                                                     conf_level=conf_level,
+                                                     selected_cov=selected_cov, covs_to_values = covs_to_values)
         self.analysis(result)
         
         

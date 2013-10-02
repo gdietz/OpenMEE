@@ -826,18 +826,19 @@ def run_meta_method(meta_function_name, function_name, params, \
 def run_meta_regression(metric, fixed_effects=False, data_name="tmp_obj",
                         results_name="results_obj", 
                         conf_level=DEFAULT_CONFIDENCE_LEVEL,
-                        selected_cov=None, covs_to_values = None): 
+                        selected_cov=None, covs_to_values = None):  # for meta-reg cond means
     
     if conf_level is None:
         raise ValueError("Confidence level must be specified")
-                        
+    
+    # Set fixed-effects vs. random effects        
     method_str = "FE" if fixed_effects else "DL"    
 
-    # TODO: conf.level, digits should be user-specified
+    # TODO: digits should be user-specified
     params = {"conf.level": conf_level,
               "digits": 3,
-              "method": method_str,
-              "rm.method": "ML",
+              #"method": method_str,
+              "rm.method": method_str, #"ML",
               "measure": METRIC_TO_ESCALC_MEASURE[metric]}
     params_df = ro.r['data.frame'](**params)
     
@@ -871,6 +872,56 @@ def run_meta_regression(metric, fixed_effects=False, data_name="tmp_obj",
 
     parsed_results = parse_out_results(result)
 
+    return parsed_results
+
+
+def run_bootstrap_meta_regression(metric,
+                                  fixed_effects=False,
+                                  data_name="tmp_obj",
+                                  results_name="results_obj", 
+                                  conf_level=DEFAULT_CONFIDENCE_LEVEL,
+                                  selected_cov=None, covs_to_values = None,
+                                  data_type="binary",
+                                  bootstrap_params={}):
+    
+    # Set fixed-effects vs. random effects        
+    method_str = "FE" if fixed_effects else "DL"    
+
+    params = {"conf.level": conf_level,
+              "digits": 3,
+              "rm.method": method_str, #"ML",
+              "measure": METRIC_TO_ESCALC_MEASURE[metric],
+              }
+    params.update(bootstrap_params)
+    params_df = ro.r['data.frame'](**params)
+    
+#    if (selected_cov, covs_to_values) != (None, None):
+#        meta_reg_d = {'chosen.cov.name':selected_cov.get_label()}
+#        for cov, value in covs_to_values.items():
+#            meta_reg_d[cov.get_label()]=value
+#            
+#        r_str = "%s<- meta.regression(%s, %s, %s)" % \
+#                    (results_name, data_name, str(params_df.r_repr()), ro.DataFrame(meta_reg_d).r_repr())
+#    else:
+#        r_str = "%s<- meta.regression(%s, %s)" % \
+#                                (results_name, data_name, str(params_df.r_repr()))
+
+    if data_type == "binary":
+        r_str = "%s<-bootstrap.binary(%s, %s, %s)" % (results_name, "'boeuf'", data_name, str(params_df.r_repr()))
+    elif data_type == "continuous":
+        r_str = "%s<-bootstrap.continuous(%s, %s, %s)" % (results_name, "'boeuf'", data_name, str(params_df.r_repr()))
+
+    print "\n\n(run_meta_regression): executing:\n %s\n" % r_str
+    try_n_run(lambda: ro.r(r_str))
+    result = ro.r("%s" % results_name)
+
+    if "try-error" in str(result):
+        # uh-oh, there was an error (but the weird
+        # RRunTimeError alluded to above; this is a 
+        # legit error returned from an R routine)
+        return str([msg for msg in result][0])
+ 
+    parsed_results = parse_out_results(result)
     return parsed_results
 
 def get_method_description(method_name):

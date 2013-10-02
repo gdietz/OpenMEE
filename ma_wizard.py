@@ -41,7 +41,11 @@ class MetaAnalysisWizard(QtGui.QWizard):
         self.get_confidence_level = None # will be a callable returning a double
         self.cov_2_ref_values = {}
         
+        # Initialize pages that we will need to access later
         self.methods_and_params_page_instance = MethodsAndParametersPage(model=model, meta_f_str=meta_f_str)
+        if mode in [BOOTSTRAP_MA, BOOTSTRAP_META_REG, BOOTSTRAP_META_REG_COND_MEANS]:
+            self.bootstrap_page = BootstrapPage(mode=mode)
+        self.cond_means_pg = CondMeansPage(model=model, selected_cov=None, cov_value_settings={})
         
         self.setPage(Page_ChooseEffectSize, ChooseEffectSizePage(add_generic_effect=True))
         self.setPage(Page_DataLocation,     DataLocationPage(model=model, mode=MA_MODE))
@@ -55,10 +59,16 @@ class MetaAnalysisWizard(QtGui.QWizard):
             self.setPage(Page_ReferenceValues, ReferenceValuePage())
         elif mode==META_REG_COND_MEANS:
             self.setPage(Page_SelectCovariates, SelectCovariatesPage(model=model))
-            self.cond_means_pg = CondMeansPage(model=model, selected_cov=None, cov_value_settings={})
             self.setPage(Page_CondMeans, self.cond_means_pg)
-        elif mode==BOOTSTRAP:
-            self.bootstrap_page = BootstrapPage()
+        elif mode==BOOTSTRAP_MA:
+            self.setPage(Page_Bootstrap, self.bootstrap_page)
+        elif mode==BOOTSTRAP_META_REG:
+            self.setPage(Page_SelectCovariates, SelectCovariatesPage(model=model))
+            self.setPage(Page_ReferenceValues, ReferenceValuePage())
+            self.setPage(Page_Bootstrap, self.bootstrap_page)
+        elif mode==BOOTSTRAP_META_REG_COND_MEANS:
+            self.setPage(Page_SelectCovariates, SelectCovariatesPage(model=model))
+            self.setPage(Page_CondMeans, self.cond_means_pg)
             self.setPage(Page_Bootstrap, self.bootstrap_page)
         
         self.setStartId(Page_ChooseEffectSize)
@@ -150,7 +160,7 @@ class MetaAnalysisWizard(QtGui.QWizard):
                 return Page_CondMeans
             elif self.currentId() == Page_CondMeans:
                 return -1
-        elif self.mode == BOOTSTRAP:
+        elif self.mode == BOOTSTRAP_MA:
             if self.currentId() == Page_ChooseEffectSize:
                 return Page_DataLocation
             elif self.currentId() == Page_DataLocation:
@@ -161,7 +171,33 @@ class MetaAnalysisWizard(QtGui.QWizard):
                 return Page_Bootstrap
             elif self.currentId() == Page_Bootstrap:
                 return -1
-        else:
+        elif self.mode == BOOTSTRAP_META_REG:
+            if self.currentId() == Page_ChooseEffectSize:
+                return Page_DataLocation
+            elif self.currentId() == Page_DataLocation:
+                return Page_RefineStudies
+            elif self.currentId() == Page_RefineStudies:
+                return Page_SelectCovariates
+            elif self.currentId() == Page_SelectCovariates:
+                return Page_ReferenceValues
+            elif self.currentId() == Page_ReferenceValues:
+                return Page_Bootstrap
+            elif self.currentId() == Page_Bootstrap:
+                return -1
+        elif self.mode == BOOTSTRAP_META_REG_COND_MEANS:
+            if self.currentId() == Page_ChooseEffectSize:
+                return Page_DataLocation
+            elif self.currentId() == Page_DataLocation:
+                return Page_RefineStudies
+            elif self.currentId() == Page_RefineStudies:
+                return Page_SelectCovariates
+            elif self.currentId() == Page_SelectCovariates:
+                return Page_CondMeans
+            elif self.currentId() == Page_CondMeans:
+                return Page_Bootstrap
+            elif self.currentId() == Page_Bootstrap:
+                return -1
+        else: # default vanilla meta-analysis case
             if self.currentId() == Page_ChooseEffectSize:
                 return Page_DataLocation
             elif self.currentId() == Page_DataLocation:

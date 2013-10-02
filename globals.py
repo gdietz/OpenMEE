@@ -70,9 +70,17 @@ def cancel_macro_creation_and_revert_state(undo_stack):
 
 # Wizard 'modes'
 (CALCULATE_EFFECT_SIZE_MODE, MA_MODE, CUM_MODE, SUBGROUP_MODE, LOO_MODE,
- META_REG_MODE, TRANSFORM_MODE, META_REG_COND_MEANS, BOOTSTRAP) = range(9)
+ META_REG_MODE, TRANSFORM_MODE, META_REG_COND_MEANS,
+ BOOTSTRAP_MA, BOOTSTRAP_META_REG, BOOTSTRAP_META_REG_COND_MEANS) = range(11)
+
+# For choosing statistic function for bootstrapping
+BOOTSTRAP_MODES_TO_STRING = {BOOTSTRAP_MA:'boot.ma',
+                             BOOTSTRAP_META_REG: 'boot.meta.reg',
+                             BOOTSTRAP_META_REG_COND_MEANS: 'boot.meta.reg.cond.means'}
  
-ANALYSIS_MODES = [MA_MODE, CUM_MODE, SUBGROUP_MODE, LOO_MODE, META_REG_MODE, META_REG_COND_MEANS, BOOTSTRAP]
+ANALYSIS_MODES = [MA_MODE, CUM_MODE, SUBGROUP_MODE, LOO_MODE,
+                  META_REG_MODE, META_REG_COND_MEANS,
+                  BOOTSTRAP_MA, BOOTSTRAP_META_REG, BOOTSTRAP_META_REG_COND_MEANS]
 
 # Default variable type
 DEFAULT_VAR_TYPE = CATEGORICAL
@@ -366,3 +374,11 @@ def profile_this(function):
         
         return result
     return _profile_this
+
+# sort-of R-style switch function
+# Takes a value to switch on and a bunch of keyword arguments whose values are functions to evaluate
+def switch(value, *args, **kw):
+    for key,fn in kw.iteriterms():
+        if key == value:
+            return fn()
+    raise Exception("No targets matched for switch")
