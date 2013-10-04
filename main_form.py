@@ -240,12 +240,15 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
         QObject.connect(self.actionCumulative, SIGNAL("triggered()"), self.cum_ma)
         QObject.connect(self.actionLeave_one_out, SIGNAL("triggered()"), self.loo_ma)
         QObject.connect(self.actionSubgroup, SIGNAL("triggered()"), self.subgroup_ma)
-        self.actionMeta_Regression.triggered.connect(lambda: self.meta_regression(mode=META_REG_MODE))
+        
         self.actionTransform_Effect_Size.triggered.connect(self.transform_effect_size_bulk)
-        self.actionMeta_cond_mean.triggered.connect(self.meta_regression_conditional_means)
+        
+        self.actionMeta_Regression.triggered.connect(lambda: self.meta_regression(mode=META_REG_MODE))
+        self.actionMeta_cond_mean.triggered.connect(lambda: self.meta_regression(mode=META_REG_COND_MEANS))
+        
         self.actionBootstrapped_Meta_Analysis.triggered.connect(self.bootstrap_ma)
         self.actionBootstrapped_Meta_Regression.triggered.connect(lambda: self.meta_regression(mode=BOOTSTRAP_META_REG))
-        
+        self.actionBootstrapped_Meta_Regression_Based_Conditional_Means.triggered.connect(lambda: self.meta_regression(mode=BOOTSTRAP_META_REG_COND_MEANS))
         
         
     
@@ -510,7 +513,7 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
         else:
             wizard = ma_wizard.MetaAnalysisWizard(model=self.model,
                                       meta_f_str=meta_f_str,
-                                      mode=MA_MODE,
+                                      mode=mode,
                                       parent=self)
         
         if wizard.exec_():
@@ -545,10 +548,10 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
                 QMessageBox.critical(self, "Oops", str(e))
 
     def cum_ma(self):
-        self.meta_analysis(meta_f_str="cum.ma")
+        self.meta_analysis(meta_f_str="cum.ma", mode=CUM_MODE)
         
     def loo_ma(self):
-        self.meta_analysis(meta_f_str="loo.ma")
+        self.meta_analysis(meta_f_str="loo.ma", mode=LOO_MODE)
         
     def bootstrap_ma(self):
         self.meta_analysis(meta_f_str="bootstrap", mode=BOOTSTRAP_MA)
@@ -571,6 +574,10 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
             fixed_effects = wizard.using_fixed_effects()
             conf_level = wizard.get_confidence_level()
             cov_2_ref_values = wizard.cov_2_ref_values
+            if mode in [META_REG_COND_MEANS, BOOTSTRAP_META_REG_COND_MEANS]:
+                selected_cov, covs_to_values = wizard.get_meta_reg_cond_means_info()
+            else:
+                selected_cov, covs_to_values = None, None
             bootstrap_params = wizard.get_bootstrap_params() if mode in [BOOTSTRAP_META_REG, BOOTSTRAP_META_REG_COND_MEANS] else {}
             
             print("Covariates to reference values: %s" % str(cov_2_ref_values))
@@ -591,53 +598,54 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
                                          covariate_reference_values = cov_2_ref_values,
                                          fixed_effects=fixed_effects,
                                          conf_level=conf_level,
+                                         selected_cov=selected_cov, covs_to_values=covs_to_values,
                                          mode=mode,
                                          bootstrap_params=bootstrap_params) # for bootstrapping
             except CrazyRError as e:
                 QMessageBox.critical(self, "Oops", str(e))
                 
                 
-    def meta_regression_conditional_means(self):
-        wizard = ma_wizard.MetaAnalysisWizard(model=self.model,
-                                              mode=META_REG_COND_MEANS,
-                                              parent=self)
-        
-        if wizard.exec_():
-            data_type = wizard.selected_data_type
-            metric = wizard.selected_metric
-            data_location = wizard.data_location
-            included_studies = wizard.get_included_studies_in_proper_order()
-            study_inclusion_state = wizard.studies_included_table
-            included_covariates = wizard.get_included_covariates()
-            fixed_effects = wizard.using_fixed_effects()
-            conf_level = wizard.get_confidence_level()
-            selected_cov, covs_to_values = wizard.get_meta_reg_cond_means_info()
-            
-            
-            
-            #####cov_2_ref_values = wizard.cov_2_ref_values
-            
-            ####print("Cov to ref values: %s" % str(cov_2_ref_values))
-            
-            # save data locations choices for this data type in the model
-            self.model.update_data_location_choices(data_type, data_location)
-            
-            # save which studies were included on last meta-regression
-            self.model.update_previously_included_studies(study_inclusion_state)
-            
-            print("---------------------\nSelected cov: %s\nValues chosen for others:" % selected_cov.get_label())
-            for k,v in covs_to_values.items():
-                print("%s: %s" % (k.get_label(),str(v)))
-            
-            try:
-                self.run_meta_regression(metric, data_type, included_studies,
-                                     data_location,
-                                     covs_to_include=included_covariates,
-                                     fixed_effects=fixed_effects,
-                                     conf_level=conf_level,
-                                     selected_cov=selected_cov, covs_to_values=covs_to_values)
-            except CrazyRError as e:
-                QMessageBox.critical(self, "Oops", str(e))
+#    def meta_regression_conditional_means(self):
+#        wizard = ma_wizard.MetaAnalysisWizard(model=self.model,
+#                                              mode=META_REG_COND_MEANS,
+#                                              parent=self)
+#        
+#        if wizard.exec_():
+#            data_type = wizard.selected_data_type
+#            metric = wizard.selected_metric
+#            data_location = wizard.data_location
+#            included_studies = wizard.get_included_studies_in_proper_order()
+#            study_inclusion_state = wizard.studies_included_table
+#            included_covariates = wizard.get_included_covariates()
+#            fixed_effects = wizard.using_fixed_effects()
+#            conf_level = wizard.get_confidence_level()
+#            selected_cov, covs_to_values = wizard.get_meta_reg_cond_means_info()
+#            
+#            
+#            
+#            #####cov_2_ref_values = wizard.cov_2_ref_values
+#            
+#            ####print("Cov to ref values: %s" % str(cov_2_ref_values))
+#            
+#            # save data locations choices for this data type in the model
+#            self.model.update_data_location_choices(data_type, data_location)
+#            
+#            # save which studies were included on last meta-regression
+#            self.model.update_previously_included_studies(study_inclusion_state)
+#            
+#            print("---------------------\nSelected cov: %s\nValues chosen for others:" % selected_cov.get_label())
+#            for k,v in covs_to_values.items():
+#                print("%s: %s" % (k.get_label(),str(v)))
+#            
+#            try:
+#                self.run_meta_regression(metric, data_type, included_studies,
+#                                     data_location,
+#                                     covs_to_include=included_covariates,
+#                                     fixed_effects=fixed_effects,
+#                                     conf_level=conf_level,
+#                                     selected_cov=selected_cov, covs_to_values=covs_to_values)
+#            except CrazyRError as e:
+#                QMessageBox.critical(self, "Oops", str(e))
 
         
         
@@ -667,10 +675,6 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
                 make_r_object()
             else:
                 make_r_object(generic_effect=True)
-        
-        #print("inspecting r object time")
-        #pyqtRemoveInputHook()
-        #import pdb; pdb.set_trace()
         
         if mode in [BOOTSTRAP_MA, BOOTSTRAP_META_REG, BOOTSTRAP_META_REG_COND_MEANS]:
             result = python_to_R.run_bootstrap_meta_regression(metric=metric,

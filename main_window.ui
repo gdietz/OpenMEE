@@ -99,6 +99,8 @@
     <addaction name="actionMeta_cond_mean"/>
     <addaction name="separator"/>
     <addaction name="actionBootstrapped_Meta_Analysis"/>
+    <addaction name="actionBootstrapped_Meta_Regression"/>
+    <addaction name="actionBootstrapped_Meta_Regression_Based_Conditional_Means"/>
    </widget>
    <addaction name="menuFile"/>
    <addaction name="menuEdit"/>
@@ -348,6 +350,16 @@
   <action name="actionBootstrapped_Meta_Analysis">
    <property name="text">
     <string>Bootstrapped Meta-Analysis</string>
+   </property>
+  </action>
+  <action name="actionBootstrapped_Meta_Regression">
+   <property name="text">
+    <string>Bootstrapped Meta-Regression</string>
+   </property>
+  </action>
+  <action name="actionBootstrapped_Meta_Regression_Based_Conditional_Means">
+   <property name="text">
+    <string>Bootstrapped Meta-Regression-Based Conditional Means</string>
    </property>
   </action>
  </widget>

@@ -41,6 +41,8 @@ class MetaAnalysisWizard(QtGui.QWizard):
         self.get_confidence_level = None # will be a callable returning a double
         self.cov_2_ref_values = {}
         
+        self.setWindowTitle(MODE_TITLES[mode])
+        
         # Initialize pages that we will need to access later
         self.methods_and_params_page_instance = MethodsAndParametersPage(model=model, meta_f_str=meta_f_str)
         if mode in [BOOTSTRAP_MA, BOOTSTRAP_META_REG, BOOTSTRAP_META_REG_COND_MEANS]:
@@ -55,19 +57,19 @@ class MetaAnalysisWizard(QtGui.QWizard):
         if mode==SUBGROUP_MODE:
             self.setPage(Page_SubgroupVariable, SubgroupVariablePage(model=model))
         elif mode==META_REG_MODE:
-            self.setPage(Page_SelectCovariates, SelectCovariatesPage(model=model))
+            self.setPage(Page_SelectCovariates, SelectCovariatesPage(model=model, mode=mode))
             self.setPage(Page_ReferenceValues, ReferenceValuePage())
         elif mode==META_REG_COND_MEANS:
-            self.setPage(Page_SelectCovariates, SelectCovariatesPage(model=model))
+            self.setPage(Page_SelectCovariates, SelectCovariatesPage(model=model, mode=mode))
             self.setPage(Page_CondMeans, self.cond_means_pg)
         elif mode==BOOTSTRAP_MA:
             self.setPage(Page_Bootstrap, self.bootstrap_page)
         elif mode==BOOTSTRAP_META_REG:
-            self.setPage(Page_SelectCovariates, SelectCovariatesPage(model=model))
+            self.setPage(Page_SelectCovariates, SelectCovariatesPage(model=model, mode=mode))
             self.setPage(Page_ReferenceValues, ReferenceValuePage())
             self.setPage(Page_Bootstrap, self.bootstrap_page)
         elif mode==BOOTSTRAP_META_REG_COND_MEANS:
-            self.setPage(Page_SelectCovariates, SelectCovariatesPage(model=model))
+            self.setPage(Page_SelectCovariates, SelectCovariatesPage(model=model, mode=mode))
             self.setPage(Page_CondMeans, self.cond_means_pg)
             self.setPage(Page_Bootstrap, self.bootstrap_page)
         

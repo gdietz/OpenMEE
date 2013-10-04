@@ -72,6 +72,18 @@ def cancel_macro_creation_and_revert_state(undo_stack):
 (CALCULATE_EFFECT_SIZE_MODE, MA_MODE, CUM_MODE, SUBGROUP_MODE, LOO_MODE,
  META_REG_MODE, TRANSFORM_MODE, META_REG_COND_MEANS,
  BOOTSTRAP_MA, BOOTSTRAP_META_REG, BOOTSTRAP_META_REG_COND_MEANS) = range(11)
+ 
+MODE_TITLES = {CALCULATE_EFFECT_SIZE_MODE: "Calculate Effect Size",
+               MA_MODE: "Meta Analysis",
+               CUM_MODE: "Cumulative Meta Analysis",
+               SUBGROUP_MODE: "Subgroup Meta Analysis",
+               LOO_MODE: "Leave-One-Out Meta Analysis",
+               META_REG_MODE: "Meta Regression",
+               TRANSFORM_MODE: "Transform Effect Size",
+               META_REG_COND_MEANS: "Meta Regression-Based Conditional Means",
+               BOOTSTRAP_MA: "Bootstrapped Meta-Analysis",
+               BOOTSTRAP_META_REG: "Bootstrapped Meta-Regression",
+               BOOTSTRAP_META_REG_COND_MEANS:"Boostrapped Meta-Regression based Conditional Means"}
 
 # For choosing statistic function for bootstrapping
 BOOTSTRAP_MODES_TO_STRING = {BOOTSTRAP_MA:'boot.ma',
@@ -382,3 +394,9 @@ def switch(value, *args, **kw):
         if key == value:
             return fn()
     raise Exception("No targets matched for switch")
+
+
+
+        #print("inspecting r object time")
+        #pyqtRemoveInputHook()
+        #import pdb; pdb.set_trace()

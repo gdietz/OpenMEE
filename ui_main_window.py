@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'main_window.ui'
 #
-# Created: Fri Sep 27 11:01:38 2013
+# Created: Mon Sep 30 10:34:28 2013
 #      by: PyQt4 UI code generator 4.10.2
 #
 # WARNING! All changes made in this file will be lost!
@@ -158,6 +158,10 @@ class Ui_MainWindow(object):
         self.actionMeta_cond_mean.setObjectName(_fromUtf8("actionMeta_cond_mean"))
         self.actionBootstrapped_Meta_Analysis = QtGui.QAction(MainWindow)
         self.actionBootstrapped_Meta_Analysis.setObjectName(_fromUtf8("actionBootstrapped_Meta_Analysis"))
+        self.actionBootstrapped_Meta_Regression = QtGui.QAction(MainWindow)
+        self.actionBootstrapped_Meta_Regression.setObjectName(_fromUtf8("actionBootstrapped_Meta_Regression"))
+        self.actionBootstrapped_Meta_Regression_Based_Conditional_Means = QtGui.QAction(MainWindow)
+        self.actionBootstrapped_Meta_Regression_Based_Conditional_Means.setObjectName(_fromUtf8("actionBootstrapped_Meta_Regression_Based_Conditional_Means"))
         self.menuFile.addAction(self.actionNew)
         self.menuFile.addAction(self.actionOpen)
         self.menuFile.addAction(self.actionSave)
@@ -199,6 +203,8 @@ class Ui_MainWindow(object):
         self.menuAnalysis.addAction(self.actionMeta_cond_mean)
         self.menuAnalysis.addSeparator()
         self.menuAnalysis.addAction(self.actionBootstrapped_Meta_Analysis)
+        self.menuAnalysis.addAction(self.actionBootstrapped_Meta_Regression)
+        self.menuAnalysis.addAction(self.actionBootstrapped_Meta_Regression_Based_Conditional_Means)
         self.menubar.addAction(self.menuFile.menuAction())
         self.menubar.addAction(self.menuEdit.menuAction())
         self.menubar.addAction(self.menuTable.menuAction())
@@ -265,5 +271,7 @@ class Ui_MainWindow(object):
         self.actionTransform_Effect_Size.setText(_translate("MainWindow", "Transform Effect Size", None))
         self.actionMeta_cond_mean.setText(_translate("MainWindow", "Meta-Regression-Based Conditional Means", None))
         self.actionBootstrapped_Meta_Analysis.setText(_translate("MainWindow", "Bootstrapped Meta-Analysis", None))
+        self.actionBootstrapped_Meta_Regression.setText(_translate("MainWindow", "Bootstrapped Meta-Regression", None))
+        self.actionBootstrapped_Meta_Regression_Based_Conditional_Means.setText(_translate("MainWindow", "Bootstrapped Meta-Regression-Based Conditional Means", None))
 
 import icons_rc

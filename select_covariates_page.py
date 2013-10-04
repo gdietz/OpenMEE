@@ -14,11 +14,12 @@ import python_to_R
 import ui_select_covariates_page
 
 class SelectCovariatesPage(QWizardPage, ui_select_covariates_page.Ui_WizardPage):
-    def __init__(self, model, parent=None):
+    def __init__(self, model, mode=None, parent=None):
         super(SelectCovariatesPage, self).__init__(parent)
         self.setupUi(self)
         
         self.model = model
+        self.mode = mode
     
         #self.covariate_listWidget
         
@@ -50,9 +51,16 @@ class SelectCovariatesPage(QWizardPage, ui_select_covariates_page.Ui_WizardPage)
         
         
     def isComplete(self):
-        if any(self.covariate_include_status.values()):
-            return True
-        return False
+        if self.mode in [META_REG_COND_MEANS, BOOTSTRAP_META_REG_COND_MEANS]:
+            # Have to have at least a categorical covariate
+            included_covs = [cov for cov,status in self.covariate_include_status.iteritems() if status]
+            if any([cov.get_type()==CATEGORICAL for cov in included_covs]):
+                return True
+            return False
+        else: 
+            if any(self.covariate_include_status.values()):
+                return True
+            return False
     
     def get_confidence_level(self):
         return self.conf_level

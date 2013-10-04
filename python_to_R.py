@@ -906,10 +906,15 @@ def run_bootstrap_meta_regression(metric,
 #        r_str = "%s<- meta.regression(%s, %s)" % \
 #                                (results_name, data_name, str(params_df.r_repr()))
 
-    if data_type == "binary":
-        r_str = "%s<-bootstrap.binary(%s, %s, %s)" % (results_name, "'boeuf'", data_name, str(params_df.r_repr()))
-    elif data_type == "continuous":
-        r_str = "%s<-bootstrap.continuous(%s, %s, %s)" % (results_name, "'boeuf'", data_name, str(params_df.r_repr()))
+
+    if (selected_cov, covs_to_values) != (None, None):
+        meta_reg_d = {'chosen.cov.name':selected_cov.get_label()}
+        for cov, value in covs_to_values.items():
+            meta_reg_d[cov.get_label()]=value
+            
+        r_str = "%s<-bootstrap(%s, %s, %s, %s)" % (results_name, "'boeuf'", data_name, str(params_df.r_repr()), str(ro.DataFrame(meta_reg_d).r_repr()))
+    else:
+        r_str = "%s<-bootstrap(%s, %s, %s)" % (results_name, "'boeuf'", data_name, str(params_df.r_repr()))
 
     print "\n\n(run_meta_regression): executing:\n %s\n" % r_str
     try_n_run(lambda: ro.r(r_str))
