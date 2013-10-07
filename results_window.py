@@ -157,7 +157,7 @@ class ResultsWindow(QMainWindow, ui_results_window.Ui_ResultsWindow):
             # first add the title
             qt_item = self.add_title(title)
 
-            if title == "Histogram":
+            if title.lower().rfind("histogram") != -1:
                 pixmap = self.generate_pixmap(image, custom_scale=1)
             else:
                 pixmap = self.generate_pixmap(image)
