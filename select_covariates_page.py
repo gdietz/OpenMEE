@@ -29,9 +29,10 @@ class SelectCovariatesPage(QWizardPage, ui_select_covariates_page.Ui_WizardPage)
         self.conf_level_spinbox.valueChanged[float].connect(self.update_conf_level)
     
     def init_covariate_include_status(self):
-        continuous_covariates = self._get_sorted_continuous_covariates()
-        categorical_covariates = self._get_sorted_categorical_covariates()
-        covariates = continuous_covariates+categorical_covariates
+        continuous_covariates = self.model.get_sorted_continuous_covariates()
+        categorical_covariates = self.model.get_sorted_categorical_covariates()
+        count_covariates = self.model.get_sorted_count_covariates()
+        covariates = count_covariates + continuous_covariates+categorical_covariates
         self.covariate_include_status = dict([(cov, False) for cov in covariates])
         
     def update_conf_level(self, new_conf_level):
@@ -78,21 +79,6 @@ class SelectCovariatesPage(QWizardPage, ui_select_covariates_page.Ui_WizardPage)
         self.wizard().using_fixed_effects = self.fixed_effects_radio_btn.isChecked
         self.wizard().get_confidence_level = self.get_confidence_level
         
-    def _get_sorted_continuous_covariates(self):
-        continuous_covariates = self.model.get_variables(CONTINUOUS)
-        continuous_covariates.sort(key=lambda cov_var: cov_var.get_label().lower())
-        return continuous_covariates
-    
-    def _get_sorted_categorical_covariates(self):
-        categorical_covariates = self.model.get_variables(CATEGORICAL)
-        categorical_covariates.sort(key=lambda cov_var: cov_var.get_label().lower())
-        return categorical_covariates
-    
-    def _get_sorted_count_covariates(self):
-        count_covariates = self.model.get_variables(COUNT)
-        count_covariates.sort(key=lambda cov_var: cov_var.get_label().lower())
-        return count_covariates
-        
     def _populate_covariate_list(self):
         ''' Adds checkable list of covariates'''
         
@@ -100,9 +86,9 @@ class SelectCovariatesPage(QWizardPage, ui_select_covariates_page.Ui_WizardPage)
         self.covariate_listWidget.clear()
         
         # get and sort lists of possible continuous and categoical covariates
-        continuous_covariates = self._get_sorted_continuous_covariates()
-        categorical_covariates = self._get_sorted_categorical_covariates()
-        count_covariates = self._get_sorted_count_covariates()
+        continuous_covariates = self.model.get_sorted_continuous_covariates()
+        categorical_covariates = self.model.get_sorted_categorical_covariates()
+        count_covariates = self.model.get_sorted_count_covariates()
         
         included_studies = self.wizard().get_included_studies_in_proper_order()
         

@@ -97,6 +97,21 @@ class EETableModel(QAbstractTableModel):
         
     def set_user_prefs(self, user_prefs):
         self.user_prefs = user_prefs
+        
+    def get_sorted_continuous_covariates(self):
+        return self.get_sorted_covariates(CONTINUOUS)
+    
+    def get_sorted_categorical_covariates(self):
+        return self.get_sorted_covariates(CATEGORICAL)
+    
+    def get_sorted_count_covariates(self):
+        return self.get_sorted_covariates(COUNT)
+    
+    def get_sorted_covariates(self, var_type):
+        covs = self.get_variables(var_type)
+        covs = [cov for cov in covs if cov.get_subtype() not in EFFECT_TYPES] # stuff in EFFECT_TYPES are not really covariates
+        covs.sort(key=lambda cov_var: cov_var.get_label().lower())
+        return covs
     
     def get_state(self):
         ''' returns a class representing the model's state '''

@@ -15,6 +15,7 @@ from globals import *
 import ui_refine_studies_page
 
 MISSING_ENTRY_STR = "Not entered"
+INCLUDED = True
 
 
 # Policy:
@@ -30,6 +31,7 @@ class RefineStudiesPage(QWizardPage, ui_refine_studies_page.Ui_WizardPage):
         self.mode=mode
         
         self.studies_included_dict = {}
+        self.missing_data_items_to_covs = {}
         
         self.studies = self.model.get_studies_in_current_order()
         
@@ -51,10 +53,41 @@ class RefineStudiesPage(QWizardPage, ui_refine_studies_page.Ui_WizardPage):
         
         QObject.connect(self.cat_treeWidget, SIGNAL("currentItemChanged(QTreeWidgetItem*,QTreeWidgetItem*)"), self.print_old_new)
         
+        self.tabWidget.currentChanged.connect(self.handle_tab_change)
+        self.missing_data_apply_btn.clicked.connect(self.apply_btn_pushed)
+        
         if DEBUG_MODE:
             print_include_btn = QPushButton("Print included status")
             self.refine_studies_btn_layout.addWidget(print_include_btn)
             QObject.connect(print_include_btn, SIGNAL("clicked()"), self.print_included_studies)
+            
+        
+    def handle_tab_change(self, tab_index):
+        if tab_index == 2: # 2 is the index of the exclude missing data tab
+            self._populate_missing_data_list()
+    
+    def apply_btn_pushed(self):
+        value_is_empty = lambda val: val==None or str(val)==""
+        
+        checked_covs = [cov for item,cov in self.missing_data_items_to_covs.iteritems() if item.checkState() == Qt.Checked]
+        included_studies = [study for study,status in self.studies_included_dict.iteritems() if status == INCLUDED]
+        
+        removed_study_names_to_cov_name_which_caused_removal = []
+        for study in included_studies:
+            for cov in checked_covs:
+                if value_is_empty(study.get_var(cov)):
+                    self.studies_included_dict[study] = False
+                    removed_study_names_to_cov_name_which_caused_removal.append(study.get_label()+": "+cov.get_label())
+                    break
+        
+        if len(removed_study_names_to_cov_name_which_caused_removal) > 0:
+            QMessageBox.information(self, "Does anyone see this title? Email us", "The following studies were excluded along with the covariate causing their exclusion:\n\n" + "\n".join(removed_study_names_to_cov_name_which_caused_removal))
+        else:
+            QMessageBox.information(self, "", "No studies needed to be excluded")
+        self.tabWidget.setCurrentIndex(0) # 0 is the index of the refine studies list
+        
+        self._recheck_studies_lists()
+        self._populate_missing_data_list() # clears list and repopulates it
         
 
     def initializePage(self):
@@ -69,6 +102,8 @@ class RefineStudiesPage(QWizardPage, ui_refine_studies_page.Ui_WizardPage):
         self._populate_refine_categories_tab()
         
         self.emit(SIGNAL("completeChanged()"))
+        
+
         
     def _get_default_studies_included_dict(self):
         ''' Includes all includable studies '''
@@ -330,3 +365,39 @@ class RefineStudiesPage(QWizardPage, ui_refine_studies_page.Ui_WizardPage):
             categories.append(None)
         
         return categories
+
+    
+
+    def _populate_missing_data_list(self):
+        ''' Adds checkable list of covariates'''
+        
+        self.missing_data_listwidget.blockSignals(True)
+        self.missing_data_listwidget.clear()
+        self.missing_data_items_to_covs = {}
+        
+        # get and sort lists of possible continuous and categoical covariates
+        continuous_covariates = self.model.get_sorted_continuous_covariates()
+        categorical_covariates = self.model.get_sorted_categorical_covariates()
+        count_covariates = self.model.get_sorted_count_covariates()
+        
+        included_studies = self.wizard().get_included_studies_in_proper_order()
+        
+        
+        def add_covariates_to_list(covariates, suffix = ""):
+            for cov in covariates: 
+                label = cov.get_label()
+                if label is None:
+                    label = ""
+                label += " "+suffix
+                item = QListWidgetItem(label)
+                self.missing_data_items_to_covs[item] = cov
+                item.setCheckState(Qt.Unchecked)
+                item.setFlags(item.flags()|Qt.ItemIsUserCheckable)
+                self.missing_data_listwidget.addItem(item)
+        
+        
+        add_covariates_to_list(continuous_covariates, suffix="(continuous)")
+        add_covariates_to_list(categorical_covariates, suffix="(categorical)")
+        add_covariates_to_list(count_covariates, suffix="(count)")
+        
+        self.missing_data_listwidget.blockSignals(False)
