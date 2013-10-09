@@ -120,8 +120,6 @@ class DataLocationPage(QWizardPage):
         self._update_current_selections()
             
     def get_boxname_for_box(self, box):
-        self.box_names_to_boxes
-        
         for name,v in self.box_names_to_boxes.items():
             if v == box:
                 return name

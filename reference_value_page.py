@@ -34,8 +34,16 @@ class ReferenceValuePage(QWizardPage, ui_reference_value_page.Ui_WizardPage):
         
         # store our choices here
         self.cov_to_ref_level = {}
+        
         # mapping cov --> set of levels
         self.cov_to_levels = self._make_cov_to_levels_dict()
+        
+        # initialize cov_to_ref_level from previous selection
+        self.default_cov_to_ref_level = self.model.get_cov_2_ref_values_selection()
+        if self.default_cov_to_ref_level is not None:
+            for cov in included_covariates:
+                if cov in self.default_cov_to_ref_level and self.default_cov_to_ref_level[cov] in self.cov_to_levels[cov]:
+                    self.cov_to_ref_level[cov] = self.default_cov_to_ref_level[cov]
         
         # mapping listWidget items to covariates/labels
         self.left_listWidgetItem_to_cov = {}
@@ -126,6 +134,7 @@ class ReferenceValuePage(QWizardPage, ui_reference_value_page.Ui_WizardPage):
         self.val_listWidget.blockSignals(False)
         
     def _make_cov_to_levels_dict(self):
+        # makes set of possible levels for each covariate
         cov_to_levels = {}
         for cov in self.categorical_covariates:
             levels = set()

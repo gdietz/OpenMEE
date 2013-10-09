@@ -29,27 +29,46 @@ FORBIDDEN_VARIABLE_NAMES = [LABEL_PREFIX_MARKER,]
 
 class ModelState:
     def __init__(self, dataset, dirty, rows_2_studies, cols_2_vars,
-                 label_column, label_column_name_label, data_location_choices,
-                 previous_study_inclusion_state, column_groups):
+                 label_column, label_column_name_label, column_groups,
+                 last_analysis_selections):
         self.dataset   = dataset
         self.dirty     = dirty
         self.rows_2_studies = rows_2_studies
         self.cols_2_vars    = cols_2_vars
         self.label_column   = label_column
         self.label_column_name_label = label_column_name_label
-        self.data_location_choices = data_location_choices
-        self.previous_study_inclusion_state = previous_study_inclusion_state
         self.variable_groups = column_groups
+        # analysis stuff
+        self.last_analysis_selections = last_analysis_selections
+        
+        
+DEFAULT_LAST_ANALYSIS_SELECTIONS = {'data_locations': {MEANS_AND_STD_DEVS:{},
+                                                       TWO_BY_TWO_CONTINGENCY_TABLE:{},
+                                                       CORRELATION_COEFFICIENTS:{},},
+                                    'included_studies'   : None,
+                                    'included_covariates': None,           
+                                    'data_type'          : None,
+                                    'metric'             : None,
+                                    'method'             : None,
+                                    'ma_param_vals'      : None,
+                                    'subgroup_variable'  : None,
+                                    'fixed_effects'      : None,
+                                    'conf_level'         : None,
+                                    'cov_2_ref_values'   : None,
+                                    'bootstrap_params'   : None,
+                                    'selected_cov'       : None,
+                                    'covs_to_values'     : None,
+                                    }
         
 
 class EETableModel(QAbstractTableModel):
     
     column_formats_changed = pyqtSignal()
-    studies_changed = pyqtSignal()
-    label_column_changed = pyqtSignal()
-    column_groups_changed = pyqtSignal()
-    duplicate_label = pyqtSignal()
-    should_resize_column = pyqtSignal(int)
+    studies_changed        = pyqtSignal()
+    label_column_changed   = pyqtSignal()
+    column_groups_changed  = pyqtSignal()
+    duplicate_label        = pyqtSignal()
+    should_resize_column   = pyqtSignal(int)
     
     def __init__(self, undo_stack, user_prefs, model_state=None):
         super(EETableModel, self).__init__()
@@ -69,7 +88,8 @@ class EETableModel(QAbstractTableModel):
             self.dataset = EEDataSet()
             self.dirty = False
             self.data_location_choices = {} # maps data_types to column choices
-            self.previous_study_inclusion_state = {}
+            # analysis info
+            self.last_analysis_selections = DEFAULT_LAST_ANALYSIS_SELECTIONS
             
             # mapping rows to studies
             self.rows_2_studies = self._make_arbitrary_mapping_of_rows_to_studies()
@@ -122,9 +142,9 @@ class EETableModel(QAbstractTableModel):
                           cols_2_vars    = self.cols_2_vars,
                           label_column   = self.label_column,
                           label_column_name_label = self.label_column_name_label,
-                          data_location_choices = self.data_location_choices,
-                          previous_study_inclusion_state = self.previous_study_inclusion_state,
-                          column_groups = self.variable_groups
+                          column_groups = self.variable_groups,
+                          # analysis info
+                          last_analysis_selections = self.last_analysis_selections,
                           )
         
         
@@ -136,19 +156,14 @@ class EETableModel(QAbstractTableModel):
         self.label_column   = state.label_column
         self.label_column_name_label = state.label_column_name_label
         try:
-            self.data_location_choices = state.data_location_choices
-        except AttributeError: # backwards compatibility with old version of dataset w/o data_location_choices
-            self.data_location_choices = {}
-            
-        try:
-            self.previous_study_inclusion_state = state.previous_study_inclusion_state
-        except:
-            self.previous_study_inclusion_state = {}
-            
-        try:
             self.variable_groups = state.variable_groups
-        except:
+        except AttributeError:
             self.variable_groups = []
+            
+        try:
+            self.last_analysis_selections = state.last_analysis_selections
+        except AttributeError:
+            self.last_analysis_selections = DEFAULT_LAST_ANALYSIS_SELECTIONS
         
         # Emit signals
         self.label_column_changed.emit()
@@ -165,34 +180,86 @@ class EETableModel(QAbstractTableModel):
         for key in keys:
             col_group.unset_column_group_with_key(key)
 
+######## Analysis parameters section start ################
 
+
+    #############################
     def update_data_location_choices(self, data_type, data_locations):
         ''' data locations is a dictionary obtained from the
         calculate effect size wizard or meta-analysis wizard that maps
         combo box choices to column #s '''
         
-        if data_type not in self.data_location_choices:
-            self.data_location_choices[data_type] = {}
-        self.data_location_choices[data_type].update(data_locations)
-        
-        print("Data location choices are now: %s" % str(self.data_location_choices))
-        
+        self.last_analysis_selections['data_locations'][data_type].update(data_locations)
+        print("Data location choices are now: %s" % str(self.last_analysis_selections['data_locations']))
     
-    def update_previously_included_studies(self, studies_inclusion_state):
-        ''' included studies is a set() of studies obtained from the meta-
-        analysis wizard '''
-        
-        self.previous_study_inclusion_state = {}
-        self.previous_study_inclusion_state.update(studies_inclusion_state)
-        
-    def get_previously_included_studies(self):
-        return self.previous_study_inclusion_state
-        
     def get_data_location_choice(self, data_type, field_name):
         try:
-            return self.data_location_choices[data_type][field_name]
+            return self.last_analysis_selections['data_locations'][data_type][field_name]
         except KeyError:
             return None
+
+    #############################
+    def update_previously_included_covariates(self, covariates):
+        # covariates is a set of included covariates
+        if type(covariates) != set:
+            raise TypeError("'covariates' must be a set")
+        self.last_analysis_selections['included_covariates'] = covariates
+    
+    def get_previously_included_covariates(self):
+        return self.last_analysis_selections['included_covariates']
+    #############################
+    
+    def update_data_type_selection(self, data_type):                   # int
+        self.last_analysis_selections['data_type'] = data_type
+    def update_metric_selection(self, metric):                         # int
+        self.last_analysis_selections['metric'] = metric
+    def update_method_selection(self, chosen_method):                  # int??? str??
+        self.last_analysis_selections['method'] = chosen_method
+    def update_ma_param_vals(self, current_param_vals):                # dict
+        self.last_analysis_selections['ma_param_vals'] = current_param_vals
+    def update_subgroup_var_selection(self, subgroup_variable):        # variable
+        self.last_analysis_selections['subgroup_variable'] = self.last_analysis_selections
+    def update_fixed_vs_random_effects_selection(self, fixed_effects): # bool
+        self.last_analysis_selections['fixed_effects'] = fixed_effects
+    def update_conf_level_selection(self, conf_level):                 # double
+        self.last_analysis_selections['conf_level'] = conf_level
+    def update_cov_2_ref_values_selection(self, cov_2_ref_values):     # dict
+        self.last_analysis_selections['cov_2_ref_values'] = cov_2_ref_values
+    def update_bootstrap_params_selection(self, bootstrap_params):     # dict
+        self.last_analysis_selections['bootstrap_params'] = bootstrap_params
+    def update_previously_included_studies(self, included_studies):
+        ''' included studies is a set() of studies obtained from the meta-
+        analysis wizard or at least should be, not a dictionary study -> boolean '''
+        self.last_analysis_selections['included_studies'] = included_studies
+        
+    def update_selected_cov_and_covs_to_values(self, selected_cov, covs_to_values):
+        self.last_analysis_selections['selected_cov'] = selected_cov
+        self.last_analysis_selections['covs_to_values'] = covs_to_values
+
+    def get_data_type_selection(self):                   # int
+        return self.last_analysis_selections['data_type']
+    def get_metric_selection(self):                         # int
+        return self.last_analysis_selections['metric']
+    def get_method_selection(self):                  # int??? str??
+        return self.last_analysis_selections['method']
+    def get_ma_param_vals(self):                # dict 
+        return self.last_analysis_selections['ma_param_vals']
+    def get_subgroup_var_selection(self):        # variable
+        return self.last_analysis_selections['subgroup_variable']
+    def get_fixed_vs_random_effects_selection(self): # bool
+        return self.last_analysis_selections['fixed_effects']
+    def get_conf_level_selection(self):                 # double
+        return self.last_analysis_selections['conf_level']
+    def get_cov_2_ref_values_selection(self):     # dict
+        return self.last_analysis_selections['cov_2_ref_values']
+    def get_bootstrap_params_selection(self):     # dict
+        return self.last_analysis_selections['bootstrap_params']
+    def get_previously_included_studies(self):
+        return self.last_analysis_selections['included_studies']
+    def get_previous_selected_cov_and_covs_to_values(self):
+        return self.last_analysis_selections['selected_cov'], self.last_analysis_selections['covs_to_values']
+
+####### Analysis Parameters Section End ############
         
         
     def set_undo_stack(self, undo_stack):

@@ -18,9 +18,17 @@ class BootstrapPage(QWizardPage, ui_bootstrap_page.Ui_BootstrapPage):
         self.mode = mode
         self.base_path = os.getcwd()
         self.base_path = os.path.join(self.base_path, "r_tmp", BOOTSTRAP_DEFAULT_FILENAME)
+        
+        self.default_params = self.model.get_bootstrap_params_selection()
     
     def initializePage(self):
-        self.plot_path_le.setText(self.base_path)
+        if self.default_params is not None:
+            self.plot_path_le.setText(self.default_params['bootstrap.plot.path'])
+            self.replicates_spinBox.setValue(self.default_params['num.bootstrap.replicates'])
+            self.plot_title_le.setText(self.default_params['histogram.title'])
+            self.xlab_le.setText(self.default_params['histogram.xlab'])
+        else:
+            self.plot_path_le.setText(self.base_path)
     
     def get_bootstrap_params(self):
         params = {'bootstrap.plot.path': str(self.plot_path_le.text()),

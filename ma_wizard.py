@@ -47,9 +47,9 @@ class MetaAnalysisWizard(QtGui.QWizard):
         self.methods_and_params_page_instance = MethodsAndParametersPage(model=model, meta_f_str=meta_f_str)
         if mode in [BOOTSTRAP_MA, BOOTSTRAP_META_REG, BOOTSTRAP_META_REG_COND_MEANS]:
             self.bootstrap_page = BootstrapPage(mode=mode)
-        self.cond_means_pg = CondMeansPage(model=model, selected_cov=None, cov_value_settings={})
+        self.cond_means_pg = CondMeansPage(model=model)
         
-        self.setPage(Page_ChooseEffectSize, ChooseEffectSizePage(add_generic_effect=True))
+        self.setPage(Page_ChooseEffectSize, ChooseEffectSizePage(model=model, add_generic_effect=True))
         self.setPage(Page_DataLocation,     DataLocationPage(model=model, mode=MA_MODE))
         
         self.setPage(Page_MethodsAndParameters, self.methods_and_params_page_instance)
@@ -58,7 +58,7 @@ class MetaAnalysisWizard(QtGui.QWizard):
             self.setPage(Page_SubgroupVariable, SubgroupVariablePage(model=model))
         elif mode==META_REG_MODE:
             self.setPage(Page_SelectCovariates, SelectCovariatesPage(model=model, mode=mode))
-            self.setPage(Page_ReferenceValues, ReferenceValuePage())
+            self.setPage(Page_ReferenceValues, ReferenceValuePage(model=model))
         elif mode==META_REG_COND_MEANS:
             self.setPage(Page_SelectCovariates, SelectCovariatesPage(model=model, mode=mode))
             self.setPage(Page_CondMeans, self.cond_means_pg)
@@ -66,7 +66,7 @@ class MetaAnalysisWizard(QtGui.QWizard):
             self.setPage(Page_Bootstrap, self.bootstrap_page)
         elif mode==BOOTSTRAP_META_REG:
             self.setPage(Page_SelectCovariates, SelectCovariatesPage(model=model, mode=mode))
-            self.setPage(Page_ReferenceValues, ReferenceValuePage())
+            self.setPage(Page_ReferenceValues, ReferenceValuePage(model=model))
             self.setPage(Page_Bootstrap, self.bootstrap_page)
         elif mode==BOOTSTRAP_META_REG_COND_MEANS:
             self.setPage(Page_SelectCovariates, SelectCovariatesPage(model=model, mode=mode))

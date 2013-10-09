@@ -60,7 +60,8 @@ class RefineStudiesPage(QWizardPage, ui_refine_studies_page.Ui_WizardPage):
             print_include_btn = QPushButton("Print included status")
             self.refine_studies_btn_layout.addWidget(print_include_btn)
             QObject.connect(print_include_btn, SIGNAL("clicked()"), self.print_included_studies)
-            
+        
+        self.default_included_studies = self.model.get_previously_included_studies()
         
     def handle_tab_change(self, tab_index):
         if tab_index == 2: # 2 is the index of the exclude missing data tab
@@ -106,19 +107,24 @@ class RefineStudiesPage(QWizardPage, ui_refine_studies_page.Ui_WizardPage):
 
         
     def _get_default_studies_included_dict(self):
-        ''' Includes all includable studies '''
+        #''' Includes all includable studies '''
+        ''' Nothing included by default '''
         
-        return dict([(study, self.studies_includable[study]) for study in self.studies])
+        #return dict([(study, self.studies_includable[study]) for study in self.studies])
+        return dict([(study, False) for study in self.studies])
     
     def get_studies_included_dict_with_previously_included_studies(self):
-        previous_study_inclusion_state = self.model.get_previously_included_studies()
+        previously_included_studies = self.model.get_previously_included_studies()
         
         included_studies_dict = self._get_default_studies_included_dict()
         
-        for study, include_status in included_studies_dict.items():
+        for study in included_studies_dict.items():
             # modify dictionary if there is a previous include/exclude state
-            if study in previous_study_inclusion_state and self._is_includable(study)[0]:
-                included_studies_dict[study] = previous_study_inclusion_state[study]
+            if previously_included_studies is not None:
+                if study in previously_included_studies and self._is_includable(study)[0]:
+                    included_studies_dict[study] = True
+                else:
+                    included_studies_dict[study] = False 
         
         return included_studies_dict
         

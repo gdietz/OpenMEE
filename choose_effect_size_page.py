@@ -16,13 +16,18 @@ import ui_choose_effect_size_page
 
 
 class ChooseEffectSizePage(QWizardPage, ui_choose_effect_size_page.Ui_choose_effect_size_page):
-    def __init__(self, parent=None, add_generic_effect=False):
+    def __init__(self, model, parent=None, add_generic_effect=False):
         super(ChooseEffectSizePage, self).__init__(parent)
         self.setupUi(self)
         
+        self.model = model
         self.add_generic_effect = add_generic_effect
         self.selected_data_type = None
         self.selected_metric = None
+        
+        # previously entered data_type and metric (Nones if not available)
+        self.default_data_type = self.model.get_data_type_selection()
+        self.default_metric = self.model.get_metric_selection()
         
     def initializePage(self):
         self._populate_data_type_groupBox()
@@ -43,13 +48,26 @@ class ChooseEffectSizePage(QWizardPage, ui_choose_effect_size_page.Ui_choose_eff
         # clear groupbox first
         self._unfill(layout)
         
-        for data_type in DATA_TYPE_TO_METRICS.keys():            
+        data_type_to_btn = {}
+        for data_type in DATA_TYPE_TO_METRICS.keys():
             dt_btn = QRadioButton(DATA_TYPE_TEXT[data_type])
             layout.addWidget(dt_btn)
             # the btn ids will simply be the enumerated data type ids
             QObject.connect(dt_btn, SIGNAL("clicked(bool)"), partial(self._update_data_type_selection, data_type=data_type))
-
+            data_type_to_btn[data_type]=dt_btn
+        
+        
+        if self.default_data_type in data_type_to_btn.keys():
+            self.blockSignals(True)
+            btn = data_type_to_btn[self.default_data_type]
+            btn.setChecked(True)
+            self._update_data_type_selection(True, data_type=self.default_data_type)
+            self.blockSignals(False)
+            
+            
         self.wizard().adjustSize()
+        
+        
         
     def _update_data_type_selection(self, state, data_type):
         if state:
@@ -73,6 +91,7 @@ class ChooseEffectSizePage(QWizardPage, ui_choose_effect_size_page.Ui_choose_eff
 
         metrics = DATA_TYPE_TO_METRICS[self.selected_data_type]
         
+        effect_size_to_btn = {}
         for effect_size in metrics:
             if not self.add_generic_effect:
                 if effect_size == GENERIC_EFFECT:
@@ -82,6 +101,15 @@ class ChooseEffectSizePage(QWizardPage, ui_choose_effect_size_page.Ui_choose_eff
             layout.addWidget(btn)
             # the buttons ids are simply the effect size ids
             QObject.connect(btn, SIGNAL("clicked(bool)"), partial(self._update_effect_size_selection, effect_size=effect_size))
+            effect_size_to_btn[effect_size] = btn
+            
+            
+        if self.default_metric in effect_size_to_btn.keys():
+            self.blockSignals(True)
+            btn = effect_size_to_btn[self.default_metric]
+            btn.setChecked(True)
+            self._update_effect_size_selection(True, effect_size=self.default_metric)
+            self.blockSignals(False)
     
     def _update_effect_size_selection(self, state, effect_size):
         if state:

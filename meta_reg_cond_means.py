@@ -14,7 +14,7 @@ import python_to_R
 import ui_meta_reg_cond_means
 
 class CondMeansPage(QWizardPage, ui_meta_reg_cond_means.Ui_WizardPage):
-    def __init__(self, model, selected_cov = None, cov_value_settings = {}, parent=None):
+    def __init__(self, model, parent=None):
         super(CondMeansPage, self).__init__(parent)
         self.setupUi(self)
         
@@ -22,8 +22,9 @@ class CondMeansPage(QWizardPage, ui_meta_reg_cond_means.Ui_WizardPage):
 
 
         # map cov --> values set by user
-        self.selected_cov = selected_cov
-        self.cov_value_settings = cov_value_settings
+        self.default_selected_cov, self.default_cov_value_settings = self.model.get_previous_selected_cov_and_covs_to_values()
+        self.selected_cov = self.default_selected_cov # will be overwritten if invalid
+
         
         self.choose_cov_comboBox.currentIndexChanged.connect(self._update_selected_cov_for_stratification)
         self.cat_listWidget.currentItemChanged.connect(self._cat_listWidgetItemChanged)
@@ -38,6 +39,19 @@ class CondMeansPage(QWizardPage, ui_meta_reg_cond_means.Ui_WizardPage):
         self.categorical_covariates = self._get_sorted_covariates_of_type(included_covariates, [CATEGORICAL,])
         
         self.included_studies = self.wizard().get_included_studies_in_proper_order()
+        
+        # initialize cov value settings from previous analysis if any
+        if self.default_cov_value_settings is None:
+            self.cov_value_settings = {}
+        else:
+            for cov, value in self.default_cov_value_settings.iteritems():
+                cov_type = cov.get_type()
+                if cov_type in [CONTINUOUS,COUNT]:
+                    self.cov_value_settings[cov]=value
+                elif cov_type == CATEGORICAL:
+                    if value in self._get_cov_levels(cov):
+                        self.cov_value_settings[cov]=value
+            
         
         # assign arbitrary ids to covariates
         self.cov_id_to_cov = dict(enumerate(included_covariates))

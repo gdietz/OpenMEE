@@ -21,12 +21,21 @@ class SelectCovariatesPage(QWizardPage, ui_select_covariates_page.Ui_WizardPage)
         self.model = model
         self.mode = mode
     
-        #self.covariate_listWidget
-        
-        
+        # default values from previous analysis
+        self.default_conf_level = self.model.get_conf_level_selection()
+        self.default_fixed_effects = self.model.get_fixed_vs_random_effects_selection()
+        if self.default_conf_level is not None:
+            self.conf_level_spinbox.setValue(self.default_conf_level)
+        if self.default_fixed_effects is not None:
+            if self.default_fixed_effects is True:
+                self.fixed_effects_radio_btn.setChecked(True)
+            else:
+                self.random_effects_radio_btn.setChecked(True)
         
         self.covariate_listWidget.itemChanged.connect(self.update_covariate_include_status)
         self.conf_level_spinbox.valueChanged[float].connect(self.update_conf_level)
+        
+        
     
     def init_covariate_include_status(self):
         continuous_covariates = self.model.get_sorted_continuous_covariates()
@@ -34,6 +43,14 @@ class SelectCovariatesPage(QWizardPage, ui_select_covariates_page.Ui_WizardPage)
         count_covariates = self.model.get_sorted_count_covariates()
         covariates = count_covariates + continuous_covariates+categorical_covariates
         self.covariate_include_status = dict([(cov, False) for cov in covariates])
+        
+        # Load previously included covariates (from last analysis) from the ee_model 
+        included_studies = self.wizard().get_included_studies_in_proper_order()
+        previously_included_covariates = self.model.get_previously_included_covariates()
+        for cov in previously_included_covariates:
+            if cov in self.covariate_include_status.keys() and self.covariate_valid_given_included_studies(included_studies, cov):
+                self.covariate_include_status[cov]=True
+        
         
     def update_conf_level(self, new_conf_level):
         self.conf_level = new_conf_level
@@ -68,10 +85,11 @@ class SelectCovariatesPage(QWizardPage, ui_select_covariates_page.Ui_WizardPage)
     
     
     def initializePage(self):
-        self.items_to_covariates = {}
+        print("Initializing select covariates page")
         self.covariate_include_status = {}
         self.init_covariate_include_status()
         
+        self.items_to_covariates = {}
         self._populate_covariate_list()
         self.update_conf_level(DEFAULT_CONFIDENCE_LEVEL)
         
@@ -107,7 +125,9 @@ class SelectCovariatesPage(QWizardPage, ui_select_covariates_page.Ui_WizardPage)
                 item = QListWidgetItem(label)
                 self.items_to_covariates[item] = cov
                 if covariate_valid:
-                    item.setCheckState(Qt.Unchecked)
+                    #item.setCheckState(Qt.Unchecked)
+                    included = self.covariate_include_status[cov]
+                    item.setCheckState(Qt.Checked if included else Qt.Unchecked)
                     item.setFlags(item.flags()|Qt.ItemIsUserCheckable)
                 else:
                     item.setCheckState(Qt.Unchecked)

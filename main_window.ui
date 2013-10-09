@@ -91,16 +91,22 @@
      <addaction name="actionCumulative"/>
      <addaction name="actionLeave_one_out"/>
      <addaction name="actionSubgroup"/>
+     <addaction name="actionBootstrapped_Meta_Analysis"/>
+    </widget>
+    <widget class="QMenu" name="menuMeta_Regression_Meta_Regression_Derivatives">
+     <property name="title">
+      <string>Meta-Regression and Meta Regression Derivatives</string>
+     </property>
+     <addaction name="actionMeta_Regression"/>
+     <addaction name="actionMeta_cond_mean"/>
+     <addaction name="actionBootstrapped_Meta_Regression"/>
+     <addaction name="actionBootstrapped_Meta_Regression_Based_Conditional_Means"/>
     </widget>
     <addaction name="actionCalculate_Effect_Size"/>
     <addaction name="actionTransform_Effect_Size"/>
     <addaction name="menuMeta_Analysis"/>
-    <addaction name="actionMeta_Regression"/>
-    <addaction name="actionMeta_cond_mean"/>
+    <addaction name="menuMeta_Regression_Meta_Regression_Derivatives"/>
     <addaction name="separator"/>
-    <addaction name="actionBootstrapped_Meta_Analysis"/>
-    <addaction name="actionBootstrapped_Meta_Regression"/>
-    <addaction name="actionBootstrapped_Meta_Regression_Based_Conditional_Means"/>
    </widget>
    <addaction name="menuFile"/>
    <addaction name="menuEdit"/>
@@ -131,6 +137,7 @@
    <addaction name="actionLeave_one_out"/>
    <addaction name="actionSubgroup"/>
    <addaction name="actionMeta_Regression"/>
+   <addaction name="actionBootstrapped_Meta_Analysis"/>
   </widget>
   <action name="actionNew">
    <property name="icon">
@@ -347,11 +354,6 @@
     <string>Meta-Regression-Based Conditional Means</string>
    </property>
   </action>
-  <action name="actionBootstrapped_Meta_Analysis">
-   <property name="text">
-    <string>Bootstrapped Meta-Analysis</string>
-   </property>
-  </action>
   <action name="actionBootstrapped_Meta_Regression">
    <property name="text">
     <string>Bootstrapped Meta-Regression</string>
@@ -360,6 +362,15 @@
   <action name="actionBootstrapped_Meta_Regression_Based_Conditional_Means">
    <property name="text">
     <string>Bootstrapped Meta-Regression-Based Conditional Means</string>
+   </property>
+  </action>
+  <action name="actionBootstrapped_Meta_Analysis">
+   <property name="icon">
+    <iconset resource="icons.qrc">
+     <normaloff>:/analysis_icons/images/boot.png</normaloff>:/analysis_icons/images/boot.png</iconset>
+   </property>
+   <property name="text">
+    <string>Bootstrapped Meta-Analysis</string>
    </property>
   </action>
  </widget>

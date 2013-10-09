@@ -3,6 +3,7 @@
     <file alias="splash.jpg">images/splash.jpg</file>
   </qresource>
   <qresource prefix="analysis_icons">
+    <file>images/boot.png</file>
     <file>images/calculate_effect_size.png</file>
     <file>images/cum_meta_analysis.png</file>
     <file>images/leave_one_out.png</file>

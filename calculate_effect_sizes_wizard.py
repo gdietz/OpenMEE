@@ -19,7 +19,7 @@ class CalculateEffectSizeWizard(QtGui.QWizard):
     def __init__(self, model, parent=None):
         super(CalculateEffectSizeWizard, self).__init__(parent)
         
-        self.setPage(Page_ChooseEffectSize, ChooseEffectSizePage())
+        self.setPage(Page_ChooseEffectSize, ChooseEffectSizePage(model=model))
         self.setPage(Page_DataLocation, DataLocationPage(model=model, mode=CALCULATE_EFFECT_SIZE_MODE))
         self.setStartId(Page_ChooseEffectSize)
         self.setWizardStyle(QWizard.ClassicStyle)

@@ -26,6 +26,10 @@ class MethodsAndParametersPage(QWizardPage, ui_methods_and_parameters_page.Ui_Wi
         self.model = model
         self.meta_f_str = meta_f_str
         
+        # previous values not restored currently
+        self.default_method     = self.model.get_method_selection()
+        self.default_param_vals = self.model.get_ma_param_vals()
+        
     def initializePage(self):
         if self.wizard().mode==SUBGROUP_MODE:
             self.external_params = {"cov_name":self.wizard().get_subgroup_variable().get_label()}

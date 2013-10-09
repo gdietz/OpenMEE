@@ -2,8 +2,8 @@
 
 # Form implementation generated from reading ui file 'refine_studies_page.ui'
 #
-# Created: Fri Aug  9 11:41:40 2013
-#      by: PyQt4 UI code generator 4.10.1
+# Created: Tue Oct  8 11:30:54 2013
+#      by: PyQt4 UI code generator 4.10.2
 #
 # WARNING! All changes made in this file will be lost!
 
@@ -26,7 +26,7 @@ except AttributeError:
 class Ui_WizardPage(object):
     def setupUi(self, WizardPage):
         WizardPage.setObjectName(_fromUtf8("WizardPage"))
-        WizardPage.resize(522, 389)
+        WizardPage.resize(528, 391)
         self.verticalLayout = QtGui.QVBoxLayout(WizardPage)
         self.verticalLayout.setObjectName(_fromUtf8("verticalLayout"))
         self.tabWidget = QtGui.QTabWidget(WizardPage)
@@ -74,6 +74,28 @@ class Ui_WizardPage(object):
         self.cat_treeWidget.headerItem().setText(0, _fromUtf8("Choose Groups of Studies to Include in the Analysis"))
         self.verticalLayout_2.addWidget(self.cat_treeWidget)
         self.tabWidget.addTab(self.refine_categories_tab, _fromUtf8(""))
+        self.exclude_studies_missing_data_tab = QtGui.QWidget()
+        self.exclude_studies_missing_data_tab.setObjectName(_fromUtf8("exclude_studies_missing_data_tab"))
+        self.verticalLayout_5 = QtGui.QVBoxLayout(self.exclude_studies_missing_data_tab)
+        self.verticalLayout_5.setObjectName(_fromUtf8("verticalLayout_5"))
+        self.label = QtGui.QLabel(self.exclude_studies_missing_data_tab)
+        self.label.setWordWrap(True)
+        self.label.setObjectName(_fromUtf8("label"))
+        self.verticalLayout_5.addWidget(self.label)
+        self.missing_data_listwidget = QtGui.QListWidget(self.exclude_studies_missing_data_tab)
+        self.missing_data_listwidget.setObjectName(_fromUtf8("missing_data_listwidget"))
+        self.verticalLayout_5.addWidget(self.missing_data_listwidget)
+        self.horizontalLayout = QtGui.QHBoxLayout()
+        self.horizontalLayout.setObjectName(_fromUtf8("horizontalLayout"))
+        spacerItem3 = QtGui.QSpacerItem(40, 20, QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Minimum)
+        self.horizontalLayout.addItem(spacerItem3)
+        self.missing_data_apply_btn = QtGui.QPushButton(self.exclude_studies_missing_data_tab)
+        self.missing_data_apply_btn.setObjectName(_fromUtf8("missing_data_apply_btn"))
+        self.horizontalLayout.addWidget(self.missing_data_apply_btn)
+        spacerItem4 = QtGui.QSpacerItem(40, 20, QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Minimum)
+        self.horizontalLayout.addItem(spacerItem4)
+        self.verticalLayout_5.addLayout(self.horizontalLayout)
+        self.tabWidget.addTab(self.exclude_studies_missing_data_tab, _fromUtf8(""))
         self.verticalLayout.addWidget(self.tabWidget)
 
         self.retranslateUi(WizardPage)
@@ -87,4 +109,7 @@ class Ui_WizardPage(object):
         self.deselect_all_btn.setText(_translate("WizardPage", "Deselect All", None))
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.refine_studies_tab), _translate("WizardPage", "Refine Studies", None))
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.refine_categories_tab), _translate("WizardPage", "Refine Categories", None))
+        self.label.setText(_translate("WizardPage", "Select covariates for which you would like to exclude studies if no data is available. Then click Apply.", None))
+        self.missing_data_apply_btn.setText(_translate("WizardPage", "Apply", None))
+        self.tabWidget.setTabText(self.tabWidget.indexOf(self.exclude_studies_missing_data_tab), _translate("WizardPage", "Refine Missing Data", None))
 

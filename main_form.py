@@ -160,6 +160,9 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
         self.actionLeave_one_out.setEnabled(enable)
         self.actionCumulative.setEnabled(enable)
         self.actionMeta_Regression.setEnabled(enable)
+        self.actionBootstrapped_Meta_Analysis.setEnabled(enable)
+        self.actionBootstrapped_Meta_Regression.setEnabled(enable)
+        self.actionBootstrapped_Meta_Regression_Based_Conditional_Means.setEnabled(enable)
         
         if enable:
             if self.model.get_variables(var_type=CATEGORICAL) == []:
@@ -524,17 +527,21 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
             included_studies = wizard.get_included_studies_in_proper_order()
             current_param_vals = wizard.get_plot_params()
             chosen_method = wizard.get_current_method()
-            study_inclusion_state = wizard.studies_included_table
             subgroup_variable = wizard.get_subgroup_variable()
             if mode==BOOTSTRAP_MA:
                 current_param_vals.update(wizard.get_bootstrap_params())
-                    
             
-            # save data locations choices for this data type in the model
-            self.model.update_data_location_choices(data_type, data_location)
+            # Save selections made for next analysis
+            self.model.update_data_type_selection(data_type) # int
+            self.model.update_metric_selection(metric) # int
+            self.model.update_method_selection(chosen_method) #int??? str??
+            self.model.update_ma_param_vals(current_param_vals)
+            self.model.update_subgroup_var_selection(subgroup_variable)
+            self.model.update_data_location_choices(data_type, data_location)  # save data locations choices for this data type in the model
+            self.model.update_previously_included_studies(set(included_studies)) # save which studies were included on last meta-regression
             
-            # save which studies were included on last meta-analysis
-            self.model.update_previously_included_studies(study_inclusion_state)
+            
+            
             
             if mode==SUBGROUP_MODE:
                 covs_to_include = [subgroup_variable,]
@@ -542,8 +549,13 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
                 covs_to_include = []
                 
             try:
-                self.run_ma(included_studies, data_type, metric, data_location,
-                        current_param_vals, chosen_method, meta_f_str, covs_to_include=covs_to_include)
+                self.run_ma(included_studies,
+                            data_type, metric,
+                            data_location,
+                            current_param_vals,
+                            chosen_method,
+                            meta_f_str,
+                            covs_to_include=covs_to_include)
             except CrazyRError as e:
                 QMessageBox.critical(self, "Oops", str(e))
 
@@ -569,7 +581,6 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
             metric = wizard.selected_metric
             data_location = wizard.data_location
             included_studies = wizard.get_included_studies_in_proper_order()
-            study_inclusion_state = wizard.studies_included_table
             included_covariates = wizard.get_included_covariates()
             fixed_effects = wizard.using_fixed_effects()
             conf_level = wizard.get_confidence_level()
@@ -582,12 +593,17 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
             
             print("Covariates to reference values: %s" % str(cov_2_ref_values))
             
-            # save data locations choices for this data type in the model
-            self.model.update_data_location_choices(data_type, data_location)
-            
-            # save which studies were included on last meta-regression
-            self.model.update_previously_included_studies(study_inclusion_state)
-            
+            # Save analysis analysis info that we just gathered
+            self.model.update_data_type_selection(data_type) # int
+            self.model.update_metric_selection(metric) # int
+            self.model.update_fixed_vs_random_effects_selection(fixed_effects) #bool
+            self.model.update_conf_level_selection(conf_level) #double
+            self.model.update_cov_2_ref_values_selection(cov_2_ref_values) # dict
+            self.model.update_bootstrap_params_selection(bootstrap_params)
+            self.model.update_data_location_choices(data_type, data_location)  # save data locations choices for this data type in the model
+            self.model.update_previously_included_studies(set(included_studies)) # save which studies were included on last meta-regression
+            self.model.update_previously_included_covariates(set(included_covariates)) # save which covariates were included on last meta-regression
+            self.model.update_selected_cov_and_covs_to_values(selected_cov, covs_to_values)
                 
             try:
                 self.run_meta_regression(metric,
@@ -604,51 +620,7 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
             except CrazyRError as e:
                 QMessageBox.critical(self, "Oops", str(e))
                 
-                
-#    def meta_regression_conditional_means(self):
-#        wizard = ma_wizard.MetaAnalysisWizard(model=self.model,
-#                                              mode=META_REG_COND_MEANS,
-#                                              parent=self)
-#        
-#        if wizard.exec_():
-#            data_type = wizard.selected_data_type
-#            metric = wizard.selected_metric
-#            data_location = wizard.data_location
-#            included_studies = wizard.get_included_studies_in_proper_order()
-#            study_inclusion_state = wizard.studies_included_table
-#            included_covariates = wizard.get_included_covariates()
-#            fixed_effects = wizard.using_fixed_effects()
-#            conf_level = wizard.get_confidence_level()
-#            selected_cov, covs_to_values = wizard.get_meta_reg_cond_means_info()
-#            
-#            
-#            
-#            #####cov_2_ref_values = wizard.cov_2_ref_values
-#            
-#            ####print("Cov to ref values: %s" % str(cov_2_ref_values))
-#            
-#            # save data locations choices for this data type in the model
-#            self.model.update_data_location_choices(data_type, data_location)
-#            
-#            # save which studies were included on last meta-regression
-#            self.model.update_previously_included_studies(study_inclusion_state)
-#            
-#            print("---------------------\nSelected cov: %s\nValues chosen for others:" % selected_cov.get_label())
-#            for k,v in covs_to_values.items():
-#                print("%s: %s" % (k.get_label(),str(v)))
-#            
-#            try:
-#                self.run_meta_regression(metric, data_type, included_studies,
-#                                     data_location,
-#                                     covs_to_include=included_covariates,
-#                                     fixed_effects=fixed_effects,
-#                                     conf_level=conf_level,
-#                                     selected_cov=selected_cov, covs_to_values=covs_to_values)
-#            except CrazyRError as e:
-#                QMessageBox.critical(self, "Oops", str(e))
-
-        
-        
+  
     def run_meta_regression(self, metric, data_type, included_studies,
                             data_location, covs_to_include,
                             fixed_effects, conf_level,

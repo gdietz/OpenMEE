@@ -21,12 +21,14 @@ class SubgroupVariablePage(QWizardPage, ui_subgroup_variable_page.Ui_subgroup_va
         self.setupUi(self)
         
         self.model = model
+        self.default_subgroup_var = self.model.get_subgroup_var_selection()
 
         categorical_cols = self.model.get_categorical_columns()
         if len(categorical_cols)==0:
             raise Exception("There are no categorical variables. A subgroup analysis cannot occur")
     
     def initializePage(self):
+        
         self._populate_combo_box(self.model.get_categorical_columns())
         
         QObject.connect(self.comboBox, SIGNAL("currentIndexChanged(int)"), self._update_current_selection)
@@ -37,10 +39,15 @@ class SubgroupVariablePage(QWizardPage, ui_subgroup_variable_page.Ui_subgroup_va
         self.comboBox.blockSignals(True)
         self.comboBox.clear()
         key_fn = lambda col: self.model.get_variable_assigned_to_column(col).get_label() # sort by column label
+        vars_to_cols = {}
         for col in sorted(columns, key=key_fn):
             var = self.model.get_variable_assigned_to_column(col)
             self.comboBox.addItem(var.get_label(), col) # store the chosen col
-        self.comboBox.setCurrentIndex(0)
+            vars_to_cols[var] = col
+        if self.default_subgroup_var in vars_to_cols.keys():
+            self.comboBox.setCurrentIndex(self.comboBox.findData(vars_to_cols[var]))
+        else:
+            self.comboBox.setCurrentIndex(0)
         self.comboBox.blockSignals(False)
         
         self._update_current_selection()
