@@ -47,9 +47,10 @@ class SelectCovariatesPage(QWizardPage, ui_select_covariates_page.Ui_WizardPage)
         # Load previously included covariates (from last analysis) from the ee_model 
         included_studies = self.wizard().get_included_studies_in_proper_order()
         previously_included_covariates = self.model.get_previously_included_covariates()
-        for cov in previously_included_covariates:
-            if cov in self.covariate_include_status.keys() and self.covariate_valid_given_included_studies(included_studies, cov):
-                self.covariate_include_status[cov]=True
+        if previously_included_covariates is not None:
+            for cov in previously_included_covariates:
+                if cov in self.covariate_include_status.keys() and self.covariate_valid_given_included_studies(included_studies, cov):
+                    self.covariate_include_status[cov]=True
         
         
     def update_conf_level(self, new_conf_level):

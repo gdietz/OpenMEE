@@ -13,9 +13,11 @@ from globals import *
 import ui_reference_value_page
 
 class ReferenceValuePage(QWizardPage, ui_reference_value_page.Ui_WizardPage):
-    def __init__(self, parent=None):
+    def __init__(self, model, parent=None):
         super(ReferenceValuePage, self).__init__(parent)
         self.setupUi(self)
+        
+        self.model = model
         
     def initializePage(self):
         print("Initialize Page called")

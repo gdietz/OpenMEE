@@ -46,7 +46,7 @@ class MetaAnalysisWizard(QtGui.QWizard):
         # Initialize pages that we will need to access later
         self.methods_and_params_page_instance = MethodsAndParametersPage(model=model, meta_f_str=meta_f_str)
         if mode in [BOOTSTRAP_MA, BOOTSTRAP_META_REG, BOOTSTRAP_META_REG_COND_MEANS]:
-            self.bootstrap_page = BootstrapPage(mode=mode)
+            self.bootstrap_page = BootstrapPage(model=model, mode=mode)
         self.cond_means_pg = CondMeansPage(model=model)
         
         self.setPage(Page_ChooseEffectSize, ChooseEffectSizePage(model=model, add_generic_effect=True))

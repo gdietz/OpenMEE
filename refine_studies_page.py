@@ -11,6 +11,7 @@ from PyQt4 import QtCore, QtGui
 from PyQt4.Qt import *
 
 from globals import *
+from dataset.study import Study
 
 import ui_refine_studies_page
 
@@ -118,7 +119,7 @@ class RefineStudiesPage(QWizardPage, ui_refine_studies_page.Ui_WizardPage):
         
         included_studies_dict = self._get_default_studies_included_dict()
         
-        for study in included_studies_dict.items():
+        for study,status in included_studies_dict.items():
             # modify dictionary if there is a previous include/exclude state
             if previously_included_studies is not None:
                 if study in previously_included_studies and self._is_includable(study)[0]:
@@ -126,11 +127,17 @@ class RefineStudiesPage(QWizardPage, ui_refine_studies_page.Ui_WizardPage):
                 else:
                     included_studies_dict[study] = False 
         
+        if len(included_studies_dict) > 0:
+            first_el_is_study = [isinstance(x,Study) for x in included_studies_dict.iterkeys()]
+            assert(all(first_el_is_study),"The first element of each tuple should be a study!")
         return included_studies_dict
         
     def _is_includable(self, study):
         ''' Returns a tuple indicating whether or not a study is includable (i.e. if it has an
         effect size and variance. tuple: (boolean includable, str reason not includable) '''
+        
+        if not isinstance(study, Study):
+            raise TypeError("study argument is not a study")
         
         def effect_size_and_var_present():
             reason = ""
@@ -179,6 +186,8 @@ class RefineStudiesPage(QWizardPage, ui_refine_studies_page.Ui_WizardPage):
         
         # First change the include status of the studies, then, change the checkboxes & tree
         for study in self.studies_included_dict.keys():
+            if not isinstance(study, Study):
+                raise TypeError("study argument is not a study")
             if self._is_includable(study)[0]:
                 self.studies_included_dict[study] = True # include in study
         

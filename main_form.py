@@ -503,6 +503,7 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
             
     def meta_analysis(self, meta_f_str=None, mode = MA_MODE):
         
+        
         if mode == BOOTSTRAP_MA:
             wizard = ma_wizard.MetaAnalysisWizard(model=self.model,
                                       meta_f_str=meta_f_str,
@@ -518,7 +519,8 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
                                       meta_f_str=meta_f_str,
                                       mode=mode,
                                       parent=self)
-        
+            
+        unmodified_meta_f_str = meta_f_str    
         if wizard.exec_():
             meta_f_str = wizard.get_modified_meta_f_str()
             data_type = wizard.selected_data_type
@@ -530,6 +532,7 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
             subgroup_variable = wizard.get_subgroup_variable()
             if mode==BOOTSTRAP_MA:
                 current_param_vals.update(wizard.get_bootstrap_params())
+                meta_f_str = unmodified_meta_f_str
             
             # Save selections made for next analysis
             self.model.update_data_type_selection(data_type) # int
@@ -539,7 +542,7 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
             self.model.update_subgroup_var_selection(subgroup_variable)
             self.model.update_data_location_choices(data_type, data_location)  # save data locations choices for this data type in the model
             self.model.update_previously_included_studies(set(included_studies)) # save which studies were included on last meta-regression
-            
+            self.model.update_bootstrap_params_selection(wizard.get_bootstrap_params())
             
             
             
