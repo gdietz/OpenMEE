@@ -1,0 +1,19 @@
+/* custom css for use on OpenMEE website
+ * 
+ * Author: George Dietz
+ *         CEBM@Brown
+ */
+
+.figure {
+	text-align: center;
+}
+
+figure {text-align: center;}
+
+figcaption {
+	clear: left;
+	margin: .75em 0;
+	text-align: center;
+	font-style: italic;
+	line-height: 1.5em;
+}

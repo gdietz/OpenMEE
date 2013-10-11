@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<!--[if lt IE 7]>      <html class="no-js lt-ie9 lt-ie8 lt-ie7"> <![endif]-->
+<!--[if IE 7]>         <html class="no-js lt-ie9 lt-ie8"> <![endif]-->
+<!--[if IE 8]>         <html class="no-js lt-ie9"> <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js"> <!--<![endif]-->
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <title></title>
+        <meta name="description" content="">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+
+        <!-- Place favicon.ico and apple-touch-icon.png in the root directory -->
+
+        <link rel="stylesheet" href="css/normalize.css">
+        <link rel="stylesheet" href="css/main.css">
+        <link rel="stylesheet" href="css/custom.css">
+        <script src="js/vendor/modernizr-2.6.2.min.js"></script>
+    </head>
+    <body>
+        <!--[if lt IE 7]>
+            <p class="browsehappy">You are using an <strong>outdated</strong> browser. Please <a href="http://browsehappy.com/">upgrade your browser</a> to improve your experience.</p>
+        <![endif]-->
+
+        <!-- Add your site or application content here -->
+        <!--<p>Hello world! This is HTML5 Boilerplate.</p> -->
+
+<h1> This is h1 </h1>
+<h2> This is h2 </h2>
+<h3> This is h3 </h3>
+<h4> This is h4 </h4>
+<h5> This is h5 </h5>
+<h6> This is h6 </h6>
+
+
+
+<h1>Introducing OpenMEE</h1>
+
+<p>OpenMEE is open-source software for performing meta-analysis suited to the need of ecologist and evolutionary biologists.</p>
+
+
+<h3>Installing OpenMEE</h3>
+<ol>
+    <li>To install OpenMEE, download the program from:</br> http://www.cebm.brown.edu/open_mee/download </li>
+    <li>Save the zip file somewhere convenient and extract it.</li>
+</ol>
+
+<h3> Starting OpenMEE </h3>
+
+<p>Launch the program by clicking on LaunchOpenMEE.exe in the case of Windows or the OpenMEE app in the case of Macintosh. This opens the main spreadsheet as shown below. </p>
+
+
+<figure>
+  <img src="img/opening_screen.png">
+  <figcaption>Figure 1. The main spreadsheet screen</figcaption>
+</figure>
+
+<p>
+You enter and interact with your data on this spreadsheet. 
+
+
+<p>  --------------- NEW PAGE?  --------------- </p>
+
+<h3> The OpenMEE Spreadsheet </h3>
+
+<figure>
+  <img src="img/opening_screen.png">
+  <figcaption>Figure 1. The main spreadsheet screen</figcaption>
+</figure>
+
+From this spreadsheet you can enter your data by:
+
+<ol>
+<li>Entering the data manually by typing it in to the spreadsheet.</li>
+<li>Opening a previously saved dataset (.ome) file from the file menu</li>
+<li>Importing a CSV file (with or without column headers)</li>
+</ol>
+
+<figure>
+  <img src="img/file_menu.png">
+  <figcaption>Figure 2. The file menu </figcaption>
+</figure>
+
+
+
+<p>The OpenMEE spreadsheet is very flexible. It has an unlimited number of rows and columns. The spreadsheets starts off with a fixed (large) size. As your data approaches the limits, the spreadsheet automatically resizes itself to accomodate more data. You also don't have to worry about formatting your data beforehand. You simply enter your data in whatever format you have it. For example, After typing in some two-by-two contingency table data we see the screen below. </p>
+
+<figure>
+  <img src="img/screen_after_entering_data.png">
+  <figcaption>Figure 3. Main screen after typing in data </figcaption>
+</figure>
+
+<p>Along the top of the spreadsheet we see the columns are labelled 'A', 'B', 'C' etc. along with '(cat)'. When you enter data into a new column, by default OpenMEE assumes that column is a new categorical variable and assigns it the default name. When you are done typing in new information, you have to tell OpenMEE what kind of data each column contains. You also must mark one column as the study labels column. In addition to telling OpenMEE the types of each column, you also assign your own custom labels to each column. All this is done by right-clicking on column headers and choosing the desired option as shown below:</p>
+
+<figure>
+  <img src="img/context_menu.png">
+  <figcaption>Figure 4. Context Menu</figcaption>
+</figure>
+
+Let's rename the columns now. We do this by clicking on the 'rename variable' option of the context menu. After renaming the columns, the screen looks like this:
+
+<figure>
+  <img src="img/after_renaming_columns.png">
+  <figcaption>Figure 5. After Renaming Columns</figcaption>
+</figure>
+
+<p>We now have to tell OpenMEE what type of data these columns contain. Again, this is done by right clicking and selecting a target format from the 'Change format' submenu as shown in Figure 4: Context Menu. Since this is two-by-two data, the 4 numerical columns are 'counts' while 'Country' and 'Year' are categorical variables, and 'study_name' is clearly the variable we will mark as the study labels by selecting 'Mark as label column' in the context menu. Finally out of pedagogical necesssity, let's add a continuous column after country called 'Avg. Rainfall (cm)'. After assigning all these formats, we obtain the following: </p>
+
+<figure>
+  <img src="img/after_setting_types.png">
+  <figcaption>Figure 6. After Setting Variable Formats</figcaption>
+</figure>
+
+<p>Note that for each variable format has its own color scheme as reminder when you're working with the spreadsheet. If you can't stand the default color scheme you can change it by clicking on the 'Table Menu' and then 'Table Preferences':
+
+<figure>
+  <img src="img/preferences_dlg.png">
+  <figcaption>Figure 7. Preferences</figcaption>
+</figure>
+
+<p>Here, you can change the color schemes of the variables as well as the font used on the spreadsheet as well as the number of digits displayed for continuous variables. </p>
+
+
+</p>
+
+
+
+
+
+
+
+
+
+
+        <script src="//ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
+        <script>window.jQuery || document.write('<script src="js/vendor/jquery-1.10.2.min.js"><\/script>')</script>
+        <script src="js/plugins.js"></script>
+        <script src="js/main.js"></script>
+
+        <!-- Google Analytics: change UA-XXXXX-X to be your site's ID. -->
+        <script>
+            (function(b,o,i,l,e,r){b.GoogleAnalyticsObject=l;b[l]||(b[l]=
+            function(){(b[l].q=b[l].q||[]).push(arguments)});b[l].l=+new Date;
+            e=o.createElement(i);r=o.getElementsByTagName(i)[0];
+            e.src='//www.google-analytics.com/analytics.js';
+            r.parentNode.insertBefore(e,r)}(window,document,'script','ga'));
+            ga('create','UA-XXXXX-X');ga('send','pageview');
+        </script>
+    </body>
+</html>
