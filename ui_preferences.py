@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'preferences_dlg.ui'
 #
-# Created: Mon Aug 26 11:27:42 2013
+# Created: Fri Oct 11 16:53:24 2013
 #      by: PyQt4 UI code generator 4.10.2
 #
 # WARNING! All changes made in this file will be lost!
@@ -207,7 +207,7 @@ class Ui_Dialog(object):
         self.label_14.setText(_translate("Dialog", "Categorical Variable", None))
         self.label_11.setText(_translate("Dialog", "Count Variable", None))
         self.label_13.setText(_translate("Dialog", "Continuous Variable", None))
-        self.label_10.setText(_translate("Dialog", "Calculated Result", None))
+        self.label_10.setText(_translate("Dialog", "Effect Size/Variance", None))
         self.choose_font_btn.setText(_translate("Dialog", "Choose Font", None))
         self.font_preview_lbl.setText(_translate("Dialog", "Font preview area", None))
 

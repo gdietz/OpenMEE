@@ -378,7 +378,7 @@
         <item>
          <widget class="QLabel" name="label_10">
           <property name="text">
-           <string>Calculated Result</string>
+           <string>Effect Size/Variance</string>
           </property>
          </widget>
         </item>

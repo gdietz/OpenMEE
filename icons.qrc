@@ -2,6 +2,9 @@
   <qresource prefix="splash">
     <file alias="splash.jpg">images/splash.jpg</file>
   </qresource>
+  <qresource prefix="general">
+    <file>images/logo.png</file>
+  </qresource>
   <qresource prefix="analysis_icons">
     <file>images/boot.png</file>
     <file>images/calculate_effect_size.png</file>
