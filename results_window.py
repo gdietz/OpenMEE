@@ -97,6 +97,7 @@ class ResultsWindow(QMainWindow, ui_results_window.Ui_ResultsWindow):
                           ["Leave-one-out",],]
 
         # first add the text to self.scene
+        self.post_facto_text_to_add = []
         self.add_text()
 
         self.y_coord += ROW_HEIGHT/2.0
@@ -109,6 +110,10 @@ class ResultsWindow(QMainWindow, ui_results_window.Ui_ResultsWindow):
 
         # and now the images
         self.add_images()
+        
+        # Add post-facto text items (for now, just the references)
+        for title, text in self.post_facto_text_to_add:
+            self._add_text_item(title, text)
 
         # reset the scene
         self.graphics_view.setScene(self.scene)
@@ -212,19 +217,25 @@ class ResultsWindow(QMainWindow, ui_results_window.Ui_ResultsWindow):
         grouped_items = self._group_items(self.texts.items(), self.groupings)
         
         for title, text in grouped_items:
-            try:
-                text = text.replace("\\n","\n") # manual escaping
-                print "title: %s; text: %s" % (title, text)
-                cur_y = max(0, self.y_coord)
-                print "cur_y: %s" % cur_y
-                # first add the title
-                qt_item = self.add_title(title)
+            if title.lower().rfind("reference") != -1:
+                self.post_facto_text_to_add.append((title, text))
+                continue
+            self._add_text_item(title, text)
+            
+    def _add_text_item(self, title, text):
+        try:
+            text = text.replace("\\n","\n") # manual escaping
+            print "title: %s; text: %s" % (title, text)
+            cur_y = max(0, self.y_coord)
+            print "cur_y: %s" % cur_y
+            # first add the title
+            qt_item = self.add_title(title)
 
-                # now the text
-                text_item_rect, pos = self.create_text_item(unicode(text), self.position())
-                self.items_to_coords[qt_item] =  pos
-            except:
-                pass
+            # now the text
+            text_item_rect, pos = self.create_text_item(unicode(text), self.position())
+            self.items_to_coords[qt_item] =  pos
+        except:
+            pass
     
     def _group_items(self, items, groups):
         '''Groups items together if their title contains an element in a group list.
