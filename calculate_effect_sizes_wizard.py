@@ -29,6 +29,8 @@ class CalculateEffectSizeWizard(QtGui.QWizard):
         self.data_location = None
         
         QObject.connect(self, SIGNAL("currentIdChanged(int)"), self._change_size)
+        
+        self.setWindowTitle("Calculate Effect Size Wizard")
     
     def _change_size(self, pageid):
         print("changing size")

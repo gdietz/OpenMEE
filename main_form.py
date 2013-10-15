@@ -100,6 +100,7 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
         else:
             filename = os.path.basename(self.outpath)
         self.setWindowTitle(' - '.join([PROGRAM_NAME, filename]))
+        self.setWindowIcon(QIcon(":/general/images/logo.png")) # don't know why this isn't set automatically (since I set it in Qt Designer for the main.ui)
 
     def toggle_copy_pasta(self, b):
         '''
@@ -542,7 +543,8 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
             self.model.update_subgroup_var_selection(subgroup_variable)
             self.model.update_data_location_choices(data_type, data_location)  # save data locations choices for this data type in the model
             self.model.update_previously_included_studies(set(included_studies)) # save which studies were included on last meta-regression
-            self.model.update_bootstrap_params_selection(wizard.get_bootstrap_params())
+            if mode == BOOTSTRAP_MA:
+                self.model.update_bootstrap_params_selection(wizard.get_bootstrap_params())
             
             
             

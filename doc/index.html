@@ -120,8 +120,36 @@ Let's rename the columns now. We do this by clicking on the 'rename variable' op
 
 <p>Here, you can change the color schemes of the variables as well as the font used on the spreadsheet as well as the number of digits displayed for continuous variables. </p>
 
+<h3> Calculating an Effect Size </h3>
 
+Before we can run an analysis, we need an effect size and variance. We can get this in one of two ways:
+
+<ol>
+    <li>Entering an effect size and variance manually (e.g. when raw data is not available)</li>
+    <li>Calculating an Effect Size from the raw data
+</ol>
+
+<p> We will examine each option in turn </p>
+
+<h4> Entering an effect size and variance manually </h4>
+<p> To do this, we simply create two new continuous variables using the method we described earlier. Let's call them "my effect size" and "my variance". In order to use these variables as effects in a meta analysis we need to tell OpenMEE that these are effects. Right click on the header for "my effect size" and choose 'Change format -----> Trans. Effect'. Likewise, choose 'Change Format ----> Trans. Var' for "my variance" as shown in the Figure below.
 </p>
+
+<figure>
+  <img src="img/change_continuous_var_to_trans_effect.png">
+  <figcaption>Figure 8. Change Continuous Variance to Transformed-scale Effect</figcaption>
+</figure>
+
+<p> Once we have finished changing the format of these two variables, we have the screen shown below </p>
+
+
+<figure>
+  <img src="img/set_effect_size_format.png">
+  <figcaption>Figure 9. After Setting Effect Size Format </figcaption>
+</figure>
+
+
+<p> We show now take an aside to discuss transformed-scale vs. raw-scale. In order to perform a meta-analysis, we need an effect size and a single measure of dispersion for each study. For example, if our metric is "Odds ratio" we need the effect size on the transformed (log) scale since confidence intervals for odds ratios are generally not symmetric in the raw (untransformed) scale. It just so happens, however, that OpenMEE is capable of transforming an effect size and confidence interval or effect size and variance from one scale to the other.
 
 
 

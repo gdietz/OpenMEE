@@ -1,0 +1,44 @@
+
+
+
+### Introducing OpenMEE
+
+OpenMEE is open-source software for performing meta-analysis suited to the need of ecologist and evolutionary biologists.
+
+
+# Installing OpenMEE
+1. To install OpenMEE, please download the program from:
+   http://www.cebm.brown.edu/open_mee/download
+
+2. Save the zip file somewhere convenient and extract it.
+
+# Starting OpenMEE
+
+Launch the program by clicking on LaunchOpenMEE.exe in the case of Windows or the OpenMEE app in the case of Macintosh. This opens the main spreadsheet as shown below.
+
+[opening_screen.png]
+
+
+You enter and interact with your data on this spreadsheet. 
+
+
+
+
+### The OpenMEE Spreadsheet
+
+[opening_screen.png]
+
+From this spreadsheet you can enter your data by:
+
+1) Entering the data manually by typing it in to the spreadsheet.
+2) Opening a previously saved dataset (.ome) file from the file menu
+3) Importing a CSV file (with or without column headers)
+
+[file_menu.png]
+
+
+
+The OpenMEE spreadsheet is very flexible. You simply enter your data in whatever format you have it. After typing in some two-by-two contingency table data
+
+
+Then tell OpenMEE some information about it.
