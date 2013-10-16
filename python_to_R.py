@@ -728,7 +728,10 @@ def parse_out_results(result):
             
             text_d[text_n] = references_str
         else:
-            text_d[text_n]=str(text)
+            if type(text)==rpy2.robjects.vectors.StrVector:
+                text_d[text_n] = text[0]
+            else:
+                text_d[text_n]=str(text)
             
             #pyqtRemoveInputHook()
             #pdb.set_trace()

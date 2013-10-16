@@ -225,6 +225,8 @@ class MethodsAndParametersPage(QWizardPage, ui_methods_and_parameters_page.Ui_Wi
 #        # override conf.level with global conf.level
 #        self.current_defaults['conf.level'] = self.conf_level
 
+        # override default from openmetar with choice from table preferences
+        self.current_defaults['digits'] = self.model.get_precision()
         print self.current_defaults
         
     def add_label(self, layout, cur_grid_row, name, tool_tip_text=None):

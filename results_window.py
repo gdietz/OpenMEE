@@ -224,6 +224,7 @@ class ResultsWindow(QMainWindow, ui_results_window.Ui_ResultsWindow):
             
     def _add_text_item(self, title, text):
         try:
+            #text = text[0]
             text = text.replace("\\n","\n") # manual escaping
             print "title: %s; text: %s" % (title, text)
             cur_y = max(0, self.y_coord)
