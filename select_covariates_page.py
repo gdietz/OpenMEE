@@ -75,15 +75,13 @@ class SelectCovariatesPage(QWizardPage, ui_select_covariates_page.Ui_WizardPage)
             included_covs = [cov for cov,status in self.covariate_include_status.iteritems() if status]
             if any([cov.get_type()==CATEGORICAL for cov in included_covs]):
                 return True
-            return False
         else: 
             if any(self.covariate_include_status.values()):
                 return True
-            return False
+        return False
     
     def get_confidence_level(self):
         return self.conf_level
-    
     
     def initializePage(self):
         print("Initializing select covariates page")
@@ -149,3 +147,10 @@ class SelectCovariatesPage(QWizardPage, ui_select_covariates_page.Ui_WizardPage)
             if value_is_empty(study.get_var(covariate)):
                 return False
         return True
+    
+#    def isFinalPage(self):
+#        print("checking isfinalpage")
+#        if self.wizard().next_page(self.wizard().currentId()) == -1:
+#            return True
+#        else:
+#            return False

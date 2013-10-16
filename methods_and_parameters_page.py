@@ -400,3 +400,6 @@ class MethodsAndParametersPage(QWizardPage, ui_methods_and_parameters_page.Ui_Wi
     
     def get_current_method(self):
         return self.current_method
+    
+    def get_current_method_pretty_name(self):
+        return str(self.method_cbo_box.currentText())

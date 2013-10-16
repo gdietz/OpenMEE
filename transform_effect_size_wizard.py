@@ -37,6 +37,7 @@ class TransformEffectSizeWizard(QtGui.QWizard):
         self.get_new_column_group_metric = None
         self.new_column_group = False
         
+        self.setWindowTitle("Transform Effect Size")
         
         QObject.connect(self, SIGNAL("currentIdChanged(int)"), self._change_size)
     

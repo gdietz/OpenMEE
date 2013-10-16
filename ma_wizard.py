@@ -19,10 +19,11 @@ from select_covariates_page import SelectCovariatesPage
 from reference_value_page import ReferenceValuePage
 from meta_reg_cond_means import CondMeansPage
 from bootstrap_page import BootstrapPage
+from summary_page import SummaryPage
 
 (Page_ChooseEffectSize, Page_DataLocation, Page_RefineStudies,
 Page_MethodsAndParameters, Page_SubgroupVariable, Page_SelectCovariates,
-Page_ReferenceValues, Page_CondMeans, Page_Bootstrap) = range(9)
+Page_ReferenceValues, Page_CondMeans, Page_Bootstrap, Page_Summary) = range(10)
 class MetaAnalysisWizard(QtGui.QWizard):
     def __init__(self, model, meta_f_str=None, mode = MA_MODE, parent=None):
         super(MetaAnalysisWizard, self).__init__(parent)
@@ -42,6 +43,7 @@ class MetaAnalysisWizard(QtGui.QWizard):
         self.cov_2_ref_values = {}
         
         self.setWindowTitle(MODE_TITLES[mode])
+        self.setOption(QWizard.HaveFinishButtonOnEarlyPages,True)
         
         # Initialize pages that we will need to access later
         self.methods_and_params_page_instance = MethodsAndParametersPage(model=model, meta_f_str=meta_f_str)
@@ -54,6 +56,7 @@ class MetaAnalysisWizard(QtGui.QWizard):
         
         self.setPage(Page_MethodsAndParameters, self.methods_and_params_page_instance)
         self.setPage(Page_RefineStudies, RefineStudiesPage(model=model, mode=mode))
+        self.setPage(Page_Summary, SummaryPage())
         if mode==SUBGROUP_MODE:
             self.setPage(Page_SubgroupVariable, SubgroupVariablePage(model=model))
         elif mode==META_REG_MODE:
@@ -105,6 +108,8 @@ class MetaAnalysisWizard(QtGui.QWizard):
     
     def get_current_method(self):
         return self.methods_and_params_page_instance.get_current_method()
+    def get_current_method_pretty_name(self):
+        return self.methods_and_params_page_instance.get_current_method_pretty_name()
     
     def get_modified_meta_f_str(self):
         return self.methods_and_params_page_instance.get_modified_meta_f_str()
@@ -124,91 +129,227 @@ class MetaAnalysisWizard(QtGui.QWizard):
         return self.cond_means_pg.get_meta_reg_cond_means_data()
 
     def nextId(self):
+        next_id = self.next_page(self.currentId())
+        return next_id
+            
+    def next_page(self, page_id):
+        ''' helper method for nextId '''
         if self.mode==SUBGROUP_MODE:
             # this is redundant but it makes the path easier to understand
-            if self.currentId() == Page_ChooseEffectSize:
+            if page_id == Page_ChooseEffectSize:
                 return Page_DataLocation
-            elif self.currentId() == Page_DataLocation:
+            elif page_id == Page_DataLocation:
                 return Page_RefineStudies
-            elif self.currentId() == Page_RefineStudies:
+            elif page_id == Page_RefineStudies:
                 return Page_SubgroupVariable
-            elif self.currentId() == Page_SubgroupVariable:  #
+            elif page_id == Page_SubgroupVariable:  #
                 return Page_MethodsAndParameters             #
-            elif self.currentId() == Page_MethodsAndParameters:
+            elif page_id == Page_MethodsAndParameters:
+                return Page_Summary
+            elif page_id == Page_Summary:
                 return -1
         elif self.mode == META_REG_MODE:
-            if self.currentId() == Page_ChooseEffectSize:
+            if page_id == Page_ChooseEffectSize:
                 return Page_DataLocation
-            elif self.currentId() == Page_DataLocation:
+            elif page_id == Page_DataLocation:
                 return Page_RefineStudies
-            elif self.currentId() == Page_RefineStudies:
+            elif page_id == Page_RefineStudies:
                 return Page_SelectCovariates
-            elif self.currentId() == Page_SelectCovariates:
-                #if self.categorical_covariates_selected():
-                #    return Page_ReferenceValues
-                #else:
-                #    return -1
-                return Page_ReferenceValues
-            elif self.currentId() == Page_ReferenceValues:
+            elif page_id == Page_SelectCovariates:
+                if self.categorical_covariates_selected():
+                    return Page_ReferenceValues
+                else:
+                    return Page_Summary
+            elif page_id == Page_ReferenceValues:
+                return Page_Summary
+            elif page_id == Page_Summary:
                 return -1
         elif self.mode == META_REG_COND_MEANS:
-            if self.currentId() == Page_ChooseEffectSize:
+            if page_id == Page_ChooseEffectSize:
                 return Page_DataLocation
-            elif self.currentId() == Page_DataLocation:
+            elif page_id == Page_DataLocation:
                 return Page_RefineStudies
-            elif self.currentId() == Page_RefineStudies:
+            elif page_id == Page_RefineStudies:
                 return Page_SelectCovariates
-            elif self.currentId() == Page_SelectCovariates:
+            elif page_id == Page_SelectCovariates:
                 return Page_CondMeans
-            elif self.currentId() == Page_CondMeans:
+            elif page_id == Page_CondMeans:
+                return Page_Summary
+            elif page_id == Page_Summary:
                 return -1
         elif self.mode == BOOTSTRAP_MA:
-            if self.currentId() == Page_ChooseEffectSize:
+            if page_id == Page_ChooseEffectSize:
                 return Page_DataLocation
-            elif self.currentId() == Page_DataLocation:
+            elif page_id == Page_DataLocation:
                 return Page_RefineStudies
-            elif self.currentId() == Page_RefineStudies:
+            elif page_id == Page_RefineStudies:
                 return Page_MethodsAndParameters
-            elif self.currentId() == Page_MethodsAndParameters:
+            elif page_id == Page_MethodsAndParameters:
                 return Page_Bootstrap
-            elif self.currentId() == Page_Bootstrap:
+            elif page_id == Page_Bootstrap:
+                return Page_Summary
+            elif page_id == Page_Summary:
                 return -1
         elif self.mode == BOOTSTRAP_META_REG:
-            if self.currentId() == Page_ChooseEffectSize:
+            if page_id == Page_ChooseEffectSize:
                 return Page_DataLocation
-            elif self.currentId() == Page_DataLocation:
+            elif page_id == Page_DataLocation:
                 return Page_RefineStudies
-            elif self.currentId() == Page_RefineStudies:
+            elif page_id == Page_RefineStudies:
                 return Page_SelectCovariates
-            elif self.currentId() == Page_SelectCovariates:
-                return Page_ReferenceValues
-            elif self.currentId() == Page_ReferenceValues:
+            elif page_id == Page_SelectCovariates:
+                if self.categorical_covariates_selected():
+                    return Page_ReferenceValues
+                else:
+                    return Page_Bootstrap
+            elif page_id == Page_ReferenceValues:
                 return Page_Bootstrap
-            elif self.currentId() == Page_Bootstrap:
+            elif page_id == Page_Bootstrap:
+                return Page_Summary
+            elif page_id == Page_Summary:
                 return -1
         elif self.mode == BOOTSTRAP_META_REG_COND_MEANS:
-            if self.currentId() == Page_ChooseEffectSize:
+            if page_id == Page_ChooseEffectSize:
                 return Page_DataLocation
-            elif self.currentId() == Page_DataLocation:
+            elif page_id == Page_DataLocation:
                 return Page_RefineStudies
-            elif self.currentId() == Page_RefineStudies:
+            elif page_id == Page_RefineStudies:
                 return Page_SelectCovariates
-            elif self.currentId() == Page_SelectCovariates:
+            elif page_id == Page_SelectCovariates:
                 return Page_CondMeans
-            elif self.currentId() == Page_CondMeans:
+            elif page_id == Page_CondMeans:
                 return Page_Bootstrap
-            elif self.currentId() == Page_Bootstrap:
+            elif page_id == Page_Bootstrap:
+                return Page_Summary
+            elif page_id == Page_Summary:
                 return -1
         else: # default vanilla meta-analysis case
-            if self.currentId() == Page_ChooseEffectSize:
+            if page_id == Page_ChooseEffectSize:
                 return Page_DataLocation
-            elif self.currentId() == Page_DataLocation:
+            elif page_id == Page_DataLocation:
                 return Page_RefineStudies
-            elif self.currentId() == Page_RefineStudies:
+            elif page_id == Page_RefineStudies:
                 return Page_MethodsAndParameters
-            elif self.currentId() == Page_MethodsAndParameters:
+            elif page_id == Page_MethodsAndParameters:
+                return Page_Summary
+            elif page_id == Page_Summary:
                 return -1
+            
+    def get_summary(self):
+        ''' Make a summary string to show the user at the end of the wizard summarizing most of the user selections '''
+        # This code is very similiar to that appearing in the meta_analysis() and meta_regression() functions of main_form
+        # so be sure that the two are kept synchronized
         
+        summary = ""
+        summary_fields_in_order = ['Data Type', 'Metric', 'Data Location',
+                                   'Included Studies','Chosen Method',
+                                   'Subgroup Variable', 'Included Covariates',
+                                   'Fixed Effects or Random Effects',
+                                   'Confidence Level', 'Covariate Reference Values',
+                                   'Conditional Means Selections',
+                                   '# Bootstrap Replicates']
+        # initialize dict with values set to None
+        fields_to_values = dict(zip(summary_fields_in_order,[None]*len(summary_fields_in_order)))
+       
+        
+        data_type = self.selected_data_type
+        metric = self.selected_metric
+        data_location = self.data_location
+        included_studies = self.get_included_studies_in_proper_order()
+        
+        # Convert to strings:
+        fields_to_values['Data Type']     = DATA_TYPE_TEXT[data_type]
+        fields_to_values['Metric']        = METRIC_TEXT[metric]
+        fields_to_values['Data Location'] = self._get_data_location_string(data_location)
+        fields_to_values['Included Studies'] = self._get_labels_string(included_studies)
+        
+        if self.mode in META_ANALYSIS_MODES:
+            meta_f_str = self.get_modified_meta_f_str()
+            current_param_vals = self.get_plot_params()
+            chosen_method = self.get_current_method()
+            subgroup_variable = self.get_subgroup_variable()
+            if self.mode==BOOTSTRAP_MA:
+                current_param_vals.update(self.get_bootstrap_params())
+                bootstrap_params = self.get_bootstrap_params()
+                
+            # convert to strings
+            fields_to_values['Chosen Method'] = self.get_current_method_pretty_name()
+            fields_to_values['Subgroup Variable'] = subgroup_variable.get_label() if subgroup_variable else None
+            fields_to_values['# Bootstrap Replicates'] = str(bootstrap_params['num.bootstrap.replicates']) if self.mode == BOOTSTRAP_MA else None
+            
+        elif self.mode in META_REG_MODES:
+            included_covariates = self.get_included_covariates()
+            fixed_effects = self.using_fixed_effects()
+            conf_level = self.get_confidence_level()
+            cov_2_ref_values = self.cov_2_ref_values if len(self.cov_2_ref_values) > 0 else None
+            if self.mode in [META_REG_COND_MEANS, BOOTSTRAP_META_REG_COND_MEANS]:
+                selected_cov, covs_to_values = self.get_meta_reg_cond_means_info()
+            else:
+                selected_cov, covs_to_values = None, None
+            bootstrap_params = self.get_bootstrap_params() if self.mode in [BOOTSTRAP_META_REG, BOOTSTRAP_META_REG_COND_MEANS] else {}
+    
+            fields_to_values['# Bootstrap Replicates'] = str(bootstrap_params['num.bootstrap.replicates']) if self.mode in [BOOTSTRAP_META_REG, BOOTSTRAP_META_REG_COND_MEANS] else None
+            fields_to_values['Included Covariates'] = self._get_labels_string(included_covariates)
+            fields_to_values['Fixed Effects or Random Effects'] = "Fixed Effects" if fixed_effects else "Random Effects"
+            fields_to_values['Confidence Level'] = str(conf_level) + "%"
+            fields_to_values['Covariate Reference Values'] = self._get_covariate_ref_values_string(cov_2_ref_values) if cov_2_ref_values else None
+            fields_to_values['Conditional Means Selections'] = self._get_conditional_means_selections_str(selected_cov, covs_to_values)
+        
+        lines = []
+        for field_name in summary_fields_in_order:
+            if field_name not in fields_to_values:
+                continue
+            value = fields_to_values[field_name]
+            if value:
+                lines.append("".join([field_name,": ",value]))
+        summary = "\n\n".join(lines)
+        return summary
+            
+            
+    def _get_data_location_string(self, data_location):
+        ''' helper for summary '''
+        
+        get_column_name_for_key = lambda key: self.model.get_variable_assigned_to_column(data_location[key]).get_label()
+        get_substr_for_key = lambda key: "\n  " + key.replace('_',' ') + ": " + get_column_name_for_key(key)
+        
+        sorted_keys = sorted(data_location.keys())
+        data_location_str = ""
+        for key in sorted_keys:
+            if key in ['effect_size','variance']:
+                continue
+            if data_location[key] == None: # skip if no column assigned
+                continue
+            data_location_str += get_substr_for_key(key)
+        if 'effect_size' in sorted_keys:
+            data_location_str += get_substr_for_key('effect_size')
+        if 'variance' in sorted_keys:
+            data_location_str += get_substr_for_key('variance')
+        return data_location_str
+    
+    def _get_labels_string(self, included_studies):
+        ''' helper for summary ''' # using it for covariates too, don't worry that things are called 'study', just using it for polymorphism with things that have a get_label() method
+        
+        included_studies_str = "\n"
+        study_lines  = ["  " + study.get_label() for study in included_studies]
+        included_studies_str += "\n".join(study_lines)
+        return included_studies_str
+    
+    def _get_covariate_ref_values_string(self, covariate_ref_values):
+        strings = ["".join(["  ",cov.get_label(),': ',str(covariate_ref_values[cov])]) for cov in sorted(covariate_ref_values.keys())]
+        ref_val_string = "\n" + "\n".join(strings)
+        return ref_val_string
+    
+    def _get_conditional_means_selections_str(self, selected_cov, covs_to_values):
+        if (selected_cov, covs_to_values) == (None, None):
+            return None
+        
+        cond_means_str = "\n  Selected Covariate: %s\n  Values for other covariates:" % selected_cov.get_label()
+        
+        for cov in sorted(covs_to_values.keys(), key=lambda cov: cov.get_label()):
+            cond_means_str += "\n    " + cov.get_label() + ": " + str(covs_to_values[cov])
+        return cond_means_str
+         
+            
 
 if __name__ == '__main__':
     import sys

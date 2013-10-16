@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'bootstrap_page.ui'
 #
-# Created: Fri Sep 27 15:46:35 2013
+# Created: Wed Oct 16 14:56:05 2013
 #      by: PyQt4 UI code generator 4.10.2
 #
 # WARNING! All changes made in this file will be lost!
@@ -26,9 +26,9 @@ except AttributeError:
 class Ui_BootstrapPage(object):
     def setupUi(self, BootstrapPage):
         BootstrapPage.setObjectName(_fromUtf8("BootstrapPage"))
-        BootstrapPage.resize(392, 304)
-        self.verticalLayout = QtGui.QVBoxLayout(BootstrapPage)
-        self.verticalLayout.setObjectName(_fromUtf8("verticalLayout"))
+        BootstrapPage.resize(371, 293)
+        self.verticalLayout_2 = QtGui.QVBoxLayout(BootstrapPage)
+        self.verticalLayout_2.setObjectName(_fromUtf8("verticalLayout_2"))
         self.horizontalLayout = QtGui.QHBoxLayout()
         self.horizontalLayout.setObjectName(_fromUtf8("horizontalLayout"))
         self.label = QtGui.QLabel(BootstrapPage)
@@ -40,7 +40,7 @@ class Ui_BootstrapPage(object):
         self.replicates_spinBox.setProperty("value", 1000)
         self.replicates_spinBox.setObjectName(_fromUtf8("replicates_spinBox"))
         self.horizontalLayout.addWidget(self.replicates_spinBox)
-        self.verticalLayout.addLayout(self.horizontalLayout)
+        self.verticalLayout_2.addLayout(self.horizontalLayout)
         self.horizontalLayout_2 = QtGui.QHBoxLayout()
         self.horizontalLayout_2.setObjectName(_fromUtf8("horizontalLayout_2"))
         self.label_2 = QtGui.QLabel(BootstrapPage)
@@ -49,7 +49,7 @@ class Ui_BootstrapPage(object):
         self.plot_path_le = QtGui.QLineEdit(BootstrapPage)
         self.plot_path_le.setObjectName(_fromUtf8("plot_path_le"))
         self.horizontalLayout_2.addWidget(self.plot_path_le)
-        self.verticalLayout.addLayout(self.horizontalLayout_2)
+        self.verticalLayout_2.addLayout(self.horizontalLayout_2)
         self.horizontalLayout_3 = QtGui.QHBoxLayout()
         self.horizontalLayout_3.setObjectName(_fromUtf8("horizontalLayout_3"))
         self.label_3 = QtGui.QLabel(BootstrapPage)
@@ -58,7 +58,7 @@ class Ui_BootstrapPage(object):
         self.plot_title_le = QtGui.QLineEdit(BootstrapPage)
         self.plot_title_le.setObjectName(_fromUtf8("plot_title_le"))
         self.horizontalLayout_3.addWidget(self.plot_title_le)
-        self.verticalLayout.addLayout(self.horizontalLayout_3)
+        self.verticalLayout_2.addLayout(self.horizontalLayout_3)
         self.horizontalLayout_4 = QtGui.QHBoxLayout()
         self.horizontalLayout_4.setObjectName(_fromUtf8("horizontalLayout_4"))
         self.label_4 = QtGui.QLabel(BootstrapPage)
@@ -67,9 +67,9 @@ class Ui_BootstrapPage(object):
         self.xlab_le = QtGui.QLineEdit(BootstrapPage)
         self.xlab_le.setObjectName(_fromUtf8("xlab_le"))
         self.horizontalLayout_4.addWidget(self.xlab_le)
-        self.verticalLayout.addLayout(self.horizontalLayout_4)
-        spacerItem = QtGui.QSpacerItem(20, 142, QtGui.QSizePolicy.Minimum, QtGui.QSizePolicy.Expanding)
-        self.verticalLayout.addItem(spacerItem)
+        self.verticalLayout_2.addLayout(self.horizontalLayout_4)
+        spacerItem = QtGui.QSpacerItem(20, 131, QtGui.QSizePolicy.Minimum, QtGui.QSizePolicy.Expanding)
+        self.verticalLayout_2.addItem(spacerItem)
 
         self.retranslateUi(BootstrapPage)
         QtCore.QMetaObject.connectSlotsByName(BootstrapPage)
@@ -82,7 +82,7 @@ class Ui_BootstrapPage(object):
         self.label_2.setText(_translate("BootstrapPage", "Plot Path:", None))
         self.plot_path_le.setText(_translate("BootstrapPage", "./r_tmp/bootstrap.png", None))
         self.label_3.setText(_translate("BootstrapPage", "Plot Title:", None))
-        self.plot_title_le.setText(_translate("BootstrapPage", "Histograms are Fun!", None))
+        self.plot_title_le.setText(_translate("BootstrapPage", "Bootstrap Histogram", None))
         self.label_4.setText(_translate("BootstrapPage", "horizontal label:", None))
         self.xlab_le.setText(_translate("BootstrapPage", "Effect Size", None))
 

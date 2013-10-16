@@ -74,7 +74,7 @@
      <item>
       <widget class="QLineEdit" name="plot_title_le">
        <property name="text">
-        <string>Histograms are Fun!</string>
+        <string>Bootstrap Histogram</string>
        </property>
       </widget>
      </item>
