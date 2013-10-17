@@ -2,8 +2,8 @@
 
 # Form implementation generated from reading ui file 'running.ui'
 #
-# Created: Wed Apr 17 14:37:20 2013
-#      by: PyQt4 UI code generator 4.10
+# Created: Thu Oct 17 10:51:01 2013
+#      by: PyQt4 UI code generator 4.10.2
 #
 # WARNING! All changes made in this file will be lost!
 
@@ -27,7 +27,7 @@ class Ui_running(object):
     def setupUi(self, running):
         running.setObjectName(_fromUtf8("running"))
         running.setWindowModality(QtCore.Qt.ApplicationModal)
-        running.resize(373, 70)
+        running.resize(394, 64)
         font = QtGui.QFont()
         font.setFamily(_fromUtf8("Verdana"))
         running.setFont(font)
@@ -38,6 +38,9 @@ class Ui_running(object):
         running.setModal(True)
         self.verticalLayout = QtGui.QVBoxLayout(running)
         self.verticalLayout.setObjectName(_fromUtf8("verticalLayout"))
+        self.label = QtGui.QLabel(running)
+        self.label.setObjectName(_fromUtf8("label"))
+        self.verticalLayout.addWidget(self.label)
         self.progress_bar = QtGui.QProgressBar(running)
         self.progress_bar.setMaximum(0)
         self.progress_bar.setProperty("value", -1)
@@ -50,5 +53,6 @@ class Ui_running(object):
 
     def retranslateUi(self, running):
         running.setWindowTitle(_translate("running", "running analysis...", None))
+        self.label.setText(_translate("running", "Reticulating splines....", None))
 
 import icons_rc

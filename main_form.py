@@ -633,6 +633,9 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
                             selected_cov = None, covs_to_values = None,
                             mode=META_REG_MODE,
                             bootstrap_params={}):
+        if mode in [BOOTSTRAP_META_REG, BOOTSTRAP_META_REG_COND_MEANS]:
+            bar = MetaProgress("Running Bootstrapped Meta regression. It can take some time. Patience...")
+        bar.show()
         
         if OMA_CONVENTION[data_type] == "binary":
             python_to_R.dataset_to_simple_binary_robj(model=self.model,
@@ -665,6 +668,8 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
                                                      fixed_effects=fixed_effects,
                                                      conf_level=conf_level,
                                                      selected_cov=selected_cov, covs_to_values = covs_to_values)
+            
+        bar.hide()
         self.analysis(result)
         
         
@@ -673,7 +678,7 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
                current_param_vals, chosen_method, meta_f_str, covs_to_include=[]):
         ###
         # first, let's fire up a progress bar
-        bar = MetaProgress(self)
+        bar = MetaProgress()
         bar.show()
         result = None
         
@@ -1624,9 +1629,12 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
 import ui_running
 class MetaProgress(QDialog, ui_running.Ui_running):
     
-    def __init__(self, parent=None):
+    def __init__(self, msg=None, parent=None):
         super(MetaProgress, self).__init__(parent)
         self.setupUi(self)
+        
+        if msg:
+            self.label.setText(msg)
 
 
 

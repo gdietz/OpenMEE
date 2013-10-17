@@ -9,8 +9,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>373</width>
-    <height>70</height>
+    <width>394</width>
+    <height>64</height>
    </rect>
   </property>
   <property name="font">
@@ -33,6 +33,13 @@
   </property>
   <layout class="QVBoxLayout" name="verticalLayout">
    <item>
+    <widget class="QLabel" name="label">
+     <property name="text">
+      <string>Reticulating splines....</string>
+     </property>
+    </widget>
+   </item>
+   <item>
     <widget class="QProgressBar" name="progress_bar">
      <property name="maximum">
       <number>0</number>
@@ -48,7 +55,7 @@
   </layout>
  </widget>
  <resources>
-  <include location="images/icons.qrc"/>
+  <include location="icons.qrc"/>
  </resources>
  <connections/>
 </ui>
