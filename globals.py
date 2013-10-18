@@ -14,7 +14,7 @@ DEBUG_MODE = True           # mostly for printing debugging message to terminal
 SHOW_UNDO_VIEW = False
 SHOW_PSEUDO_CONSOLE_IN_RESULTS_WINDOW = False
 SOUND_EFFECTS = True
-MAKE_TESTS = True
+MAKE_TESTS = False
 ###### END SWITCHES ######
 
 from PyQt4 import QtCore, QtGui
