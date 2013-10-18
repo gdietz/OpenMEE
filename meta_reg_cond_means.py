@@ -19,7 +19,7 @@ class CondMeansPage(QWizardPage, ui_meta_reg_cond_means.Ui_WizardPage):
         self.setupUi(self)
         
         self.model = model
-
+        self.cov_value_settings = {}
 
         # map cov --> values set by user
         self.default_selected_cov, self.default_cov_value_settings = self.model.get_previous_selected_cov_and_covs_to_values()
@@ -41,11 +41,12 @@ class CondMeansPage(QWizardPage, ui_meta_reg_cond_means.Ui_WizardPage):
         self.included_studies = self.wizard().get_included_studies_in_proper_order()
         
         # initialize cov value settings from previous analysis if any
-        if self.default_cov_value_settings is None:
-            self.cov_value_settings = {}
-        else:
+        
+        if self.default_cov_value_settings:
             for cov, value in self.default_cov_value_settings.iteritems():
                 cov_type = cov.get_type()
+                if cov not in included_covariates:
+                    continue
                 if cov_type in [CONTINUOUS,COUNT]:
                     self.cov_value_settings[cov]=value
                 elif cov_type == CATEGORICAL:

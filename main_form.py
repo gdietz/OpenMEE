@@ -562,7 +562,10 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
                             meta_f_str,
                             covs_to_include=covs_to_include)
             except CrazyRError as e:
+                if SOUND_EFFECTS:
+                    silly.play()
                 QMessageBox.critical(self, "Oops", str(e))
+
 
     def cum_ma(self):
         self.meta_analysis(meta_f_str="cum.ma", mode=CUM_MODE)
@@ -623,7 +626,10 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
                                          mode=mode,
                                          bootstrap_params=bootstrap_params) # for bootstrapping
             except CrazyRError as e:
+                if SOUND_EFFECTS:
+                    silly.play()
                 QMessageBox.critical(self, "Oops", str(e))
+
                 
   
     def run_meta_regression(self, metric, data_type, included_studies,
@@ -635,10 +641,12 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
                             bootstrap_params={}):
         if mode in [BOOTSTRAP_META_REG, BOOTSTRAP_META_REG_COND_MEANS]:
             bar = MetaProgress("Running Bootstrapped Meta regression. It can take some time. Patience...")
+        else:
+            bar = MetaProgress()
         bar.show()
         
         if OMA_CONVENTION[data_type] == "binary":
-            python_to_R.dataset_to_simple_binary_robj(model=self.model,
+            make_dataset_r_str = python_to_R.dataset_to_simple_binary_robj(model=self.model,
                                                       included_studies=included_studies,
                                                       data_location=data_location,
                                                       covs_to_include=covs_to_include,
@@ -652,24 +660,41 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
                                               covs_to_include=covs_to_include,
                                               covariate_reference_values=covariate_reference_values)
             if metric != GENERIC_EFFECT:
-                make_r_object()
+                make_dataset_r_str = make_r_object()
             else:
-                make_r_object(generic_effect=True)
-        
-        if mode in [BOOTSTRAP_MA, BOOTSTRAP_META_REG, BOOTSTRAP_META_REG_COND_MEANS]:
-            result = python_to_R.run_bootstrap_meta_regression(metric=metric,
-                                                               fixed_effects=fixed_effects,
-                                                               conf_level=conf_level,
-                                                               selected_cov=selected_cov, covs_to_values = covs_to_values,
-                                                               data_type=OMA_CONVENTION[data_type],
-                                                               bootstrap_params = bootstrap_params)
-        else:
-            result = python_to_R.run_meta_regression(metric=metric,
-                                                     fixed_effects=fixed_effects,
-                                                     conf_level=conf_level,
-                                                     selected_cov=selected_cov, covs_to_values = covs_to_values)
+                make_dataset_r_str = make_r_object(generic_effect=True)
+                
+        try:
+            if mode in [BOOTSTRAP_META_REG, BOOTSTRAP_META_REG_COND_MEANS]:
+                result = python_to_R.run_bootstrap_meta_regression(metric=metric,
+                                                                   fixed_effects=fixed_effects,
+                                                                   conf_level=conf_level,
+                                                                   selected_cov=selected_cov, covs_to_values = covs_to_values,
+                                                                   data_type=OMA_CONVENTION[data_type],
+                                                                   bootstrap_params = bootstrap_params)
+                if MAKE_TESTS:
+                    self._writeout_test_parameters("python_to_R.run_bootstrap_meta_regression", make_dataset_r_str, result,
+                                                    metric=metric,
+                                                    fixed_effects=fixed_effects,
+                                                    conf_level=conf_level,
+                                                    selected_cov=self._selected_cov_to_select_col(selected_cov), covs_to_values = self._covs_to_values_to_cols_to_values(covs_to_values),
+                                                    data_type=OMA_CONVENTION[data_type],
+                                                    bootstrap_params = bootstrap_params)
+
+            else:
+                result = python_to_R.run_meta_regression(metric=metric,
+                                                         fixed_effects=fixed_effects,
+                                                         conf_level=conf_level,
+                                                         selected_cov=selected_cov, covs_to_values = covs_to_values)
+                if MAKE_TESTS:
+                    self._writeout_test_parameters("python_to_R.run_meta_regression", make_dataset_r_str, result,
+                                                    metric=metric,
+                                                    fixed_effects=fixed_effects,
+                                                    conf_level=conf_level,
+                                                    selected_cov=self._selected_cov_to_select_col(selected_cov), covs_to_values = self._covs_to_values_to_cols_to_values(covs_to_values),)
             
-        bar.hide()
+        finally:
+            bar.hide()
         self.analysis(result)
         
         
@@ -687,39 +712,65 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
         # -- this is for scaling
         current_param_vals["measure"] = METRIC_TO_ESCALC_MEASURE[metric]
     
-        
-        # dispatch on type; build an R object, then run the analysis
-        if OMA_CONVENTION[data_type] == "binary":
-            # note that this call creates a tmp object in R called
-            # tmp_obj (though you can pass in whatever var name
-            # you'd like)
-            python_to_R.dataset_to_simple_binary_robj(model=self.model,
-                                                      included_studies=included_studies,
-                                                      data_location=data_location,
-                                                      covs_to_include=covs_to_include)
-            if meta_f_str is None:
-                result = python_to_R.run_binary_ma(chosen_method, current_param_vals)
-                #pass
-            else:
-                result = python_to_R.run_meta_method(meta_f_str, chosen_method, current_param_vals)
-                
-            #_writeout_test_data(meta_f_str, self.current_method, current_param_vals, result) # FOR MAKING TESTS
-        elif OMA_CONVENTION[data_type] == "continuous":
-            python_to_R.dataset_to_simple_continuous_robj(model=self.model,
+        try:
+            # dispatch on type; build an R object, then run the analysis
+            if OMA_CONVENTION[data_type] == "binary":
+                # note that this call creates a tmp object in R called
+                # tmp_obj (though you can pass in whatever var name
+                # you'd like)
+                make_dataset_r_str = python_to_R.dataset_to_simple_binary_robj(model=self.model,
                                                           included_studies=included_studies,
                                                           data_location=data_location,
-                                                          data_type=data_type, 
                                                           covs_to_include=covs_to_include)
-            if meta_f_str is None:
-                # run standard meta-analysis
-                result = python_to_R.run_continuous_ma(chosen_method, current_param_vals)
-            else:
-                # get meta!
-                result = python_to_R.run_meta_method(meta_f_str, chosen_method, current_param_vals)
-            
-            #_writeout_test_data(meta_f_str, self.current_method, current_param_vals, result) # FOR MAKING TESTS
-
-        bar.hide()
+                if meta_f_str is None:
+                    result = python_to_R.run_binary_ma(function_name=chosen_method,
+                                                       params=current_param_vals)
+                    # for making tests
+                    if MAKE_TESTS:
+                        self._writeout_test_parameters("python_to_R.run_binary_ma", make_dataset_r_str, result,
+                                                        function_name=chosen_method,
+                                                        params=current_param_vals)
+                else:
+                    result = python_to_R.run_meta_method(meta_function_name = meta_f_str,
+                                                         function_name = chosen_method,
+                                                         params = current_param_vals)
+                    if MAKE_TESTS:
+                        self._writeout_test_parameters("python_to_R.run_meta_method", make_dataset_r_str, result,
+                                                    meta_function_name = meta_f_str,
+                                                    function_name = chosen_method,
+                                                    params = current_param_vals)
+                    
+                #_writeout_test_data(meta_f_str, self.current_method, current_param_vals, result) # FOR MAKING TESTS
+                #self._writeout_test_parameters(function_name, make_dataset_in_r_str="", **parameter_args):
+                
+            elif OMA_CONVENTION[data_type] == "continuous":
+                make_dataset_r_str = python_to_R.dataset_to_simple_continuous_robj(model=self.model,
+                                                              included_studies=included_studies,
+                                                              data_location=data_location,
+                                                              data_type=data_type, 
+                                                              covs_to_include=covs_to_include)
+                if meta_f_str is None:
+                    # run standard meta-analysis
+                    result = python_to_R.run_continuous_ma(function_name = chosen_method,
+                                                           params = current_param_vals)
+                    if MAKE_TESTS:
+                        self._writeout_test_parameters("python_to_R.run_continuous_ma", make_dataset_r_str, result,
+                                                    function_name = chosen_method,
+                                                    params = current_param_vals)
+                else:
+                    # get meta!
+                    result = python_to_R.run_meta_method(meta_function_name = meta_f_str,
+                                                         function_name = chosen_method,
+                                                         params = current_param_vals)
+                    if MAKE_TESTS:
+                        self._writeout_test_parameters("python_to_R.run_meta_method", make_dataset_r_str, result,
+                                                    meta_function_name = meta_f_str,
+                                                         function_name = chosen_method,
+                                                         params = current_param_vals)
+                
+                #_writeout_test_data(meta_f_str, self.current_method, current_param_vals, result) # FOR MAKING TESTS
+        finally:
+            bar.hide()
 
         # update the user_preferences object for the selected method
         # with the values selected for this run
@@ -1623,6 +1674,55 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
         form = csv_export_dlg.CSVExportDialog(model=self.model, filepath=self.outpath, parent=self)
         
         form.exec_()
+
+            
+    def _writeout_test_parameters(self, fnc_name, make_dataset_in_r_str="", results=None, **parameter_args):
+        with open ('test_data.txt', 'a') as f:
+            f.write("Test Data:\n")
+            f.write("  Function name: '%s'\n" % fnc_name)
+            f.write("  Make Dataset in R r_str: %s\n" % make_dataset_in_r_str)
+            f.write("  Results: %s\n" % str(results))
+            for param_name, value in parameter_args.iteritems():
+                if type(value)==str:
+                    value = "'%s'" % value
+                f.write("  %s=%s\n" % (param_name, value))
+            f.write("\n")
+            
+            # Write the data to the disk for sure
+            f.flush()
+            os.fsync(f)
+            
+    def _covs_to_values_to_cols_to_values(self, covs_to_values_or_cols_to_values, reverse=False):
+        ''' Convert covs_to_values to cols_to_values in order to reproducibly store data for testing
+        If reverse is true the conversion happens in the opposite direction '''
+        
+        get_col = self.model.get_column_assigned_to_variable
+        get_var = self.model.get_variable_assigned_to_column
+        
+        if covs_to_values_or_cols_to_values is None:
+            return None
+        
+        if not reverse:
+            covs_to_values = covs_to_values_or_cols_to_values
+            cols_to_values = dict([(get_col(cov), value) for cov, value in covs_to_values.items()])
+            return cols_to_values
+        else:
+            cols_to_values = covs_to_values_or_cols_to_values
+            covs_to_values = dict([(get_var(col),value) for col,value in cols_to_values.items()])
+            return covs_to_values
+    
+    def _selected_cov_to_select_col(self, cov_or_col, reverse=False):
+        ''' Converts selected covariate to a column if reverse is not True,
+        else convert selected col to covariate '''
+        
+        if cov_or_col is None:
+            return None
+        
+        if not reverse:
+            return self.model.get_column_assigned_to_variable(cov_or_col)
+        else:
+            return self.model.get_variable_assigned_to_column(cov_or_col)
+            
     
 
 # simple progress bar

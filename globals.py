@@ -13,6 +13,8 @@ import cProfile
 DEBUG_MODE = True           # mostly for printing debugging message to terminal
 SHOW_UNDO_VIEW = False
 SHOW_PSEUDO_CONSOLE_IN_RESULTS_WINDOW = False
+SOUND_EFFECTS = True
+MAKE_TESTS = True
 ###### END SWITCHES ######
 
 from PyQt4 import QtCore, QtGui
@@ -403,3 +405,7 @@ def switch(value, *args, **kw):
         #print("inspecting r object time")
         #pyqtRemoveInputHook()
         #import pdb; pdb.set_trace()
+        
+# Sound effects
+moment = QSound("sounds/moment.wav")
+silly = QSound("sounds/silly.wav")

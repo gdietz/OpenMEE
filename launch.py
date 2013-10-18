@@ -47,6 +47,7 @@ def start():
     splash.raise_()
     splash_starttime = time.time()
     
+    
     load_R_libraries(app, splash)
     
     # Show splash screen for at least SPLASH_DISPLAY_TIME seconds
