@@ -1735,6 +1735,9 @@ class MetaProgress(QDialog, ui_running.Ui_running):
         
         if msg:
             self.label.setText(msg)
+            
+    def setText(self, msg):
+        self.label.setText(msg)
 
 
 

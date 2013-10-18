@@ -18,7 +18,7 @@ print("Importing meta_py_r")
 import python_to_R
 
 app,form = None, None
-
+bar = None
 
 
 def setup_module(module):
@@ -26,7 +26,7 @@ def setup_module(module):
     
     SPLASH_DISPLAY_TIME = 0
     
-    global app, form
+    global app, form, bar
     
     app = QtGui.QApplication(sys.argv)
     
@@ -56,8 +56,12 @@ def setup_module(module):
     fullpath = os.path.join(os.getcwd(),"sample_data", "test_dataset.ome")
     form.open(fullpath)
     app.processEvents() #show the data
+    
+    bar = main_form.MetaProgress("Running self-tests")
+    bar.show()
 
 def teardown_module():
+    bar.hide()
     QApplication.quit()
     
 def test_dummy():
@@ -177,6 +181,8 @@ def test_generator():
     for datum in non_deterministic_test_data:
         check_analysis.description = datum['test_name']
         yield check_analysis, datum, True
+        
+    
 
 
 def check_analysis(test_data, check_images=False):
@@ -184,6 +190,9 @@ def check_analysis(test_data, check_images=False):
     fnc_to_evaluate = test_data['fnc_to_evaluate']
     make_dataset_r_str = test_data['make_dataset_r_str']
     results = test_data['results']
+    
+    bar.setText("Running test: %s" % test_name)
+    QApplication.processEvents()
     
     # make function parameters dict
     function_params_dict = {}
