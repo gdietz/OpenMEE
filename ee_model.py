@@ -172,6 +172,8 @@ class EETableModel(QAbstractTableModel):
 
 
     def add_vars_to_col_group(self, col_group, keys_to_vars):
+        assert col_group is not None
+        
         for key,var in keys_to_vars.items():
             col_group.set_var_with_key(key, var)
 
@@ -296,6 +298,20 @@ class EETableModel(QAbstractTableModel):
     
     def get_count_columns(self):
         return self._get_columns_of_type(COUNT)
+    
+    def get_trans_effect_columns(self): # of type TRANS_EFFECT
+        continuous_columns = self._get_columns_of_type(CONTINUOUS)
+        is_effect_col = lambda col: self.get_variable_assigned_to_column(col).get_subtype()==TRANS_EFFECT
+        trans_eff_columns = [col for col in continuous_columns if is_effect_col(col)]
+        return trans_eff_columns
+    
+    def get_trans_var_columns(self): # of type TRANS_VAR
+        continuous_columns = self._get_columns_of_type(CONTINUOUS)
+        is_trans_var_col = lambda col: self.get_variable_assigned_to_column(col).get_subtype()==TRANS_VAR
+        trans_var_columns = [col for col in continuous_columns if is_trans_var_col(col)]
+        return trans_var_columns
+        
+    ##########################################################################
     
     def _get_columns_of_type(self, var_type):
         ''' returns a list of column indices with variables of the desired type '''
@@ -1137,15 +1153,21 @@ class EETableModel(QAbstractTableModel):
             
         
     
-    def add_effect_sizes_to_model(self, metric, effect_sizes):
+    def add_effect_sizes_to_model(self, metric, effect_sizes, cols_to_overwrite=None):
     
         studies = self.get_studies_in_current_order()
-        last_occupied_col = sorted(self.cols_2_vars.keys(), reverse=True)[0]
-        yi_col = last_occupied_col+1
-        vi_col = yi_col+1
+        if not bool(cols_to_overwrite):
+            last_occupied_col = sorted(self.cols_2_vars.keys(), reverse=True)[0]
+            yi_col = last_occupied_col+1
+            vi_col = yi_col+1
+        else:
+            yi_col = cols_to_overwrite[TRANS_EFFECT]
+            vi_col = cols_to_overwrite[TRANS_VAR]
         
-    
-        self.undo_stack.beginMacro(QString("Adding effect size to spreadsheet"))
+        if not bool(cols_to_overwrite):
+            self.undo_stack.beginMacro(QString("Adding effect size to spreadsheet"))
+        else:
+            self.undo_stack.beginMacro(QString("Adding effect size to spreadsheet (overwriting existing columns)"))
         
         
         def emit_change_signals():
@@ -1155,17 +1177,19 @@ class EETableModel(QAbstractTableModel):
                                       undo_fn=emit_change_signals)
         self.undo_stack.push(start_cmd)
         ##################################################################
-        # Make new variables to hold the effect size calculations
-        add_vi_cmd = MakeNewVariableCommand(model=self,
-                                            var_name=METRIC_TEXT_SHORT[metric],
-                                            col=yi_col,
-                                            var_type=CONTINUOUS)
-        add_yi_cmd = MakeNewVariableCommand(model=self,
-                                            var_name="Var(%s)" % METRIC_TEXT_SHORT[metric],
-                                            col=vi_col,
-                                            var_type=CONTINUOUS)
-        self.undo_stack.push(add_vi_cmd)
-        self.undo_stack.push(add_yi_cmd)
+        if not bool(cols_to_overwrite):
+            # Make new variables to hold the effect size calculations
+            add_vi_cmd = MakeNewVariableCommand(model=self,
+                                                var_name=METRIC_TEXT_SHORT[metric],
+                                                col=yi_col,
+                                                var_type=CONTINUOUS)
+            add_yi_cmd = MakeNewVariableCommand(model=self,
+                                                var_name="Var(%s)" % METRIC_TEXT_SHORT[metric],
+                                                col=vi_col,
+                                                var_type=CONTINUOUS)
+            self.undo_stack.push(add_vi_cmd)
+            self.undo_stack.push(add_yi_cmd)
+        #else: # variables already exist!
         
 
         variable_yi = self.get_variable_assigned_to_column(yi_col)
@@ -1176,18 +1200,20 @@ class EETableModel(QAbstractTableModel):
         self.undo_stack.push(SetVariableSubTypeCommand(model=self, variable=variable_vi, new_subtype=TRANS_VAR))
         
         # add variables to new column_group
-        col_group = self.make_new_variable_group(metric=metric, name=METRIC_TEXT_SIMPLE[metric] + " column group")
+        old_col_group = variable_vi.get_column_group()
+        if old_col_group: # this will exist in the case of overwriting existing columns probably (unless the columns were constucted by hand)
+            col_group = old_col_group
+        else:
+            col_group = self.make_new_variable_group(metric=metric, name=METRIC_TEXT_SIMPLE[metric] + " column group")
         keys_to_vars = {TRANS_EFFECT:variable_yi,
                         TRANS_VAR:variable_vi}
         self.undo_stack.push(GenericUndoCommand(redo_fn=partial(self.add_vars_to_col_group, col_group, keys_to_vars),
                                                 undo_fn=partial(self.remove_vars_from_col_group, col_group, keys=keys_to_vars.keys()),
                                                 description="Add variables to column group"))
         
-        for study, val_yi, val_vi in zip(studies, effect_sizes['yi'], effect_sizes['vi']):
-            set_vi_cmd = SetVariableValueCommand(study, variable_yi, val_yi)
-            set_yi_cmd = SetVariableValueCommand(study, variable_vi, val_vi)
-            self.undo_stack.push(set_vi_cmd)
-            self.undo_stack.push(set_yi_cmd)
+        self.set_values_of_variables(studies=studies,
+                                     var_yi=variable_yi, var_vi=variable_vi,
+                                     raw_yi=effect_sizes['yi'], raw_vi=effect_sizes['vi'])
             
         ##################################################################
         end_cmd = GenericUndoCommand(redo_fn=emit_change_signals,
@@ -1196,7 +1222,29 @@ class EETableModel(QAbstractTableModel):
         
         
         self.undo_stack.endMacro()
+    
+    def set_values_of_variables(self, studies, var_yi, var_vi, raw_yi, raw_vi, emit_change_signals=False):
+        def emit_change_signals():
+            yi_col = self.get_column_assigned_to_variable(var_yi)
+            vi_col = self.get_column_assigned_to_variable(var_vi)
+            self.emit_change_signals_for_col(yi_col)
+            self.emit_change_signals_for_col(vi_col)
         
+        self.undo_stack.beginMacro(QString("Setting variables values from yi,vi data and corresponding list of studies"))
+        start_cmd = GenericUndoCommand(redo_fn=do_nothing,
+                                      undo_fn=emit_change_signals)
+        self.undo_stack.push(start_cmd)
+        #######################################
+        for study, val_yi, val_vi in zip(studies, raw_yi, raw_vi):
+            set_vi_cmd = SetVariableValueCommand(study, var_yi, val_yi)
+            set_yi_cmd = SetVariableValueCommand(study, var_vi, val_vi)
+            self.undo_stack.push(set_vi_cmd)
+            self.undo_stack.push(set_yi_cmd)
+        #######################################
+        end_cmd = GenericUndoCommand(redo_fn=emit_change_signals,
+                                     undo_fn=do_nothing)
+        self.undo_stack.push(end_cmd)
+        self.undo_stack.endMacro()
 
     def make_new_variable_group(self, metric, name):
         print("Making new column group")
@@ -1213,6 +1261,8 @@ class EETableModel(QAbstractTableModel):
     
     
     def remove_variable_group(self, var_group):
+        if var_group is None:
+            return None
         redo_fn = partial(self.variable_groups.remove,var_group)
         undo_fn = partial(self.variable_groups.append,var_group)
         

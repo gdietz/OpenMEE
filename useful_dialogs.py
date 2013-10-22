@@ -48,14 +48,18 @@ class UndoViewForm(QDialog):
         self.model = model
         
         self.print_model_btn = QPushButton("Print Model", parent=self)
+        self.debug_btn = QPushButton("Debug Model", parent=self)
         self.undoView = QUndoView(self.undo_stack)
         
         vlayout = QVBoxLayout()
         vlayout.addWidget(self.undoView)
         vlayout.addWidget(self.print_model_btn)
+        vlayout.addWidget(self.debug_btn)
+        
         self.setLayout(vlayout)
         
         QObject.connect(self.print_model_btn, SIGNAL("clicked()"), self._print_model_info)
+        QObject.connect(self.debug_btn, SIGNAL("clicked()"), self.go_into_debugger)
         
     def _print_model_info(self):
         print(self.model)
@@ -63,6 +67,11 @@ class UndoViewForm(QDialog):
     def set_stack_and_model(self, stack, model):
         self.undoView.setStack(stack)
         self.model = model
+        
+    def go_into_debugger(self):
+        print("Entering debugger")
+        pyqtRemoveInputHook()
+        import pdb; pdb.set_trace()
         
         
         

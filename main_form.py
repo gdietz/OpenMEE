@@ -384,6 +384,7 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
             data_type = wizard.selected_data_type
             metric = wizard.selected_metric
             data_location = wizard.data_location
+            cols_to_overwrite = wizard.cols_to_overwrite
             
             # save data locations choices for this data type in the model
             self.model.update_data_location_choices(data_type, data_location)
@@ -395,8 +396,12 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
             except CrazyRError as e:
                 QMessageBox.critical(self, QString("R error"), QString(str(e)))
                 return False
-            # effect sizes is just yi and vi
-            self.model.add_effect_sizes_to_model(metric, effect_sizes)
+            
+            if cols_to_overwrite:
+                self.model.add_effect_sizes_to_model(metric, effect_sizes, cols_to_overwrite=cols_to_overwrite)
+            else: # vanilla
+                # effect sizes is just yi and vi
+                self.model.add_effect_sizes_to_model(metric, effect_sizes)
             self.tableView.resizeColumnsToContents()
             
             print("Computed these effect sizes: %s" % str(effect_sizes))

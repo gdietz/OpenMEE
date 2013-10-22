@@ -38,7 +38,7 @@ def load_R_libraries(app, splash=None):
     app.processEvents()
     rloader.load_grid()
     
-def start():
+def start(open_file_path=None):
     app = QtGui.QApplication(sys.argv)
     
     splash_pixmap = QPixmap(":/splash/splash.jpg")
@@ -61,7 +61,14 @@ def start():
     form = main_form.MainForm()
     splash.finish(form)
     form.show()
+    if open_file_path:
+        form.open(open_file_path)
     sys.exit(app.exec_())
 
 if __name__ == "__main__":
+    try:
+        if sys.argv[1][-3:len(sys.argv[1])]=="ome":
+            start(open_file_path=sys.argv[1])
+    except IndexError:
+        pass
     start()
