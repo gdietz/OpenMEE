@@ -17,6 +17,9 @@ cd ..
 # Copy sample data
 cp -rv OpenMEE/sample_data/ frozen/sample_data
 
+# Copy sounds
+cp -rv OpenMEE/sounds/ frozen/sounds
+
 
 ######################################
 ######################################

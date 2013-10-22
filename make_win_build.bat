@@ -12,6 +12,10 @@ REM Copy over sample data
 cp -rv ../sample_data .
 
 
+REM Copy sounds
+cp -rv ../sounds .
+
+
 REM copy over imageformats folder
 cp -rv C:\Python27\Lib\site-packages\PyQt4\plugins\imageformats .
 
