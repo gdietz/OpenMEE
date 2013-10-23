@@ -11,7 +11,7 @@ import cProfile
 ###### SWITCHES #######
 # Enables additional elements of the program useful in debugging
 DEBUG_MODE = True           # mostly for printing debugging message to terminal
-SHOW_UNDO_VIEW = False
+SHOW_UNDO_VIEW = True
 SHOW_PSEUDO_CONSOLE_IN_RESULTS_WINDOW = False
 SOUND_EFFECTS = True
 MAKE_TESTS = False
@@ -208,6 +208,11 @@ DATA_TYPE_TO_METRICS = {MEANS_AND_STD_DEVS: [HEDGES_D, LN_RESPONSE_RATIO, GENERI
                         TWO_BY_TWO_CONTINGENCY_TABLE: [ODDS_RATIO, RATE_DIFFERENCE, RELATIVE_RATE],
                         CORRELATION_COEFFICIENTS: [FISHER_Z_TRANSFORM,],
                         }
+def get_data_type_for_metric(metric):
+    for d_type, metrics in DATA_TYPE_TO_METRICS.items():
+        if metric in metrics:
+            return d_type
+    raise Exception("Metric matches no known data type")
 
 EFFECT_SIZE_KEYS = ('yi','vi')
 

@@ -67,7 +67,7 @@ class TransformEffectSizeWizard(QtGui.QWizard):
         if col is None:
             return False
         var = self.model.get_variable_assigned_to_column(col)
-        return var.get_column_group() is not None
+        return self.model.get_variable_group_of_var(var) is not None
         
     def get_tranformation_direction(self):
         var = self.model.get_variable_assigned_to_column(self.get_chosen_column())

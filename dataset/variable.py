@@ -45,16 +45,6 @@ class Variable:
         except AttributeError:
             self.sub_type = None
             return None
-    
-    def set_column_group(self, col_group):
-        self.column_group = col_group
-    
-    def get_column_group(self):
-        try:
-            return self.column_group
-        except AttributeError:
-            self.column_group = None
-            return None
             
     
     def get_type_as_str(self):

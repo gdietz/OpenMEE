@@ -21,8 +21,9 @@ class ChooseEffectColForTransformationPage(QWizardPage, ui_choose_effect_col_for
         effect_size_subtypes = [TRANS_EFFECT, RAW_EFFECT]
         self.effect_size_columns = [col for col in self.effect_size_columns if self.model.get_variable_assigned_to_column(col).get_subtype() in effect_size_subtypes]
         def include_col(col):
-            col_group = self.model.get_variable_assigned_to_column(col).get_column_group()
-            if col_group is not None and col_group.isFull():
+            var = self.model.get_variable_assigned_to_column(col)
+            col_group = self.model.get_variable_group_of_var(var)
+            if col_group is not None and col_group.effects_full():
                 return False
             return True
         self.effect_size_columns = [col for col in self.effect_size_columns if include_col(col)]

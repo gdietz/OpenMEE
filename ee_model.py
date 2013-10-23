@@ -595,7 +595,7 @@ class EETableModel(QAbstractTableModel):
         del self.cols_2_vars[col]
         
         # remove variable from variable group if it exists
-        var_group = var.get_column_group()
+        var_group = self.get_variable_group_of_var(var)
         if var_group:
             key = var_group.get_var_key(var)
             var_group.unset_column_group_with_key(key)
@@ -883,7 +883,8 @@ class EETableModel(QAbstractTableModel):
         if role != Qt.EditRole:
             print("No implementation written when role != Qt.EditRole")
             return False
-        
+        # set dirty bit
+        self.dirty = True
         
         row, col = index.row(), index.column()
         row_has_study = row in self.rows_2_studies
@@ -983,7 +984,7 @@ class EETableModel(QAbstractTableModel):
             self.undo_stack.push(EmitDataChangedCommand(model=self, index=index))
             self.undo_stack.endMacro()
         
-        self.dirty = True
+        
         if not self.paste_mode:
             self.change_row_count_if_needed()
             self.change_column_count_if_needed()
@@ -1200,7 +1201,7 @@ class EETableModel(QAbstractTableModel):
         self.undo_stack.push(SetVariableSubTypeCommand(model=self, variable=variable_vi, new_subtype=TRANS_VAR))
         
         # add variables to new column_group
-        old_col_group = variable_vi.get_column_group()
+        old_col_group = self.get_variable_group_of_var(variable_vi)
         if old_col_group: # this will exist in the case of overwriting existing columns probably (unless the columns were constucted by hand)
             col_group = old_col_group
         else:
@@ -1220,8 +1221,10 @@ class EETableModel(QAbstractTableModel):
                                      undo_fn=do_nothing)
         self.undo_stack.push(end_cmd)
         
-        
         self.undo_stack.endMacro()
+        
+        return {TRANS_EFFECT: yi_col, # returns columns of new assignments
+                TRANS_VAR: vi_col}
     
     def set_values_of_variables(self, studies, var_yi, var_vi, raw_yi, raw_vi, emit_change_signals=False):
         def emit_change_signals():
@@ -1309,6 +1312,23 @@ class EETableModel(QAbstractTableModel):
         
     def _set_rows_to_studies(self, new_rows_to_studies):
         self.rows_2_studies = new_rows_to_studies
+    
+
+    def get_variable_groups_of_var(self,var):
+        ''' Returns a list containing the variable groups to which var belongs'''
+        
+        var_groups = []
+        for var_group in self.variable_groups:
+            if var_group.contains_var(var):
+                var_groups.append(var_group)
+        return var_groups
+    
+    def get_variable_group_of_var(self, var):
+        ''' Assumes var belongs to just one group'''
+        var_groups = self.get_variable_groups_of_var(var)
+        if var_groups == []:
+            return None
+        return var_groups[0]
         
         
 class VariableGroup:
@@ -1316,19 +1336,55 @@ class VariableGroup:
     def __init__(self, metric, name=""):
         self.name = name
         self.metric = metric
+        self.data_type = get_data_type_for_metric(self.metric)
         
         self.group_data = {RAW_EFFECT:None,
                            RAW_LOWER:None,
                            RAW_UPPER:None,
                            TRANS_EFFECT:None,
                            TRANS_VAR:None,
+                           
+                           # continuous
+                           'control_mean'            : None,
+                           'control_std_dev'         : None,
+                           'control_sample_size'     : None,
+                           'experimental_mean'       : None,
+                           'experimental_std_dev'    : None,
+                           'experimental_sample_size': None,
+                           
+                           # binary 
+                           'control_response'       : None, 
+                           'control_noresponse'     : None, 
+                           'experimental_response'  : None, 
+                           'experimental_noresponse': None, 
+                           
+                           # correlations
+                           'correlation': None,
+                           'sample_size': None,
+                           
                            }
+        self.effect_keys = [TRANS_VAR, TRANS_EFFECT, RAW_EFFECT, RAW_LOWER, RAW_UPPER]
+        data_continuous_keys = ['control_mean', 'control_std_dev', 'control_sample_size',   
+                                     'experimental_mean', 'experimental_std_dev', 'experimental_sample_size'] 
+        data_binary_keys = ['control_response', 'control_noresponse',
+                                 'experimental_response','experimental_noresponse']
+        data_correlation_keys = ['correlation', 'sample_size']
+        self.data_keys = {MEANS_AND_STD_DEVS: data_continuous_keys,
+                          TWO_BY_TWO_CONTINGENCY_TABLE: data_binary_keys,
+                          CORRELATION_COEFFICIENTS:data_correlation_keys}[self.data_type]
         
-    def isEmpty(self):
-        return not any(self.group_data.values())
+        
+    def effects_empty(self):
+        effects_subdict = dict([(key,val) for key,val in self.group_data.iteritems() if key in self.effect_keys])
+        return not any(effects_subdict.values())
     
-    def isFull(self):
-        return all(self.group_data.values())
+    def effects_full(self):
+        effects_subdict = dict([(key,val) for key,val in self.group_data.iteritems() if key in self.effect_keys])
+        return all(effects_subdict.values())
+    
+    def data_full(self):
+        data_subdict = dict([(key, val) for key,val in self.group_data.iteritems() if key in self.data_keys])
+        return all(data_subdict)
     
     def set_name(self, name):
         self.name = name
@@ -1340,15 +1396,13 @@ class VariableGroup:
     
     def set_var_with_key(self, key, var):
         self.group_data[key] = var
-        var.set_column_group(self)
+        #var.set_column_group(self)
 
     def get_var_with_key(self, key):
         return self.group_data[key]
     
     def unset_column_group_with_key(self, key):
-        ''' unsets it in the variable as well '''
         var = self.group_data[key]
-        var.set_column_group(None)
         self.group_data[key]=None
         
     def get_var_key(self, var):
@@ -1356,6 +1410,19 @@ class VariableGroup:
             if v==var:
                 return k
         raise KeyError("No such variable in the group")
+    
+    def get_group_data_copy(self):
+        return self.group_data.copy()
+    def set_group_data(self, grp_data):
+        ''' shouldn't be used except during undo/redo to reset the group data '''
+        self.group_data=grp_data
+    
+    def contains_var(self, var):
+        try:
+            self.get_var_key(var)
+            return True
+        except KeyError:
+            return False
     
         
     def __str__(self):
@@ -1699,7 +1766,7 @@ class RemoveColumnsCommand(QUndoCommand):
             self.variables_2_studies_2_values[var][study] = study.get_var(var)
             
         # Store data about variable's variable_group
-        var_group = var.get_column_group()
+        var_group = self.get_variable_group_of_var(var)
         key = var_group.get_var_key(var) if var_group else None
         self.variable_group_info[var] = (var_group,key)
             
@@ -1876,7 +1943,7 @@ class ChangeVariableFormatCommand(QUndoCommand):
         
         self.original_var_type = variable.get_type()
         self.original_subtype = variable.get_subtype()
-        self.original_variable_group = variable.get_column_group()
+        self.original_variable_group = self.model.get_variable_group_of_var(variable)
         self.key_var_group = None
         if self.original_variable_group is not None:
             self.key_var_group = self.original_variable_group.get_var_key(self.variable)

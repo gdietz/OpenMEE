@@ -115,7 +115,21 @@ class DataLocationPage(QWizardPage):
         clear_selections_btn_layout.addWidget(self.clear_selections_btn)
         vlayout.addLayout(clear_selections_btn_layout)
         self.clear_selections_btn.clicked.connect(self._clear_selections)
+        
+        # add make linkage checkbox for when we are calculating effect sizes
+        if self.mode == CALCULATE_EFFECT_SIZE_MODE:
+            self.make_linkage_chkbox = QCheckBox("Establish linkage between raw-data and calculated effects")
+            self.make_linkage_chkbox.setCheckState(Qt.Checked)
+            self.make_linkage_chkbox.stateChanged.connect(self.update_make_link_state)
+            self.update_make_link_state()
+            vlayout.addWidget(self.make_linkage_chkbox)
     
+    def update_make_link_state(self):
+        ''' updates the make_link variable in the wizard '''
+        self.wizard().make_link = self.make_linkage_chkbox.isChecked()
+        msg = "link will be made" if self.wizard().make_link else "link will not be made"
+        print(msg)
+        
     
     def _clear_selections(self):
         print("Clearing selections")

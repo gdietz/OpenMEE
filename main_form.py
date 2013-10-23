@@ -385,6 +385,7 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
             metric = wizard.selected_metric
             data_location = wizard.data_location
             cols_to_overwrite = wizard.cols_to_overwrite
+            make_link = wizard.make_link
             
             # save data locations choices for this data type in the model
             self.model.update_data_location_choices(data_type, data_location)
@@ -396,16 +397,42 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
             except CrazyRError as e:
                 QMessageBox.critical(self, QString("R error"), QString(str(e)))
                 return False
-            
-            if cols_to_overwrite:
-                self.model.add_effect_sizes_to_model(metric, effect_sizes, cols_to_overwrite=cols_to_overwrite)
-            else: # vanilla
-                # effect sizes is just yi and vi
-                self.model.add_effect_sizes_to_model(metric, effect_sizes)
-            self.tableView.resizeColumnsToContents()
-            
             print("Computed these effect sizes: %s" % str(effect_sizes))
             
+            if cols_to_overwrite:
+                effect_cols_dict = self.model.add_effect_sizes_to_model(metric, effect_sizes, cols_to_overwrite=cols_to_overwrite)
+            else: # vanilla
+                # effect sizes is just yi and vi
+                effect_cols_dict = self.model.add_effect_sizes_to_model(metric, effect_sizes)
+            
+            #### Add raw data source variables to group ###
+            tmp_var = effect_cols_dict[TRANS_EFFECT]
+            var_grp = self.model.get_variable_group_of_var(tmp_var)
+            old_var_group_data = var_grp.get_group_data_copy()
+            redo_fn = lambda: self.add_data_vars_to_var_group(data_location, var_grp)
+            undo_fn = lambda: var_grp.set_group_data(old_var_group_data) 
+            self.undo_stack.push(GenericUndoCommand(redo_fn=redo_fn, undo_fn=undo_fn))
+            
+            
+            
+            
+            self.tableView.resizeColumnsToContents()
+            
+    
+    def add_data_vars_to_var_group(self, data_location, var_group):
+        data_location = self.column_data_location_to_var_data_location(data_location)
+        for key, var in data_location:
+            if key in ['effect_size','variance']:
+                continue
+            var_group.set_var_with_key(key, var)
+    
+    def column_data_location_to_var_data_location(self, col_data_location):
+        ''' Convert data location given by columns to given by variables '''
+        
+        var_data_location = {}
+        for key, col in col_data_location.items():
+            var_data_location[key] = self.model.get_variable_assigned_to_column(col)
+        return var_data_location
             
     def transform_effect_size_bulk(self):
         ''' transforms the effect size given in metric from either
@@ -461,7 +488,7 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
                                                     undo_fn=partial(self.model.remove_vars_from_col_group, col_group, keys=keys_to_vars.keys()),
                                                     description="Add variables to column group"))
         else: # column group already exists
-            col_group = effect_var_to_transform.get_column_group()
+            col_group = self.model.get_variable_group_of_var(effect_var_to_transform)
         metric = col_group.get_metric()
 
         data_location = {}
@@ -934,7 +961,7 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
         # Remove other columns @ same scale in var_group
         if is_variable_column:
             var = self.model.get_variable_assigned_to_column(column)
-            var_group = var.get_column_group()
+            var_group = self.model.get_variable_group_of_var(var)
             if var_group is not None:
                 var_is_trans = var_group.get_var_key(var) in [TRANS_EFFECT, TRANS_VAR]
                 if var_is_trans:
@@ -950,7 +977,7 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
                         self.model.removeColumn(other_var_col)
                 
                 # Delete var group if it is empty now
-                if var_group.isEmpty():
+                if var_group.effects_empty():
                     self.model.remove_variable_group(var_group) # undoable
                         
                 self.undo_stack.endMacro()
@@ -1272,6 +1299,8 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
             
         # save user prefs
         self._save_user_prefs()
+        
+        QApplication.quit()
         
     def quit(self):
         ok_to_close = self.prompt_user_about_unsaved_data()

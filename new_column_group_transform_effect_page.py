@@ -49,7 +49,7 @@ class NewColumnGroupTransformEffectPage(QWizardPage, ui_new_column_group_transfo
         subtype_cols = [col for col in continuous_columns if self.model.get_variable_assigned_to_column(col).get_subtype() == subtype]
         
         if exclude_if_already_in_group:
-            subtype_cols = [col for col in subtype_cols if self.model.get_variable_assigned_to_column(col).get_column_group() is None]
+            subtype_cols = [col for col in subtype_cols if self.model.get_variable_group_of_var(self.model.get_variable_assigned_to_column(col)) is None]
         return subtype_cols
         
     

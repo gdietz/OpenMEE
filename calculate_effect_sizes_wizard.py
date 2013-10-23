@@ -32,6 +32,7 @@ class CalculateEffectSizeWizard(QtGui.QWizard):
         self.selected_metric = None
         self.data_location = None
         self.cols_to_overwrite = None # cols (effect and var to overwrite) if any
+        self.make_link = False
         
         QObject.connect(self, SIGNAL("currentIdChanged(int)"), self._change_size) # adjust window to proper size
 

@@ -70,7 +70,9 @@ class OverwriteEffectSizesPage(QWizardPage, ui_overwrite_effect_sizes_page.Ui_Wi
         col_groups = set()
         col_group_list = []
         for col in cols_to_overwrite.values():
-            col_grp = self.model.get_variable_assigned_to_column(col).get_column_group()
+            var = self.model.get_variable_assigned_to_column(col)
+            col_grp = self.model.get_variable_group_of_var(var)
+            
             col_groups.add(col_grp)
             col_group_list.append(col_grp)
         
