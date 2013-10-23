@@ -406,22 +406,19 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
                 effect_cols_dict = self.model.add_effect_sizes_to_model(metric, effect_sizes)
             
             #### Add raw data source variables to group ###
-            tmp_var = effect_cols_dict[TRANS_EFFECT]
+            tmp_var = self.model.get_variable_assigned_to_column(effect_cols_dict[TRANS_EFFECT]) 
             var_grp = self.model.get_variable_group_of_var(tmp_var)
             old_var_group_data = var_grp.get_group_data_copy()
             redo_fn = lambda: self.add_data_vars_to_var_group(data_location, var_grp)
             undo_fn = lambda: var_grp.set_group_data(old_var_group_data) 
             self.undo_stack.push(GenericUndoCommand(redo_fn=redo_fn, undo_fn=undo_fn))
             
-            
-            
-            
             self.tableView.resizeColumnsToContents()
             
     
     def add_data_vars_to_var_group(self, data_location, var_group):
         data_location = self.column_data_location_to_var_data_location(data_location)
-        for key, var in data_location:
+        for key, var in data_location.items():
             if key in ['effect_size','variance']:
                 continue
             var_group.set_var_with_key(key, var)

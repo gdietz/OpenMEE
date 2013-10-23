@@ -406,6 +406,22 @@ def switch(value, *args, **kw):
     raise Exception("No targets matched for switch")
 
 
+def are_valid_numbers(num_list):
+    for x in num_list:
+        try:
+            float(x)
+        except:
+            return False
+    return True
+
+def listvals_to_scalars(d):
+    ''' converts values of d which are lists to scalars if length is 1 '''
+    for k,v in d.iteritems():
+        if not isinstance(v, list):
+            continue
+        if len(v) == 1:
+            d[k]=v[0]
+    return d
 
         #print("inspecting r object time")
         #pyqtRemoveInputHook()

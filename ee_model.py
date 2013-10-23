@@ -15,9 +15,12 @@ from sets import Set
 from functools import partial
 import copy
 
+
 # handrolled
 from dataset.ee_dataset import EEDataSet
 from globals import *
+import python_to_R
+from dataset.variable import Variable
 
 # Some constants
 ADDITIONAL_ROWS = 100
@@ -877,7 +880,7 @@ class EETableModel(QAbstractTableModel):
         
 
     #@profile_this
-    def setData(self, index, value, role=Qt.EditRole):
+    def setData(self, index, value, role=Qt.EditRole, basic_value=False): # basic_value means a regular python type not a QVariant
         if not index.isValid() and not (0 <= index.row() < self.rowCount()):
             return False
         if role != Qt.EditRole:
@@ -889,7 +892,10 @@ class EETableModel(QAbstractTableModel):
         row, col = index.row(), index.column()
         row_has_study = row in self.rows_2_studies
         is_label_col = col == self.label_column
-        value_as_string = str(value.toString())
+        if basic_value:
+            value_as_string = str(value)
+        else:
+            value_as_string = str(value.toString())
         
         value_blank = (value == QVariant()) or (value is None) or (value_as_string == "") 
         
@@ -972,6 +978,10 @@ class EETableModel(QAbstractTableModel):
                 self.adjust_max_length_for_col(col, old_value, formatted_value)
             else: # we are pasting something large
                 study.set_var(var, formatted_value)
+             
+            # Check to see if variable belongs to a variable group (with effect sizes calculated)
+            # If so, change effect size(s) as well (transformed and raw scale)   
+            self.handle_grouped_variable_from_setData(study, var, value)
             
         # If variables and label for this study are all blank, remove the
         # study from the dataset
@@ -996,6 +1006,60 @@ class EETableModel(QAbstractTableModel):
         #self.emit(SIGNAL("dataChanged(QModelIndex,QModelIndex)"),
         #          index, index)
         return True
+    
+    def handle_grouped_variable_from_setData(self, study, var, value):
+        var_grps = self.get_variable_groups_of_var(var)
+        if len(var_grps)==0: # we are done if the variable does not belong to a group
+            return
+        
+        for var_grp in var_grps:
+            var_key = var_grp.get_var_key(var)
+            if not var_grp.key_in_data(var_key): # var is an effect so we don't care
+                continue
+            #data_keys = var_grp.get_data_keys()
+            if not var_grp.data_full():
+                continue
+            
+            data_location_as_vars = var_grp.get_data_keys_to_vars()
+            # verify study contains values for each var
+            if not are_valid_numbers([study.get_var(v) for v in data_location_as_vars.values()]):
+                continue # quit if not all the required boxes are filled in properly
+            data = python_to_R.gather_data_for_single_study(data_location_as_vars, study)
+            data = dict([(k, [v,]) for k,v in data.items()]) # convert singletons to lists to be suitable for python_to_R.effect_size
+            trans_scale_effect_sizes = python_to_R.effect_size(    # keys: 'yi', 'vi'
+                                                    metric=var_grp.get_metric(),
+                                                    data_type=var_grp.get_data_type(),
+                                                    data=data)
+            # transform data to raw scale in case we need to update that too
+            trans_scale_data = {TRANS_EFFECT: trans_scale_effect_sizes['yi'],
+                                TRANS_VAR: trans_scale_effect_sizes['vi']}
+            raw_effect_sizes = python_to_R.transform_effect_size(
+                                                    metric=var_grp.get_metric(),
+                                                    source_data=trans_scale_data,
+                                                    direction=TRANS_TO_RAW,
+                                                    conf_level=DEFAULT_CONFIDENCE_LEVEL)
+    
+            self.set_single_row_effect_data(var_grp, study, trans_scale_data, raw_effect_sizes)
+            
+    def set_single_row_effect_data(self, var_grp, study, trans_scale_data, raw_scale_data):
+        # convert list values to scalars
+        trans_scale_data = listvals_to_scalars(trans_scale_data)
+        raw_scale_data = listvals_to_scalars(raw_scale_data)
+        
+        #
+        row = self.get_row_assigned_to_study(study)
+        
+        def set_data_helper(data):
+            for key, val in data.items():
+                var = var_grp.get_var_with_key(key)
+                if not var:
+                    continue
+                col = self.get_column_assigned_to_variable(var)
+                model_index = self.createIndex(row, col)
+                self.setData(model_index, value=val, basic_value=True)
+        
+        set_data_helper(trans_scale_data)
+        set_data_helper(raw_scale_data)
     
     def adjust_max_length_for_col(self, col, old_value, new_value):
         # convert to strings
@@ -1157,7 +1221,7 @@ class EETableModel(QAbstractTableModel):
     def add_effect_sizes_to_model(self, metric, effect_sizes, cols_to_overwrite=None):
     
         studies = self.get_studies_in_current_order()
-        if not bool(cols_to_overwrite):
+        if not cols_to_overwrite:
             last_occupied_col = sorted(self.cols_2_vars.keys(), reverse=True)[0]
             yi_col = last_occupied_col+1
             vi_col = yi_col+1
@@ -1325,6 +1389,9 @@ class EETableModel(QAbstractTableModel):
     
     def get_variable_group_of_var(self, var):
         ''' Assumes var belongs to just one group'''
+        
+        assert isinstance(var, Variable)
+        
         var_groups = self.get_variable_groups_of_var(var)
         if var_groups == []:
             return None
@@ -1386,6 +1453,10 @@ class VariableGroup:
         data_subdict = dict([(key, val) for key,val in self.group_data.iteritems() if key in self.data_keys])
         return all(data_subdict)
     
+    def get_data_keys_to_vars(self):
+        data_subdict = dict([(key, val) for key,val in self.group_data.iteritems() if key in self.data_keys])
+        return data_subdict
+    
     def set_name(self, name):
         self.name = name
     def get_name(self):
@@ -1393,6 +1464,8 @@ class VariableGroup:
     
     def get_metric(self):
         return self.metric
+    def get_data_type(self):
+        return self.data_type
     
     def set_var_with_key(self, key, var):
         self.group_data[key] = var
@@ -1410,6 +1483,12 @@ class VariableGroup:
             if v==var:
                 return k
         raise KeyError("No such variable in the group")
+    
+    def key_in_data(self, key):
+        return key in self.data_keys
+
+    def get_data_keys(self):
+        return self.data_keys
     
     def get_group_data_copy(self):
         return self.group_data.copy()
@@ -1766,7 +1845,7 @@ class RemoveColumnsCommand(QUndoCommand):
             self.variables_2_studies_2_values[var][study] = study.get_var(var)
             
         # Store data about variable's variable_group
-        var_group = self.get_variable_group_of_var(var)
+        var_group = self.model.get_variable_group_of_var(var)
         key = var_group.get_var_key(var) if var_group else None
         self.variable_group_info[var] = (var_group,key)
             

@@ -113,6 +113,12 @@ def gather_data(model, data_location, vars_given_directly=False):
     
     return data
 
+def gather_data_for_single_study(data_location, study):
+    # data_location is mapping location key --> var
+    data = dict([(k,study.get_var(var)) for k,var in data_location.items()])
+    data['study_labels'] = study.get_label()
+    return data
+
 def None_to_NA(value, value_type):
     ''' Convert None value to an R NA object of the appropriate type.
         Returns the value unchanged if it is not none'''
