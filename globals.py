@@ -11,7 +11,7 @@ import cProfile
 ###### SWITCHES #######
 # Enables additional elements of the program useful in debugging
 DEBUG_MODE = True           # mostly for printing debugging message to terminal
-SHOW_UNDO_VIEW = True
+SHOW_UNDO_VIEW = False
 SHOW_PSEUDO_CONSOLE_IN_RESULTS_WINDOW = False
 SOUND_EFFECTS = True
 MAKE_TESTS = False

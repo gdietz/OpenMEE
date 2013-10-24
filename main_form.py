@@ -409,8 +409,11 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
             tmp_var = self.model.get_variable_assigned_to_column(effect_cols_dict[TRANS_EFFECT]) 
             var_grp = self.model.get_variable_group_of_var(tmp_var)
             old_var_group_data = var_grp.get_group_data_copy()
-            redo_fn = lambda: self.add_data_vars_to_var_group(data_location, var_grp)
             undo_fn = lambda: var_grp.set_group_data(old_var_group_data) 
+            if make_link:
+                redo_fn = lambda: self.add_data_vars_to_var_group(data_location, var_grp)
+            else:
+                redo_fn = lambda: self.clear_data_vars_from_var_group(data_location.keys(), var_grp)
             self.undo_stack.push(GenericUndoCommand(redo_fn=redo_fn, undo_fn=undo_fn))
             
             self.tableView.resizeColumnsToContents()
@@ -422,6 +425,11 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
             if key in ['effect_size','variance']:
                 continue
             var_group.set_var_with_key(key, var)
+    
+    def clear_data_vars_from_var_group(self, keys, var_group):
+        ''' clears out assignments from keys in the var_group '''
+        for key in keys:
+            var_group.unset_key(key)
     
     def column_data_location_to_var_data_location(self, col_data_location):
         ''' Convert data location given by columns to given by variables '''

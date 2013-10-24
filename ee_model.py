@@ -183,7 +183,7 @@ class EETableModel(QAbstractTableModel):
 
     def remove_vars_from_col_group(self, col_group, keys):
         for key in keys:
-            col_group.unset_column_group_with_key(key)
+            col_group.unset_key(key)
 
 ######## Analysis parameters section start ################
 
@@ -601,7 +601,7 @@ class EETableModel(QAbstractTableModel):
         var_group = self.get_variable_group_of_var(var)
         if var_group:
             key = var_group.get_var_key(var)
-            var_group.unset_column_group_with_key(key)
+            var_group.unset_key(key)
         
         # Emit signal
         self.column_formats_changed.emit()
@@ -1469,13 +1469,11 @@ class VariableGroup:
     
     def set_var_with_key(self, key, var):
         self.group_data[key] = var
-        #var.set_column_group(self)
 
     def get_var_with_key(self, key):
         return self.group_data[key]
     
-    def unset_column_group_with_key(self, key):
-        var = self.group_data[key]
+    def unset_key(self, key):
         self.group_data[key]=None
         
     def get_var_key(self, var):
@@ -2036,7 +2034,7 @@ class ChangeVariableFormatCommand(QUndoCommand):
         
         self.variable.set_subtype(None)
         if self.key_var_group:
-            self.original_variable_group.unset_column_group_with_key(self.key_var_group)
+            self.original_variable_group.unset_key(self.key_var_group)
 
         self.model.dirty = True
         
