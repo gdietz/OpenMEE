@@ -29,6 +29,7 @@ import results_window
 import csv_import_dlg
 import csv_export_dlg
 import preferences_dlg
+from variable_group_graphic import VariableGroupGraphic
 
 from globals import *
 
@@ -58,6 +59,10 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
     def __init__(self, parent=None):
         super(MainForm, self).__init__(parent)
         self.setupUi(self)
+        
+        layout = self.verticalLayout # 
+        self.vargroup_graphic = VariableGroupGraphic()
+        layout.addWidget(self.vargroup_graphic)
         
         self.undo_stack = QUndoStack(self)
         self.load_user_prefs()
@@ -93,6 +98,8 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
         # issue #8: disable copy-pasta if nothing 
         # is selected (which is true at the outset)
         self.toggle_copy_pasta(False)
+        
+        
         
     def set_window_title(self):
         if self.outpath is None:
@@ -276,13 +283,19 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
         # connect undo/redo signals to enable/disable menu items
         self.undo_stack.canUndoChanged.connect(self.update_undo_enable_status)
         self.undo_stack.canRedoChanged.connect(self.update_redo_enable_status)
-            
-    
+        
+        
+        self.tableView.horizontalScrollBar().actionTriggered.connect(lambda: QTimer.singleShot (0, self.update_vargroup_graphic))
+
+        #self.resize
 
         # QObject.connect(self.model, SIGNAL("DataError"), self.warning_msg)
 #        QObject.connect(self.tableView.selectionModel(), 
 #                            SIGNAL("selectionChanged(QItemSelection, QItemSelection)"), 
 #                            self.table_selection_changed)
+
+    def stupid(self):
+        print("column formats changed")
 
     def table_selection_changed(self):
         if self.model.paste_mode:
@@ -336,6 +349,7 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
         self.model.label_column_changed.disconnect(self.toggle_analyses_enable_status)
         self.model.duplicate_label.disconnect(self.duplicate_label_attempt)
         self.model.should_resize_column.disconnect(self.resize_column)
+        #self.model.column_formats_changed.disconnect(lambda: QTimer.singleShot(1, self.update_vargroup_graphic))
         
     def make_model_connections(self):
         QObject.connect(self.model, SIGNAL("DataError"), self.warning_msg)
@@ -353,6 +367,9 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
         self.model.label_column_changed.connect(self.toggle_analyses_enable_status)
         self.model.duplicate_label.connect(self.duplicate_label_attempt)
         self.model.should_resize_column.connect(self.resize_column)
+        
+        self.model.column_formats_changed.connect(lambda: QTimer.singleShot(1, self.update_vargroup_graphic))
+        #self.model.column_formats_changed.connect(self.stupid)
         
     def duplicate_label_attempt(self):
         QMessageBox.critical(self, "Attempted duplicate label", "Labels must be unique")
@@ -417,6 +434,7 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
             self.undo_stack.push(GenericUndoCommand(redo_fn=redo_fn, undo_fn=undo_fn))
             
             self.tableView.resizeColumnsToContents()
+            QTimer.singleShot(0, self.update_vargroup_graphic)
             
     
     def add_data_vars_to_var_group(self, data_location, var_group):
@@ -1375,6 +1393,30 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
         self.populate_recent_datasets()
         
 ################ END HANDLE USER PREFS ######################
+
+    def get_variable_group_column_indices(self):
+        vertical_sizehint = self.tableView.verticalHeader().sizeHint()
+        offset = vertical_sizehint.width()
+        
+        column_indices = []
+        for group in self.model.variable_groups:
+            vars = group.get_assigned_vars()
+            columns = [self.model.get_column_assigned_to_variable(var) for var in vars]
+            get_pos = lambda col: (self.tableView.columnViewportPosition(col)+self.tableView.columnViewportPosition(col+1))/2+offset
+            col_indices_of_cols_in_grp = [get_pos(col) for col in columns]
+            column_indices.append(col_indices_of_cols_in_grp)
+        return column_indices
+    
+#    def paintEvent(self, event):
+#        QtGui.QMainWindow.paintEvent(self, event)
+#        #self.update_vargroup_graphic()
+
+    def resizeEvent(self, event):
+        QtGui.QMainWindow.resizeEvent(self, event)
+        self.update_vargroup_graphic()
+
+    def update_vargroup_graphic(self):
+        self.vargroup_graphic.set_column_coordinates(self.get_variable_group_column_indices())
 
 ############### COPY & PASTE ###############################
 

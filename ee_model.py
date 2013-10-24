@@ -604,6 +604,7 @@ class EETableModel(QAbstractTableModel):
             var_group.unset_key(key)
         
         # Emit signal
+        self.blockSignals(False)
         self.column_formats_changed.emit()
         
     def remove_study(self, study):
@@ -1500,7 +1501,9 @@ class VariableGroup:
             return True
         except KeyError:
             return False
-    
+        
+    def get_assigned_vars(self):
+        return [var for var in self.group_data.values() if var]
         
     def __str__(self):
         raw_yi   = self.group_data[RAW_EFFECT]
