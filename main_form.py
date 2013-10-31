@@ -1225,10 +1225,11 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
             if self.outpath is None:
                 out_fpath = os.path.join(BASE_PATH, DEFAULT_FILENAME)
             else:
-                out_fpath = self.outpath # already have filename, maybe want to change it
+                out_fpath = QString(self.outpath) # already have filename, maybe want to change it
             print("proposed file path: %s" % out_fpath)
-            out_fpath = unicode(QFileDialog.getSaveFileName(self, "OpenMEE - Save File",
-                                                         out_fpath, "OpenMEE files (.ome)"))
+            out_fpath # In an extremely bizarre turn of events, the directory path below doesn't work unles out_fpath is evaluated beforehand just making it with QString doesn't seem to be enough!
+            out_fpath = unicode(QFileDialog.getSaveFileName(parent=self, caption="OpenMEE - Save File",
+                                                            directory=out_fpath, filter="OpenMEE files: (.ome)"))
             if out_fpath in ["", None]:
                 return False
             
