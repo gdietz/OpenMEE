@@ -12,6 +12,8 @@ Created on Jul 12, 2013
 from PyQt4.QtCore import *
 from PyQt4.QtGui import *
 
+from globals import *
+
 class InputForm(QDialog):
     def __init__(self, message="Dummy Message", initial_text="", parent=None):
         super(InputForm, self).__init__(parent=parent)
@@ -67,6 +69,12 @@ class UndoViewForm(QDialog):
     def set_stack_and_model(self, stack, model):
         self.undoView.setStack(stack)
         self.model = model
+    
+    def re_set_stack(self):
+        ''' pushes and pops a command that does nothing, just to get undoview to refresh '''
+        self.undo_stack.push(GenericUndoCommand(redo_fn=do_nothing,undo_fn=do_nothing))
+        self.undo_stack.undo()
+    
         
     def go_into_debugger(self):
         print("Entering debugger")

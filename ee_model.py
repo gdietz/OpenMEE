@@ -116,7 +116,7 @@ class EETableModel(QAbstractTableModel):
         self.change_column_count_if_needed()
         self.change_row_count_if_needed()
         
-        self.paste_mode = False # state to set/reset while pasting/importing
+        self.big_paste_mode = False # state to set/reset while pasting/importing
         
     def set_user_prefs(self, user_prefs):
         self.user_prefs = user_prefs
@@ -403,6 +403,18 @@ class EETableModel(QAbstractTableModel):
         if data_only:
             return
         self.headerDataChanged.emit(Qt.Horizontal, col, col)
+        
+        
+    def emit_change_signals_from_start_to_end(self, srow, scol, erow, ecol, header_too=False):
+        #srow,scol upper left row, column
+        #erow,ecol lower right row, column
+        
+        start_index = self.createIndex(srow,scol)
+        end_index = self.createIndex(erow,ecol)
+        self.emit(SIGNAL("dataChanged(QModelIndex,QModelIndex)"),
+                  start_index, end_index)
+        self.headerDataChanged.emit(Qt.Horizontal, scol, ecol)
+        print("emitting change signals from (%d,%d) to (%d,%d)" % (srow, scol, erow, ecol))
     
     def calculate_max_occupied_row(self):
         ''' Returns the highest numbered row index of the occupied rows
@@ -884,9 +896,10 @@ class EETableModel(QAbstractTableModel):
     #@profile_this
     def setData(self, index, value, role=Qt.EditRole, basic_value=False): # basic_value means a regular python type not a QVariant
         if not index.isValid() and not (0 <= index.row() < self.rowCount()):
+            print("bad setData: Index not valid")
             return False
         if role != Qt.EditRole:
-            print("No implementation written when role != Qt.EditRole")
+            print("bad setData: No implementation written when role != Qt.EditRole")
             return False
         # set dirty bit
         self.dirty = True
@@ -896,24 +909,26 @@ class EETableModel(QAbstractTableModel):
         is_label_col = col == self.label_column
         if basic_value:
             value_as_string = str(value)
-        else:
-            value_as_string = str(value.toString())
+        else: # value is a QVariant
+            value_as_string = str(value.toString()) if value not in ["", None,QVariant(),QVariant(None)] else ""
         
-        value_blank = (value == QVariant()) or (value is None) or (value_as_string == "") 
+        value_blank = (value == QVariant()) or (value is None) or (value_as_string == "")
+        if value_blank:
+            value = None
         
         # For doing/undoing all the sub_actions in one go
         # The emit data changed is so that it will be called LAST when the
         # macro is undone
-        if not self.paste_mode:
+        if not self.big_paste_mode:
             self.undo_stack.beginMacro(QString("SetDataMacro: (%d,%d), value: '%s'" % (row,col, value_as_string)))
             self.undo_stack.push(EmitDataChangedCommand(model=self, index=index))
         
         if not row_has_study: # no study on this row yet, we will make one
             if value_blank:
-                if not self.paste_mode:
+                if not self.big_paste_mode:
                     cancel_macro_creation_and_revert_state(self.undo_stack)
                 return True
-            if not self.paste_mode:
+            if not self.big_paste_mode:
                 self.undo_stack.push(MakeStudyCommand(model=self, row=row))
             else:
                 self.make_study_at_row(row)
@@ -926,22 +941,23 @@ class EETableModel(QAbstractTableModel):
             
             def label_valid():
                 if proposed_label == existing_label:
-                    return False
+                    return True
                 # check for duplicate labels
                 current_labels = set([study.get_label() for study in self.get_studies_in_current_order()])
                 if proposed_label in current_labels:
                     self.duplicate_label.emit()
+                    print("bad setData: proposed label %s already in current labels" % proposed_label)
                     return False
                 return True
             
             if label_valid():
-                if not self.paste_mode:
+                if not self.big_paste_mode:
                     self.undo_stack.push(SetStudyLabelCommand(study=study, new_label=proposed_label))
                     self.adjust_max_length_for_col(col, existing_label, proposed_label)
                 else:
                     self.study.set_label(self.new_label)
             else:
-                if not self.paste_mode:
+                if not self.big_paste_mode:
                     cancel_macro_creation_and_revert_state(self.undo_stack)
                 return True
 
@@ -949,11 +965,11 @@ class EETableModel(QAbstractTableModel):
             make_new_variable = not self.column_assigned_to_variable(col)
             if make_new_variable: # make a new variable and give it the default column header name
                 if value_blank:
-                    if not self.paste_mode:
+                    if not self.big_paste_mode:
                         cancel_macro_creation_and_revert_state(self.undo_stack)
                     return True
                 new_var_name = str(self.get_default_header(col))
-                if not self.paste_mode:
+                if not self.big_paste_mode:
                     self.undo_stack.push(MakeNewVariableCommand(model=self, var_name=new_var_name, col=col))
                 else:
                     self.make_variable_at_column(col=col, var_name=new_var_name)
@@ -966,15 +982,17 @@ class EETableModel(QAbstractTableModel):
             # Set value in study for variable
             can_convert_value_to_desired_type = self.dataset.can_convert_var_value_to_type(var_type, value_as_string)
             if not can_convert_value_to_desired_type:
-                self.emit(SIGNAL("DataError"), QString("Impossible Data Conversion"), QString("Cannot convert '%s' to %s data type" % (value_as_string, VARIABLE_TYPE_STRING_REPS[var_type])))
-                if not self.paste_mode:
+                bad_conversion_msg = "Cannot convert '%s' to %s data type" % (value_as_string, VARIABLE_TYPE_STRING_REPS[var_type])
+                self.emit(SIGNAL("DataError"), QString("Impossible Data Conversion"), QString(bad_conversion_msg))
+                if not self.big_paste_mode:
                     cancel_macro_creation_and_revert_state(self.undo_stack)
+                print("bad setData: %s" % bad_conversion_msg)
                 return False
                 
             formatted_value = self._convert_input_value_to_correct_type_for_assignment(value_as_string, var_type)
             
             
-            if not self.paste_mode:
+            if not self.big_paste_mode:
                 old_value = study.get_var(var)
                 self.undo_stack.push(SetVariableValueCommand(study=study, variable=var, value=formatted_value))
                 self.adjust_max_length_for_col(col, old_value, formatted_value)
@@ -992,12 +1010,12 @@ class EETableModel(QAbstractTableModel):
             
         
         # End of the macro for undo/redo
-        if not self.paste_mode:
+        if not self.big_paste_mode:
             self.undo_stack.push(EmitDataChangedCommand(model=self, index=index))
             self.undo_stack.endMacro()
         
         
-        if not self.paste_mode:
+        if not self.big_paste_mode:
             self.change_row_count_if_needed()
             self.change_column_count_if_needed()
         else: # don't check unnessarily (optimization)
@@ -1007,6 +1025,56 @@ class EETableModel(QAbstractTableModel):
                 self.change_column_count_if_needed()
         #self.emit(SIGNAL("dataChanged(QModelIndex,QModelIndex)"),
         #          index, index)
+        return True
+    
+    
+    def test_value_for_setData(self, index, value):
+        # value assumed to be QVariant
+        
+        row, col = index.row(), index.column()
+        row_has_study = row in self.rows_2_studies
+        is_label_col = col == self.label_column
+        value_as_string = str(value.toString()) if value not in ["", None,QVariant(),QVariant(None)] else ""
+        
+        value_blank = (value in [QVariant(), None, QVariant(None)]) or (value_as_string =="")
+        if value_blank:
+            value = None
+            
+        if row_has_study:
+            study = self.rows_2_studies[row]
+        
+        if is_label_col:
+            if row_has_study:
+                existing_label = study.get_label()
+            proposed_label = value_as_string if not value_blank else None
+            
+            def label_valid():
+                if row_has_study:
+                    if proposed_label == existing_label:
+                        return True
+                # check for duplicate labels
+                current_labels = set([astudy.get_label() for astudy in self.get_studies_in_current_order()])
+                if proposed_label in current_labels:
+                    self.duplicate_label.emit()
+                    return False
+                return True
+            
+            if not label_valid():
+                return False
+
+        else: # we are in a variable column (initialized or not)
+            make_new_variable = not self.column_assigned_to_variable(col)
+            if make_new_variable:
+                var_type = CATEGORICAL # most general
+            else:
+                var = self.cols_2_vars[col]
+                var_name = var.get_label()
+            var_type = var.get_type()
+            
+            can_convert_value_to_desired_type = self.dataset.can_convert_var_value_to_type(var_type, value_as_string)
+            if not can_convert_value_to_desired_type:
+                self.emit(SIGNAL("DataError"), QString("Impossible Data Conversion"), QString("Cannot convert '%s' to %s data type" % (value_as_string, VARIABLE_TYPE_STRING_REPS[var_type])))
+                return False
         return True
     
     def handle_grouped_variable_from_setData(self, study, var, value):
@@ -1730,12 +1798,12 @@ class EmitDataChangedCommand(QUndoCommand):
         self.setText(QString("Data changed emission"))
     
     def undo(self):
-        if DEBUG_MODE: print("undo: emit data changed")
+        #if DEBUG_MODE: print("undo: emit data changed")
         self.model.emit(SIGNAL("dataChanged(QModelIndex,QModelIndex)"),
           self.index, self.index)
         
     def redo(self):
-        if DEBUG_MODE: print("redo: emit data changed")
+        #if DEBUG_MODE: print("redo: emit data changed")
         self.model.emit(SIGNAL("dataChanged(QModelIndex,QModelIndex)"),
           self.index, self.index)
         

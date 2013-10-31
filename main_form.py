@@ -298,7 +298,7 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
         print("column formats changed")
 
     def table_selection_changed(self):
-        if self.model.paste_mode:
+        if self.model.big_paste_mode:
             return
         print("Table selection changed")
         anything_selected = False
@@ -849,7 +849,7 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
             self.tableView.setFocus()
             new_index = self.model.createIndex(row,col)
             self.tableView.setCurrentIndex(new_index)
-        if not self.model.paste_mode:
+        if not self.model.big_paste_mode:
             end_row, end_col = index_bottom_right.row(), index_bottom_right.column()
             ncols = end_col-col + 1
             if ncols >= 10:
@@ -1080,7 +1080,7 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
             name = var_name
         
         self.undo_stack.beginMacro(QString("Make a new variable at col %d" % col))
-        resize_columns = self.tableView.resizeColumnsToContents if not self.model.paste_mode else do_nothing
+        resize_columns = self.tableView.resizeColumnsToContents if not self.model.big_paste_mode else do_nothing
         start_cmd = GenericUndoCommand(redo_fn=do_nothing,
                                        undo_fn=lambda: self.model.emit_change_signals_for_col(col),
                                        on_undo_exit=resize_columns)
@@ -1132,7 +1132,7 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
             undo = partial(self.model.change_variable_name, var, new_name=initial_name)
             description = "Renamed variable '%s' to '%s'" % (initial_name, proposed_name)
         
-        resize_columns = self.tableView.resizeColumnsToContents if not self.model.paste_mode else do_nothing
+        resize_columns = self.tableView.resizeColumnsToContents if not self.model.big_paste_mode else do_nothing
         rename_column_command = GenericUndoCommand(redo_fn=redo, undo_fn=undo,
                                                    on_redo_exit=resize_columns,
                                                    description=description)
@@ -1401,8 +1401,8 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
         
         column_indices = []
         for group in self.model.variable_groups:
-            vars = group.get_assigned_vars()
-            columns = [self.model.get_column_assigned_to_variable(var) for var in vars]
+            variables = group.get_assigned_vars()
+            columns = [self.model.get_column_assigned_to_variable(var) for var in variables]
             get_pos = lambda col: (self.tableView.columnViewportPosition(col)+self.tableView.columnViewportPosition(col+1))/2+offset
             col_indices_of_cols_in_grp = [get_pos(col) for col in columns]
             column_indices.append(col_indices_of_cols_in_grp)
@@ -1574,20 +1574,23 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
                        progress_bar_title="Pasting",
                        progress_bar_label=""):
 
-        if not self.model.paste_mode:
+        if not self.model.big_paste_mode:
             if self.source_content_large(source_content):
                 if self.prompt_paste_even_though_not_undoable():
-                    self.model.paste_mode=True
+                    self.model.big_paste_mode=True
                 else:
-                    self.model.paste_mode=False
+                    self.model.big_paste_mode=False
                     return
         
         #pr=cProfile.Profile()
         #pr.enable()
+        print("Big paste mode: %s" % self.model.big_paste_mode)
         self.paste_contents(upper_left_index, source_content)
+        self.model.big_paste_mode = False
         #pr.disable()
         #pr.create_stats()
         #pr.print_stats(sort='cumulative')
+    
 
     def paste_contents(self, upper_left_index, source_content,
                        progress_bar_title="Pasting",
@@ -1609,76 +1612,118 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
             ''' Ends creation of macro (in progress) and reverts the state of
             the model to before the macro began to be created '''
             
-            #print("Cancelling macro creation and reverting")
+            print("paste_contents: Cancelling macro creation and reverting")
             self.undo_stack.endMacro()
             self.undo_stack.undo()
             self.model.blockSignals(False)
-            
             self.tableView.resizeColumnsToContents()
-            
-
-
-
-        # temporarily disable sorting to prevent automatic sorting of pasted data.
-        # (note: this is consistent with Excel's approach.)
-        self.model.blockSignals(True)
-        self.undo_stack.blockSignals(True)
-        self.tableView_selection_model.blockSignals(True)
-        
-        if not self.model.paste_mode:
-            self.undo_stack.beginMacro(QString("Pasting"))
-            self.undo_stack.push(GenericUndoCommand(redo_fn=do_nothing,
-                                 undo_fn=self.tableView.resizeColumnsToContents))
-        
+                
         nrows = len(source_content)
         ncols = len(source_content[0])
+        end_row, end_col = origin_row+nrows-1, origin_col+ncols-1
         #ncells = nrows*ncols
 
         progress_dlg = QProgressDialog(QString(progress_bar_title),QString("cancel"),0,(nrows-1)*(ncols-1),parent=self)
         progress_dlg.setWindowModality(Qt.WindowModal)
-        for src_row in range(len(source_content)):
-            for src_col in range(len(source_content[0])):
-                new_progress_val = src_row*ncols + src_col
-                if new_progress_val % 100 == 0:
-                    progress_dlg.setValue(new_progress_val)
-                    QApplication.processEvents()
-                #try:
-                # note that we treat all of the data pasted as
-                # one event; i.e., when undo is called, it undos the
-                # whole paste
-                index = self.model.createIndex(origin_row+src_row, origin_col+src_col)
-                unicode_value = unicode(source_content[src_row][src_col])
-                in_ascii = unicode_value.encode('ascii','replace')
-                value = str(in_ascii)
-                setdata_ok = self.model.setData(index, QVariant(value))
-                if not self.model.paste_mode:
-                    if not setdata_ok:
-                        cancel_macro_creation_and_revert_state()
-                #except Exception, e:
-                #    #import pdb; pdb.set_trace()
-                #    progress_dlg.setValue(progress_dlg.maximum())
-                #    print "whoops, exception while pasting: %s" % e
-                #    print("Row, col: %d, %d" % (src_row,src_col))
-                #    raise e
-        #progress_dlg.setValue(progress_dlg.maximum())               
-        progress_dlg.close()
-                    
         
-        if self.model.paste_mode:
-            self.undo_stack.clear()
-            self.tableView.resizeColumnsToContents()
-        else:
-            self.undo_stack.push(GenericUndoCommand(redo_fn=self.tableView.resizeColumnsToContents,
-                                                undo_fn=do_nothing))
-            self.undo_stack.endMacro()
+        def paste_loop(test=False):
+            if test:
+                progress_dlg.setLabelText("Testing Paste")
+            else:
+                progress_dlg.setLabelText("Pasting...")
+            
+            for src_row in range(len(source_content)):
+                for src_col in range(len(source_content[0])):
+                    new_progress_val = src_row*ncols + src_col
+                    if new_progress_val % 100 == 0:
+                        progress_dlg.setValue(new_progress_val)
+                        QApplication.processEvents()
+                    #try:
+                    # note that we treat all of the data pasted as
+                    # one event; i.e., when undo is called, it undos the
+                    # whole paste
+                    index = self.model.createIndex(origin_row+src_row, origin_col+src_col)
+                    raw_value = source_content[src_row][src_col]
+                    if raw_value in [None, QVariant(None),QVariant()]:
+                        value=None
+                    else:
+                        unicode_value = unicode(raw_value)
+                        in_ascii = unicode_value.encode('ascii','replace')
+                        value = str(in_ascii)
+                        
+                    if test:
+                        setdata_ok = self.model.test_value_for_setData(index, QVariant(value))
+                        if not setdata_ok:
+                            return False
+                    else:
+                        setdata_ok = self.model.setData(index, QVariant(value))
+                        if not setdata_ok:
+                            print("SETDATA FAILED!!!")
+                        if not self.model.big_paste_mode:
+                            if not setdata_ok:
+                                cancel_macro_creation_and_revert_state()
+                                progress_dlg.close()
+                                self.tableView_selection_model.blockSignals(False)
+                                self.undo_stack.blockSignals(False)
+                                self.model.blockSignals(False)
+                                return False
+            return True
         
-        self.tableView_selection_model.blockSignals(False)
-        self.undo_stack.blockSignals(False)
         self.model.blockSignals(False)
-        self.update_undo_enable_status()
-        
-        print("resetting model")
-        self.model.reset()
+        loop_will_succeed = paste_loop(test=True) # note: doesn't test redundant labels properly since it just tests each row by itself, not all together
+        self.model.blockSignals(True)
+        if loop_will_succeed:
+            # temporarily disable sorting to prevent automatic sorting of pasted data.
+            # (note: this is consistent with Excel's approach.)
+            self.model.blockSignals(True)
+            self.undo_stack.blockSignals(True)
+            self.tableView_selection_model.blockSignals(True)
+            
+            if not self.model.big_paste_mode:
+                self.undo_stack.beginMacro(QString("Pasting"))
+                self.undo_stack.push(GenericUndoCommand(redo_fn=do_nothing,
+                                     undo_fn=self.tableView.resizeColumnsToContents))
+                self.undo_stack.push(GenericUndoCommand(redo_fn=do_nothing,
+                                                        undo_fn=lambda: self.model.emit_change_signals_from_start_to_end(origin_row, origin_col, end_row, end_col)))
+                print("beginning pasting macro")
+            
+            #####################
+            paste_loop() # pasting actually happens here 
+            progress_dlg.close()
+            #####################
+                    
+            if self.model.big_paste_mode:
+                self.undo_stack.clear()
+                self.tableView.resizeColumnsToContents()
+                #self.model.emit_change_signals_from_start_to_end(origin_row, origin_col, end_row, end_col)
+            else:
+                self.undo_stack.push(GenericUndoCommand(redo_fn=self.tableView.resizeColumnsToContents,
+                                                    undo_fn=do_nothing))
+                self.undo_stack.push(GenericUndoCommand(undo_fn=do_nothing,
+                                                        redo_fn=lambda: self.model.emit_change_signals_from_start_to_end(origin_row, origin_col, end_row, end_col)))
+                self.undo_stack.endMacro()
+                print("ended paste macro")
+            
+            self.tableView_selection_model.blockSignals(False)
+            self.undo_stack.blockSignals(False)
+            self.undo_view_form.re_set_stack()
+            self.model.blockSignals(False)
+            self.update_undo_enable_status()
+            
+            print("resetting model")
+            self.model.reset()
+            return True
+        else:
+            self.tableView_selection_model.blockSignals(False)
+            self.undo_stack.blockSignals(False)
+            self.model.blockSignals(False)
+            self.undo_view_form.re_set_stack()
+            self.update_undo_enable_status()
+            progress_dlg.close()
+            print("Paste loop will fail, leaving before damage is done")
+            return False
+
+
         
     def _is_blank_row(self, r):
         return len(r) == 1 and r[0] == ""
@@ -1725,13 +1770,13 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
             
             if self.source_content_large(matrix):
                 if self.prompt_paste_even_though_not_undoable():
-                    paste_mode=True
+                    big_paste_mode=True
                 else:
-                    paste_mode=False
+                    big_paste_mode=False
                     return
                 
             self.new_dataset()
-            self.model.paste_mode = paste_mode
+            self.model.big_paste_mode = big_paste_mode
             start_index = self.model.createIndex(0,0)
             
             progress_dlg = QProgressDialog(QString("Making column headers"),QString("cancel"),0,len(headers)-1,parent=self)
