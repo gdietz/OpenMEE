@@ -8,6 +8,9 @@
 import os
 import cProfile
 
+from PyQt4 import QtCore, QtGui
+from PyQt4.Qt import *
+
 ###### SWITCHES #######
 # Enables additional elements of the program useful in debugging
 DEBUG_MODE = True           # mostly for printing debugging message to terminal
@@ -17,8 +20,9 @@ SOUND_EFFECTS = True
 MAKE_TESTS = False
 ###### END SWITCHES ######
 
-from PyQt4 import QtCore, QtGui
-from PyQt4.Qt import *
+HEADER_LINE_LENGTH = 70 # maximum length of header labels 
+
+
 
 # The different types of data that can be associated with studies
 CATEGORICAL, CONTINUOUS, COUNT = range(3)
@@ -430,3 +434,21 @@ def listvals_to_scalars(d):
 # Sound effects
 moment = QSound("sounds/moment.wav")
 silly = QSound("sounds/silly.wav")
+
+def manual_word_wrap(x, max_length=HEADER_LINE_LENGTH, sep=' '):
+    ''' Returns a wrapped version of x
+    max_length is maximum length of the line, sep is the separator to break
+    the string with, x is the input string'''
+    
+    lines = []
+    words = str(x).split(sep)
+    line = ""
+    for word in words:
+        if len(line) + len(word) + 1 > max_length:
+            lines.append(line)
+            line = word
+        else:
+            line = sep.join([line, word])
+    if len(line)>0:
+        lines.append(line)
+    return '\n'.join(lines)

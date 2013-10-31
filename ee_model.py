@@ -874,11 +874,12 @@ class EETableModel(QAbstractTableModel):
                 col_name = self.cols_2_vars[section].get_label()
                 var_type = self.cols_2_vars[section].get_type()
                 suffix = "\n(%s)" % VARIABLE_TYPE_SHORT_STRING_REPS[var_type]
-            return QVariant(QString(col_name + suffix))
+            return QVariant(QString(manual_word_wrap(col_name) + suffix))
             
         elif orientation == Qt.Vertical:
             return QVariant(int(section + 1))
-        
+    
+
 
     #@profile_this
     def setData(self, index, value, role=Qt.EditRole, basic_value=False): # basic_value means a regular python type not a QVariant
