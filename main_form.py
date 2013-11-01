@@ -162,6 +162,7 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
             enable = False
             
         self.enable_analyses = enable
+        print("Enable status for analyses: %s" % enable)
             
         self.actionCalculate_Effect_Size.setEnabled(enable)
         self.actionStandard_Meta_Analysis.setEnabled(enable)
@@ -415,6 +416,8 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
                 return False
             print("Computed these effect sizes: %s" % str(effect_sizes))
             
+            self.undo_stack.beginMacro("Calculate Effect Size")
+            ################################################################
             if cols_to_overwrite:
                 effect_cols_dict = self.model.add_effect_sizes_to_model(metric, effect_sizes, cols_to_overwrite=cols_to_overwrite)
             else: # vanilla
@@ -431,6 +434,8 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
             else:
                 redo_fn = lambda: self.clear_data_vars_from_var_group(data_location.keys(), var_grp)
             self.undo_stack.push(GenericUndoCommand(redo_fn=redo_fn, undo_fn=undo_fn))
+            #####################################################################
+            self.undo_stack.endMacro()
             
             self.tableView.resizeColumnsToContents()
             QTimer.singleShot(0, self.update_vargroup_graphic)
@@ -472,7 +477,7 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
             '''
 
 
-        conf_level=DEFAULT_CONFIDENCE_LEVEL # TODO: ask user what conf. level they want to transform at
+        conf_level=self.model.conf_level # TODO: ask user what conf. level they want to transform at
 
         wizard = transform_effect_size_wizard.TransformEffectSizeWizard(model=self.model)
 
@@ -1112,7 +1117,6 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
             redo = partial(self.model.change_label_column_name, proposed_name)
             undo = partial(self.model.change_label_column_name, initial_name)
             description = "Renamed label column '%s' to '%s'" % (initial_name, proposed_name)
-            rename_column_command = GenericUndoCommand(redo_fn=redo, undo_fn=undo, description="Renamed label column '%s' to '%s'" % (initial_name, proposed_name))
         else:
             redo = partial(self.model.change_variable_name, var, new_name=proposed_name)
             undo = partial(self.model.change_variable_name, var, new_name=initial_name)
@@ -1555,9 +1559,7 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
         else:
             return
 
-    def paste_wrapper(self, upper_left_index, source_content,
-                       progress_bar_title="Pasting",
-                       progress_bar_label=""):
+    def paste_wrapper(self, upper_left_index, source_content):
 
         if not self.model.big_paste_mode:
             if self.source_content_large(source_content):
@@ -1578,8 +1580,7 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
     
 
     def paste_contents(self, upper_left_index, source_content,
-                       progress_bar_title="Pasting",
-                       progress_bar_label=""):
+                       progress_bar_title="Pasting"):
         '''
         paste the content in source_content into the matrix starting at the upper_left_coord
         cell. new rows will be added as needed; existing data will be overwritten
