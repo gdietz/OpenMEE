@@ -11,17 +11,17 @@ BOOTSTRAP_DEFAULT_FILENAME = "bootstrap.png"
 
 
 class BootstrapPage(QWizardPage, ui_bootstrap_page.Ui_BootstrapPage):
-    def __init__(self, model, mode = BOOTSTRAP_MA, parent=None):
+    def __init__(self, model, mode=BOOTSTRAP_MA, parent=None):
         super(BootstrapPage, self).__init__(parent)
         self.setupUi(self)
-        
+
         self.model = model
         self.mode = mode
         self.base_path = os.getcwd()
         self.base_path = os.path.join(self.base_path, "r_tmp", BOOTSTRAP_DEFAULT_FILENAME)
-        
+
         self.default_params = self.model.get_bootstrap_params_selection()
-    
+
     def initializePage(self):
         if self.default_params is not None:
             if 'bootstrap.plot.path' in self.default_params:

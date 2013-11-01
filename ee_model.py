@@ -13,7 +13,7 @@ import pdb
 import string
 from sets import Set
 from functools import partial
-import copy
+#import copy
 
 
 # handrolled
