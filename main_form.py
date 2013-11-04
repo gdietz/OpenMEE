@@ -54,6 +54,21 @@ class RecentFilesManager:
         
     def get_list(self):
         return list(self.recent_files)
+####################################################################################
+import ui_conf_level_toolbar_widget
+
+class ConfLevelToolbarWidget(QWidget, ui_conf_level_toolbar_widget.Ui_Form):
+    def __init__(self, parent=None):
+        super(ConfLevelToolbarWidget, self).__init__(parent)
+        self.setupUi(self)
+        
+        #self.conf_level_spinbox
+        
+    def set_spinbox_value_no_signals(self, new_val):
+        self.conf_level_spinbox.blockSignals(True)
+        self.conf_level_spinbox.setValue(new_val)
+        self.conf_level_spinbox.blockSignals(False)
+####################################################################################
 
 class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
     def __init__(self, parent=None):
@@ -64,12 +79,18 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
         self.vargroup_graphic = VariableGroupGraphic()
         layout.addWidget(self.vargroup_graphic)
         
+        # Confidence level spinbox
+        self.conf_level_toolbar_widget = ConfLevelToolbarWidget(parent=self)
+        self.toolBar.addWidget(self.conf_level_toolbar_widget)
+        
+        
         self.undo_stack = QUndoStack(self)
         self.load_user_prefs()
         
         self.model = ee_model.EETableModel(undo_stack=self.undo_stack, user_prefs=self.user_prefs)
         self.tableView.setModel(self.model)
         self.tableView.resizeColumnsToContents()
+        self.conf_level_toolbar_widget.conf_level_spinbox.setValue(self.model.get_conf_level())
         
         #### Display undo stack (if we want to...)
         self.undo_view_form = useful_dialogs.UndoViewForm(undo_stack=self.undo_stack, model=self.model, parent=self)
@@ -93,13 +114,12 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
         vertical_header.customContextMenuRequested.connect(self.make_vertical_header_context_menu)
         
         self.set_window_title()
-        python_to_R.set_conf_level_in_R(DEFAULT_CONFIDENCE_LEVEL)
+        
         
         # issue #8: disable copy-pasta if nothing 
         # is selected (which is true at the outset)
         self.toggle_copy_pasta(False)
-        
-        
+
         
     def set_window_title(self):
         if self.outpath is None:
@@ -198,6 +218,7 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
         self.model.dirty = False
         self.tableView.setModel(self.model)
         self.tableView.resizeColumnsToContents()
+        self.conf_level_toolbar_widget.conf_level_spinbox.setValue(self.model.get_conf_level())
         self.make_model_connections()
 
     def setup_menus(self):
@@ -350,6 +371,8 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
         self.model.duplicate_label.disconnect(self.duplicate_label_attempt)
         self.model.should_resize_column.disconnect(self.resize_column)
         #self.model.column_formats_changed.disconnect(lambda: QTimer.singleShot(1, self.update_vargroup_graphic))
+        self.conf_level_toolbar_widget.conf_level_spinbox.valueChanged[float].disconnect(self.model.set_conf_level)
+        self.model.conf_level_changed_during_undo.disconnect(self.conf_level_toolbar_widget.set_spinbox_value_no_signals)
         
     def make_model_connections(self):
         QObject.connect(self.model, SIGNAL("DataError"), self.warning_msg)
@@ -369,7 +392,9 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
         self.model.should_resize_column.connect(self.resize_column)
         
         self.model.column_formats_changed.connect(lambda: QTimer.singleShot(1, self.update_vargroup_graphic))
-        #self.model.column_formats_changed.connect(self.stupid)
+        
+        self.conf_level_toolbar_widget.conf_level_spinbox.valueChanged[float].connect(self.model.set_conf_level)
+        self.model.conf_level_changed_during_undo.connect(self.conf_level_toolbar_widget.set_spinbox_value_no_signals)
         
     def duplicate_label_attempt(self):
         QMessageBox.critical(self, "Attempted duplicate label", "Labels must be unique")

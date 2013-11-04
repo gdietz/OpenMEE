@@ -21,6 +21,7 @@ from dataset.ee_dataset import EEDataSet
 from globals import *
 import python_to_R
 from dataset.variable import Variable
+import copy
 
 # Some constants
 ADDITIONAL_ROWS = 100
@@ -33,7 +34,7 @@ FORBIDDEN_VARIABLE_NAMES = [LABEL_PREFIX_MARKER,]
 class ModelState:
     def __init__(self, dataset, dirty, rows_2_studies, cols_2_vars,
                  label_column, label_column_name_label, column_groups,
-                 last_analysis_selections):
+                 last_analysis_selections, conf_level):
         self.dataset   = dataset
         self.dirty     = dirty
         self.rows_2_studies = rows_2_studies
@@ -43,6 +44,7 @@ class ModelState:
         self.variable_groups = column_groups
         # analysis stuff
         self.last_analysis_selections = last_analysis_selections
+        self.conf_level = conf_level
         
         
 DEFAULT_LAST_ANALYSIS_SELECTIONS = {'data_locations': {MEANS_AND_STD_DEVS:{},
@@ -72,6 +74,7 @@ class EETableModel(QAbstractTableModel):
     column_groups_changed  = pyqtSignal()
     duplicate_label        = pyqtSignal()
     should_resize_column   = pyqtSignal(int)
+    conf_level_changed_during_undo = pyqtSignal(float)
     
     def __init__(self, undo_stack, user_prefs, model_state=None):
         super(EETableModel, self).__init__()
@@ -91,6 +94,7 @@ class EETableModel(QAbstractTableModel):
             self.dataset = EEDataSet()
             self.dirty = False
             self.data_location_choices = {} # maps data_types to column choices
+            self.conf_level = DEFAULT_CONFIDENCE_LEVEL
             # analysis info
             self.last_analysis_selections = DEFAULT_LAST_ANALYSIS_SELECTIONS
             
@@ -109,6 +113,9 @@ class EETableModel(QAbstractTableModel):
             self.calculate_max_occupied_row()
             self.calculate_max_occupied_col()
         
+        # Set confidence level
+        self.set_conf_level(self.conf_level, ignore_undo=True)
+        
         self.default_headers = self._generate_header_string(ADDITIONAL_COLS)
         # for rowCount() and colCount()
         self.rowlimit = ADDITIONAL_ROWS
@@ -120,6 +127,84 @@ class EETableModel(QAbstractTableModel):
         
     def set_user_prefs(self, user_prefs):
         self.user_prefs = user_prefs
+        
+    def set_conf_level(self, conf_level, ignore_undo=False):  # i.e. 95
+        if ignore_undo:
+            old_conf_level = self.conf_level
+            self.conf_level = conf_level
+            python_to_R.set_conf_level_in_R(conf_level)
+            self.do_when_conf_level_changes(old_conf_level, conf_level, use_undo=False)
+        else:
+            old_conf_level = self.conf_level
+            redo_fn = lambda: setattr(self, 'conf_level', conf_level)
+            undo_fn = lambda: setattr(self, 'conf_level', old_conf_level)
+            self.undo_stack.beginMacro("Setting confidence level and performing associated actions")
+            self.undo_stack.push(GenericUndoCommand(redo_fn=redo_fn, undo_fn=undo_fn,
+                                                    on_undo_exit=lambda: self.conf_level_changed_during_undo.emit(old_conf_level),
+                                                    description="set confidence level"))
+            self.do_when_conf_level_changes(old_conf_level, conf_level)
+            self.undo_stack.endMacro()
+        print("Confidence level is now %.1f" % self.conf_level)
+    
+    def do_when_conf_level_changes(self, old_conf_level, new_conf_level, use_undo=True):
+        
+        ################## Update raw effect columns ########################
+        if use_undo:
+            self.undo_stack.beginMacro("Updating raw effect columns")
+        for var_grp in self.variable_groups:
+            metric = var_grp.get_metric()
+            
+            if not var_grp.raw_effects_full(): # make sure a variable is assigned to each column of the raw effects
+                continue
+            
+            #transform raw data columns to transform scale, then get them back again in no transform scale at the new conf level
+            raw_data_location = {RAW_EFFECT: var_grp.get_var_with_key(RAW_EFFECT),
+                                 RAW_LOWER:  var_grp.get_var_with_key(RAW_LOWER),
+                                 RAW_UPPER:  var_grp.get_var_with_key(RAW_UPPER)}
+            data = python_to_R.gather_data(self, raw_data_location, vars_given_directly=True)
+            old_data = copy.deepcopy(data)
+            try:
+                trans_effects = python_to_R.transform_effect_size(
+                                                      metric=metric,
+                                                      source_data=data,
+                                                      direction=RAW_TO_TRANS,
+                                                      conf_level=old_conf_level)
+                raw_effects_new_scale = python_to_R.transform_effect_size(
+                                                    metric=metric,
+                                                    source_data=trans_effects,
+                                                    direction=TRANS_TO_RAW,
+                                                    conf_level=new_conf_level)
+            except CrazyRError as e:
+                QMessageBox.critical(self, QString("R error"), QString(str(e)))
+                return False
+            
+            studies = self.get_studies_in_current_order()
+            
+            for effect in [RAW_EFFECT, RAW_LOWER, RAW_UPPER]:
+                var = var_grp.get_var_with_key(effect)
+                col = self.get_column_assigned_to_variable(var)
+                old_values = old_data[effect]
+                new_values = raw_effects_new_scale[effect]
+                if use_undo:
+                    redo_fn = partial(self.set_variable_values, studies=studies, variable=var, values=new_values)
+                    undo_fn = partial(self.set_variable_values, studies=studies, variable=var, values=old_values)
+                    cmd = GenericUndoCommand(redo_fn=redo_fn, undo_fn=undo_fn,
+                                             on_redo_exit=partial(self.emit_change_signals_for_col,col=col),
+                                             on_undo_exit=partial(self.emit_change_signals_for_col,col=col))
+                    self.undo_stack.push(cmd)
+                else:
+                    self.set_variable_values(studies=studies, variable=var, values=new_values)
+        if use_undo:
+            self.undo_stack.endMacro()
+        ################## end update raw effect columns ########################
+            
+            
+            
+            
+            
+    
+    def get_conf_level(self):
+        return self.conf_level
         
     def get_sorted_continuous_covariates(self):
         return self.get_sorted_covariates(CONTINUOUS)
@@ -146,6 +231,7 @@ class EETableModel(QAbstractTableModel):
                           label_column   = self.label_column,
                           label_column_name_label = self.label_column_name_label,
                           column_groups = self.variable_groups,
+                          conf_level = self.conf_level,
                           # analysis info
                           last_analysis_selections = self.last_analysis_selections,
                           )
@@ -167,6 +253,11 @@ class EETableModel(QAbstractTableModel):
             self.last_analysis_selections = state.last_analysis_selections
         except AttributeError:
             self.last_analysis_selections = DEFAULT_LAST_ANALYSIS_SELECTIONS
+            
+        try:
+            self.conf_level = state.conf_level
+        except AttributeError:
+            self.conf_level = DEFAULT_CONFIDENCE_LEVEL
         
         # Emit signals
         self.label_column_changed.emit()
@@ -1107,7 +1198,7 @@ class EETableModel(QAbstractTableModel):
                                                     metric=var_grp.get_metric(),
                                                     source_data=trans_scale_data,
                                                     direction=TRANS_TO_RAW,
-                                                    conf_level=DEFAULT_CONFIDENCE_LEVEL)
+                                                    conf_level=self.conf_level)
     
             self.set_single_row_effect_data(var_grp, study, trans_scale_data, raw_effect_sizes)
             
@@ -1382,6 +1473,15 @@ class EETableModel(QAbstractTableModel):
                                      undo_fn=do_nothing)
         self.undo_stack.push(end_cmd)
         self.undo_stack.endMacro()
+        
+        
+    def set_variable_values(self, studies, variable, values):
+        ''' studies is a list of studies in the same order as values '''
+        
+        for study, value in zip(studies, values):
+            study.set_var(variable, value)
+        
+        
 
     def make_new_variable_group(self, metric, name):
         print("Making new column group")
@@ -1518,6 +1618,10 @@ class VariableGroup:
     def effects_full(self):
         effects_subdict = dict([(key,val) for key,val in self.group_data.iteritems() if key in self.effect_keys])
         return all(effects_subdict.values())
+    
+    def raw_effects_full(self):
+        raw_effects_subdict = dict([(key,val) for key,val in self.group_data.iteritems() if key in [RAW_EFFECT, RAW_LOWER, RAW_UPPER]])
+        return all(raw_effects_subdict.values())
     
     def data_full(self):
         data_subdict = dict([(key, val) for key,val in self.group_data.iteritems() if key in self.data_keys])

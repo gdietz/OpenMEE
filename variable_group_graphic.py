@@ -97,7 +97,11 @@ class VariableGroupGraphic(QtGui.QWidget):
         n = len(self.column_coordinates)
         height_hint = self.height*n + self.spacing*(n-1) if n>0 else 1
         return QtCore.QSize(4000, height_hint)
-
+    
+    def minimumSizeHint(self):    
+        size = self.sizeHint()
+        size.setWidth(200)
+        return size
 
 if __name__ == '__main__':
 
