@@ -396,14 +396,14 @@ class ResultsWindow(QMainWindow, ui_results_window.Ui_ResultsWindow):
                 action = QAction("save pdf image as...", self)
                 QObject.connect(action, SIGNAL("triggered()"),
                                 lambda : self.save_image_as(params_path, title, 
-                                plot_type=plot_type))
+                                plot_type=plot_type, format="pdf"))
                 menu.addAction(action)
             def add_save_as_png_menu_action(menu):
                 action = QAction("save png image as...", self)
                 QObject.connect(action, SIGNAL("triggered()"),
                             lambda : self.save_image_as(params_path, title, 
                                             plot_type=plot_type,
-                                            unscaled_image = plot_img))
+                                            unscaled_image = plot_img, format="png"))
                 menu.addAction(action)
             def add_edit_plot_menu_action(menu):
                 # only know how to edit *simple* (i.e., _not_ side-by-side, as 
@@ -433,7 +433,10 @@ class ResultsWindow(QMainWindow, ui_results_window.Ui_ResultsWindow):
     def _is_side_by_side_fp(self, title):
         return any([side_by_side in title for side_by_side in SIDE_BY_SIDE_FOREST_PLOTS])
 
-    def save_image_as(self, params_path, title, plot_type="forest", unscaled_image=None):
+    def save_image_as(self, params_path, title, plot_type="forest", unscaled_image=None, format="png"):
+        
+        if format not in ["pdf","png"]:
+            raise Exception("Invalid format, needs to be either pdf or png!")
         
         print("unscaled_image: %s" % str(unscaled_image))
         #if not unscaled_image:
@@ -443,16 +446,32 @@ class ResultsWindow(QMainWindow, ui_results_window.Ui_ResultsWindow):
         python_to_R.load_in_R("%s.plotdata" % params_path)
         print("Loaded: %s" % "%s.plotdata" % params_path)
 
-        default_path = {"forest":"forest_plot.pdf",
-                        "regression":"regression.pdf"}[plot_type]
+        suffix = unicode("."+format)
+        default_filename = {"forest":"forest_plot", \
+                            "regression":"regression"}[plot_type] + suffix
+        
+                        
+        default_path = os.path.join(BASE_PATH, default_filename)
+        print("default_path for graphic: %s" % default_path)
+        default_path = QString(default_path)
+        default_path
+        
+        filter = format + " files (*." + format +")"
+        print("filter: %s" % filter)
 
         # where to save the graphic?
         file_path = unicode(QFileDialog.getSaveFileName(self, 
-                                                        "OpenMeta[Analyst] -- save plot as", 
-                                                        QString(default_path)))
+                                                        "OpenMeta[Analyst] -- save plot as",
+                                                        default_path,))
+                                                        #filter=QString(filter)))
 
         # now we re-generate it, unless they canceled, of course
         if file_path != "":
+            if file_path[-4:] != suffix:
+                file_path += suffix
+                
+                
+            
             if plot_type == "forest":
                 if self._is_side_by_side_fp(title):
                     python_to_R.generate_forest_plot(file_path, side_by_side=True)
