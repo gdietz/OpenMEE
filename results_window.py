@@ -31,7 +31,7 @@ SCALE_P = .5 # percent images are to be scaled
 
 # these are special forest plots, in that multiple parameters objects are
 # require to re-generate them (and we invoke a different method!)
-SIDE_BY_SIDE_FOREST_PLOTS = ("NLR and PLR Forest Plot", "Sensitivity and Specificity")
+SIDE_BY_SIDE_FOREST_PLOTS = ("NLR and PLR Forest Plot", "Sensitivity and Specificity","Cumulative Forest Plot")
 ROW_HEIGHT = 15 # by trial-and-error; seems to work very well
 
 
