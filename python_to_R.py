@@ -92,7 +92,9 @@ def evaluate_in_r(r_str):
 
 def load_in_R(fpath):
     ''' loads what is presumed to be .Rdata into the R environment '''
-    ro.r("load('%s')" % fpath)
+    r_str = "load('%s')" % fpath
+    ro.r(r_str)
+    print("executed: %s" % r_str)
     
 def generate_reg_plot(file_path, params_name="plot.data"): 
     ro.r("meta.regression.plot(%s, '%s')" % (params_name, file_path))
@@ -1099,14 +1101,19 @@ def regenerate_plot_data(om_data_name="om.data", res_name="res",
     data_type = str(ro.r("class(%s)" % om_data_name))
 
     if "BinaryData" in data_type:
-        ro.r("plot.data<-create.plot.data.binary(%s, %s, %s)" % \
-                            (om_data_name, plot_params_name, res_name))
+        r_str = "plot.data<-create.plot.data.binary(%s, %s, %s)" % \
+                        (om_data_name, plot_params_name, res_name)
+        ro.r(r_str)
+        
     elif "ContinuousData" in data_type:
-        ro.r("plot.data<-create.plot.data.continuous(%s, %s, %s)" % \
-                            (om_data_name, plot_params_name, res_name))
+        r_str = "plot.data<-create.plot.data.continuous(%s, %s, %s)" % \
+                            (om_data_name, plot_params_name, res_name)
+        ro.r(r_str)
     else:
-        ro.r("plot.data<-create.plot.data.diagnostic(%s, %s, %s)" % \
-                            (om_data_name, plot_params_name, res_name))
+        r_str = "plot.data<-create.plot.data.diagnostic(%s, %s, %s)" % \
+                            (om_data_name, plot_params_name, res_name)
+        ro.r(r_str)
+    print("executed: %s" % r_str)
         
 def update_plot_params(plot_params, plot_params_name="params", \
                         write_them_out=False, outpath=None):
@@ -1116,8 +1123,9 @@ def update_plot_params(plot_params, plot_params_name="params", \
     ro.r("tmp.params <- %s" % params_df.r_repr())
    
     for param_name in plot_params:
-        ro.r("%s$%s <- tmp.params$%s" % \
-                (plot_params_name, param_name, param_name))
+        r_str = "%s$%s <- tmp.params$%s" % (plot_params_name, param_name, param_name)
+        ro.r(r_str)
+        print("executed: %s" % r_str)
 
     if write_them_out:
         ro.r("save(tmp.params, file='%s')" % outpath)

@@ -20,7 +20,7 @@ from globals import check_plot_bound, seems_sane, add_plot_params
 
 class EditPlotWindow(QDialog, ui_edit_forest_plot.Ui_edit_forest_plot_dlg):
 
-    def __init__(self, img_params_path, png_path, qpixmap_item, parent=None):
+    def __init__(self, img_params_path, png_path, qpixmap_item, title, parent=None):
         super(EditPlotWindow, self).__init__(parent)
         self.setupUi(self)
 
@@ -33,6 +33,7 @@ class EditPlotWindow(QDialog, ui_edit_forest_plot.Ui_edit_forest_plot_dlg):
         # e.g., because they were moved or deleted, then fail
         self.params_d = python_to_R.load_vars_for_plot(self.img_params_path, \
                                                 return_params_dict=True)
+        self.title = title
 
 
         if not self.params_d:
@@ -160,7 +161,7 @@ class EditPlotWindow(QDialog, ui_edit_forest_plot.Ui_edit_forest_plot_dlg):
 
         # now re-generate the plot data on the R side of
         # things
-        python_to_R.regenerate_plot_data()
+        python_to_R.regenerate_plot_data(title=self.title)
 
 
         # finally, actually make the plot and spit it to disk in pdf and png formats
@@ -183,5 +184,8 @@ class EditPlotWindow(QDialog, ui_edit_forest_plot.Ui_edit_forest_plot_dlg):
         print "OK!"
 
    
-    
+
+
+
+
 

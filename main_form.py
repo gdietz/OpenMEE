@@ -1779,6 +1779,7 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
             matrix = data['data']
             headers = data['headers']
             
+            big_paste_mode = False
             if self.source_content_large(matrix):
                 if self.prompt_paste_even_though_not_undoable():
                     big_paste_mode=True
@@ -1793,6 +1794,7 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
             progress_dlg = QProgressDialog(QString("Making column headers"),QString("cancel"),0,len(headers)-1,parent=self)
             progress_dlg.setWindowModality(Qt.WindowModal)
             progress_dlg.raise_()
+            QApplication.processEvents()
             if headers != []:
                 self.tableView_selection_model.blockSignals(True)
                 for col,header in enumerate(headers):

@@ -414,6 +414,7 @@ class ResultsWindow(QMainWindow, ui_results_window.Ui_ResultsWindow):
                             lambda : self.edit_image(params_path, title,
                                                      png_path, qpixmap_item))
                     menu.addAction(action)
+                
             
             context_menu = QMenu(self)
             if params_path:
@@ -491,7 +492,7 @@ class ResultsWindow(QMainWindow, ui_results_window.Ui_ResultsWindow):
     def edit_image(self, params_path, title, png_path, pixmap_item):
         plot_editor_window = edit_forest_plot_form.EditPlotWindow(\
                                             params_path, png_path,\
-                                            pixmap_item, parent=self)
+                                            pixmap_item, title=title, parent=self)
         if plot_editor_window is not None:
             plot_editor_window.show()
         else:
