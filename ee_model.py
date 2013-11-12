@@ -24,8 +24,8 @@ from dataset.variable import Variable
 import copy
 
 # Some constants
-ADDITIONAL_ROWS = 100
-ADDITIONAL_COLS = 40
+ADDITIONAL_ROWS = 20
+ADDITIONAL_COLS = 20
 
 # Forbidden variable names
 LABEL_PREFIX_MARKER  = "*lbl*" # marker placed at start of a label(but is not displayed)
@@ -470,7 +470,10 @@ class EETableModel(QAbstractTableModel):
             self.beginResetModel()
             self.endResetModel()
             
-    def change_column_count_if_needed(self):
+    def change_column_count_if_needed(self,debug=False):
+        if debug:
+            pass
+        
         old_col_limit = self.collimit
         if self.max_occupied_col is None:
             new_col_limit = ADDITIONAL_COLS
@@ -1100,13 +1103,12 @@ class EETableModel(QAbstractTableModel):
             self.undo_stack.push(RemoveStudyCommand(model=self, row=row))
             
         
-        # End of the macro for undo/redo
+        
         if not self.big_paste_mode:
+            # End of the macro for undo/redo
             self.undo_stack.push(EmitDataChangedCommand(model=self, index=index))
             self.undo_stack.endMacro()
-        
-        
-        if not self.big_paste_mode:
+            
             self.change_row_count_if_needed()
             self.change_column_count_if_needed()
         else: # don't check unnessarily (optimization)
@@ -1114,6 +1116,8 @@ class EETableModel(QAbstractTableModel):
                 self.change_row_count_if_needed()
             if col > self.collimit-10:
                 self.change_column_count_if_needed()
+                
+                
         #self.emit(SIGNAL("dataChanged(QModelIndex,QModelIndex)"),
         #          index, index)
         return True

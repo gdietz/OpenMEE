@@ -173,13 +173,26 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
         2) a label column has been set '''
         
         enable = True
+        not_enabled_msg = ""
+        try:
+            old_enable_status = self.enable_analyses
+        except AttributeError:
+            old_enable_status = False
         
         studies = self.model.get_studies_in_current_order()
         if len(studies) == 0:
             enable = False
+            not_enabled_msg = "No studies entered yet."
             
         if self.model.label_column is None:
             enable = False
+            not_enabled_msg = "Can't enable analyses yet, did you set a label column?"
+        
+
+        if (old_enable_status != True) and (not enable) and (not_enabled_msg != ""):
+            self.statusbar.showMessage("%s" % not_enabled_msg)
+        else:
+            self.statusbar.showMessage("")
             
         self.enable_analyses = enable
         print("Enable status for analyses: %s" % enable)
@@ -216,6 +229,9 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
                                            user_prefs=self.user_prefs,
                                            model_state=state)
         self.model.dirty = False
+        self.model.change_row_count_if_needed()
+        self.model.change_column_count_if_needed(debug=True)
+        
         self.tableView.setModel(self.model)
         self.tableView.resizeColumnsToContents()
         self.conf_level_toolbar_widget.conf_level_spinbox.setValue(self.model.get_conf_level())
@@ -936,6 +952,14 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
             insert column
         '''
 
+#         # profiling fun
+#         pr=cProfile.Profile()
+#         pr.enable()
+#         ###############
+
+ 
+
+
 
         column_clicked = self.tableView.columnAt(pos.x())
 
@@ -994,6 +1018,11 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
         
         context_menu.popup(QCursor.pos())
         
+#         # profiling fun
+#         pr.disable()
+#         pr.create_stats()
+#         pr.print_stats(sort='cumulative')
+        
     def remove_column(self, column):
         is_variable_column = self.model.column_assigned_to_variable(column)
         
@@ -1023,6 +1052,9 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
                 return
             
         self.model.removeColumn(column)
+        
+        
+        
         
     def mark_column_as_label(self, col):
         ''' Should only occur for columns of CATEGORICAL type and only for a
@@ -1277,6 +1309,11 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
         converted to and provides the action to do so.
         * Should not be here if the clicked column was the label column
         '''
+        
+#         # profiling fun
+#         pr=cProfile.Profile()
+#         pr.enable()
+#         ###############
 
         var = self.model.get_variable_assigned_to_column(col)
 
@@ -1321,6 +1358,12 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
                 action = change_format_menu.addAction("----> %s" % subtype_str)
                 action.triggered.connect(partial(self.undo_stack.push,set_subtype_cmd))
 
+
+#         # profiling fun
+#         pr.disable()
+#         pr.create_stats()
+#         pr.print_stats(sort='cumulative')
+        
         return change_format_menu
 
     def status_from_action(self, action):
@@ -1426,9 +1469,10 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
 #        QtGui.QMainWindow.paintEvent(self, event)
 #        #self.update_vargroup_graphic()
 
-    def resizeEvent(self, event):
+    def resizeEvent(self, event):  
         QtGui.QMainWindow.resizeEvent(self, event)
         self.update_vargroup_graphic()
+        
 
     def update_vargroup_graphic(self):
         self.vargroup_graphic.set_column_coordinates(self.get_variable_group_column_indices())
