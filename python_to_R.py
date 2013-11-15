@@ -86,18 +86,26 @@ def generate_forest_plot(file_path, side_by_side=False, params_name="plot.data")
         print("generating a forest plot....")
         ro.r("forest.plot(%s, '%s')" % (params_name, file_path))
         
-def evaluate_in_r(r_str):
-    res = ro.r(r_str)
-    return str(res)
+def execute_in_R(r_str):
+    try:
+        print("Executing in R: %s" % r_str)
+        res = ro.r(r_str)
+        return res
+    except Exception as e:
+        print("error in execute in r")
+        raise CrazyRError("Some crazy R error occurred", e)
+
+
 
 def load_in_R(fpath):
     ''' loads what is presumed to be .Rdata into the R environment '''
     r_str = "load('%s')" % fpath
-    ro.r(r_str)
-    print("executed: %s" % r_str)
+    execute_in_R(r_str)
     
 def generate_reg_plot(file_path, params_name="plot.data"): 
-    ro.r("meta.regression.plot(%s, '%s')" % (params_name, file_path))
+    #ro.r("meta.regression.plot(%s, '%s')" % (params_name, file_path))
+    r_str = "meta.regression.plot(%s, '%s')" % (params_name, file_path)
+    execute_in_R(r_str)
 
 def gather_data(model, data_location, vars_given_directly=False):
     ''' Gathers the relevant data in one convenient location for the purpose
@@ -310,13 +318,9 @@ def dataset_to_simple_binary_robj(model, included_studies, data_location, var_na
     # to parse a character; so we sanitize. This isn't great,
     # because sometimes characters get garbled...
     r_str = _sanitize_for_R(r_str)
-    print "executing: %s" % r_str
-    ro.r(r_str)
+    execute_in_R(r_str)
     print "ok."
-    
-    
-    
-    
+
     #print("Inspecting R object time")
     #pyqtRemoveInputHook()
     #import pdb; pdb.set_trace()
@@ -335,18 +339,25 @@ def dataset_to_simple_continuous_robj(model, included_studies, data_location,
     
     ###study_ids = [study.get_id() for study in included_studies]
     
-    study_names = ", ".join(["'" + study.get_label(none_to_empty_string=True) + "'" for study in included_studies])
+    ####study_names = ", ".join(["'" + study.get_label(none_to_empty_string=True) + "'" for study in included_studies])
+    study_names = ['"' + study.get_label(none_to_empty_string=True) + '"' for study in included_studies]
+    study_names = joiner(study_names)
+    
     none_to_str = lambda n : str(n) if n is not None else "" # this will produce NA ints
-    study_years = ", ".join(["as.integer(%s)" % none_to_str(None) for study in included_studies])
+    ###study_years = ", ".join(["as.integer(%s)" % none_to_str(None) for study in included_studies])
+    study_years = ["as.integer(%s)" % none_to_str(None) for study in included_studies]
+    study_years = joiner(study_years)
     
     ests_variable = model.get_variable_assigned_to_column(data_location['effect_size'])
     variance_variable = model.get_variable_assigned_to_column(data_location['variance'])
     
     ests = [study.get_var(ests_variable) for study in included_studies]
     SEs =  [math.sqrt(study.get_var(variance_variable)) for study in included_studies] 
-    
-    ests_str = ", ".join(_to_strs(ests))
-    SEs_str = ", ".join(_to_strs(SEs))
+     
+    ##############ests_str = ", ".join(_to_strs(ests)) DELETE ME
+    ests_str = joiner(_to_strs(ests))
+    ############SEs_str = ", ".join(_to_strs(SEs)) DELETE ME
+    SEs_str = joiner(_to_strs(SEs))
     
     cov_str = list_of_cov_value_objects_str(studies=included_studies,
                                             cov_list=covs_to_include,
@@ -383,12 +394,13 @@ def dataset_to_simple_continuous_robj(model, included_studies, data_location,
         means2 = [study.get_var(means2_var) for study in included_studies]
         SDs2   = [study.get_var(SDs2_var) for study in included_studies]
         
-        Ns1_str    = ", ".join(_to_strs(Ns1))
-        means1_str = ", ".join(_to_strs(means1))
-        SDs1_str   = ", ".join(_to_strs(SDs1))
-        Ns2_str    = ", ".join(_to_strs(Ns2))
-        means2_str = ", ".join(_to_strs(means2))
-        SDs2_str   = ", ".join(_to_strs(SDs2))
+        Ns1_str    = joiner( _to_strs(Ns1)    )
+        means1_str = joiner( _to_strs(means1) )
+        SDs1_str   = joiner( _to_strs(SDs1)   )
+        Ns2_str    = joiner( _to_strs(Ns2)    )
+        means2_str = joiner( _to_strs(means2) )
+        SDs2_str   = joiner( _to_strs(SDs2)   )
+        
 
         r_str = "%s <- new('ContinuousData', \
                                      N1=c(%s), mean1=c(%s), sd1=c(%s), \
@@ -409,18 +421,41 @@ def dataset_to_simple_continuous_robj(model, included_studies, data_location,
         
     # character encodings for R
     r_str = _sanitize_for_R(r_str)
-    print "executing: %s" % r_str
-    ro.r(r_str)
+    execute_in_R(r_str)
     print "ok."
-    
-    
-
-    
-    
     return r_str
 
 def _to_strs(v):
     return [str(x) for x in v]
+
+def joiner(alist, sep=", ", nchars_per_line=80):
+    # same as str.join except will insert a newline every nchars_per_line characters
+    # This is to address a stupid issue in R, and by the transitive property, rpy2, 
+    # whereby if the input to the terminal is very very long, it just won't work without
+    # a newline here and there (assumed due to buffering issue)
+
+    result_string = ""
+    current_line_length = 0
+    last_index = len(alist)-1
+    
+    for i,x in enumerate(alist):
+        x_length = len(x)
+
+        str_to_add = x
+        if i != last_index:
+            str_to_add += sep
+            
+        potential_line_length = current_line_length + len(str_to_add)
+        if current_line_length>0 and potential_line_length >= nchars_per_line:
+            result_string += "\n"
+            current_line_length=0
+            
+        result_string += str_to_add    
+        current_line_length += len(str_to_add)
+    return result_string
+        
+
+
 
 def _sanitize_for_R(a_str):
     # may want to do something fancier in the future...
@@ -576,7 +611,7 @@ def effect_size(metric, data_type, data):
     return result
 
 def try_n_run(fn):
-    ''' tries to run a function (a call to R) and raises and error if it fails'''
+    ''' tries to run a function (a call to R) and raises an error if it fails'''
     
     try:
         return fn()
@@ -1188,7 +1223,7 @@ def cov_to_str(cov, studies, named_list=True, return_cov_vals=False):
             if value is None:
                 return "NA"
             else:
-                return "'%s'" % unicode(str(value).encode('latin1'), 'latin1')
+                return '"%s"' % unicode(str(value).encode('latin1'), 'latin1')
         else:
             raise Exception("Unrecognized covariate type")
 
@@ -1196,7 +1231,8 @@ def cov_to_str(cov, studies, named_list=True, return_cov_vals=False):
     cov_values = [study.get_var(cov) for study in studies]
     cov_values = [convert_cov_value(cov.get_type(), value) for value in cov_values]
 
-    cov_str += ",".join(cov_values) + ")"
+    #######cov_str += ",".join(cov_values) + ")"   DELETE ME
+    cov_str += joiner(cov_values) + ")"
     
     if return_cov_vals:
         return (cov_str, cov_values)

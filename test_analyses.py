@@ -205,7 +205,7 @@ def check_analysis(test_data, check_images=False):
             function_params_dict[key] = value
     
     analysis_function = eval(fnc_to_evaluate)
-    python_to_R.evaluate_in_r(make_dataset_r_str)
+    python_to_R.execute_in_R(make_dataset_r_str)
     test_results = analysis_function(**function_params_dict)
     
     if not check_images:

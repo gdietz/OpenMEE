@@ -324,7 +324,7 @@ class ResultsWindow(QMainWindow, ui_results_window.Ui_ResultsWindow):
         return (txt_item.boundingRect(), position)
 
     def process_console_input(self):
-        res = python_to_R.evaluate_in_r(self.current_line())
+        res = str(python_to_R.execute_in_R(self.current_line()))
 
         # echo the result
         self.psuedo_console.append(QString(res))

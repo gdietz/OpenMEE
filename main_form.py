@@ -385,6 +385,7 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
         self.model.studies_changed.disconnect(self.toggle_analyses_enable_status)
         self.model.label_column_changed.disconnect(self.toggle_analyses_enable_status)
         self.model.duplicate_label.disconnect(self.duplicate_label_attempt)
+        self.model.error_msg_signal.disconnect(self.error_msg_signal_handler)
         self.model.should_resize_column.disconnect(self.resize_column)
         #self.model.column_formats_changed.disconnect(lambda: QTimer.singleShot(1, self.update_vargroup_graphic))
         self.conf_level_toolbar_widget.conf_level_spinbox.valueChanged[float].disconnect(self.model.set_conf_level)
@@ -405,6 +406,7 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
         self.model.studies_changed.connect(self.toggle_analyses_enable_status)
         self.model.label_column_changed.connect(self.toggle_analyses_enable_status)
         self.model.duplicate_label.connect(self.duplicate_label_attempt)
+        self.model.error_msg_signal.connect(self.error_msg_signal_handler)
         self.model.should_resize_column.connect(self.resize_column)
         
         self.model.column_formats_changed.connect(lambda: QTimer.singleShot(1, self.update_vargroup_graphic))
@@ -414,6 +416,9 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
         
     def duplicate_label_attempt(self):
         QMessageBox.critical(self, "Attempted duplicate label", "Labels must be unique")
+
+    def error_msg_signal_handler(self, title, err_msg):
+        QMessageBox.critical(self, title, err_msg)
     
     def adjust_preferences(self):
         form = preferences_dlg.PreferencesDialog(color_scheme=self.user_prefs['color_scheme'],

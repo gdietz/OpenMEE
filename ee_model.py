@@ -75,6 +75,7 @@ class EETableModel(QAbstractTableModel):
     duplicate_label        = pyqtSignal()
     should_resize_column   = pyqtSignal(int)
     conf_level_changed_during_undo = pyqtSignal(float)
+    error_msg_signal       = pyqtSignal(str, str)
     
     def __init__(self, undo_stack, user_prefs, model_state=None):
         super(EETableModel, self).__init__()
@@ -1005,6 +1006,10 @@ class EETableModel(QAbstractTableModel):
             value_as_string = str(value)
         else: # value is a QVariant
             value_as_string = str(value.toString()) if value not in ["", None,QVariant(),QVariant(None)] else ""
+            
+        if '"' in value_as_string:
+            self.error_msg_signal.emit("You have entered the land of forbidden characters, from which none have ever returned", "\" character not allowed, it breaks things")
+            return False
         
         value_blank = (value == QVariant()) or (value is None) or (value_as_string == "")
         if value_blank:
