@@ -26,17 +26,22 @@ class DataLocationPage(QWizardPage):
         self.continuous_columns = self.model.get_continuous_columns()
         self.count_columns = self.model.get_count_columns()
         self.effect_columns = [col for col in self.continuous_columns if self._col_assigned_to_effect_variable(col)]
-        
-        
-        #self.effect_columns = [col for col in self.continuous_columns if col.get]
-        
+        self.variance_columns = [col for col in self.continuous_columns if self._col_assigned_to_variance_variable(col)]
+
         self.effect_and_var_boxes_exist = False
         
         self.box_names_to_boxes = {}
     
     def _col_assigned_to_effect_variable(self, col):
         var = self.model.get_variable_assigned_to_column(col)
-        if var.get_subtype() in EFFECT_TYPES:
+        if var.get_subtype() == TRANS_EFFECT:
+            return True
+        else:
+            return False
+    
+    def _col_assigned_to_variance_variable(self, col):
+        var = self.model.get_variable_assigned_to_column(col)
+        if var.get_subtype() == TRANS_VAR:
             return True
         else:
             return False
@@ -99,8 +104,10 @@ class DataLocationPage(QWizardPage):
             self.box_names_to_boxes.update({'effect_size': self.effect_size_combo_box,
                                             'variance'   : self.variance_combo_box})
             
-            self._populate_combo_boxes([self.effect_size_combo_box, self.variance_combo_box],
+            self._populate_combo_boxes([self.effect_size_combo_box,],
                                        self.effect_columns)
+            self._populate_combo_boxes([self.variance_combo_box,],
+                                       self.variance_columns)
             
             # connect boxes to update of selections
             for box in [self.effect_size_combo_box, self.variance_combo_box]:
