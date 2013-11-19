@@ -19,6 +19,7 @@ import pickle
 import cProfile
 
 import ui_main_window
+import about
 import calculate_effect_sizes_wizard
 import transform_effect_size_wizard
 import ma_wizard
@@ -299,7 +300,12 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
         self.actionBootstrapped_Meta_Regression.triggered.connect(lambda: self.meta_regression(mode=BOOTSTRAP_META_REG))
         self.actionBootstrapped_Meta_Regression_Based_Conditional_Means.triggered.connect(lambda: self.meta_regression(mode=BOOTSTRAP_META_REG_COND_MEANS))
         
-        
+        # Help Menu
+        self.action_about.triggered.connect(self.show_about_dlg)
+    
+    def show_about_dlg(self):
+        dlg = about.About()
+        dlg.exec_()
     
     def toggle_toolbar_visibility(self):
         status = self.toolBar.isVisible()

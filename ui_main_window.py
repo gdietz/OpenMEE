@@ -2,8 +2,8 @@
 
 # Form implementation generated from reading ui file 'main_window.ui'
 #
-# Created: Thu Oct 10 10:57:55 2013
-#      by: PyQt4 UI code generator 4.10.2
+# Created: Tue Nov 19 16:46:18 2013
+#      by: PyQt4 UI code generator 4.10.3
 #
 # WARNING! All changes made in this file will be lost!
 
@@ -26,7 +26,7 @@ except AttributeError:
 class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
         MainWindow.setObjectName(_fromUtf8("MainWindow"))
-        MainWindow.resize(933, 547)
+        MainWindow.resize(927, 622)
         icon = QtGui.QIcon()
         icon.addPixmap(QtGui.QPixmap(_fromUtf8(":/general/images/logo.png")), QtGui.QIcon.Normal, QtGui.QIcon.Off)
         MainWindow.setWindowIcon(icon)
@@ -39,7 +39,7 @@ class Ui_MainWindow(object):
         self.verticalLayout.addWidget(self.tableView)
         MainWindow.setCentralWidget(self.centralwidget)
         self.menubar = QtGui.QMenuBar(MainWindow)
-        self.menubar.setGeometry(QtCore.QRect(0, 0, 933, 22))
+        self.menubar.setGeometry(QtCore.QRect(0, 0, 927, 27))
         self.menubar.setObjectName(_fromUtf8("menubar"))
         self.menuFile = QtGui.QMenu(self.menubar)
         self.menuFile.setObjectName(_fromUtf8("menuFile"))
@@ -55,6 +55,8 @@ class Ui_MainWindow(object):
         self.menuMeta_Analysis.setObjectName(_fromUtf8("menuMeta_Analysis"))
         self.menuMeta_Regression_Meta_Regression_Derivatives = QtGui.QMenu(self.menuAnalysis)
         self.menuMeta_Regression_Meta_Regression_Derivatives.setObjectName(_fromUtf8("menuMeta_Regression_Meta_Regression_Derivatives"))
+        self.menuAbout = QtGui.QMenu(self.menubar)
+        self.menuAbout.setObjectName(_fromUtf8("menuAbout"))
         MainWindow.setMenuBar(self.menubar)
         self.statusbar = QtGui.QStatusBar(MainWindow)
         self.statusbar.setObjectName(_fromUtf8("statusbar"))
@@ -170,6 +172,8 @@ class Ui_MainWindow(object):
         icon12.addPixmap(QtGui.QPixmap(_fromUtf8(":/analysis_icons/images/boot.png")), QtGui.QIcon.Normal, QtGui.QIcon.Off)
         self.actionBootstrapped_Meta_Analysis.setIcon(icon12)
         self.actionBootstrapped_Meta_Analysis.setObjectName(_fromUtf8("actionBootstrapped_Meta_Analysis"))
+        self.action_about = QtGui.QAction(MainWindow)
+        self.action_about.setObjectName(_fromUtf8("action_about"))
         self.menuFile.addAction(self.actionNew)
         self.menuFile.addAction(self.actionOpen)
         self.menuFile.addAction(self.actionSave)
@@ -214,10 +218,12 @@ class Ui_MainWindow(object):
         self.menuAnalysis.addAction(self.menuMeta_Analysis.menuAction())
         self.menuAnalysis.addAction(self.menuMeta_Regression_Meta_Regression_Derivatives.menuAction())
         self.menuAnalysis.addSeparator()
+        self.menuAbout.addAction(self.action_about)
         self.menubar.addAction(self.menuFile.menuAction())
         self.menubar.addAction(self.menuEdit.menuAction())
         self.menubar.addAction(self.menuTable.menuAction())
         self.menubar.addAction(self.menuAnalysis.menuAction())
+        self.menubar.addAction(self.menuAbout.menuAction())
         self.toolBar.addAction(self.actionNew)
         self.toolBar.addAction(self.actionOpen)
         self.toolBar.addAction(self.actionSave)
@@ -245,6 +251,7 @@ class Ui_MainWindow(object):
         self.menuAnalysis.setTitle(_translate("MainWindow", "Analysis", None))
         self.menuMeta_Analysis.setTitle(_translate("MainWindow", "Meta-Analysis", None))
         self.menuMeta_Regression_Meta_Regression_Derivatives.setTitle(_translate("MainWindow", "Meta-Regression and Meta Regression Derivatives", None))
+        self.menuAbout.setTitle(_translate("MainWindow", "Help", None))
         self.toolBar.setWindowTitle(_translate("MainWindow", "toolBar", None))
         self.actionNew.setText(_translate("MainWindow", "New", None))
         self.actionNew.setToolTip(_translate("MainWindow", "New Dataset", None))
@@ -284,5 +291,6 @@ class Ui_MainWindow(object):
         self.actionBootstrapped_Meta_Regression.setText(_translate("MainWindow", "Bootstrapped Meta-Regression", None))
         self.actionBootstrapped_Meta_Regression_Based_Conditional_Means.setText(_translate("MainWindow", "Bootstrapped Meta-Regression-Based Conditional Means", None))
         self.actionBootstrapped_Meta_Analysis.setText(_translate("MainWindow", "Bootstrapped Meta-Analysis", None))
+        self.action_about.setText(_translate("MainWindow", "About OpenMEE", None))
 
 import icons_rc

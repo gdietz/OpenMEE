@@ -30,7 +30,7 @@
      <x>0</x>
      <y>0</y>
      <width>927</width>
-     <height>22</height>
+     <height>27</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">
@@ -112,10 +112,17 @@
     <addaction name="menuMeta_Regression_Meta_Regression_Derivatives"/>
     <addaction name="separator"/>
    </widget>
+   <widget class="QMenu" name="menuAbout">
+    <property name="title">
+     <string>Help</string>
+    </property>
+    <addaction name="action_about"/>
+   </widget>
    <addaction name="menuFile"/>
    <addaction name="menuEdit"/>
    <addaction name="menuTable"/>
    <addaction name="menuAnalysis"/>
+   <addaction name="menuAbout"/>
   </widget>
   <widget class="QStatusBar" name="statusbar"/>
   <widget class="QToolBar" name="toolBar">
@@ -375,6 +382,11 @@
    </property>
    <property name="text">
     <string>Bootstrapped Meta-Analysis</string>
+   </property>
+  </action>
+  <action name="action_about">
+   <property name="text">
+    <string>About OpenMEE</string>
    </property>
   </action>
  </widget>
