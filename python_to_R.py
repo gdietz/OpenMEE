@@ -14,6 +14,16 @@ import rpy2
 import rpy2.robjects
 from rpy2 import robjects as ro
 
+def execute_in_R(r_str):
+    try:
+        print("Executing in R: %s" % r_str)
+        res = ro.r(r_str)
+        return res
+    except Exception as e:
+        reset_Rs_working_dir()
+        print("error in execute in r")
+        raise CrazyRError("Some crazy R error occurred", e)
+
 
 #################### R Library Loader ####################
 class RlibLoader:
@@ -34,7 +44,7 @@ class RlibLoader:
     
     def _load_r_lib(self, name):
         try:
-            ro.r("library(%s)" % name)
+            execute_in_R("library(%s)" % name)
             msg = "%s package successfully loaded" % name
             print(msg)
             return (True, msg)
@@ -44,9 +54,9 @@ install this package and then re-start OpenMeta." % name)
 #################### END OF R Library Loader ####################
 
 try:
-    if not ro.r("file.exists('./.r_tmp')")[0]:
+    if not execute_in_R("file.exists('./.r_tmp')")[0]:
         print("creating tmp R directory...")
-        ro.r("dir.create('./r_tmp')")
+        execute_in_R("dir.create('./r_tmp')")
         print("success -- temporary results will be written to ./r_tmp")
 except:
     raise Exception, "unable to create temporary directory for R results! make sure you have sufficient permissions."
@@ -58,10 +68,9 @@ def reset_Rs_working_dir():
     r_str = "setwd('%s')" % BASE_PATH
     print("before replacement r_string: %s" % r_str)
     r_str = r_str.replace("\\","\\\\")
-    print("about to execute: %s" % r_str)
 
     # Executing r call with escaped backslashes
-    ro.r(r_str)
+    execute_in_R(r_str)
     
 def set_conf_level_in_R(conf_lev):
     
@@ -73,7 +82,7 @@ def set_conf_level_in_R(conf_lev):
 
 
     r_str = "set.global.conf.level("+str(float(conf_lev))+")"
-    new_cl_in_R = ro.r(r_str)[0]
+    new_cl_in_R = execute_in_R(r_str)[0]
     print("Set confidence level in R to: %f" % new_cl_in_R)
     
     return conf_lev
@@ -81,19 +90,12 @@ def set_conf_level_in_R(conf_lev):
 def generate_forest_plot(file_path, side_by_side=False, params_name="plot.data"):
     if side_by_side:
         print "generating a side-by-side forest plot..."
-        ro.r("two.forest.plots(%s, '%s')" % (params_name, file_path))
+        execute_in_R("two.forest.plots(%s, '%s')" % (params_name, file_path))
     else:
         print("generating a forest plot....")
-        ro.r("forest.plot(%s, '%s')" % (params_name, file_path))
+        execute_in_R("forest.plot(%s, '%s')" % (params_name, file_path))
         
-def execute_in_R(r_str):
-    try:
-        print("Executing in R: %s" % r_str)
-        res = ro.r(r_str)
-        return res
-    except Exception as e:
-        print("error in execute in r")
-        raise CrazyRError("Some crazy R error occurred", e)
+
 
 
 
@@ -103,7 +105,6 @@ def load_in_R(fpath):
     execute_in_R(r_str)
     
 def generate_reg_plot(file_path, params_name="plot.data"): 
-    #ro.r("meta.regression.plot(%s, '%s')" % (params_name, file_path))
     r_str = "meta.regression.plot(%s, '%s')" % (params_name, file_path)
     execute_in_R(r_str)
 
@@ -510,7 +511,7 @@ def transform_effect_size(metric, source_data, direction, conf_level):
         r_str = "raw.to.trans(metric='%s', source.data=%s, conf.level=%f)" % (metric_str, source_dataf.r_repr(), conf_level)
 
     print("Executing in R: %s" % r_str)
-    result = try_n_run(lambda: ro.r(r_str))
+    result = execute_in_R(r_str)
     result = dataframe_to_pydict(result)
     
     # rekey result
@@ -601,12 +602,7 @@ def effect_size(metric, data_type, data):
     else:
         raise Exception("Data type not recognized")
     
-    print("Executing in R: %s" % r_str)
-    
-    
-    escalc_result = try_n_run(lambda: ro.r(r_str))
-    
-    
+    escalc_result = execute_in_R(r_str)
     result = dataframe_to_pydict(escalc_result) #yi, vi
     return result
 
@@ -623,7 +619,7 @@ def try_n_run(fn):
 def dataframe_to_pydict(dataframe):
     ''' assumes the columns are named '''
     
-    keys = ro.r("names(%s)" % dataframe.r_repr())
+    keys = execute_in_R("names(%s)" % dataframe.r_repr())
     keys = tuple(keys)
     
     key_value_pairs = [(key, list(dataframe.rx2(key))) for key in keys]
@@ -644,7 +640,9 @@ def get_available_methods(for_data_type=None, data_obj_name=None, metric=None):
     Returns a list of methods available in OpenMeta for the particular data_type
     (if one is given). Excludes "*.parameters" methods
     '''
-    method_list = ro.r("lsf.str('package:openmetar')")
+    
+    method_list = execute_in_R("lsf.str('package:openmetar')")
+    
 
     # the following constitute 'special' or 'reserved' function
     # names that are used by meta-analyst to parse out available
@@ -656,7 +654,7 @@ def get_available_methods(for_data_type=None, data_obj_name=None, metric=None):
     # for those methods are returned by a method with a name
     # ending in ".parameters"
     special_endings = [".parameters", ".is.feasible", ".overall",
-                       ".regression", "transform.f", ".pretty.names"]
+                       ".regression", "transform.f", ".pretty.names", ".value.info"]
     is_special = lambda f: any([f.endswith(ending) for ending in special_endings])
     all_methods = [method for method in method_list if not is_special(method)]
     if for_data_type is not None:
@@ -680,13 +678,13 @@ def get_available_methods(for_data_type=None, data_obj_name=None, metric=None):
                 # we need to pass along the metric along with the data 
                 # object to assess if a given method is feasible (e.g,.
                 # PETO for binary data only makes sense for 'OR')
-                is_feasible = ro.r("%s(%s, '%s')" % (is_feas_f, data_obj_name, metric))[0]
+                is_feasible = execute_in_R("%s(%s, '%s')" % (is_feas_f, data_obj_name, metric))[0]
  
             if is_feasible:
                 # do we have a pretty name?
                 pretty_names_f = "%s.pretty.names" % method
                 if pretty_names_f in method_list:
-                    pretty_name = ro.r("%s()$pretty.name" % pretty_names_f)[0]
+                    pretty_name = execute_in_R("%s()$pretty.name" % pretty_names_f)[0]
                     feasible_methods[pretty_name] = method
                 else:
                     # no? then just map to the function name
@@ -695,7 +693,7 @@ def get_available_methods(for_data_type=None, data_obj_name=None, metric=None):
 
 
 def get_params(method_name):
-    param_list = ro.r("%s.parameters()" % method_name)
+    param_list = execute_in_R("%s.parameters()" % method_name)
     # note that we're assuming that the last entry of param_list, as provided
     # by the corresponding R routine, is the order to display the variables
     param_d = {}
@@ -717,12 +715,12 @@ def get_params(method_name):
 
      
 def get_pretty_names_and_descriptions_for_params(method_name, param_list):
-    method_list = ro.r("lsf.str('package:openmetar')")
+    method_list = execute_in_R("lsf.str('package:openmetar')")
     pretty_names_f = "%s.pretty.names" % method_name
     params_d = {}
     if pretty_names_f in method_list:
         # try to match params to their pretty names and descriptions
-        pretty_names_and_descriptions = ro.r("%s()" % pretty_names_f)
+        pretty_names_and_descriptions = execute_in_R("%s()" % pretty_names_f)
         # this dictionary is assumed to be as follows:
         #      params_d[param] --> {"pretty.name":XX, "description":XX}
         params_d = R_parse_tools.recursioner(pretty_names_and_descriptions)
@@ -738,7 +736,7 @@ def get_pretty_names_and_descriptions_for_params(method_name, param_list):
     
     return params_d
 
-def parse_out_results(result):
+def parse_out_results(result, function_name=None, meta_function_name=None):
     # parse out text field(s). note that "plot names" is 'reserved', i.e., it's
     # a special field which is assumed to contain the plot variable names
     # in R (for graphics manipulation).
@@ -778,6 +776,9 @@ def parse_out_results(result):
                 references_str += str(i+1) + ". " + ref + "\n"
             
             text_d[text_n] = references_str
+        elif text_n == "res":
+            # Construct CSV file with output values
+            results_data = extract_values_for_results_data(function_name, text)
         else:
             if type(text)==rpy2.robjects.vectors.StrVector:
                 text_d[text_n] = text[0]
@@ -796,8 +797,40 @@ def parse_out_results(result):
                  "texts":text_d,
                  "image_params_paths":image_params_paths_d,
                  "image_order":image_order}
+    try:
+        to_return["results_data"]=results_data
+    except NameError:
+        pass
     
     return to_return
+
+def extract_values_for_results_data(function_name, rdata):
+    # get info about all the values
+    value_info_tmp = execute_in_R(function_name+".value.info()")
+    value_info = {}
+    for key in list(value_info_tmp.names):
+        value_info[key]= {'type':value_info_tmp.rx2(key).rx2('type')[0],
+                          'description':value_info_tmp.rx2(key).rx2('description')[0]}
+    values_for_csv = dict([(key, rdata.rx2(key)) for key in value_info.keys()])
+    
+    
+    
+    for k,v in values_for_csv.iteritems():
+        
+        if value_info[k]['type'] != 'vector':
+            values_for_csv[k]=str(v)
+        else:
+            try:
+                values_for_csv[k]=list(v)
+            except TypeError as e: # for cases of TypeError: 'rpy2.rinterface.RNULLType' object is not iterable
+                if str(v)=="NULL":
+                    values_for_csv[k]="NULL"
+                else:
+                    raise e
+    return {'keys_in_order':list(value_info_tmp.names),
+            'value_info':value_info,
+            'values':values_for_csv}
+    
 
 def make_weights_list(text_n,text):
     # Construct List of Weights for studies
@@ -844,17 +877,17 @@ def run_binary_ma(function_name, params, res_name="result", bin_data_name="tmp_o
     r_str = "%s<-%s(%s, %s)" % (res_name, function_name, bin_data_name,\
                                     params_df.r_repr())
     print "\n\n(run_binary_ma): executing:\n %s\n" % r_str
-    try_n_run(lambda: ro.r(r_str))
-    result = ro.r("%s" % res_name)
-    return parse_out_results(result)
+    execute_in_R(r_str)
+    result = execute_in_R("%s" % res_name)
+    return parse_out_results(result, function_name=function_name)
 
 def run_continuous_ma(function_name, params, res_name = "result", cont_data_name="tmp_obj"):
     params_df = ro.r['data.frame'](**params)
     r_str = "%s<-%s(%s, %s)" % (res_name, function_name, cont_data_name, params_df.r_repr())
     print "\n\n(run_continuous_ma): executing:\n %s\n" % r_str
-    try_n_run(lambda: ro.r(r_str))
-    result = ro.r("%s" % res_name)
-    return parse_out_results(result)
+    execute_in_R(r_str)
+    result = execute_in_R("%s" % res_name)
+    return parse_out_results(result, function_name=function_name)
 
 def run_meta_method(meta_function_name, function_name, params, \
                         res_name="result", data_name="tmp_obj"):
@@ -869,13 +902,13 @@ def run_meta_method(meta_function_name, function_name, params, \
 
     print "\n\n(run_meta_method): executing:\n %s\n" % r_str
 
-    try_n_run(lambda: ro.r(r_str))
-    result = ro.r("%s" % res_name)
+    execute_in_R(r_str)
+    result = execute_in_R("%s" % res_name)
     
     # parse out text field(s). note that "plot names" is 'reserved', i.e., it's
     # a special field which is assumed to contain the plot variable names
     # in R (for graphics manipulation).
-    return parse_out_results(result)
+    return parse_out_results(result, function_name=function_name, meta_function_name=meta_function_name)
 
 def run_meta_regression(metric, fixed_effects=False, data_name="tmp_obj",
                         results_name="results_obj", 
@@ -910,12 +943,10 @@ def run_meta_regression(metric, fixed_effects=False, data_name="tmp_obj",
                                 (results_name, data_name, str(params_df.r_repr()))
 
 
-    print "\n\n(run_meta_regression): executing:\n %s\n" % r_str
-
+    #print "\n\n(run_meta_regression): executing:\n %s\n" % r_str
     ### TODO -- this is hacky
-
-    try_n_run(lambda: ro.r(r_str))
-    result = ro.r("%s" % results_name)
+    execute_in_R(r_str)
+    result = execute_in_R("%s" % results_name)
 
     if "try-error" in str(result):
         # uh-oh, there was an error (but the weird
@@ -970,9 +1001,9 @@ def run_bootstrap_meta_regression(metric,
     else:
         r_str = "%s<-bootstrap(%s, %s, %s)" % (results_name, "'boeuf'", data_name, str(params_df.r_repr()))
 
-    print "\n\n(run_meta_regression): executing:\n %s\n" % r_str
-    try_n_run(lambda: ro.r(r_str))
-    result = ro.r("%s" % results_name)
+    #print "\n\n(run_meta_regression): executing:\n %s\n" % r_str
+    execute_in_R(r_str)
+    result = execute_in_R("%s" % results_name)
 
     if "try-error" in str(result):
         # uh-oh, there was an error (but the weird
@@ -985,11 +1016,11 @@ def run_bootstrap_meta_regression(metric,
 
 def get_method_description(method_name):
     pretty_names_f = "%s.pretty.names" % method_name
-    method_list = ro.r("lsf.str('package:openmetar')")
+    method_list = execute_in_R("lsf.str('package:openmetar')")
     description = "None provided."
     if pretty_names_f in method_list:
         try:
-            description = ro.r("%s()$description" % pretty_names_f)[0]
+            description = execute_in_R("%s()$description" % pretty_names_f)[0]
         except:
             pass
     return description
@@ -1006,6 +1037,7 @@ class R_parse_tools:
     def rlist_to_pydict(named_r_list):
         ''' parse named R list into a python dictionary.'''
             #Only parses one level, is not recursive.'''
+            #simple: if True, the data doesn't get messed with at all, otherwise singletons are converted to scalars
             
         keys = named_r_list.names
         if str(keys) == "NULL":
@@ -1067,7 +1099,7 @@ class R_parse_tools:
         
         # special case of a factor ve
         if type(singleton_list) == rpy2.robjects.vectors.FactorVector:
-            return ro.r("as.character(%s)" % singleton_list.r_repr())[0]
+            return execute_in_R("as.character(%s)" % singleton_list.r_repr())[0]
         
         scalar = singleton_list[0]
         return R_parse_tools._convert_NA_to_None(scalar)
@@ -1119,7 +1151,7 @@ def load_vars_for_plot(params_path, return_params_dict=False):
             return False
 
     if return_params_dict:
-        robj = ro.r("params")
+        robj = execute_in_R("params")
         params_dict = R_parse_tools.recursioner(robj)
         return params_dict
     return True
@@ -1133,21 +1165,21 @@ def regenerate_plot_data(om_data_name="om.data", res_name="res",
     # displaying. may need to re-think this ain any case for the
     # general case of plots (what 'type' is a mixed analysis, e.g.?)
     ####
-    data_type = str(ro.r("class(%s)" % om_data_name))
+    data_type = str(execute_in_R("class(%s)" % om_data_name))
 
     if "BinaryData" in data_type:
         r_str = "plot.data<-create.plot.data.binary(%s, %s, %s)" % \
                         (om_data_name, plot_params_name, res_name)
-        ro.r(r_str)
+        execute_in_R(r_str)
         
     elif "ContinuousData" in data_type:
         r_str = "plot.data<-create.plot.data.continuous(%s, %s, %s)" % \
                             (om_data_name, plot_params_name, res_name)
-        ro.r(r_str)
+        execute_in_R(r_str)
     else:
         r_str = "plot.data<-create.plot.data.diagnostic(%s, %s, %s)" % \
                             (om_data_name, plot_params_name, res_name)
-        ro.r(r_str)
+        execute_in_R(r_str)
     print("executed: %s" % r_str)
         
 def update_plot_params(plot_params, plot_params_name="params", \
@@ -1155,18 +1187,17 @@ def update_plot_params(plot_params, plot_params_name="params", \
     # first cast the params to an R data frame to make it
     # R-palatable
     params_df = ro.r['data.frame'](**plot_params)
-    ro.r("tmp.params <- %s" % params_df.r_repr())
+    execute_in_R("tmp.params <- %s" % params_df.r_repr())
    
     for param_name in plot_params:
         r_str = "%s$%s <- tmp.params$%s" % (plot_params_name, param_name, param_name)
-        ro.r(r_str)
-        print("executed: %s" % r_str)
+        execute_in_R(r_str)
 
     if write_them_out:
-        ro.r("save(tmp.params, file='%s')" % outpath)
+        execute_in_R("save(tmp.params, file='%s')" % outpath)
         
 def write_out_plot_data(params_out_path, plot_data_name="plot.data"):
-    ro.r("save.plot.data(%s, '%s')" % (plot_data_name, params_out_path))
+    execute_in_R("save.plot.data(%s, '%s')" % (plot_data_name, params_out_path))
     
 
 ######### DEAL WITH COVARIATES #########

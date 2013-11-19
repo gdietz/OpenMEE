@@ -2,8 +2,8 @@
 
 # Form implementation generated from reading ui file 'results_window.ui'
 #
-# Created: Tue Sep  3 14:02:54 2013
-#      by: PyQt4 UI code generator 4.10.2
+# Created: Tue Nov 19 09:59:06 2013
+#      by: PyQt4 UI code generator 4.10.3
 #
 # WARNING! All changes made in this file will be lost!
 
@@ -26,7 +26,7 @@ except AttributeError:
 class Ui_ResultsWindow(object):
     def setupUi(self, ResultsWindow):
         ResultsWindow.setObjectName(_fromUtf8("ResultsWindow"))
-        ResultsWindow.resize(799, 544)
+        ResultsWindow.resize(836, 590)
         font = QtGui.QFont()
         font.setFamily(_fromUtf8("Verdana"))
         ResultsWindow.setFont(font)
@@ -34,6 +34,19 @@ class Ui_ResultsWindow(object):
         self.centralwidget.setObjectName(_fromUtf8("centralwidget"))
         self.verticalLayout = QtGui.QVBoxLayout(self.centralwidget)
         self.verticalLayout.setObjectName(_fromUtf8("verticalLayout"))
+        self.horizontalLayout_3 = QtGui.QHBoxLayout()
+        self.horizontalLayout_3.setObjectName(_fromUtf8("horizontalLayout_3"))
+        spacerItem = QtGui.QSpacerItem(40, 20, QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Minimum)
+        self.horizontalLayout_3.addItem(spacerItem)
+        self.export_btn = QtGui.QToolButton(self.centralwidget)
+        icon = QtGui.QIcon()
+        icon.addPixmap(QtGui.QPixmap(_fromUtf8(":/function_icon_set/images/function_icon_set/paper_48.png")), QtGui.QIcon.Normal, QtGui.QIcon.Off)
+        self.export_btn.setIcon(icon)
+        self.export_btn.setIconSize(QtCore.QSize(24, 24))
+        self.export_btn.setToolButtonStyle(QtCore.Qt.ToolButtonTextBesideIcon)
+        self.export_btn.setObjectName(_fromUtf8("export_btn"))
+        self.horizontalLayout_3.addWidget(self.export_btn)
+        self.verticalLayout.addLayout(self.horizontalLayout_3)
         self.splitter = QtGui.QSplitter(self.centralwidget)
         self.splitter.setOrientation(QtCore.Qt.Vertical)
         self.splitter.setObjectName(_fromUtf8("splitter"))
@@ -82,10 +95,6 @@ class Ui_ResultsWindow(object):
         self.psuedo_console.setObjectName(_fromUtf8("psuedo_console"))
         self.verticalLayout.addWidget(self.splitter)
         ResultsWindow.setCentralWidget(self.centralwidget)
-        self.menubar = QtGui.QMenuBar(ResultsWindow)
-        self.menubar.setGeometry(QtCore.QRect(0, 0, 799, 22))
-        self.menubar.setObjectName(_fromUtf8("menubar"))
-        ResultsWindow.setMenuBar(self.menubar)
         self.statusbar = QtGui.QStatusBar(ResultsWindow)
         self.statusbar.setObjectName(_fromUtf8("statusbar"))
         ResultsWindow.setStatusBar(self.statusbar)
@@ -95,9 +104,11 @@ class Ui_ResultsWindow(object):
 
     def retranslateUi(self, ResultsWindow):
         ResultsWindow.setWindowTitle(_translate("ResultsWindow", "results / analysis", None))
+        self.export_btn.setText(_translate("ResultsWindow", "Export Results as Text", None))
         self.psuedo_console.setHtml(_translate("ResultsWindow", "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.0//EN\" \"http://www.w3.org/TR/REC-html40/strict.dtd\">\n"
 "<html><head><meta name=\"qrichtext\" content=\"1\" /><style type=\"text/css\">\n"
 "p, li { white-space: pre-wrap; }\n"
-"</style></head><body style=\" font-family:\'Terminal\'; font-size:13pt; font-weight:400; font-style:normal;\">\n"
+"</style></head><body style=\" font-family:\'Terminal\'; font-size:10pt; font-weight:400; font-style:normal;\">\n"
 "<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><span style=\" font-size:8pt;\">&gt;&gt; </span></p></body></html>", None))
 
+import icons_rc

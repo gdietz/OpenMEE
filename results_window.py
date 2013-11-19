@@ -61,6 +61,11 @@ class ResultsWindow(QMainWindow, ui_results_window.Ui_ResultsWindow):
                                        self.f)
         QObject.connect(self.psuedo_console, SIGNAL("downArrowPressed()"),
                                        self.f)
+        
+        if "results_data" in results: # not really csv data but using 'text' too much here is confusing
+            self.export_btn.clicked.connect(lambda: self.export_results(results["results_data"]))
+        else:
+            self.export_btn.hide()
                                        
                               
         self.nav_tree.setHeaderLabels(["results"])
@@ -125,6 +130,55 @@ class ResultsWindow(QMainWindow, ui_results_window.Ui_ResultsWindow):
 
     def f(self):
         print self.current_line()
+        
+    def export_results(self, data):
+        # Choose file location
+        fpath = os.path.join(BASE_PATH, "results.txt") # default
+        fpath = QFileDialog.getSaveFileName(caption="Choose location to save file", filter="Text (*.txt)",directory=fpath)
+        fpath = str(fpath)
+        if fpath == "":
+            print("cancelled")
+            return
+        
+        # Add .txt extension if not already present
+        index_of_period = fpath.find('.')
+        
+        if index_of_period != -1:
+            fpath = fpath[:index_of_period] + ".txt"
+        else:
+            fpath+= ".txt"
+            
+        print("Filepath: %s" % fpath)
+
+# APPARENTLY THIS IS HANDLED BY THE SAVE FILE DIALOG ALREADY
+#         if os.path.exists(fpath):
+#             msgBox = QMessageBox()
+#             msgBox.setText("A file by that name already exists, overwrite it?")
+#             msgBox.setWindowTitle("Overwrite existing file?")
+#             msgBox.setStandardButtons(QMessageBox.Yes | QMessageBox.Cancel)
+#             msgBox.setDefaultButton(QMessageBox.Yes)
+#             choice = msgBox.exec_()
+#             if choice == QMessageBox.Cancel:
+#                 return
+        
+        keys_in_order = data['keys_in_order'] # make sure key order is consistent
+        values = data['values'] # a dictionary mapping keys--> values
+        
+        
+        # write the file
+        with open(fpath,'w') as f:
+            for key in keys_in_order:
+                value = values[key]
+                f.write("%s: %s\n" % (key, data['value_info'][key]['description'])) # write out key and description
+                if isinstance(value, str):
+                    f.write(value+"\n")
+                elif isinstance(value, list):
+                    for x in value:
+                        f.write("%s\n" % x)
+                else:
+                    raise TypeError("Unrecognized type in data")
+                # add space between values
+                f.write("\n")
 
     def set_psuedo_console_text(self):
         text = ["\t\tOpenMeta(analyst)",
