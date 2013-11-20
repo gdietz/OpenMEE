@@ -743,8 +743,11 @@ def parse_out_results(result, function_name=None, meta_function_name=None):
     text_d = {}
     image_var_name_d, image_params_paths_d, image_path_d  = {}, {}, {}
     image_order = None
+    
+    # Turn result into a nice dictionary
+    result = dict(zip(list(result.names), list(result)))
 
-    for text_n, text in zip(list(result.names), list(result)):
+    for text_n, text in result.items():
         # some special cases, notably the plot names and the path for a forest
         # plot. TODO in the case of diagnostic data, we're probably going to 
         # need to parse out multiple forest plot param objects...
@@ -779,6 +782,13 @@ def parse_out_results(result, function_name=None, meta_function_name=None):
         elif text_n == "res":
             # Construct CSV file with output values
             results_data = extract_values_for_results_data(function_name, text)
+        elif text_n == "input_data":
+            pass # This is the data that was passed to the analysis function
+        elif text_n == "input_params":
+            pass # these are the input parameters that were passed to the analysis function
+        elif text_n == "weights":
+            text_d[text_n] = make_weights_str(result)
+            
         else:
             if type(text)==rpy2.robjects.vectors.StrVector:
                 text_d[text_n] = text[0]
@@ -788,9 +798,9 @@ def parse_out_results(result, function_name=None, meta_function_name=None):
             #pyqtRemoveInputHook()
             #pdb.set_trace()
             # Construct List of Weights for studies
-            (key, astring) = make_weights_list(text_n,text)
-            if key is not None:
-                text_d[key] = astring
+            #(key, astring) = make_weights_list(text_n,text) DELETE ME
+            #if key is not None:
+            #    text_d[key] = astring
 
     to_return = {"images":image_path_d,
                  "image_var_names":image_var_name_d,
@@ -831,46 +841,24 @@ def extract_values_for_results_data(function_name, rdata):
             'value_info':value_info,
             'values':values_for_csv}
     
-
-def make_weights_list(text_n,text):
-    # Construct List of Weights for studies
-    if text_n.find("Summary") == -1: # 'Summary' not found
-        return (None,None)
+def make_weights_str(results):
+    ''' Make a string representing the weights due to each study in the meta analysis '''
     
-    if not R_parse_tools.haskeys(text): # if the text is not a dictionary it won't have weights, trust me
-        return (None, None)
+    # This function assumes that 'weights' and 'input_data' are actually in the results
+    if not ("weights" in results and "input_data" in results and "input_params" in results):
+        raise Exception("make_weights_str() requires 'weights' and 'input_data' in the results")
     
-    summary_dict = R_parse_tools.rlist_to_pydict(text)
+    digits = results["input_params"].rx2("digits")[0]
+    weights = list(results["weights"])
+    weights = ["{0:.{digits}f}%".format(x, digits=digits) for x in weights]
+    study_names = list(results["input_data"].do_slot("study.names"))
     
-    if R_parse_tools.haskeys(summary_dict['MAResults']):
-        summary_dict['MAResults'] = R_parse_tools.rlist_to_pydict(summary_dict['MAResults'])
-    else:
-        return (None,None)
-    
-    # this is a silly thing to look for but its something I explicitly
-    # set in the random methods so I know it's there
-    if "study.names" in summary_dict['MAResults']: 
-        print("study.names found in maresults")
-        text_n_withoutSummary = text_n.replace("Summary","")
-        text_n_withoutSummary.strip()
-        key_name = text_n_withoutSummary + " Weights"
-        key_name = key_name.strip()
-        
-        study_names = R_parse_tools.R_iterable_to_pylist(summary_dict['MAResults']['study.names'])
-        #study_years = R_parse_tools.R_iterable_to_pylist(summary_dict['MAResults']['study.years'])
-        study_weights = R_parse_tools.R_iterable_to_pylist(summary_dict['MAResults']['study.weights'])
-        
-        max_len_name = max([len(name) for name in study_names])
-        max_len = max([max_len_name,len("studies")])
-        
-        weights_txt = unicode("studies" + " "*(max_len-len("studies")+1) + "weights\n")
-        
-        for name,weight in zip(study_names, study_weights):
-            weights_txt += unicode("{0:{name_width}} {1:4.1f}%\n").format(name, weight*100, name_width=max_len)
-        return (key_name, weights_txt)
-    else:
-        print("study.names not found")
-    return(None,None)
+    table,widths = tabulate([study_names, weights],
+                            sep=": ", return_col_widths=True,
+                            align=['L','R'])
+    header = "{0:<{widths[0]}}  {1:<{widths[1]}}".format("study names", "weights", widths=widths)
+    table = "\n".join([header, table])
+    return table
 
 def run_binary_ma(function_name, params, res_name="result", bin_data_name="tmp_obj"):
     params_df = ro.r['data.frame'](**params)
