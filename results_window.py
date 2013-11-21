@@ -179,6 +179,8 @@ class ResultsWindow(QMainWindow, ui_results_window.Ui_ResultsWindow):
                     raise TypeError("Unrecognized type in data")
                 # add space between values
                 f.write("\n")
+        
+        self.statusbar.showMessage("Saved results to: %s" % fpath,5000)
 
     def set_psuedo_console_text(self):
         text = ["\t\tOpenMeta(analyst)",

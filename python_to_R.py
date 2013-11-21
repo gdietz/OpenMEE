@@ -780,12 +780,15 @@ def parse_out_results(result, function_name=None, meta_function_name=None):
             
             text_d[text_n] = references_str
         elif text_n == "res":
-            # Construct CSV file with output values
-            results_data = extract_values_for_results_data(function_name, text)
+            # Construct text file with output values
+            res_info = result['res.info']
+            results_data = extract_values_for_results_data(function_name, text, res_info)
         elif text_n == "input_data":
             pass # This is the data that was passed to the analysis function
         elif text_n == "input_params":
             pass # these are the input parameters that were passed to the analysis function
+        elif text_n =="res.info":
+            pass
         elif text_n == "weights":
             text_d[text_n] = make_weights_str(result)
             
@@ -814,13 +817,14 @@ def parse_out_results(result, function_name=None, meta_function_name=None):
     
     return to_return
 
-def extract_values_for_results_data(function_name, rdata):
+def extract_values_for_results_data(function_name, rdata, res_info):
     # get info about all the values
-    value_info_tmp = execute_in_R(function_name+".value.info()")
+    #value_info_tmp = execute_in_R(function_name+".value.info()")
+    
     value_info = {}
-    for key in list(value_info_tmp.names):
-        value_info[key]= {'type':value_info_tmp.rx2(key).rx2('type')[0],
-                          'description':value_info_tmp.rx2(key).rx2('description')[0]}
+    for key in list(res_info.names):
+        value_info[key]= {'type':res_info.rx2(key).rx2('type')[0],
+                          'description':res_info.rx2(key).rx2('description')[0]}
     values_for_csv = dict([(key, rdata.rx2(key)) for key in value_info.keys()])
     
     
@@ -828,7 +832,14 @@ def extract_values_for_results_data(function_name, rdata):
     for k,v in values_for_csv.iteritems():
         
         if value_info[k]['type'] != 'vector':
+            # set width large to avoid wrapping; rapping, however, is acceptable
+            old_width = ro.r('getOption("width")')[0]
+            ro.r('options(width=10000)')
+            
             values_for_csv[k]=str(v)
+            
+            # set width back
+            ro.r('options(width=%d)' % old_width)
         else:
             try:
                 values_for_csv[k]=list(v)
@@ -837,7 +848,7 @@ def extract_values_for_results_data(function_name, rdata):
                     values_for_csv[k]="NULL"
                 else:
                     raise e
-    return {'keys_in_order':list(value_info_tmp.names),
+    return {'keys_in_order':list(res_info.names),
             'value_info':value_info,
             'values':values_for_csv}
     
@@ -857,7 +868,7 @@ def make_weights_str(results):
                             sep=": ", return_col_widths=True,
                             align=['L','R'])
     header = "{0:<{widths[0]}}  {1:<{widths[1]}}".format("study names", "weights", widths=widths)
-    table = "\n".join([header, table])
+    table = "\n".join([header, table]) + "\n"
     return table
 
 def run_binary_ma(function_name, params, res_name="result", bin_data_name="tmp_obj"):
