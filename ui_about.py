@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'about.ui'
 #
-# Created: Tue Nov 19 16:51:00 2013
+# Created: Wed Nov 20 14:47:09 2013
 #      by: PyQt4 UI code generator 4.10.3
 #
 # WARNING! All changes made in this file will be lost!
@@ -72,7 +72,7 @@ class Ui_Dialog(object):
     def retranslateUi(self, Dialog):
         Dialog.setWindowTitle(_translate("Dialog", "About", None))
         self.label_2.setText(_translate("Dialog", "OpenMEE", None))
-        self.label_3.setText(_translate("Dialog", "Created primarily by George Dietz based on the program OpenMetaAnalyst written by Byron Wallace, George Dietz, Paul Trow, and Issa Dahabreh\n"
+        self.label_3.setText(_translate("Dialog", "Developed primarily by George Dietz based on the program OpenMetaAnalyst developed by Byron Wallace, George Dietz, Paul Trow, and Issa Dahabreh\n"
 "\n"
 "OpenMEE heavily leverages, and can largely be considered as a GUI to, the metafor R package by Wolfgang Viechtbauer.", None))
         self.label_4.setText(_translate("Dialog", "Citation Information:\n"

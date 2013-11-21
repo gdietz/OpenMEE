@@ -78,7 +78,7 @@
       </sizepolicy>
      </property>
      <property name="text">
-      <string>Created primarily by George Dietz based on the program OpenMetaAnalyst written by Byron Wallace, George Dietz, Paul Trow, and Issa Dahabreh
+      <string>Developed primarily by George Dietz based on the program OpenMetaAnalyst developed by Byron Wallace, George Dietz, Paul Trow, and Issa Dahabreh
 
 OpenMEE heavily leverages, and can largely be considered as a GUI to, the metafor R package by Wolfgang Viechtbauer.</string>
      </property>
