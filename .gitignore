@@ -8,3 +8,5 @@ user_prefs.dict
 r_tmp/
 build/
 dist/
+.Rapp.history
+test_data.txt
