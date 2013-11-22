@@ -899,7 +899,7 @@ def run_meta_method(meta_function_name, function_name, params, \
     r_str = "%s<-%s('%s', %s, %s)" % \
             (res_name, meta_function_name, function_name, data_name, params_df.r_repr())
 
-    print "\n\n(run_meta_method): executing:\n %s\n" % r_str
+    ###print "\n\n(run_meta_method): executing:\n %s\n" % r_str
 
     execute_in_R(r_str)
     result = execute_in_R("%s" % res_name)
