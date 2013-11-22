@@ -1221,8 +1221,9 @@ def _gen_cov_vals_obj_str(cov, studies, ref_var=None):
     
     values_str, cov_vals = cov_to_str(cov, studies, named_list=False, return_cov_vals=True)
     if ref_var is None: # just take the first value if unspecified
-        ref_var = cov_vals[0].replace("'", "") # arbitrary
-        
+        ref_var = cov_vals[0].replace("'", "") # arbitrary, get rid of single quotes
+        ref_var = cov_vals[0].replace('"', '') # get rid if double quotes too
+              
     ## setting the reference variable to the first entry
     # for now -- this only matters for factors, obviously
 
