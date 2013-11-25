@@ -238,18 +238,18 @@ def dataset_to_simple_binary_robj(model, included_studies, data_location, var_na
 
     # issue #139 -- also grab the years
     none_to_str = lambda n : str(n) if n is not None else "" # this will produce NA ints
-    #study_years = ", ".join(["as.integer(%s)" % none_to_str(study.year) for study in studies])
-    study_years = ", ".join(["as.integer(%s)" % none_to_str(None) for study in included_studies])
-    study_names = ", ".join(["'" + study.get_label(none_to_empty_string=True) + "'" for study in included_studies])
+    
+    study_years = joiner(["as.integer(%s)" % none_to_str(None) for study in included_studies])
+    study_names = joiner(["'" + study.get_label(none_to_empty_string=True) + "'" for study in included_studies])
     
     ests_variable = model.get_variable_assigned_to_column(data_location['effect_size'])
     variance_variable = model.get_variable_assigned_to_column(data_location['variance'])
     
     ests = [study.get_var(ests_variable) for study in included_studies]
     SEs =  [math.sqrt(study.get_var(variance_variable)) for study in included_studies]
-    
-    ests_str = ", ".join(_to_strs(ests))
-    SEs_str = ", ".join(_to_strs(SEs))
+
+    ests_str = joiner(_to_strs(ests))
+    SEs_str  = joiner(_to_strs(SEs))
     
     cov_str = list_of_cov_value_objects_str(studies=included_studies,
                                             cov_list=covs_to_include, 
@@ -273,8 +273,10 @@ def dataset_to_simple_binary_robj(model, included_studies, data_location, var_na
         g1_no_events_var = model.get_variable_assigned_to_column(g1_no_events_col)
         g1_no_events = [study.get_var(g1_no_events_var) for study in included_studies]
         
-        g1O1_str = ", ".join(_to_strs(g1_events))
-        g1O2_str = ", ".join(_to_strs(g1_no_events))
+        g1O1_str = joiner(_to_strs(g1_events))
+        g1O2_str = joiner(_to_strs(g1_no_events))
+        
+        
     
         # now, for group 2; we only set up the string
         # for group two if we have a two-arm metric
@@ -288,8 +290,9 @@ def dataset_to_simple_binary_robj(model, included_studies, data_location, var_na
             g2_events = [study.get_var(g2_events_var) for study in included_studies]
             g2_no_events = [study.get_var(g2_no_events_var) for study in included_studies]
             
-            g2O1_str = ", ".join(_to_strs(g2_events))
-            g2O2_str = ", ".join(_to_strs(g2_no_events))
+            g2O1_str = joiner(_to_strs(g2_events))
+            g2O2_str = joiner(_to_strs(g2_no_events))
+            
                     
         # actually creating a new object on the R side seems the path of least resistance here.
         # the alternative would be to try and create a representation of the R object on the 
@@ -1227,8 +1230,7 @@ def _gen_cov_vals_obj_str(cov, studies, ref_var=None):
     ## setting the reference variable to the first entry
     # for now -- this only matters for factors, obviously
 
-    r_str = "new('CovariateValues', cov.name='%s', cov.vals=%s, \
-                    cov.type='%s', ref.var='%s')" % \
+    r_str = "new('CovariateValues', cov.name='%s', cov.vals=%s, cov.type='%s', ref.var='%s')" % \
                 (cov.get_label(), values_str, COVARIATE_TYPE_TO_OMA_STR_DICT[cov.get_type()], ref_var)
     return r_str
 
