@@ -792,6 +792,8 @@ def parse_out_results(result, function_name=None, meta_function_name=None):
             pass # these are the input parameters that were passed to the analysis function
         elif text_n =="res.info":
             pass
+        elif "gui.ignore" in text_n: # 'gui.ignore' is a directive to the gui to ignore the data
+            pass
         elif text_n == "weights":
             text_d[text_n] = make_weights_str(result)
             
