@@ -826,8 +826,11 @@ def extract_values_for_results_data(function_name, rdata, res_info):
     
     value_info = {}
     for key in list(res_info.names):
+#         try:
         value_info[key]= {'type':res_info.rx2(key).rx2('type')[0],
                           'description':res_info.rx2(key).rx2('description')[0]}
+#         except:
+#             print("There be dragons here")
     values_for_csv = dict([(key, rdata.rx2(key)) for key in value_info.keys()])
     
     

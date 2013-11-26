@@ -1873,15 +1873,28 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
 
     def _writeout_test_parameters(self, fnc_name, make_dataset_in_r_str="", results=None, **parameter_args):
         with open('test_data.txt', 'a') as f:
+#             f.write("Test Data            :\n")
+#             f.write("Function name        : '%s'\n" % fnc_name)
+#             f.write("Make dataset in R_str: %s\n" % make_dataset_in_r_str)
+#             f.write("Results              : %s\n" % str(results))
+#             for param_name, value in parameter_args.iteritems():
+#                 if type(value)==str:
+#                     value = "'%s'" % value
+#                 f.write("%s=%s\n" % (param_name, value))
+#             f.write("\n")
+            
             f.write("Test Data:\n")
-            f.write("  Function name: '%s'\n" % fnc_name)
-            f.write("  Make Dataset in R r_str: %s\n" % make_dataset_in_r_str)
-            f.write("  Results: %s\n" % str(results))
+            f.write("{\n")
+            f.write(" 'test_name': \"Insert Test Name here\"\n")
+            f.write(",'fnc_to_evaluate'    : '%s'\n" % fnc_name)
+            f.write(",'make_dataset_r_str' : '''%s'''\n" % make_dataset_in_r_str)
+            f.write(",'results'            : %s\n" % str(results))
             for param_name, value in parameter_args.iteritems():
                 if type(value)==str:
                     value = "'%s'" % value
-                f.write("  %s=%s\n" % (param_name, value))
-            f.write("\n")
+                f.write(",'%s' : %s\n" % (param_name, value))
+            f.write("},\n\n")
+                
 
             # Write the data to the disk for sure
             f.flush()
