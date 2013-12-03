@@ -1955,5 +1955,5 @@ if __name__ == '__main__':
     app = QApplication(sys.argv)
     form = MainForm()
     form.show()
-    
+    form.raise_()
     app.exec_()
