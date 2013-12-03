@@ -52,16 +52,19 @@ class UndoViewForm(QDialog):
         self.print_model_btn = QPushButton("Print Model", parent=self)
         self.debug_btn = QPushButton("Debug Model", parent=self)
         self.undoView = QUndoView(self.undo_stack)
+        self.splash_btn = QPushButton("Show splash screen", parent=self)
         
         vlayout = QVBoxLayout()
         vlayout.addWidget(self.undoView)
         vlayout.addWidget(self.print_model_btn)
         vlayout.addWidget(self.debug_btn)
+        vlayout.addWidget(self.splash_btn)
         
         self.setLayout(vlayout)
         
         QObject.connect(self.print_model_btn, SIGNAL("clicked()"), self._print_model_info)
         QObject.connect(self.debug_btn, SIGNAL("clicked()"), self.go_into_debugger)
+        self.splash_btn.clicked.connect(self.show_splash)
         
     def _print_model_info(self):
         print(self.model)
@@ -75,6 +78,11 @@ class UndoViewForm(QDialog):
         self.undo_stack.push(GenericUndoCommand(redo_fn=do_nothing,undo_fn=do_nothing))
         self.undo_stack.undo()
     
+    def show_splash(self):
+        splash_pixmap = QPixmap(":/splash/splash.jpg")
+        splash = QSplashScreen(splash_pixmap)
+        splash.show()
+        splash.raise_()
         
     def go_into_debugger(self):
         print("Entering debugger")

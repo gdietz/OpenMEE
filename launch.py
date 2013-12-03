@@ -10,6 +10,7 @@ import time
 
 from PyQt4 import QtCore, QtGui
 from PyQt4.Qt import *
+from PyQt4.QtGui import QPixmap, QSplashScreen
 
 import python_to_R
 import main_form
@@ -41,13 +42,15 @@ def load_R_libraries(app, splash=None):
 def start(open_file_path=None):
     app = QtGui.QApplication(sys.argv)
     
-    splash_pixmap = QPixmap(":/splash/splash.jpg")
+    splash_pixmap = QPixmap(":/splash/splash.png")
     splash = QSplashScreen(splash_pixmap)
+    #splash = QSplashScreen( QPixmap(300, 200) )
     splash.show()
-    splash.raise_()
+    app.processEvents()
+    
+    time.sleep(1)
+    
     splash_starttime = time.time()
-    
-    
     load_R_libraries(app, splash)
     
     # Show splash screen for at least SPLASH_DISPLAY_TIME seconds
@@ -58,11 +61,16 @@ def start(open_file_path=None):
         QThread.sleep(int(SPLASH_DISPLAY_TIME-time_elapsed))
         print("woke up")
 
+    # create and show the main window
     form = main_form.MainForm()
-    splash.finish(form)
     form.show()
+    form.raise_()
     if open_file_path:
         form.open(open_file_path)
+        
+    # Close the splash screen
+    splash.finish(form)
+    
     sys.exit(app.exec_())
 
 if __name__ == "__main__":
