@@ -38,10 +38,10 @@ ROW_HEIGHT = 15 # by trial-and-error; seems to work very well
 
 class ResultsWindow(QMainWindow, ui_results_window.Ui_ResultsWindow):
 
-    def __init__(self, results, parent=None):
-
+    def __init__(self, results, summary="", parent=None):
         super(ResultsWindow, self).__init__(parent)
         self.setupUi(self)
+        
         self.copied_item = QByteArray()
         self.paste_offset = 5
         self.add_offset = 5
@@ -50,6 +50,7 @@ class ResultsWindow(QMainWindow, ui_results_window.Ui_ResultsWindow):
         self.borders = []
         self.printer = QPrinter(QPrinter.HighResolution)
         self.printer.setPageSize(QPrinter.Letter)
+        self.summary=summary
 
         QObject.connect(self.nav_tree, SIGNAL("itemClicked(QTreeWidgetItem*, int)"),
                                        self.item_clicked)
@@ -167,6 +168,11 @@ class ResultsWindow(QMainWindow, ui_results_window.Ui_ResultsWindow):
         
         # write the file
         with open(fpath,'w') as f:
+            # Add input summary
+            if len(self.summary) > 0:
+                f.write("Analysis selections summary:\n")
+                f.write(boxify(self.summary))
+                f.write("\n\n")
             for key in keys_in_order:
                 value = values[key]
                 f.write("%s: %s\n" % (key, data['value_info'][key]['description'])) # write out key and description

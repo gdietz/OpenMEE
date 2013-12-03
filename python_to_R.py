@@ -802,13 +802,6 @@ def parse_out_results(result, function_name=None, meta_function_name=None):
                 text_d[text_n] = text[0]
             else:
                 text_d[text_n]=str(text)
-            
-            #pyqtRemoveInputHook()
-            #pdb.set_trace()
-            # Construct List of Weights for studies
-            #(key, astring) = make_weights_list(text_n,text) DELETE ME
-            #if key is not None:
-            #    text_d[key] = astring
 
     to_return = {"images":image_path_d,
                  "image_var_names":image_var_name_d,

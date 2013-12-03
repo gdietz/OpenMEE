@@ -241,7 +241,8 @@ class MetaAnalysisWizard(QtGui.QWizard):
         # so be sure that the two are kept synchronized
         
         summary = ""
-        summary_fields_in_order = ['Data Type', 'Metric', 'Data Location',
+        summary_fields_in_order = ['Analysis Type',
+                                   'Data Type', 'Metric', 'Data Location',
                                    'Included Studies','Chosen Method',
                                    'Subgroup Variable', 'Included Covariates',
                                    'Fixed Effects or Random Effects',
@@ -258,6 +259,7 @@ class MetaAnalysisWizard(QtGui.QWizard):
         included_studies = self.get_included_studies_in_proper_order()
         
         # Convert to strings:
+        fields_to_values['Analysis Type'] = MODE_TITLES[self.mode]
         fields_to_values['Data Type']     = DATA_TYPE_TEXT[data_type]
         fields_to_values['Metric']        = METRIC_TEXT[metric]
         fields_to_values['Data Location'] = self._get_data_location_string(data_location)

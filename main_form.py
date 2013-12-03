@@ -629,6 +629,7 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
             current_param_vals = wizard.get_plot_params()
             chosen_method = wizard.get_current_method()
             subgroup_variable = wizard.get_subgroup_variable()
+            summary = wizard.get_summary()
             if mode == BOOTSTRAP_MA:
                 current_param_vals.update(wizard.get_bootstrap_params())
                 meta_f_str = unmodified_meta_f_str
@@ -658,7 +659,8 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
                             current_param_vals,
                             chosen_method,
                             meta_f_str,
-                            covs_to_include=covs_to_include)
+                            covs_to_include=covs_to_include,
+                            summary=summary)
             except CrazyRError as e:
                 if SOUND_EFFECTS:
                     silly.play()
@@ -691,6 +693,7 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
             fixed_effects = wizard.using_fixed_effects()
             conf_level = wizard.get_confidence_level()
             cov_2_ref_values = wizard.cov_2_ref_values
+            summary = wizard.get_summary()
             if mode in [META_REG_COND_MEANS, BOOTSTRAP_META_REG_COND_MEANS]:
                 selected_cov, covs_to_values = wizard.get_meta_reg_cond_means_info()
             else:
@@ -722,7 +725,8 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
                                          conf_level=conf_level,
                                          selected_cov=selected_cov, covs_to_values=covs_to_values,
                                          mode=mode,
-                                         bootstrap_params=bootstrap_params) # for bootstrapping
+                                         bootstrap_params=bootstrap_params, # for bootstrapping
+                                         summary=summary)
             except CrazyRError as e:
                 if SOUND_EFFECTS:
                     silly.play()
@@ -736,7 +740,7 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
                             covariate_reference_values={},
                             selected_cov = None, covs_to_values = None,
                             mode=META_REG_MODE,
-                            bootstrap_params={}):
+                            bootstrap_params={}, summary=""):
         if mode in [BOOTSTRAP_META_REG, BOOTSTRAP_META_REG_COND_MEANS]:
             bar = MetaProgress("Running Bootstrapped Meta regression. It can take some time. Patience...")
         else:
@@ -793,12 +797,12 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
             
         finally:
             bar.hide()
-        self.analysis(result)
+        self.analysis(result, summary)
         
         
 
     def run_ma(self, included_studies, data_type, metric, data_location,
-               current_param_vals, chosen_method, meta_f_str, covs_to_include=[]):
+               current_param_vals, chosen_method, meta_f_str, covs_to_include=[], summary=""):
         ###
         # first, let's fire up a progress bar
         bar = MetaProgress()
@@ -875,13 +879,13 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
         current_dict = self.get_user_method_params_d()
         current_dict[chosen_method] = current_param_vals
         self.update_user_prefs("method_params", current_dict)
-        self.analysis(result)
+        self.analysis(result, summary)
         
-    def analysis(self, results):
+    def analysis(self, results, summary=""):
         if results is None:
             return # analysis failed
         else: # analysis succeeded
-            form = results_window.ResultsWindow(results, parent=self)
+            form = results_window.ResultsWindow(results, summary, parent=self)
             form.show()
         
     #@profile_this
