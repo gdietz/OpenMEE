@@ -10,3 +10,5 @@ build/
 dist/
 .Rapp.history
 test_data.txt
+Thumbs.db
+dist.zip
