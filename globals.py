@@ -22,7 +22,7 @@ MAKE_TESTS = False
 
 HEADER_LINE_LENGTH = 70 # maximum length of header labels 
 
-
+DEFAULT_METAREG_RANDOM_EFFECTS_METHOD = "DL"
 
 # The different types of data that can be associated with studies
 CATEGORICAL, CONTINUOUS, COUNT = range(3)

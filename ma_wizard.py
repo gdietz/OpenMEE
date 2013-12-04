@@ -5,11 +5,13 @@
 #              #
 ################
 
+
 from PyQt4 import QtCore, QtGui
 from PyQt4.Qt import *
 
 from globals import *
 
+import python_to_R
 from choose_effect_size_page import ChooseEffectSizePage
 from data_location_page import DataLocationPage
 from refine_studies_page import RefineStudiesPage
@@ -246,6 +248,7 @@ class MetaAnalysisWizard(QtGui.QWizard):
                                    'Included Studies','Chosen Method',
                                    'Subgroup Variable', 'Included Covariates',
                                    'Fixed Effects or Random Effects',
+                                   'Random Effects Method',
                                    'Confidence Level', 'Covariate Reference Values',
                                    'Conditional Means Selections',
                                    '# Bootstrap Replicates']
@@ -278,6 +281,8 @@ class MetaAnalysisWizard(QtGui.QWizard):
             fields_to_values['Chosen Method'] = self.get_current_method_pretty_name()
             fields_to_values['Subgroup Variable'] = subgroup_variable.get_label() if subgroup_variable else None
             fields_to_values['# Bootstrap Replicates'] = str(bootstrap_params['num.bootstrap.replicates']) if self.mode == BOOTSTRAP_MA else None
+            if 'rm.method' in current_param_vals:
+                fields_to_values['Random Effects Method'] = python_to_R.get_random_effects_methods_descriptions(chosen_method)[current_param_vals['rm.method']]
             
         elif self.mode in META_REG_MODES:
             included_covariates = self.get_included_covariates()
@@ -290,6 +295,8 @@ class MetaAnalysisWizard(QtGui.QWizard):
                 selected_cov, covs_to_values = None, None
             bootstrap_params = self.get_bootstrap_params() if self.mode in [BOOTSTRAP_META_REG, BOOTSTRAP_META_REG_COND_MEANS] else {}
     
+            if not fixed_effects:
+                fields_to_values['Random Effects Method'] = DEFAULT_METAREG_RANDOM_EFFECTS_METHOD
             fields_to_values['# Bootstrap Replicates'] = str(bootstrap_params['num.bootstrap.replicates']) if self.mode in [BOOTSTRAP_META_REG, BOOTSTRAP_META_REG_COND_MEANS] else None
             fields_to_values['Included Covariates'] = self._get_labels_string(included_covariates)
             fields_to_values['Fixed Effects or Random Effects'] = "Fixed Effects" if fixed_effects else "Random Effects"

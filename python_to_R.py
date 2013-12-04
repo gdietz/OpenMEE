@@ -716,6 +716,13 @@ def get_params(method_name):
             pretty_names_and_descriptions,
             )
 
+def get_random_effects_methods_descriptions(method_name):
+    pretty_names_and_descriptions = get_params(method_name)[3]
+    if 'rm.method' not in pretty_names_and_descriptions:
+        raise ValueError("'rm.method' not in pretty_names_and_descriptions")
+    
+    return pretty_names_and_descriptions['rm.method']['rm.method.names']
+
      
 def get_pretty_names_and_descriptions_for_params(method_name, param_list):
     method_list = execute_in_R("lsf.str('package:openmetar')")
