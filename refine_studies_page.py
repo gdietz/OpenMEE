@@ -14,6 +14,7 @@ from globals import *
 from dataset.study import Study
 
 import ui_refine_studies_page
+from scrollable_infobox import ScrollableInfoBox
 
 MISSING_ENTRY_STR = "Not entered"
 INCLUDED = True
@@ -83,7 +84,11 @@ class RefineStudiesPage(QWizardPage, ui_refine_studies_page.Ui_WizardPage):
                     break
         
         if len(removed_study_names_to_cov_name_which_caused_removal) > 0:
-            QMessageBox.information(self, "Does anyone see this title? Email us", "The following studies were excluded along with the covariate causing their exclusion:\n\n" + "\n".join(removed_study_names_to_cov_name_which_caused_removal))
+            #QMessageBox.information(self, "Does anyone see this title? Email us", "The following studies were excluded along with the covariate causing their exclusion:\n\n" + "\n".join(removed_study_names_to_cov_name_which_caused_removal))
+            scrollable_infobox = ScrollableInfoBox(windowtitle="Removed Study Names",
+                                                   main_label="The following studies were excluded along with the covariate causing their exclusion:",
+                                                   content="\n".join(removed_study_names_to_cov_name_which_caused_removal))
+            scrollable_infobox.exec_()
         else:
             QMessageBox.information(self, "", "No studies needed to be excluded")
         self.tabWidget.setCurrentIndex(0) # 0 is the index of the refine studies list
