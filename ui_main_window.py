@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'main_window.ui'
 #
-# Created: Tue Nov 19 16:46:18 2013
+# Created: Fri Dec  6 15:01:57 2013
 #      by: PyQt4 UI code generator 4.10.3
 #
 # WARNING! All changes made in this file will be lost!
@@ -39,7 +39,7 @@ class Ui_MainWindow(object):
         self.verticalLayout.addWidget(self.tableView)
         MainWindow.setCentralWidget(self.centralwidget)
         self.menubar = QtGui.QMenuBar(MainWindow)
-        self.menubar.setGeometry(QtCore.QRect(0, 0, 927, 27))
+        self.menubar.setGeometry(QtCore.QRect(0, 0, 927, 22))
         self.menubar.setObjectName(_fromUtf8("menubar"))
         self.menuFile = QtGui.QMenu(self.menubar)
         self.menuFile.setObjectName(_fromUtf8("menuFile"))
@@ -57,6 +57,8 @@ class Ui_MainWindow(object):
         self.menuMeta_Regression_Meta_Regression_Derivatives.setObjectName(_fromUtf8("menuMeta_Regression_Meta_Regression_Derivatives"))
         self.menuAbout = QtGui.QMenu(self.menubar)
         self.menuAbout.setObjectName(_fromUtf8("menuAbout"))
+        self.menuPublication_Bias = QtGui.QMenu(self.menubar)
+        self.menuPublication_Bias.setObjectName(_fromUtf8("menuPublication_Bias"))
         MainWindow.setMenuBar(self.menubar)
         self.statusbar = QtGui.QStatusBar(MainWindow)
         self.statusbar.setObjectName(_fromUtf8("statusbar"))
@@ -174,6 +176,10 @@ class Ui_MainWindow(object):
         self.actionBootstrapped_Meta_Analysis.setObjectName(_fromUtf8("actionBootstrapped_Meta_Analysis"))
         self.action_about = QtGui.QAction(MainWindow)
         self.action_about.setObjectName(_fromUtf8("action_about"))
+        self.actionFail_Safe_N = QtGui.QAction(MainWindow)
+        self.actionFail_Safe_N.setObjectName(_fromUtf8("actionFail_Safe_N"))
+        self.actionFunnel_Plot = QtGui.QAction(MainWindow)
+        self.actionFunnel_Plot.setObjectName(_fromUtf8("actionFunnel_Plot"))
         self.menuFile.addAction(self.actionNew)
         self.menuFile.addAction(self.actionOpen)
         self.menuFile.addAction(self.actionSave)
@@ -219,10 +225,13 @@ class Ui_MainWindow(object):
         self.menuAnalysis.addAction(self.menuMeta_Regression_Meta_Regression_Derivatives.menuAction())
         self.menuAnalysis.addSeparator()
         self.menuAbout.addAction(self.action_about)
+        self.menuPublication_Bias.addAction(self.actionFail_Safe_N)
+        self.menuPublication_Bias.addAction(self.actionFunnel_Plot)
         self.menubar.addAction(self.menuFile.menuAction())
         self.menubar.addAction(self.menuEdit.menuAction())
         self.menubar.addAction(self.menuTable.menuAction())
         self.menubar.addAction(self.menuAnalysis.menuAction())
+        self.menubar.addAction(self.menuPublication_Bias.menuAction())
         self.menubar.addAction(self.menuAbout.menuAction())
         self.toolBar.addAction(self.actionNew)
         self.toolBar.addAction(self.actionOpen)
@@ -252,6 +261,7 @@ class Ui_MainWindow(object):
         self.menuMeta_Analysis.setTitle(_translate("MainWindow", "Meta-Analysis", None))
         self.menuMeta_Regression_Meta_Regression_Derivatives.setTitle(_translate("MainWindow", "Meta-Regression and Meta Regression Derivatives", None))
         self.menuAbout.setTitle(_translate("MainWindow", "Help", None))
+        self.menuPublication_Bias.setTitle(_translate("MainWindow", "Publication Bias", None))
         self.toolBar.setWindowTitle(_translate("MainWindow", "toolBar", None))
         self.actionNew.setText(_translate("MainWindow", "New", None))
         self.actionNew.setToolTip(_translate("MainWindow", "New Dataset", None))
@@ -292,5 +302,7 @@ class Ui_MainWindow(object):
         self.actionBootstrapped_Meta_Regression_Based_Conditional_Means.setText(_translate("MainWindow", "Bootstrapped Meta-Regression-Based Conditional Means", None))
         self.actionBootstrapped_Meta_Analysis.setText(_translate("MainWindow", "Bootstrapped Meta-Analysis", None))
         self.action_about.setText(_translate("MainWindow", "About OpenMEE", None))
+        self.actionFail_Safe_N.setText(_translate("MainWindow", "Fail-Safe N", None))
+        self.actionFunnel_Plot.setText(_translate("MainWindow", "Funnel Plot", None))
 
 import icons_rc

@@ -30,7 +30,7 @@
      <x>0</x>
      <y>0</y>
      <width>927</width>
-     <height>27</height>
+     <height>22</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">
@@ -118,10 +118,18 @@
     </property>
     <addaction name="action_about"/>
    </widget>
+   <widget class="QMenu" name="menuPublication_Bias">
+    <property name="title">
+     <string>Publication Bias</string>
+    </property>
+    <addaction name="actionFail_Safe_N"/>
+    <addaction name="actionFunnel_Plot"/>
+   </widget>
    <addaction name="menuFile"/>
    <addaction name="menuEdit"/>
    <addaction name="menuTable"/>
    <addaction name="menuAnalysis"/>
+   <addaction name="menuPublication_Bias"/>
    <addaction name="menuAbout"/>
   </widget>
   <widget class="QStatusBar" name="statusbar"/>
@@ -387,6 +395,16 @@
   <action name="action_about">
    <property name="text">
     <string>About OpenMEE</string>
+   </property>
+  </action>
+  <action name="actionFail_Safe_N">
+   <property name="text">
+    <string>Fail-Safe N</string>
+   </property>
+  </action>
+  <action name="actionFunnel_Plot">
+   <property name="text">
+    <string>Funnel Plot</string>
    </property>
   </action>
  </widget>

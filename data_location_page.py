@@ -45,7 +45,7 @@ class DataLocationPage(QWizardPage):
             return True
         else:
             return False
-     
+
     
     def initializePage(self):
         self.data_type = self.wizard().selected_data_type
@@ -82,10 +82,12 @@ class DataLocationPage(QWizardPage):
                 self._setup_TWO_BY_TWO_CONTINGENCY_table(layout, startrow=layout.rowCount())
             elif self.data_type == CORRELATION_COEFFICIENTS:
                 self._setup_CORRELATION_COEFFICIENTS_table(layout, startrow=layout.rowCount())
+            elif self.mode==FAILSAFE_MODE:
+                pass # don't care about data type here
             else:
                 raise Exception("Unrecognized Data type")
         
-        if self.mode in ANALYSIS_MODES:
+        if self.mode in ANALYSIS_MODES or self.mode==FAILSAFE_MODE:
             eff_var_layout = QGridLayout()
             
             # Lables:
@@ -340,6 +342,7 @@ class DataLocationPage(QWizardPage):
                 return None
             return selected_column
         
+        current_selections = {}
         if self.mode in ANALYSIS_MODES or self.mode == CALCULATE_EFFECT_SIZE_MODE:
             if self.data_type == MEANS_AND_STD_DEVS:
                 if self.selected_metric != GENERIC_EFFECT:

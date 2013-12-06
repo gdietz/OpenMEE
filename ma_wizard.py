@@ -22,10 +22,12 @@ from reference_value_page import ReferenceValuePage
 from meta_reg_cond_means import CondMeansPage
 from bootstrap_page import BootstrapPage
 from summary_page import SummaryPage
+from failsafe_page import FailsafeWizardPage
 
 (Page_ChooseEffectSize, Page_DataLocation, Page_RefineStudies,
 Page_MethodsAndParameters, Page_SubgroupVariable, Page_SelectCovariates,
-Page_ReferenceValues, Page_CondMeans, Page_Bootstrap, Page_Summary) = range(10)
+Page_ReferenceValues, Page_CondMeans, Page_Bootstrap, Page_Summary,
+Page_Failsafe) = range(11)
 class MetaAnalysisWizard(QtGui.QWizard):
     def __init__(self, model, meta_f_str=None, mode = MA_MODE, parent=None):
         super(MetaAnalysisWizard, self).__init__(parent)
@@ -54,31 +56,48 @@ class MetaAnalysisWizard(QtGui.QWizard):
         self.cond_means_pg = CondMeansPage(model=model)
         
         self.setPage(Page_ChooseEffectSize, ChooseEffectSizePage(model=model, add_generic_effect=True))
-        self.setPage(Page_DataLocation,     DataLocationPage(model=model, mode=MA_MODE))
+        #self.setPage(Page_DataLocation,     DataLocationPage(model=model, mode=MA_MODE))
+        self.data_location_page = DataLocationPage(model=model, mode=MA_MODE)
+        
         
         self.setPage(Page_MethodsAndParameters, self.methods_and_params_page_instance)
         self.setPage(Page_RefineStudies, RefineStudiesPage(model=model, mode=mode))
         self.setPage(Page_Summary, SummaryPage())
         if mode==SUBGROUP_MODE:
+            self.setPage(Page_DataLocation, self.data_location_page)
             self.setPage(Page_SubgroupVariable, SubgroupVariablePage(model=model))
         elif mode==META_REG_MODE:
+            self.setPage(Page_DataLocation, self.data_location_page)
             self.setPage(Page_SelectCovariates, SelectCovariatesPage(model=model, mode=mode))
             self.setPage(Page_ReferenceValues, ReferenceValuePage(model=model))
         elif mode==META_REG_COND_MEANS:
+            self.setPage(Page_DataLocation, self.data_location_page)
             self.setPage(Page_SelectCovariates, SelectCovariatesPage(model=model, mode=mode))
             self.setPage(Page_CondMeans, self.cond_means_pg)
         elif mode==BOOTSTRAP_MA:
+            self.setPage(Page_DataLocation, self.data_location_page)
             self.setPage(Page_Bootstrap, self.bootstrap_page)
         elif mode==BOOTSTRAP_META_REG:
+            self.setPage(Page_DataLocation, self.data_location_page)
             self.setPage(Page_SelectCovariates, SelectCovariatesPage(model=model, mode=mode))
             self.setPage(Page_ReferenceValues, ReferenceValuePage(model=model))
             self.setPage(Page_Bootstrap, self.bootstrap_page)
         elif mode==BOOTSTRAP_META_REG_COND_MEANS:
+            self.setPage(Page_DataLocation, self.data_location_page)
             self.setPage(Page_SelectCovariates, SelectCovariatesPage(model=model, mode=mode))
             self.setPage(Page_CondMeans, self.cond_means_pg)
             self.setPage(Page_Bootstrap, self.bootstrap_page)
+        elif mode==FAILSAFE_MODE:
+            self.data_location_page = DataLocationPage(model=model, mode=FAILSAFE_MODE)
+            self.setPage(Page_DataLocation, self.data_location_page)
+            
+            self.failsafe_page = FailsafeWizardPage()
+            self.setPage(Page_Failsafe, self.failsafe_page)
         
-        self.setStartId(Page_ChooseEffectSize)
+        if mode == FAILSAFE_MODE:
+            self.setStartId(Page_DataLocation)
+        else:
+            self.setStartId(Page_ChooseEffectSize)
         self.setWizardStyle(QWizard.ClassicStyle)
         
 
@@ -113,6 +132,7 @@ class MetaAnalysisWizard(QtGui.QWizard):
     def get_current_method_pretty_name(self):
         return self.methods_and_params_page_instance.get_current_method_pretty_name()
     
+    
     def get_modified_meta_f_str(self):
         return self.methods_and_params_page_instance.get_modified_meta_f_str()
         
@@ -129,6 +149,10 @@ class MetaAnalysisWizard(QtGui.QWizard):
     def get_meta_reg_cond_means_info(self):
         # returns a tuple (cat. cov to stratify over, the values for the other covariates)
         return self.cond_means_pg.get_meta_reg_cond_means_data()
+
+    def get_failsafe_parameters(self):
+        # parameters for failsafe calculation
+        return self.failsafe_page.get_parameters()
 
     def nextId(self):
         next_id = self.next_page(self.currentId())
@@ -225,6 +249,15 @@ class MetaAnalysisWizard(QtGui.QWizard):
                 return Page_Summary
             elif page_id == Page_Summary:
                 return -1
+        elif self.mode == FAILSAFE_MODE:
+            if page_id == Page_DataLocation:
+                return Page_RefineStudies
+            if page_id == Page_RefineStudies:
+                return Page_Failsafe
+            elif page_id == Page_Failsafe:
+                return Page_Summary
+            elif page_id == Page_Summary:
+                return -1
         else: # default vanilla meta-analysis case
             if page_id == Page_ChooseEffectSize:
                 return Page_DataLocation
@@ -243,15 +276,22 @@ class MetaAnalysisWizard(QtGui.QWizard):
         # so be sure that the two are kept synchronized
         
         summary = ""
-        summary_fields_in_order = ['Analysis Type',
-                                   'Data Type', 'Metric', 'Data Location',
-                                   'Included Studies','Chosen Method',
-                                   'Subgroup Variable', 'Included Covariates',
-                                   'Fixed Effects or Random Effects',
-                                   'Random Effects Method',
-                                   'Confidence Level', 'Covariate Reference Values',
-                                   'Conditional Means Selections',
-                                   '# Bootstrap Replicates']
+        if self.mode == FAILSAFE_MODE:
+            summary_fields_in_order = ['Analysis Type','Data Location',
+                                       'Included Studies',
+                                       'Fail-Safe Method',
+                                       'alpha',
+                                       'target']
+        else:
+            summary_fields_in_order = ['Analysis Type',
+                                       'Data Type', 'Metric', 'Data Location',
+                                       'Included Studies','Chosen Method',
+                                       'Subgroup Variable', 'Included Covariates',
+                                       'Fixed Effects or Random Effects',
+                                       'Random Effects Method',
+                                       'Confidence Level', 'Covariate Reference Values',
+                                       'Conditional Means Selections',
+                                       '# Bootstrap Replicates']
         # initialize dict with values set to None
         fields_to_values = dict(zip(summary_fields_in_order,[None]*len(summary_fields_in_order)))
        
@@ -262,11 +302,19 @@ class MetaAnalysisWizard(QtGui.QWizard):
         included_studies = self.get_included_studies_in_proper_order()
         
         # Convert to strings:
-        fields_to_values['Analysis Type'] = MODE_TITLES[self.mode]
-        fields_to_values['Data Type']     = DATA_TYPE_TEXT[data_type]
-        fields_to_values['Metric']        = METRIC_TEXT[metric]
-        fields_to_values['Data Location'] = self._get_data_location_string(data_location)
-        fields_to_values['Included Studies'] = self._get_labels_string(included_studies)
+        if self.mode == FAILSAFE_MODE:
+            fields_to_values['Analysis Type'] = MODE_TITLES[self.mode]
+            fields_to_values['Data Location'] = self._get_data_location_string(data_location)
+            fields_to_values['Included Studies'] = self._get_labels_string(included_studies)
+        else:  
+            fields_to_values['Analysis Type'] = MODE_TITLES[self.mode]
+            fields_to_values['Data Type']     = DATA_TYPE_TEXT[data_type]
+            fields_to_values['Metric']        = METRIC_TEXT[metric]
+            fields_to_values['Data Location'] = self._get_data_location_string(data_location)
+            fields_to_values['Included Studies'] = self._get_labels_string(included_studies)
+        
+        
+        
         
         if self.mode in META_ANALYSIS_MODES:
             meta_f_str = self.get_modified_meta_f_str()

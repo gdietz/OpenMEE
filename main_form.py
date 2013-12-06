@@ -300,6 +300,9 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
         self.actionBootstrapped_Meta_Regression.triggered.connect(lambda: self.meta_regression(mode=BOOTSTRAP_META_REG))
         self.actionBootstrapped_Meta_Regression_Based_Conditional_Means.triggered.connect(lambda: self.meta_regression(mode=BOOTSTRAP_META_REG_COND_MEANS))
         
+        #### Publication Bias Menu ###
+        self.actionFail_Safe_N.triggered.connect(self.failsafe_analysis)
+        
         # Help Menu
         self.action_about.triggered.connect(self.show_about_dlg)
     
@@ -732,6 +735,16 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
                     silly.play()
                 QMessageBox.critical(self, "Oops", str(e))
 
+    def failsafe_analysis(self):
+        wizard = ma_wizard.MetaAnalysisWizard(model=self.model,
+                                              mode=FAILSAFE_MODE,
+                                              parent=self)
+        if wizard.exec_():
+            data_location = wizard.data_location
+            included_studies = wizard.get_included_studies_in_proper_order()
+            failsafe_parameters = wizard.get_failsafe_parameters()
+        
+        print("are we there yet?")
                 
   
     def run_meta_regression(self, metric, data_type, included_studies,
