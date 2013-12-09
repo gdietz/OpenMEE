@@ -92,6 +92,8 @@ class MetaAnalysisWizard(QtGui.QWizard):
             
             self.failsafe_page = FailsafeWizardPage(previous_parameters=self.model.get_last_failsafe_parameters())
             self.setPage(Page_Failsafe, self.failsafe_page)
+        else:
+            self.setPage(Page_DataLocation, self.data_location_page)
         
         if mode == FAILSAFE_MODE:
             self.setStartId(Page_DataLocation)
