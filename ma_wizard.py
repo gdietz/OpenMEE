@@ -56,7 +56,6 @@ class MetaAnalysisWizard(QtGui.QWizard):
         self.cond_means_pg = CondMeansPage(model=model)
         
         self.setPage(Page_ChooseEffectSize, ChooseEffectSizePage(model=model, add_generic_effect=True))
-        #self.setPage(Page_DataLocation,     DataLocationPage(model=model, mode=MA_MODE))
         self.data_location_page = DataLocationPage(model=model, mode=MA_MODE)
         
         
@@ -91,7 +90,7 @@ class MetaAnalysisWizard(QtGui.QWizard):
             self.data_location_page = DataLocationPage(model=model, mode=FAILSAFE_MODE)
             self.setPage(Page_DataLocation, self.data_location_page)
             
-            self.failsafe_page = FailsafeWizardPage()
+            self.failsafe_page = FailsafeWizardPage(previous_parameters=self.model.get_last_failsafe_parameters())
             self.setPage(Page_Failsafe, self.failsafe_page)
         
         if mode == FAILSAFE_MODE:
@@ -279,9 +278,7 @@ class MetaAnalysisWizard(QtGui.QWizard):
         if self.mode == FAILSAFE_MODE:
             summary_fields_in_order = ['Analysis Type','Data Location',
                                        'Included Studies',
-                                       'Fail-Safe Method',
-                                       'alpha',
-                                       'target']
+                                       'Fail-Safe Parameters']
         else:
             summary_fields_in_order = ['Analysis Type',
                                        'Data Type', 'Metric', 'Data Location',
@@ -306,6 +303,7 @@ class MetaAnalysisWizard(QtGui.QWizard):
             fields_to_values['Analysis Type'] = MODE_TITLES[self.mode]
             fields_to_values['Data Location'] = self._get_data_location_string(data_location)
             fields_to_values['Included Studies'] = self._get_labels_string(included_studies)
+            fields_to_values['Fail-Safe Parameters'] =  self.failsafe_page.get_summary()
         else:  
             fields_to_values['Analysis Type'] = MODE_TITLES[self.mode]
             fields_to_values['Data Type']     = DATA_TYPE_TEXT[data_type]
@@ -358,7 +356,7 @@ class MetaAnalysisWizard(QtGui.QWizard):
                 continue
             value = fields_to_values[field_name]
             if value:
-                lines.append("".join([field_name,": ",value]))
+                lines.append("".join([field_name,": ",str(value)]))
         summary = "\n\n".join(lines)
         return summary
             
@@ -405,8 +403,8 @@ class MetaAnalysisWizard(QtGui.QWizard):
         for cov in sorted(covs_to_values.keys(), key=lambda cov: cov.get_label()):
             cond_means_str += "\n    " + cov.get_label() + ": " + str(covs_to_values[cov])
         return cond_means_str
-         
-            
+
+
 
 if __name__ == '__main__':
     import sys

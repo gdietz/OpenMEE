@@ -82,8 +82,8 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
         
         # Confidence level spinbox
         self.conf_level_toolbar_widget = ConfLevelToolbarWidget(parent=self)
-        self.toolBar.addWidget(self.conf_level_toolbar_widget)
-        
+        #self.toolBar.addWidget(self.conf_level_toolbar_widget)
+        self.toolBar.insertWidget(self.actionResetAnalysisChoices, self.conf_level_toolbar_widget)
         
         self.undo_stack = QUndoStack(self)
         self.load_user_prefs()
@@ -305,6 +305,9 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
         
         # Help Menu
         self.action_about.triggered.connect(self.show_about_dlg)
+        
+        # Toolbar
+        self.actionResetAnalysisChoices.triggered.connect(self.reset_analysis_selection)
     
     def show_about_dlg(self):
         dlg = about.About()
@@ -342,6 +345,9 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
 
     def stupid(self):
         print("column formats changed")
+        
+    def reset_analysis_selection(self):
+        self.model.reset_last_analysis_selection()
 
     def table_selection_changed(self):
         if self.model.big_paste_mode:
@@ -399,6 +405,7 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
         #self.model.column_formats_changed.disconnect(lambda: QTimer.singleShot(1, self.update_vargroup_graphic))
         self.conf_level_toolbar_widget.conf_level_spinbox.valueChanged[float].disconnect(self.model.set_conf_level)
         self.model.conf_level_changed_during_undo.disconnect(self.conf_level_toolbar_widget.set_spinbox_value_no_signals)
+        
         
     def make_model_connections(self):
         QObject.connect(self.model, SIGNAL("DataError"), self.warning_msg)
@@ -743,9 +750,26 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
             data_location = wizard.data_location
             included_studies = wizard.get_included_studies_in_proper_order()
             failsafe_parameters = wizard.get_failsafe_parameters()
+            summary = wizard.get_summary()
+            
+            # figure out the data type
+            var = self.model.get_variable_assigned_to_column(data_location['effect_size'])
+            var_grp = self.model.get_variable_group_of_var(var)
+            metric = var_grp.get_metric()
+            data_type = get_data_type_for_metric(metric)
+            
+            # Save selections made for next analysis
+            self.model.update_data_location_choices(data_type, data_location)     # save data locations choices for this data type in the model
+            self.model.update_previously_included_studies(set(included_studies))  # save which studies were included on last meta-regression
+            self.model.update_last_failsafe_parameters(failsafe_parameters)
+            
+            result = python_to_R.run_failsafe_analysis(self.model, included_studies, data_location, failsafe_parameters)
+            self.analysis(result, summary)
+            
         
-        print("are we there yet?")
-                
+        #print("are we there yet?")
+    
+
   
     def run_meta_regression(self, metric, data_type, included_studies,
                             data_location, covs_to_include,

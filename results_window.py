@@ -1,9 +1,8 @@
 #############################################
 #                                           #
-#  Byron C. Wallace                         #
 #  George Dietz                             #
 #  Brown University                         #
-#  OpenMeta[analyst]                        #
+#  OpenMEE                                  #
 #                                           #
 #  This is the component responsible        #
 #  for rendering MA results.                #

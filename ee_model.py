@@ -63,6 +63,7 @@ DEFAULT_LAST_ANALYSIS_SELECTIONS = {'data_locations': {MEANS_AND_STD_DEVS:{},
                                     'bootstrap_params'   : None,
                                     'selected_cov'       : None,
                                     'covs_to_values'     : None,
+                                    'failsafe_parameters': None,
                                     }
         
 
@@ -329,6 +330,25 @@ class EETableModel(QAbstractTableModel):
         analysis wizard or at least should be, not a dictionary study -> boolean '''
         self.last_analysis_selections['included_studies'] = included_studies
         
+    def update_last_failsafe_parameters(self, failsafe_parameters):
+        self.last_analysis_selections['failsafe_parameters'] = failsafe_parameters
+    def get_last_failsafe_parameters(self):
+        return self.try_to_get_last_selection('failsafe_parameters')
+    
+    def try_to_get_last_selection(self, key):
+        '''tries to get the last selection from self.last_analysis_selections
+        if it fails, reset the self.last_analysiss selections for the key to the
+        default and return the result. This functions helps ensure backwards
+        compatibility with old *.ome pickles '''
+        
+        try:
+            return self.last_analysis_selections['failsafe_parameters']
+        except KeyError:
+            default_value = DEFAULT_LAST_ANALYSIS_SELECTIONS[key]
+            self.last_analysis_selections[key] = default_value
+            return default_value
+    
+        
     def update_selected_cov_and_covs_to_values(self, selected_cov, covs_to_values):
         self.last_analysis_selections['selected_cov'] = selected_cov
         self.last_analysis_selections['covs_to_values'] = covs_to_values
@@ -355,9 +375,22 @@ class EETableModel(QAbstractTableModel):
         return self.last_analysis_selections['included_studies']
     def get_previous_selected_cov_and_covs_to_values(self):
         return self.last_analysis_selections['selected_cov'], self.last_analysis_selections['covs_to_values']
+    
+    def reset_last_analysis_selection(self):
+        print("Resetting last_analysis selections to default")
+        self.last_analysis_selections = DEFAULT_LAST_ANALYSIS_SELECTIONS.copy()
+        for k,v in self.last_analysis_selections.items():
+            print("%s: %s" % (str(k), str(v)))
 
 ####### Analysis Parameters Section End ############
-        
+
+    def get_data_type_from_data_location(self, data_location):
+        # figure out the data type
+        var = self.model.get_variable_assigned_to_column(data_location['effect_size'])
+        var_grp = self.model.get_variable_group_of_var(var)
+        metric = var_grp.get_metric()
+        data_type = get_data_type_for_metric(metric)
+        return data_type
         
     def set_undo_stack(self, undo_stack):
         self.undo_stack = undo_stack

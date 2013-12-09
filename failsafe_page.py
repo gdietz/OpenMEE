@@ -15,13 +15,43 @@ import ui_failsafe_WizardPage
 
 
 class FailsafeWizardPage(QWizardPage, ui_failsafe_WizardPage.Ui_WizardPage):
-    def __init__(self, parent=None):
+    def __init__(self, parent=None, previous_parameters=None):
         super(FailsafeWizardPage, self).__init__(parent)
         self.setupUi(self)
         
         self.setup_connections()
         self.target_text = str(self.target_le.text())
         self.methodbox_changed(self.method_comboBox.currentText())
+        
+        self.default_parameters = previous_parameters
+    
+    def initializePage(self):
+        ''' Set previous parameters if they exist '''
+        
+        if not self.default_parameters:
+            return
+        
+        #self.set_widgets_blockstate(True)
+        if 'method' in self.default_parameters:
+            index = self.method_comboBox.findText(QString(self.default_parameters['method']))
+            if index == -1:
+                raise ValueError("'%s' not found as a method choice" % self.default_parameters['method'])
+            self.method_comboBox.setCurrentIndex(index)
+        if 'digits' in self.default_parameters:
+            self.digits_SpinBox.setValue(self.default_parameters['digits'])
+        if 'alpha' in self.default_parameters:
+            self.alphaSpinBox.setValue(self.default_parameters['alpha'])
+        if 'target' in self.default_parameters:
+            self.target_le.setText(self.default_parameters['target'])
+                        
+            
+        #self.set_widgets_blockstate(False)
+        
+    def set_widgets_blockstate(self, state):
+        self.method_comboBox.blockSignals(state)
+        self.alphaSpinBox.blockSignals(state)
+        self.target_le.blockSignals(state)
+        self.digits_SpinBox.blockSignals(state)
     
     def setup_connections(self): 
         self.method_comboBox.currentIndexChanged[QString].connect(self.methodbox_changed)
@@ -64,7 +94,13 @@ class FailsafeWizardPage(QWizardPage, ui_failsafe_WizardPage.Ui_WizardPage):
         return True
         
     def get_parameters(self):
-        method = self.method_comboBox.currentText()
+        # parameters:
+        #   'method': 'Rosenthal', 'Rosenberg', or 'Orwin'
+        #   'digits': an integer > 0
+        #   'alpha' : float value
+        #   'target': float value or ""
+        
+        method = str(self.method_comboBox.currentText())
         parameters = dict(method=method,
                           digits=self.digits_SpinBox.value())
         if method in ['Rosenthal', 'Rosenberg']:
@@ -74,6 +110,16 @@ class FailsafeWizardPage(QWizardPage, ui_failsafe_WizardPage.Ui_WizardPage):
             parameters['target']= target_text if target_text != "" else "NULL"
         
         return parameters
+    
+    def get_summary(self):
+        params = self.get_parameters()
+        order = ['method', 'alpha', 'target', 'digits']
+        
+        summary = "\n"
+        for key in order:
+            if key in params:
+                summary += "  %s: %s\n" % (key, params[key])
+        return summary
         
     def isComplete(self):
         return self.verify_target()

@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'main_window.ui'
 #
-# Created: Fri Dec  6 15:01:57 2013
+# Created: Mon Dec  9 10:51:53 2013
 #      by: PyQt4 UI code generator 4.10.3
 #
 # WARNING! All changes made in this file will be lost!
@@ -180,6 +180,11 @@ class Ui_MainWindow(object):
         self.actionFail_Safe_N.setObjectName(_fromUtf8("actionFail_Safe_N"))
         self.actionFunnel_Plot = QtGui.QAction(MainWindow)
         self.actionFunnel_Plot.setObjectName(_fromUtf8("actionFunnel_Plot"))
+        self.actionResetAnalysisChoices = QtGui.QAction(MainWindow)
+        icon13 = QtGui.QIcon()
+        icon13.addPixmap(QtGui.QPixmap(_fromUtf8(":/function_icon_set/images/function_icon_set/refresh_48.png")), QtGui.QIcon.Normal, QtGui.QIcon.Off)
+        self.actionResetAnalysisChoices.setIcon(icon13)
+        self.actionResetAnalysisChoices.setObjectName(_fromUtf8("actionResetAnalysisChoices"))
         self.menuFile.addAction(self.actionNew)
         self.menuFile.addAction(self.actionOpen)
         self.menuFile.addAction(self.actionSave)
@@ -247,6 +252,8 @@ class Ui_MainWindow(object):
         self.toolBar.addAction(self.actionSubgroup)
         self.toolBar.addAction(self.actionMeta_Regression)
         self.toolBar.addAction(self.actionBootstrapped_Meta_Analysis)
+        self.toolBar.addSeparator()
+        self.toolBar.addAction(self.actionResetAnalysisChoices)
 
         self.retranslateUi(MainWindow)
         QtCore.QMetaObject.connectSlotsByName(MainWindow)
@@ -304,5 +311,7 @@ class Ui_MainWindow(object):
         self.action_about.setText(_translate("MainWindow", "About OpenMEE", None))
         self.actionFail_Safe_N.setText(_translate("MainWindow", "Fail-Safe N", None))
         self.actionFunnel_Plot.setText(_translate("MainWindow", "Funnel Plot", None))
+        self.actionResetAnalysisChoices.setText(_translate("MainWindow", "Reset Analysis Choices", None))
+        self.actionResetAnalysisChoices.setToolTip(_translate("MainWindow", "Reset choices made in analysis screens to the defaults", None))
 
 import icons_rc

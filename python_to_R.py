@@ -358,9 +358,7 @@ def dataset_to_simple_continuous_robj(model, included_studies, data_location,
     ests = [study.get_var(ests_variable) for study in included_studies]
     SEs =  [math.sqrt(study.get_var(variance_variable)) for study in included_studies] 
      
-    ##############ests_str = ", ".join(_to_strs(ests)) DELETE ME
     ests_str = joiner(_to_strs(ests))
-    ############SEs_str = ", ".join(_to_strs(SEs)) DELETE ME
     SEs_str = joiner(_to_strs(SEs))
     
     cov_str = list_of_cov_value_objects_str(studies=included_studies,
@@ -428,6 +426,51 @@ def dataset_to_simple_continuous_robj(model, included_studies, data_location,
     execute_in_R(r_str)
     print "ok."
     return r_str
+
+def dataset_to_simple_fsn_data_robj(model, included_studies, data_location,
+                                    var_name="tmp_obj"):
+    # Package dataset for use with failsafe.wrapper() in R
+    r_str = None
+    
+    ests_variable = model.get_variable_assigned_to_column(data_location['effect_size'])
+    variance_variable = model.get_variable_assigned_to_column(data_location['variance'])
+    
+    ests = [study.get_var(ests_variable) for study in included_studies]
+    variances = [study.get_var(variance_variable) for study in included_studies]
+    
+    ests_str = joiner(_to_strs(ests))
+    variances_str = joiner(_to_strs(variances))
+                    
+    r_str = "%s <- data.frame(yi=c(%s), vi=c(%s))" % (var_name, ests_str, variances_str)
+        
+    # character encodings for R
+    r_str = _sanitize_for_R(r_str)
+    execute_in_R(r_str)
+    print "ok."
+    return r_str
+
+def run_failsafe_analysis(model, included_studies, data_location, failsafe_params,
+                          res_name="result", var_name="tmp_obj"):
+    make_dataset_r_str = dataset_to_simple_fsn_data_robj(
+                                                        model,
+                                                        included_studies,
+                                                        data_location,
+                                                        var_name=var_name)
+    
+    params_as_strs = []
+    for param, val in failsafe_params.items():
+        rkey, rval = param, str(val)
+        if param == "method":
+            rkey = "type"
+            rval = '"%s"' % val
+        if param=="target" and val=="":
+            rval = 'NULL'
+        params_as_strs.append("%s=%s" % (rkey,rval))
+        
+    r_str = "%s <- failsafe.wrapper(%s, %s)" % (res_name, var_name, ", ".join(params_as_strs))
+    execute_in_R(r_str)
+    result = execute_in_R("%s" % res_name)
+    return parse_out_results(result)
 
 def _to_strs(v):
     return [str(x) for x in v]

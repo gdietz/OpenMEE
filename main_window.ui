@@ -157,6 +157,8 @@
    <addaction name="actionSubgroup"/>
    <addaction name="actionMeta_Regression"/>
    <addaction name="actionBootstrapped_Meta_Analysis"/>
+   <addaction name="separator"/>
+   <addaction name="actionResetAnalysisChoices"/>
   </widget>
   <action name="actionNew">
    <property name="icon">
@@ -405,6 +407,18 @@
   <action name="actionFunnel_Plot">
    <property name="text">
     <string>Funnel Plot</string>
+   </property>
+  </action>
+  <action name="actionResetAnalysisChoices">
+   <property name="icon">
+    <iconset resource="icons.qrc">
+     <normaloff>:/function_icon_set/images/function_icon_set/refresh_48.png</normaloff>:/function_icon_set/images/function_icon_set/refresh_48.png</iconset>
+   </property>
+   <property name="text">
+    <string>Reset Analysis Choices</string>
+   </property>
+   <property name="toolTip">
+    <string>Reset choices made in analysis screens to the defaults</string>
    </property>
   </action>
  </widget>
