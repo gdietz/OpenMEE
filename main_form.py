@@ -302,6 +302,7 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
         
         #### Publication Bias Menu ###
         self.actionFail_Safe_N.triggered.connect(self.failsafe_analysis)
+        self.actionFunnel_Plot.triggered.connect(self.funnel_plot_analysis)
         
         # Help Menu
         self.action_about.triggered.connect(self.show_about_dlg)
@@ -768,6 +769,53 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
             
         
         #print("are we there yet?")
+        
+
+    def funnel_plot_analysis(self):
+        wizard = ma_wizard.MetaAnalysisWizard(model=self.model,
+                                  mode=FUNNEL_MODE,
+                                  parent=self)
+              
+        if wizard.exec_():
+            meta_f_str = wizard.get_modified_meta_f_str()
+            data_type = wizard.selected_data_type
+            metric = wizard.selected_metric
+            data_location = wizard.data_location
+            included_studies = wizard.get_included_studies_in_proper_order()
+            current_param_vals = wizard.get_plot_params()
+            chosen_method = wizard.get_current_method()
+            subgroup_variable = wizard.get_subgroup_variable()
+            funnel_params = wizard.get_funnel_parameters()
+            summary = wizard.get_summary()
+
+            # Save selections made for next analysis
+            self.model.update_data_type_selection(data_type)    # int
+            self.model.update_metric_selection(metric)          # int
+            self.model.update_method_selection(chosen_method)   #int??? str??
+            self.model.update_ma_param_vals(current_param_vals)
+            self.model.update_subgroup_var_selection(subgroup_variable)
+            self.model.update_data_location_choices(data_type, data_location)     # save data locations choices for this data type in the model
+            self.model.update_previously_included_studies(set(included_studies))  # save which studies were included on last meta-regression
+
+            try:
+                result = python_to_R.run_funnelplot_analysis(
+                                                 model=self.model,
+                                                 included_studies=included_studies,
+                                                 data_type=data_type,
+                                                 metric=metric,
+                                                 data_location=data_location, 
+                                                 ma_params=current_param_vals,
+                                                 funnel_params=funnel_params,
+                                                 fname=chosen_method,
+                                                 res_name = "result",
+                                                 var_name = "tmp_obj",
+                                                 summary="")
+            except CrazyRError as e:
+                if SOUND_EFFECTS:
+                    silly.play()
+                QMessageBox.critical(self, "Oops", str(e))
+
+            self.analysis(result, summary)
     
 
   

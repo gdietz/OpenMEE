@@ -23,11 +23,12 @@ from meta_reg_cond_means import CondMeansPage
 from bootstrap_page import BootstrapPage
 from summary_page import SummaryPage
 from failsafe_page import FailsafeWizardPage
+from funnel_page import FunnelPage
 
 (Page_ChooseEffectSize, Page_DataLocation, Page_RefineStudies,
 Page_MethodsAndParameters, Page_SubgroupVariable, Page_SelectCovariates,
 Page_ReferenceValues, Page_CondMeans, Page_Bootstrap, Page_Summary,
-Page_Failsafe) = range(11)
+Page_Failsafe,Page_FunnelParameters) = range(12)
 class MetaAnalysisWizard(QtGui.QWizard):
     def __init__(self, model, meta_f_str=None, mode = MA_MODE, parent=None):
         super(MetaAnalysisWizard, self).__init__(parent)
@@ -50,7 +51,7 @@ class MetaAnalysisWizard(QtGui.QWizard):
         self.setOption(QWizard.HaveFinishButtonOnEarlyPages,True)
         
         # Initialize pages that we will need to access later
-        self.methods_and_params_page_instance = MethodsAndParametersPage(model=model, meta_f_str=meta_f_str)
+        self.methods_and_params_page_instance = MethodsAndParametersPage(model=model, meta_f_str=meta_f_str, mode=mode)
         if mode in [BOOTSTRAP_MA, BOOTSTRAP_META_REG, BOOTSTRAP_META_REG_COND_MEANS]:
             self.bootstrap_page = BootstrapPage(model=model, mode=mode)
         self.cond_means_pg = CondMeansPage(model=model)
@@ -92,6 +93,11 @@ class MetaAnalysisWizard(QtGui.QWizard):
             
             self.failsafe_page = FailsafeWizardPage(previous_parameters=self.model.get_last_failsafe_parameters())
             self.setPage(Page_Failsafe, self.failsafe_page)
+        elif mode == FUNNEL_MODE:
+            self.data_location_page = DataLocationPage(model=model, mode=FUNNEL_MODE)
+            self.setPage(Page_DataLocation, self.data_location_page)
+            self.funnel_params_page = FunnelPage()
+            self.setPage(Page_FunnelParameters, self.funnel_params_page)
         else:
             self.setPage(Page_DataLocation, self.data_location_page)
         
@@ -154,7 +160,10 @@ class MetaAnalysisWizard(QtGui.QWizard):
     def get_failsafe_parameters(self):
         # parameters for failsafe calculation
         return self.failsafe_page.get_parameters()
-
+    
+    def get_funnel_parameters(self):
+        return self.funnel_params_page.get_parameters(ready_to_send_to_R=True)
+    
     def nextId(self):
         next_id = self.next_page(self.currentId())
         return next_id
@@ -256,6 +265,19 @@ class MetaAnalysisWizard(QtGui.QWizard):
             if page_id == Page_RefineStudies:
                 return Page_Failsafe
             elif page_id == Page_Failsafe:
+                return Page_Summary
+            elif page_id == Page_Summary:
+                return -1
+        elif self.mode == FUNNEL_MODE:
+            if page_id == Page_ChooseEffectSize:
+                return Page_DataLocation
+            elif page_id == Page_DataLocation:
+                return Page_RefineStudies
+            elif page_id == Page_RefineStudies:
+                return Page_MethodsAndParameters
+            elif page_id == Page_MethodsAndParameters:
+                return Page_FunnelParameters
+            elif page_id == Page_FunnelParameters:
                 return Page_Summary
             elif page_id == Page_Summary:
                 return -1

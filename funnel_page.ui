@@ -1,0 +1,491 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>WizardPage</class>
+ <widget class="QWizardPage" name="WizardPage">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>297</width>
+    <height>364</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>WizardPage</string>
+  </property>
+  <property name="title">
+   <string>Funnel Plot Settings</string>
+  </property>
+  <property name="subTitle">
+   <string>Funnel Plot Parameters</string>
+  </property>
+  <layout class="QVBoxLayout" name="verticalLayout">
+   <item>
+    <layout class="QHBoxLayout" name="horizontalLayout_2">
+     <item>
+      <widget class="QCheckBox" name="xlimCheckBox">
+       <property name="toolTip">
+        <string>x axis limits. If not checked, the function tries to set the xaxis limits to some sensible values.</string>
+       </property>
+       <property name="text">
+        <string>set xlims?</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <layout class="QHBoxLayout" name="horizontalLayout">
+       <item>
+        <widget class="QLabel" name="label_7">
+         <property name="text">
+          <string>[</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QDoubleSpinBox" name="xlimLowSpinBox">
+         <property name="minimum">
+          <double>-10000.000000000000000</double>
+         </property>
+         <property name="maximum">
+          <double>10000.000000000000000</double>
+         </property>
+         <property name="singleStep">
+          <double>0.100000000000000</double>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QLabel" name="label_11">
+         <property name="text">
+          <string>,</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QDoubleSpinBox" name="xlimHighSpinBox">
+         <property name="minimum">
+          <double>-10000.000000000000000</double>
+         </property>
+         <property name="maximum">
+          <double>10000.000000000000000</double>
+         </property>
+         <property name="singleStep">
+          <double>0.100000000000000</double>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QLabel" name="label_9">
+         <property name="text">
+          <string>]</string>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </item>
+     <item>
+      <spacer name="horizontalSpacer_5">
+       <property name="orientation">
+        <enum>Qt::Horizontal</enum>
+       </property>
+       <property name="sizeHint" stdset="0">
+        <size>
+         <width>38</width>
+         <height>20</height>
+        </size>
+       </property>
+      </spacer>
+     </item>
+    </layout>
+   </item>
+   <item>
+    <layout class="QHBoxLayout" name="horizontalLayout_3">
+     <item>
+      <widget class="QCheckBox" name="ylimCheckBox">
+       <property name="toolTip">
+        <string>y axis limits. If not checked, the function tries to set the yaxis limits to some sensible values.</string>
+       </property>
+       <property name="text">
+        <string>set ylims?</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <layout class="QHBoxLayout" name="ylim_layout">
+       <item>
+        <widget class="QLabel" name="label_8">
+         <property name="text">
+          <string>[</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QDoubleSpinBox" name="ylimLowSpinBox">
+         <property name="minimum">
+          <double>-10000.000000000000000</double>
+         </property>
+         <property name="maximum">
+          <double>10000.000000000000000</double>
+         </property>
+         <property name="singleStep">
+          <double>0.100000000000000</double>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QLabel" name="label_12">
+         <property name="text">
+          <string>,</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QDoubleSpinBox" name="ylimHighSpinBox">
+         <property name="minimum">
+          <double>-10000.000000000000000</double>
+         </property>
+         <property name="maximum">
+          <double>10000.000000000000000</double>
+         </property>
+         <property name="singleStep">
+          <double>0.100000000000000</double>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QLabel" name="label_10">
+         <property name="text">
+          <string>]</string>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </item>
+     <item>
+      <spacer name="horizontalSpacer_6">
+       <property name="orientation">
+        <enum>Qt::Horizontal</enum>
+       </property>
+       <property name="sizeHint" stdset="0">
+        <size>
+         <width>38</width>
+         <height>20</height>
+        </size>
+       </property>
+      </spacer>
+     </item>
+    </layout>
+   </item>
+   <item>
+    <layout class="QHBoxLayout" name="horizontalLayout_4">
+     <item>
+      <widget class="QCheckBox" name="xlabCheckBox">
+       <property name="text">
+        <string>set xlabel?</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <layout class="QHBoxLayout" name="xlab_layout">
+       <item>
+        <widget class="QLabel" name="label">
+         <property name="text">
+          <string>xlabel:</string>
+         </property>
+         <property name="buddy">
+          <cstring>xlab_le</cstring>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QLineEdit" name="xlab_le">
+         <property name="text">
+          <string/>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </item>
+     <item>
+      <spacer name="horizontalSpacer_7">
+       <property name="orientation">
+        <enum>Qt::Horizontal</enum>
+       </property>
+       <property name="sizeHint" stdset="0">
+        <size>
+         <width>38</width>
+         <height>20</height>
+        </size>
+       </property>
+      </spacer>
+     </item>
+    </layout>
+   </item>
+   <item>
+    <layout class="QHBoxLayout" name="horizontalLayout_5">
+     <item>
+      <widget class="QCheckBox" name="ylabCheckBox">
+       <property name="text">
+        <string>set ylabel?</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <layout class="QHBoxLayout" name="ylab_layout">
+       <item>
+        <widget class="QLabel" name="label_2">
+         <property name="text">
+          <string>ylabel:</string>
+         </property>
+         <property name="buddy">
+          <cstring>ylab_le</cstring>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QLineEdit" name="ylab_le">
+         <property name="text">
+          <string/>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </item>
+     <item>
+      <spacer name="horizontalSpacer_8">
+       <property name="orientation">
+        <enum>Qt::Horizontal</enum>
+       </property>
+       <property name="sizeHint" stdset="0">
+        <size>
+         <width>38</width>
+         <height>20</height>
+        </size>
+       </property>
+      </spacer>
+     </item>
+    </layout>
+   </item>
+   <item>
+    <layout class="QHBoxLayout" name="horizontalLayout_6">
+     <item>
+      <widget class="QLabel" name="label_3">
+       <property name="text">
+        <string>steps:</string>
+       </property>
+       <property name="buddy">
+        <cstring>stepsSpinBox</cstring>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QSpinBox" name="stepsSpinBox">
+       <property name="minimum">
+        <number>2</number>
+       </property>
+       <property name="maximum">
+        <number>20</number>
+       </property>
+       <property name="value">
+        <number>5</number>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <spacer name="horizontalSpacer_2">
+       <property name="orientation">
+        <enum>Qt::Horizontal</enum>
+       </property>
+       <property name="sizeHint" stdset="0">
+        <size>
+         <width>38</width>
+         <height>20</height>
+        </size>
+       </property>
+      </spacer>
+     </item>
+    </layout>
+   </item>
+   <item>
+    <layout class="QHBoxLayout" name="horizontalLayout_7">
+     <item>
+      <widget class="QLabel" name="label_4">
+       <property name="text">
+        <string>digits:</string>
+       </property>
+       <property name="buddy">
+        <cstring>digitsSpinBox</cstring>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QSpinBox" name="digitsSpinBox">
+       <property name="minimum">
+        <number>1</number>
+       </property>
+       <property name="maximum">
+        <number>10</number>
+       </property>
+       <property name="value">
+        <number>3</number>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <spacer name="horizontalSpacer_3">
+       <property name="orientation">
+        <enum>Qt::Horizontal</enum>
+       </property>
+       <property name="sizeHint" stdset="0">
+        <size>
+         <width>40</width>
+         <height>20</height>
+        </size>
+       </property>
+      </spacer>
+     </item>
+    </layout>
+   </item>
+   <item>
+    <layout class="QHBoxLayout" name="horizontalLayout_8">
+     <item>
+      <widget class="QLabel" name="label_5">
+       <property name="text">
+        <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;add τ&lt;span style=&quot; vertical-align:super;&quot;&gt;2&lt;/span&gt;:&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+       </property>
+       <property name="buddy">
+        <cstring>addtau2ComboBox</cstring>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QComboBox" name="addtau2ComboBox">
+       <item>
+        <property name="text">
+         <string>no</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>yes</string>
+        </property>
+       </item>
+      </widget>
+     </item>
+     <item>
+      <spacer name="horizontalSpacer_4">
+       <property name="orientation">
+        <enum>Qt::Horizontal</enum>
+       </property>
+       <property name="sizeHint" stdset="0">
+        <size>
+         <width>40</width>
+         <height>20</height>
+        </size>
+       </property>
+      </spacer>
+     </item>
+    </layout>
+   </item>
+   <item>
+    <layout class="QHBoxLayout" name="horizontalLayout_9">
+     <item>
+      <widget class="QCheckBox" name="reflineCheckBox">
+       <property name="text">
+        <string>Set refline?</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QLabel" name="label_6">
+       <property name="text">
+        <string>refline:</string>
+       </property>
+       <property name="buddy">
+        <cstring>reflineSpinBox</cstring>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QDoubleSpinBox" name="reflineSpinBox">
+       <property name="minimum">
+        <double>-10000.000000000000000</double>
+       </property>
+       <property name="maximum">
+        <double>10000.000000000000000</double>
+       </property>
+       <property name="singleStep">
+        <double>0.100000000000000</double>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <spacer name="horizontalSpacer_9">
+       <property name="orientation">
+        <enum>Qt::Horizontal</enum>
+       </property>
+       <property name="sizeHint" stdset="0">
+        <size>
+         <width>38</width>
+         <height>20</height>
+        </size>
+       </property>
+      </spacer>
+     </item>
+    </layout>
+   </item>
+   <item>
+    <layout class="QHBoxLayout" name="horizontalLayout_10">
+     <item>
+      <widget class="QLabel" name="label25">
+       <property name="text">
+        <string>status: </string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QLabel" name="status_lbl">
+       <property name="text">
+        <string>actualstatus</string>
+       </property>
+      </widget>
+     </item>
+    </layout>
+   </item>
+   <item>
+    <spacer name="verticalSpacer">
+     <property name="orientation">
+      <enum>Qt::Vertical</enum>
+     </property>
+     <property name="sizeHint" stdset="0">
+      <size>
+       <width>20</width>
+       <height>4</height>
+      </size>
+     </property>
+    </spacer>
+   </item>
+  </layout>
+ </widget>
+ <tabstops>
+  <tabstop>xlimCheckBox</tabstop>
+  <tabstop>xlimLowSpinBox</tabstop>
+  <tabstop>xlimHighSpinBox</tabstop>
+  <tabstop>ylimCheckBox</tabstop>
+  <tabstop>ylimLowSpinBox</tabstop>
+  <tabstop>ylimHighSpinBox</tabstop>
+  <tabstop>xlabCheckBox</tabstop>
+  <tabstop>xlab_le</tabstop>
+  <tabstop>ylabCheckBox</tabstop>
+  <tabstop>ylab_le</tabstop>
+  <tabstop>stepsSpinBox</tabstop>
+  <tabstop>digitsSpinBox</tabstop>
+  <tabstop>addtau2ComboBox</tabstop>
+  <tabstop>reflineCheckBox</tabstop>
+  <tabstop>reflineSpinBox</tabstop>
+ </tabstops>
+ <resources>
+  <include location="icons.qrc"/>
+ </resources>
+ <connections/>
+</ui>

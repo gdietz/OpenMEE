@@ -22,7 +22,7 @@ def execute_in_R(r_str):
     except Exception as e:
         reset_Rs_working_dir()
         print("error in execute in r")
-        raise CrazyRError("Some crazy R error occurred", e)
+        raise CrazyRError("Some crazy R error occurred: %s" % str(e))
 
 
 #################### R Library Loader ####################
@@ -456,7 +456,7 @@ def run_failsafe_analysis(model, included_studies, data_location, failsafe_param
                                                         included_studies,
                                                         data_location,
                                                         var_name=var_name)
-    
+    # build-up failsafe parameters string
     params_as_strs = []
     for param, val in failsafe_params.items():
         rkey, rval = param, str(val)
@@ -471,6 +471,50 @@ def run_failsafe_analysis(model, included_studies, data_location, failsafe_param
     execute_in_R(r_str)
     result = execute_in_R("%s" % res_name)
     return parse_out_results(result)
+
+def run_funnelplot_analysis(model,
+                            included_studies,
+                            data_type,
+                            metric,
+                            data_location,
+                            ma_params,
+                            funnel_params,
+                            fname,
+                            res_name = "result",
+                            var_name = "tmp_obj",
+                            summary=""):
+    # also add the metric to the parameters
+    # -- this is for scaling
+    ma_params["measure"] = METRIC_TO_ESCALC_MEASURE[metric]
+    
+    # dispatch on type; build an R object, then run the analysis
+    if OMA_CONVENTION[data_type] == "binary":
+        make_dataset_r_str = dataset_to_simple_binary_robj(model=model,
+                                                  included_studies=included_studies,
+                                                  data_location=data_location,
+                                                  var_name=var_name)
+    elif OMA_CONVENTION[data_type] == "continuous":
+        make_dataset_r_str = dataset_to_simple_continuous_robj(model=model,
+                                                      included_studies=included_studies,
+                                                      data_location=data_location,
+                                                      data_type=data_type,
+                                                      var_name=var_name)
+    # build up funnel pa
+    ma_params_df = ro.DataFrame(ma_params)
+    print("fna")
+    r_str = "%s<-funnel.wrapper('%s',%s,%s, %s)" % (res_name,fname,var_name,ma_params_df.r_repr(),unpack_r_parameters(funnel_params))
+
+    result = execute_in_R(r_str)
+    return parse_out_results(result)
+    
+def unpack_r_parameters(params_dict):
+    ''' takes a dictionary of parameters and returns a string suitable for use
+    in an r-function call '''
+    
+    params_strs = ["%s=%s" % (k,v) for k,v in params_dict.items()]
+    return ", ".join(params_strs)
+    
+    
 
 def _to_strs(v):
     return [str(x) for x in v]
@@ -681,7 +725,7 @@ def dataframe_to_pydict(dataframe):
 
 
 
-def get_available_methods(for_data_type=None, data_obj_name=None, metric=None):
+def get_available_methods(for_data_type=None, data_obj_name=None, metric=None, mode=None):
     '''
     Returns a list of methods available in OpenMeta for the particular data_type
     (if one is given). Excludes "*.parameters" methods
@@ -700,7 +744,7 @@ def get_available_methods(for_data_type=None, data_obj_name=None, metric=None):
     # for those methods are returned by a method with a name
     # ending in ".parameters"
     special_endings = [".parameters", ".is.feasible", ".overall",
-                       ".regression", "transform.f", ".pretty.names", ".value.info"]
+                       ".regression", "transform.f", ".pretty.names", ".value.info", "is.feasible.for.funnel"]
     is_special = lambda f: any([f.endswith(ending) for ending in special_endings])
     all_methods = [method for method in method_list if not is_special(method)]
     if for_data_type is not None:
@@ -725,6 +769,10 @@ def get_available_methods(for_data_type=None, data_obj_name=None, metric=None):
                 # object to assess if a given method is feasible (e.g,.
                 # PETO for binary data only makes sense for 'OR')
                 is_feasible = execute_in_R("%s(%s, '%s')" % (is_feas_f, data_obj_name, metric))[0]
+                if mode==FUNNEL_MODE:
+                    is_feas_4_funnel_f = "%s.is.feasible.for.funnel" % method
+                    is_feasible_for_funnel = execute_in_R("%s()" % (is_feas_4_funnel_f))[0]
+                    is_feasible = is_feasible and is_feasible_for_funnel
  
             if is_feasible:
                 # do we have a pretty name?
@@ -921,6 +969,8 @@ def make_weights_str(results):
     header = "{0:<{widths[0]}}  {1:<{widths[1]}}".format("study names", "weights", widths=widths)
     table = "\n".join([header, table]) + "\n"
     return table
+
+
 
 def run_binary_ma(function_name, params, res_name="result", bin_data_name="tmp_obj"):
     params_df = ro.r['data.frame'](**params)

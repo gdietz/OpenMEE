@@ -222,11 +222,24 @@ class ResultsWindow(QMainWindow, ui_results_window.Ui_ResultsWindow):
             print "cur_y: %s" % cur_y
             # first add the title
             qt_item = self.add_title(title)
+            
+            # custom scales to which special plots should be scaled
+            title_contents_to_scale = {"histogram":1,
+                                       "funnel":1,
+                                       }
+            for title_contents, scale in title_contents_to_scale.items():
+                if title.lower().rfind(title_contents) != -1:
+                    pixmap = self.generate_pixmap(image, custom_scale=scale)
+                    break
+                else:
+                    pixmap = self.generate_pixmap(image) 
 
-            if title.lower().rfind("histogram") != -1:
-                pixmap = self.generate_pixmap(image, custom_scale=1)
-            else:
-                pixmap = self.generate_pixmap(image)
+#             if title.lower().rfind("histogram") != -1:
+#                 pixmap = self.generate_pixmap(image, custom_scale=1)
+#             elif title.lower().rfind("funnel") != -1:
+#                 pixmap = self.generate_pixmap(image, custom_scale=1)
+#             else:
+#                 pixmap = self.generate_pixmap(image)
             
             # if there is a parameters object associated with this object
             # (i.e., it is a forest plot of some variety), we pass it along
@@ -408,6 +421,8 @@ class ResultsWindow(QMainWindow, ui_results_window.Ui_ResultsWindow):
             plot_type = "forest"
         elif "regression" in tmp_title:
             plot_type = "regression"
+        elif "funnel" in tmp_title:
+            plot_type = "funnel"
         return plot_type
 
     def create_pixmap_item(self, pixmap, position, title, image_path,\

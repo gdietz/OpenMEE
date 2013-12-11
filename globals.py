@@ -78,7 +78,7 @@ def cancel_macro_creation_and_revert_state(undo_stack):
 (CALCULATE_EFFECT_SIZE_MODE, MA_MODE, CUM_MODE, SUBGROUP_MODE, LOO_MODE,
  META_REG_MODE, TRANSFORM_MODE, META_REG_COND_MEANS,
  BOOTSTRAP_MA, BOOTSTRAP_META_REG, BOOTSTRAP_META_REG_COND_MEANS,
- FAILSAFE_MODE) = range(12)
+ FAILSAFE_MODE, FUNNEL_MODE) = range(13)
  
 MODE_TITLES = {CALCULATE_EFFECT_SIZE_MODE: "Calculate Effect Size",
                MA_MODE: "Meta Analysis",
@@ -91,7 +91,8 @@ MODE_TITLES = {CALCULATE_EFFECT_SIZE_MODE: "Calculate Effect Size",
                BOOTSTRAP_MA: "Bootstrapped Meta-Analysis",
                BOOTSTRAP_META_REG: "Bootstrapped Meta-Regression",
                BOOTSTRAP_META_REG_COND_MEANS:"Bootstrapped Meta-Regression based Conditional Means",
-               FAILSAFE_MODE:"Fail-Safe N"}
+               FAILSAFE_MODE:"Fail-Safe N",
+               FUNNEL_MODE: "Funnel Plot"}
 
 # For choosing statistic function for bootstrapping
 BOOTSTRAP_MODES_TO_STRING = {BOOTSTRAP_MA:'boot.ma',
@@ -101,9 +102,9 @@ BOOTSTRAP_MODES_TO_STRING = {BOOTSTRAP_MA:'boot.ma',
 ANALYSIS_MODES = [MA_MODE, CUM_MODE, SUBGROUP_MODE, LOO_MODE,
                   META_REG_MODE, META_REG_COND_MEANS,
                   BOOTSTRAP_MA, BOOTSTRAP_META_REG, BOOTSTRAP_META_REG_COND_MEANS,
-                  FAILSAFE_MODE]
+                  FAILSAFE_MODE, FUNNEL_MODE]
 
-META_ANALYSIS_MODES = [MA_MODE, CUM_MODE, SUBGROUP_MODE, LOO_MODE, BOOTSTRAP_MA]
+META_ANALYSIS_MODES = [MA_MODE, CUM_MODE, SUBGROUP_MODE, LOO_MODE, BOOTSTRAP_MA, FUNNEL_MODE]
 META_REG_MODES      = [META_REG_MODE, META_REG_COND_MEANS, BOOTSTRAP_META_REG, BOOTSTRAP_META_REG_COND_MEANS]
 
 # Default variable type
