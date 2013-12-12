@@ -1205,7 +1205,7 @@ class EETableModel(QAbstractTableModel):
                 var_type = CATEGORICAL # most general
             else:
                 var = self.cols_2_vars[col]
-                var_name = var.get_label()
+                #var_name = var.get_label()
                 var_type = var.get_type()
             
             can_convert_value_to_desired_type = self.dataset.can_convert_var_value_to_type(var_type, value_as_string)

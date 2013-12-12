@@ -95,9 +95,14 @@ def generate_forest_plot(file_path, side_by_side=False, params_name="plot.data")
         print("generating a forest plot....")
         execute_in_R("forest.plot(%s, '%s')" % (params_name, file_path))
         
-
-
-
+def regenerate_funnel_plot(params_path, file_path, edited_funnel_params=None):
+    if edited_funnel_params:
+        edited_funnel_params_robj = ro.ListVector(edited_funnel_params)
+        r_str = "regenerate.funnel.plot(out.path='%s', plot.path='%s', edited.funnel.params=%s)" % (params_path, file_path, edited_funnel_params_robj.r_repr())
+    else:
+        r_str = "regenerate.funnel.plot(out.path='%s', plot.path='%s')" % (params_path, file_path)
+        
+    execute_in_R(r_str)
 
 def load_in_R(fpath):
     ''' loads what is presumed to be .Rdata into the R environment '''
@@ -430,7 +435,6 @@ def dataset_to_simple_continuous_robj(model, included_studies, data_location,
 def dataset_to_simple_fsn_data_robj(model, included_studies, data_location,
                                     var_name="tmp_obj"):
     # Package dataset for use with failsafe.wrapper() in R
-    r_str = None
     
     ests_variable = model.get_variable_assigned_to_column(data_location['effect_size'])
     variance_variable = model.get_variable_assigned_to_column(data_location['variance'])
