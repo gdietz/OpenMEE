@@ -13,24 +13,21 @@ from PyQt4.Qt import *
 from globals import *
 import ui_subgroup_variable_page
 
-
-
 class SubgroupVariablePage(QWizardPage, ui_subgroup_variable_page.Ui_subgroup_variable_page):
-    def __init__(self, model, parent=None):
+    def __init__(self, model, previous_subgroup_var=None, parent=None):
         super(SubgroupVariablePage, self).__init__(parent)
         self.setupUi(self)
         
         self.model = model
-        self.default_subgroup_var = self.model.get_subgroup_var_selection()
+        self.default_subgroup_var = previous_subgroup_var
+        self.subgroup_variable_col = None
 
         categorical_cols = self.model.get_categorical_columns()
         if len(categorical_cols)==0:
             raise Exception("There are no categorical variables. A subgroup analysis cannot occur")
     
     def initializePage(self):
-        
         self._populate_combo_box(self.model.get_categorical_columns())
-        
         QObject.connect(self.comboBox, SIGNAL("currentIndexChanged(int)"), self._update_current_selection)
         
     def _populate_combo_box(self, columns):
@@ -54,9 +51,16 @@ class SubgroupVariablePage(QWizardPage, ui_subgroup_variable_page.Ui_subgroup_va
 
 
     def _update_current_selection(self):
-        current_variable_col = self.selected_column(self.comboBox)
-        # update data location in wizard
-        self.wizard().subgroup_variable_column = current_variable_col
+        self.subgroup_variable_col = self.selected_column(self.comboBox)
+        
+    def get_subgroup_variable_col(self):
+        return self.subgroup_variable_col
+    
+    def get_subgroup_variable(self):
+        if self.subgroup_variable_col is None:
+            return None
+        return self.model.get_variable_assigned_to_column(self.subgroup_variable_col)
+        
     
     def selected_column(self, combo_box):
         item_data = combo_box.itemData(combo_box.currentIndex())

@@ -1362,7 +1362,6 @@ def cov_to_str(cov, studies, named_list=True, return_cov_vals=False):
     cov_values = [study.get_var(cov) for study in studies]
     cov_values = [convert_cov_value(cov.get_type(), value) for value in cov_values]
 
-    #######cov_str += ",".join(cov_values) + ")"   DELETE ME
     cov_str += joiner(cov_values) + ")"
     
     if return_cov_vals:

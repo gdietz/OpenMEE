@@ -44,6 +44,9 @@ class OverwriteEffectSizesPage(QWizardPage, ui_overwrite_effect_sizes_page.Ui_Wi
         box.blockSignals(False)
  
     def get_columns_to_overwrite(self):
+        if self.no_btn.isChecked():
+            return None
+        
         trans_effect_index = self.effect_cbo_box.currentIndex()
         trans_var_index = self.var_cbo_box.currentIndex()
         
@@ -80,16 +83,12 @@ class OverwriteEffectSizesPage(QWizardPage, ui_overwrite_effect_sizes_page.Ui_Wi
 
     def isComplete(self):
         if self.no_btn.isChecked():
-            self.wizard().cols_to_overwrite = None
-            self.print_cols_to_overwrite()
             return True
         elif self.yes_btn.isChecked():
             cols_to_overwrite = self.get_columns_to_overwrite()
-            self.wizard().cols_to_overwrite = cols_to_overwrite
-            self.print_cols_to_overwrite()
             if cols_to_overwrite:
                 return True
         return False
     
     def print_cols_to_overwrite(self):
-        print("cols to overwrite is now %s" % str(self.wizard().cols_to_overwrite))
+        print("cols to overwrite is now %s" % str(self.get_columns_to_overwrite()))

@@ -22,6 +22,11 @@ class NewColumnGroupTransformEffectPage(QWizardPage, ui_new_column_group_transfo
         self.model = model
         self.metric = None
         
+        # will be False until set to True in initializePage() i.e. we don't know
+        # that we need to make a new column group until when and if this page is
+        # displayed
+        self.new_column_group = False 
+        
         self.selections = {TRANS_EFFECT:None,
                            TRANS_VAR:None,
                            RAW_EFFECT:None,
@@ -44,6 +49,7 @@ class NewColumnGroupTransformEffectPage(QWizardPage, ui_new_column_group_transfo
         self.raw_boxes = [self.raw_effect_cbo_box, self.raw_lower_cbo_box, self.raw_upper_cbo_box]
     
     
+    
     def _get_subtype_columns(self, subtype, exclude_if_already_in_group=True):
         continuous_columns = self.model.get_continuous_columns()
         subtype_cols = [col for col in continuous_columns if self.model.get_variable_assigned_to_column(col).get_subtype() == subtype]
@@ -51,13 +57,26 @@ class NewColumnGroupTransformEffectPage(QWizardPage, ui_new_column_group_transfo
         if exclude_if_already_in_group:
             subtype_cols = [col for col in subtype_cols if self.model.get_variable_group_of_var(self.model.get_variable_assigned_to_column(col)) is None]
         return subtype_cols
+    
+    ########## interface to outside ###########
+    #                                         #
+    def make_new_column_group(self):
+        return self.new_column_group
+    
+    def get_selections(self):
+        return self.selections
+    
+    def get_metric(self):
+        return self.metric
+    #                                          #
+    ######## end of interface to outside #######
+    
+    def cleanupPage(self):
+        self.new_column_group = False
         
     
     def initializePage(self):
-        # set info for wizard
-        self.wizard().get_new_column_group_column_selections = self.get_selections
-        self.wizard().new_column_group = True
-        self.wizard().get_new_column_group_metric = self.get_metric
+        self.new_column_group = True
         
         # local data
         self.direction = self.wizard().get_transformation_direction()
@@ -98,12 +117,6 @@ class NewColumnGroupTransformEffectPage(QWizardPage, ui_new_column_group_transfo
             return None not in [self.selections[TRANS_EFFECT], self.selections[TRANS_VAR]]
         elif self.direction == RAW_TO_TRANS:
             return None not in [self.selections[RAW_EFFECT], self.selections[RAW_LOWER], self.selections[RAW_UPPER]]
-    
-    def get_selections(self):
-        return self.selections
-    
-    def get_metric(self):
-        return self.metric
         
     def _selected_column(self, combo_box):
         item_data = combo_box.itemData(combo_box.currentIndex())

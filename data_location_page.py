@@ -48,9 +48,7 @@ class DataLocationPage(QWizardPage):
 
     
     def initializePage(self):
-        self.data_type = self.wizard().selected_data_type
-        self.selected_metric = self.wizard().selected_metric
-        
+        self.data_type, self.metric = self.wizard().get_data_type_and_metric()
         
         vlayout = self.layout()
         if vlayout is None:
@@ -74,7 +72,7 @@ class DataLocationPage(QWizardPage):
         
         if self.mode in ANALYSIS_MODES or self.mode==CALCULATE_EFFECT_SIZE_MODE:
             if self.data_type == MEANS_AND_STD_DEVS:
-                if self.selected_metric != GENERIC_EFFECT:
+                if self.metric != GENERIC_EFFECT:
                     self._setup_MEAN_AND_STD_DEV_table(layout, startrow=layout.rowCount())
                 else:
                     pass # don't choose data location columns for generic effect
@@ -129,16 +127,10 @@ class DataLocationPage(QWizardPage):
         if self.mode == CALCULATE_EFFECT_SIZE_MODE:
             self.make_linkage_chkbox = QCheckBox("Establish linkage between raw-data and calculated effects")
             self.make_linkage_chkbox.setCheckState(Qt.Checked)
-            self.make_linkage_chkbox.stateChanged.connect(self.update_make_link_state)
-            self.update_make_link_state()
             vlayout.addWidget(self.make_linkage_chkbox)
-    
-    def update_make_link_state(self):
-        ''' updates the make_link variable in the wizard '''
-        self.wizard().make_link = self.make_linkage_chkbox.isChecked()
-        msg = "link will be made" if self.wizard().make_link else "link will not be made"
-        print(msg)
         
+    def should_make_link(self):
+        return self.make_linkage_chkbox.isChecked()
     
     def _clear_selections(self):
         print("Clearing selections")
@@ -153,7 +145,7 @@ class DataLocationPage(QWizardPage):
         
         self._update_current_selections()
             
-    def get_boxname_for_box(self, box):
+    def _get_boxname_for_box(self, box):
         for name,v in self.box_names_to_boxes.items():
             if v == box:
                 return name
@@ -311,7 +303,7 @@ class DataLocationPage(QWizardPage):
         
         for box in combo_boxes:
             box.blockSignals(True)
-            previous_col_choice = self.get_default_col_choice_for_box(box)
+            previous_col_choice = self._get_default_col_choice_for_box(box)
             default_index = -1
             for index in range(0,box.count()):
                 col = box.itemData(index)
@@ -325,14 +317,14 @@ class DataLocationPage(QWizardPage):
         # make sure the selections are recorded
         self._update_current_selections()
             
-    def get_default_col_choice_for_box(self,box):
-        box_name = self.get_boxname_for_box(box)
+    def _get_default_col_choice_for_box(self,box):
+        box_name = self._get_boxname_for_box(box)
         column = self.model.get_data_location_choice(self.data_type, box_name)
         if column is None:
             return -1 # means no column chosen
         return column
             
-    def _get_current_selections(self):
+    def get_data_locations(self):
         ''' Returns a dictionary mapping fields to combo_box_selections(columns) '''
         
         def selected_column(combo_box):
@@ -345,7 +337,7 @@ class DataLocationPage(QWizardPage):
         current_selections = {}
         if self.mode in ANALYSIS_MODES or self.mode == CALCULATE_EFFECT_SIZE_MODE:
             if self.data_type == MEANS_AND_STD_DEVS:
-                if self.selected_metric != GENERIC_EFFECT:
+                if self.metric != GENERIC_EFFECT:
                     current_selections = {
                             'control_mean'            : selected_column(self.control_mean_combo_box),
                             'control_std_dev'         : selected_column(self.control_std_dev_combo_box),
@@ -373,13 +365,11 @@ class DataLocationPage(QWizardPage):
         return current_selections
     
     def _update_current_selections(self):
-        current_selections = self._get_current_selections()
-        # update data location in wizard
-        self.wizard().data_location = current_selections
+        current_selections = self.get_data_locations()
         self.emit(SIGNAL("completeChanged()"))
             
     def isComplete(self):
-        current_selections = self.wizard().data_location
+        current_selections = self.get_data_locations()
         if current_selections is None:
             return False
         if self.mode==CALCULATE_EFFECT_SIZE_MODE:

@@ -14,7 +14,7 @@ import python_to_R
 import ui_select_covariates_page
 
 class SelectCovariatesPage(QWizardPage, ui_select_covariates_page.Ui_WizardPage):
-    def __init__(self, model, mode=None, parent=None):
+    def __init__(self, model, prev_conf_level, using_fixed_effects, mode=None, parent=None): # todo: set defaults of previous parameters to None
         super(SelectCovariatesPage, self).__init__(parent)
         self.setupUi(self)
         
@@ -22,9 +22,9 @@ class SelectCovariatesPage(QWizardPage, ui_select_covariates_page.Ui_WizardPage)
         self.mode = mode
     
         # default values from previous analysis
-        self.default_conf_level = self.model.get_conf_level_selection()
-        self.default_fixed_effects = self.model.get_fixed_vs_random_effects_selection()
-        if self.default_conf_level is not None:
+        self.default_conf_level = prev_conf_level
+        self.default_fixed_effects = using_fixed_effects
+        if self.default_conf_level is not None: 
             self.conf_level_spinbox.setValue(self.default_conf_level)
         if self.default_fixed_effects is not None:
             if self.default_fixed_effects is True:
@@ -92,10 +92,6 @@ class SelectCovariatesPage(QWizardPage, ui_select_covariates_page.Ui_WizardPage)
         self._populate_covariate_list()
         self.update_conf_level(DEFAULT_CONFIDENCE_LEVEL)
         
-        self.wizard().covariates_included_table = self.covariate_include_status
-        self.wizard().using_fixed_effects = self.fixed_effects_radio_btn.isChecked
-        self.wizard().get_confidence_level = self.get_confidence_level
-        
     def _populate_covariate_list(self):
         ''' Adds checkable list of covariates'''
         
@@ -148,9 +144,20 @@ class SelectCovariatesPage(QWizardPage, ui_select_covariates_page.Ui_WizardPage)
                 return False
         return True
     
-#    def isFinalPage(self):
-#        print("checking isfinalpage")
-#        if self.wizard().next_page(self.wizard().currentId()) == -1:
-#            return True
-#        else:
-#            return False
+    def get_parameters(self):
+        ''' main getter function to interact with the selections made on this page'''
+          
+        return {'included_covariates': self.get_included_covariates(),
+                'using_fixed_effects': self.fixed_effects_radio_btn.isChecked(),
+                'conf_level': self.get_confidence_level(),
+                }
+        
+    def get_included_covariates(self):
+        included_covariates = [cov for cov,should_include in self.covariate_include_status.items() if should_include]
+        return included_covariates
+    def get_using_fixed_effects(self):
+        return self.fixed_effects_radio_btn.isChecked()
+    def get_covpage_conf_level(self):
+        return self.get_confidence_level()
+        
+        

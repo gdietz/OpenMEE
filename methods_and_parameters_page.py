@@ -31,19 +31,17 @@ class MethodsAndParametersPage(QWizardPage, ui_methods_and_parameters_page.Ui_Wi
         self.default_method     = self.model.get_method_selection()
         self.default_param_vals = self.model.get_ma_param_vals()
         
+        # disable parameters tab for forest plot since we're not displaying a forest plot
         if mode == FUNNEL_MODE:
             self.specs_tab.setTabEnabled(1, False)
         
     def initializePage(self):
-        if self.wizard().mode==SUBGROUP_MODE:
+        if self.mode==SUBGROUP_MODE:
             self.external_params = {"cov_name":self.wizard().get_subgroup_variable().get_label()}
         self.current_param_vals = self.external_params or {}
         
-        
-        self.data_type = self.wizard().selected_data_type
-        self.metric = self.wizard().selected_metric
-        self.data_location = self.wizard().data_location
-        self.studies_included_table = self.wizard().studies_included_table
+        self.data_type, self.metric = self.wizard().get_data_type_and_metric()
+        self.data_location = self.wizard().get_data_location()
         
         QObject.connect(self.save_btn, SIGNAL("pressed()"), self.select_out_path)
         QObject.connect(self.method_cbo_box, SIGNAL("currentIndexChanged(QString)"), self.method_changed)
@@ -172,7 +170,7 @@ class MethodsAndParametersPage(QWizardPage, ui_methods_and_parameters_page.Ui_Wi
         tmp_obj_name = "tmp_obj"
         
         covs_to_include = []
-        if self.wizard().mode==SUBGROUP_MODE:
+        if self.mode==SUBGROUP_MODE:
                 covs_to_include = [self.wizard().get_subgroup_variable(),]
         
         if OMA_CONVENTION[self.data_type] == "binary":

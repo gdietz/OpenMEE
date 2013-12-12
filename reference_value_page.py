@@ -13,11 +13,16 @@ from globals import *
 import ui_reference_value_page
 
 class ReferenceValuePage(QWizardPage, ui_reference_value_page.Ui_WizardPage):
-    def __init__(self, model, parent=None):
+    def __init__(self, model, prev_cov_to_ref_level, parent=None):
         super(ReferenceValuePage, self).__init__(parent)
         self.setupUi(self)
         
         self.model = model
+        
+        # store our choices here
+        self.cov_to_ref_level = {}
+        
+        self.default_cov_to_ref_level = prev_cov_to_ref_level
         
     def initializePage(self):
         print("Initialize Page called")
@@ -32,16 +37,14 @@ class ReferenceValuePage(QWizardPage, ui_reference_value_page.Ui_WizardPage):
         
         included_covariates = self.wizard().get_included_covariates()
         self.categorical_covariates = [cov for cov in included_covariates if cov.get_type()==CATEGORICAL]
-        self.included_studies = self.wizard().get_included_studies_in_proper_order()\
+        self.included_studies = self.wizard().get_included_studies_in_proper_order()
         
-        # store our choices here
-        self.cov_to_ref_level = {}
+
         
         # mapping cov --> set of levels
         self.cov_to_levels = self._make_cov_to_levels_dict()
         
         # initialize cov_to_ref_level from previous selection
-        self.default_cov_to_ref_level = self.model.get_cov_2_ref_values_selection()
         if self.default_cov_to_ref_level is not None:
             for cov in included_covariates:
                 if cov in self.default_cov_to_ref_level and self.default_cov_to_ref_level[cov] in self.cov_to_levels[cov]:
@@ -97,7 +100,6 @@ class ReferenceValuePage(QWizardPage, ui_reference_value_page.Ui_WizardPage):
     def right_list_item_changed(self, current_item, previous_item):
         ref_level = self.right_listWidgetItem_to_level[current_item]
         self.cov_to_ref_level[self.current_cov] = ref_level
-        self.wizard().cov_2_ref_values = self.cov_to_ref_level
         print("For covariate: %s, reference is now: %s" % (self.current_cov.get_label(), ref_level))
     
     def get_covariate_reference_levels(self):
@@ -147,5 +149,4 @@ class ReferenceValuePage(QWizardPage, ui_reference_value_page.Ui_WizardPage):
                     if cov not in self.cov_to_ref_level: # set defaults
                         self.cov_to_ref_level[cov]=val
             cov_to_levels[cov]=levels
-        self.wizard().cov_2_ref_values = self.cov_to_ref_level
         return cov_to_levels   

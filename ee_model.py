@@ -353,6 +353,10 @@ class EETableModel(QAbstractTableModel):
         self.last_analysis_selections['selected_cov'] = selected_cov
         self.last_analysis_selections['covs_to_values'] = covs_to_values
 
+    def get_last_analysis_selections(self):
+        ''' all the parameters previously selected in the course of choosing options
+        on wizard screens '''
+        return self.last_analysis_selections
     def get_data_type_selection(self):                   # int
         return self.last_analysis_selections['data_type']
     def get_metric_selection(self):                         # int

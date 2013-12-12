@@ -461,11 +461,10 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
         wizard = calculate_effect_sizes_wizard.CalculateEffectSizeWizard(model=self.model, parent=self)
         
         if wizard.exec_():
-            data_type = wizard.selected_data_type
-            metric = wizard.selected_metric
-            data_location = wizard.data_location
-            cols_to_overwrite = wizard.cols_to_overwrite
-            make_link = wizard.make_link
+            data_type, metric = wizard.get_data_type_and_metric()
+            data_location = wizard.get_data_location()
+            cols_to_overwrite = wizard.get_columns_to_overwrite()
+            make_link = wizard.make_link()
             
             # save data locations choices for this data type in the model
             self.model.update_data_location_choices(data_type, data_location)
@@ -548,13 +547,13 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
             return False
 
         effect_var_to_transform = self.model.get_variable_assigned_to_column(wizard.get_chosen_column())
-        transform_direction = wizard.get_tranformation_direction()
+        transform_direction = wizard.get_transformation_direction()
         verify_transform_direction(transform_direction)
 
         self.undo_stack.beginMacro("Transforming/backtransforming effect size")
 
         # Need to make a new column group if the effect column we chose doesn't belong to one yet
-        if wizard.new_column_group:
+        if wizard.make_new_column_group():
             print("Making new column group")
             new_grp_cols = wizard.get_new_column_group_column_selections()
             metric = wizard.get_new_column_group_metric()
@@ -633,13 +632,13 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
         unmodified_meta_f_str = meta_f_str    
         if wizard.exec_():
             meta_f_str = wizard.get_modified_meta_f_str()
-            data_type = wizard.selected_data_type
-            metric = wizard.selected_metric
-            data_location = wizard.data_location
+            data_type, metric = wizard.get_data_type_and_metric()
+            data_location = wizard.get_data_location()
             included_studies = wizard.get_included_studies_in_proper_order()
             current_param_vals = wizard.get_plot_params()
             chosen_method = wizard.get_current_method()
-            subgroup_variable = wizard.get_subgroup_variable()
+            if mode == SUBGROUP_MODE:
+                subgroup_variable = wizard.get_subgroup_variable()
             summary = wizard.get_summary()
             if mode == BOOTSTRAP_MA:
                 current_param_vals.update(wizard.get_bootstrap_params())
@@ -650,11 +649,10 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
             self.model.update_metric_selection(metric)          # int
             self.model.update_method_selection(chosen_method)   #int??? str??
             self.model.update_ma_param_vals(current_param_vals)
-            self.model.update_subgroup_var_selection(subgroup_variable)
             self.model.update_data_location_choices(data_type, data_location)     # save data locations choices for this data type in the model
             self.model.update_previously_included_studies(set(included_studies))  # save which studies were included on last meta-regression
-            if mode == BOOTSTRAP_MA:
-                self.model.update_bootstrap_params_selection(wizard.get_bootstrap_params())
+            if mode == SUBGROUP_MODE: self.model.update_subgroup_var_selection(subgroup_variable)
+            if mode == BOOTSTRAP_MA: self.model.update_bootstrap_params_selection(wizard.get_bootstrap_params())
 
 
 
@@ -696,14 +694,13 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
                                               parent=self)
         
         if wizard.exec_():
-            data_type = wizard.selected_data_type
-            metric = wizard.selected_metric
-            data_location = wizard.data_location
+            data_type, metric = wizard.get_data_type_and_metric()
+            data_location = wizard.get_data_location()
             included_studies = wizard.get_included_studies_in_proper_order()
             included_covariates = wizard.get_included_covariates()
             fixed_effects = wizard.using_fixed_effects()
-            conf_level = wizard.get_confidence_level()
-            cov_2_ref_values = wizard.cov_2_ref_values
+            conf_level = wizard.get_covpage_conf_level()
+            cov_2_ref_values = wizard.get_covariate_reference_levels()
             summary = wizard.get_summary()
             if mode in [META_REG_COND_MEANS, BOOTSTRAP_META_REG_COND_MEANS]:
                 selected_cov, covs_to_values = wizard.get_meta_reg_cond_means_info()
@@ -748,7 +745,7 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
                                               mode=FAILSAFE_MODE,
                                               parent=self)
         if wizard.exec_():
-            data_location = wizard.data_location
+            data_location = wizard.get_data_location()
             included_studies = wizard.get_included_studies_in_proper_order()
             failsafe_parameters = wizard.get_failsafe_parameters()
             summary = wizard.get_summary()
@@ -778,13 +775,11 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
               
         if wizard.exec_():
             meta_f_str = wizard.get_modified_meta_f_str()
-            data_type = wizard.selected_data_type
-            metric = wizard.selected_metric
-            data_location = wizard.data_location
+            data_type, metric = wizard.get_data_type_and_metric()
+            data_location = wizard.get_data_location()
             included_studies = wizard.get_included_studies_in_proper_order()
             current_param_vals = wizard.get_plot_params()
             chosen_method = wizard.get_current_method()
-            subgroup_variable = wizard.get_subgroup_variable()
             funnel_params = wizard.get_funnel_parameters()
             summary = wizard.get_summary()
 
@@ -793,7 +788,6 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
             self.model.update_metric_selection(metric)          # int
             self.model.update_method_selection(chosen_method)   #int??? str??
             self.model.update_ma_param_vals(current_param_vals)
-            self.model.update_subgroup_var_selection(subgroup_variable)
             self.model.update_data_location_choices(data_type, data_location)     # save data locations choices for this data type in the model
             self.model.update_previously_included_studies(set(included_studies))  # save which studies were included on last meta-regression
 

@@ -233,13 +233,6 @@ class ResultsWindow(QMainWindow, ui_results_window.Ui_ResultsWindow):
                     break
                 else:
                     pixmap = self.generate_pixmap(image) 
-
-#             if title.lower().rfind("histogram") != -1:
-#                 pixmap = self.generate_pixmap(image, custom_scale=1)
-#             elif title.lower().rfind("funnel") != -1:
-#                 pixmap = self.generate_pixmap(image, custom_scale=1)
-#             else:
-#                 pixmap = self.generate_pixmap(image)
             
             # if there is a parameters object associated with this object
             # (i.e., it is a forest plot of some variety), we pass it along

@@ -1,9 +1,14 @@
-################
-#              #
-# George Dietz #
-# CEBM@Brown   #
-#              #
-################
+################################################################################
+#              
+# George Dietz 
+# CEBM@Brown   
+#              
+# My policy for the wizards is that they should know nothing about the various
+# selections that are made on the pages (store nothing internally)
+# rather the selections are stored in the pages themselves and are retrieved
+# with accessor functions through the wizard 
+#
+################################################################################
 
 
 from PyQt4 import QtCore, QtGui
@@ -34,18 +39,10 @@ class MetaAnalysisWizard(QtGui.QWizard):
         super(MetaAnalysisWizard, self).__init__(parent)
         
         self.model = model
+        last_analysis = model.get_last_analysis_selections() # selections from last analysis of whatever type
+        
         self.meta_f_str = meta_f_str
         self.mode = mode
-        
-        self.selected_data_type = None
-        self.selected_metric = None
-        self.data_location = None
-        self.studies_included_table = None # dict mapping studies to if their inclusion state
-        self.subgroup_variable_column = None
-        self.covariates_included_table = None
-        self.using_fixed_effects = None # will be a callable returning a boolean
-        self.get_confidence_level = None # will be a callable returning a double
-        self.cov_2_ref_values = {}
         
         self.setWindowTitle(MODE_TITLES[mode])
         self.setOption(QWizard.HaveFinishButtonOnEarlyPages,True)
@@ -56,35 +53,44 @@ class MetaAnalysisWizard(QtGui.QWizard):
             self.bootstrap_page = BootstrapPage(model=model, mode=mode)
         self.cond_means_pg = CondMeansPage(model=model)
         
-        self.setPage(Page_ChooseEffectSize, ChooseEffectSizePage(model=model, add_generic_effect=True))
+        self.choose_effect_size_page = ChooseEffectSizePage(add_generic_effect=True,
+                                                            data_type=last_analysis['data_type'],
+                                                            metric=last_analysis['metric'])
+        self.setPage(Page_ChooseEffectSize, self.choose_effect_size_page)
         self.data_location_page = DataLocationPage(model=model, mode=MA_MODE)
         
-        
+        self.select_covariates_page = SelectCovariatesPage(model=model, mode=mode,
+                                                           prev_conf_level=model.get_conf_level_selection(),
+                                                           using_fixed_effects=model.get_fixed_vs_random_effects_selection())
+        self.reference_value_page = ReferenceValuePage(model=model,
+                                                       prev_cov_to_ref_level=model.get_cov_2_ref_values_selection())
         self.setPage(Page_MethodsAndParameters, self.methods_and_params_page_instance)
-        self.setPage(Page_RefineStudies, RefineStudiesPage(model=model, mode=mode))
+        self.refine_studies_page = RefineStudiesPage(model=model, mode=mode)
+        self.setPage(Page_RefineStudies, self.refine_studies_page)
         self.setPage(Page_Summary, SummaryPage())
         if mode==SUBGROUP_MODE:
             self.setPage(Page_DataLocation, self.data_location_page)
-            self.setPage(Page_SubgroupVariable, SubgroupVariablePage(model=model))
+            self.subgroup_var_page = SubgroupVariablePage(model=model)
+            self.setPage(Page_SubgroupVariable, self.subgroup_var_page)
         elif mode==META_REG_MODE:
             self.setPage(Page_DataLocation, self.data_location_page)
-            self.setPage(Page_SelectCovariates, SelectCovariatesPage(model=model, mode=mode))
-            self.setPage(Page_ReferenceValues, ReferenceValuePage(model=model))
+            self.setPage(Page_SelectCovariates, self.select_covariates_page)
+            self.setPage(Page_ReferenceValues, self.reference_value_page)
         elif mode==META_REG_COND_MEANS:
             self.setPage(Page_DataLocation, self.data_location_page)
-            self.setPage(Page_SelectCovariates, SelectCovariatesPage(model=model, mode=mode))
+            self.setPage(Page_SelectCovariates, self.select_covariates_page)
             self.setPage(Page_CondMeans, self.cond_means_pg)
         elif mode==BOOTSTRAP_MA:
             self.setPage(Page_DataLocation, self.data_location_page)
             self.setPage(Page_Bootstrap, self.bootstrap_page)
         elif mode==BOOTSTRAP_META_REG:
             self.setPage(Page_DataLocation, self.data_location_page)
-            self.setPage(Page_SelectCovariates, SelectCovariatesPage(model=model, mode=mode))
-            self.setPage(Page_ReferenceValues, ReferenceValuePage(model=model))
+            self.setPage(Page_SelectCovariates, self.select_covariates_page)
+            self.setPage(Page_ReferenceValues, self.reference_value_page)
             self.setPage(Page_Bootstrap, self.bootstrap_page)
         elif mode==BOOTSTRAP_META_REG_COND_MEANS:
             self.setPage(Page_DataLocation, self.data_location_page)
-            self.setPage(Page_SelectCovariates, SelectCovariatesPage(model=model, mode=mode))
+            self.setPage(Page_SelectCovariates, self.select_covariates_page)
             self.setPage(Page_CondMeans, self.cond_means_pg)
             self.setPage(Page_Bootstrap, self.bootstrap_page)
         elif mode==FAILSAFE_MODE:
@@ -117,19 +123,18 @@ class MetaAnalysisWizard(QtGui.QWizard):
         
     def get_bootstrap_params(self):
         return self.bootstrap_page.get_bootstrap_params()
-        
-    def get_included_covariates(self):
-        included_covariates = [cov for cov,should_include in self.covariates_included_table.iteritems() if should_include]
-        return included_covariates
-        
-    def get_subgroup_variable_column(self):
-        return self.subgroup_variable_column
-
     
+    ############### select_covariates_page parameters ##############
+    def get_included_covariates(self):
+        return self.select_covariates_page.get_included_covariates()
+    def using_fixed_effects(self):
+        return self.select_covariates_page.get_using_fixed_effects()
+    def get_covpage_conf_level(self):
+        return self.select_covariates_page.get_covpage_conf_level()
+    ################################################################
+        
     def get_subgroup_variable(self):
-        if self.subgroup_variable_column is None:
-            return None
-        return self.model.get_variable_assigned_to_column(self.subgroup_variable_column)
+        return self.subgroup_var_page.get_subgroup_variable()
         
     def get_plot_params(self):
         return self.methods_and_params_page_instance.get_plot_params()
@@ -145,10 +150,16 @@ class MetaAnalysisWizard(QtGui.QWizard):
         
     def get_included_studies_in_proper_order(self):
         all_studies = self.model.get_studies_in_current_order()
-        included_studies = [study for study in all_studies if self.studies_included_table[study]==True]
-        return included_studies
+        included_studies = self.refine_studies_page.get_included_studies()
+        included_studies_in_order = [study for study in all_studies if study in included_studies]
+        return included_studies_in_order
+    
+    def get_covariate_reference_levels(self):
+        return self.reference_value_page.get_covariate_reference_levels()
 
     def categorical_covariates_selected(self):
+        '''are categorical variables selected?'''
+        
         included_covariates = self.get_included_covariates()
         categorical_covariates = [cov for cov in included_covariates if cov.get_type()==CATEGORICAL]
         return len(categorical_covariates) > 0
@@ -163,6 +174,14 @@ class MetaAnalysisWizard(QtGui.QWizard):
     
     def get_funnel_parameters(self):
         return self.funnel_params_page.get_parameters(ready_to_send_to_R=True)
+    
+    def get_data_location(self):
+        return self.data_location_page.get_data_locations()
+    
+    def get_data_type_and_metric(self):
+        ''' returns tuple (data_type, metric) '''
+        return self.choose_effect_size_page.get_data_type_and_metric()
+
     
     def nextId(self):
         next_id = self.next_page(self.currentId())
@@ -317,9 +336,8 @@ class MetaAnalysisWizard(QtGui.QWizard):
         fields_to_values = dict(zip(summary_fields_in_order,[None]*len(summary_fields_in_order)))
        
         
-        data_type = self.selected_data_type
-        metric = self.selected_metric
-        data_location = self.data_location
+        data_type, metric = self.get_data_type_and_metric()
+        data_location = self.get_data_location()
         included_studies = self.get_included_studies_in_proper_order()
         
         # Convert to strings:
@@ -336,20 +354,19 @@ class MetaAnalysisWizard(QtGui.QWizard):
             fields_to_values['Included Studies'] = self._get_labels_string(included_studies)
         
         
-        
-        
         if self.mode in META_ANALYSIS_MODES:
             meta_f_str = self.get_modified_meta_f_str()
             current_param_vals = self.get_plot_params()
             chosen_method = self.get_current_method()
-            subgroup_variable = self.get_subgroup_variable()
-            if self.mode==BOOTSTRAP_MA:
+            if self.mode == SUBGROUP_MODE: 
+                subgroup_variable = self.get_subgroup_variable()
+            elif self.mode==BOOTSTRAP_MA:
                 current_param_vals.update(self.get_bootstrap_params())
                 bootstrap_params = self.get_bootstrap_params()
                 
             # convert to strings
             fields_to_values['Chosen Method'] = self.get_current_method_pretty_name()
-            fields_to_values['Subgroup Variable'] = subgroup_variable.get_label() if subgroup_variable else None
+            fields_to_values['Subgroup Variable'] = subgroup_variable.get_label() if self.mode == SUBGROUP_MODE else None
             fields_to_values['# Bootstrap Replicates'] = str(bootstrap_params['num.bootstrap.replicates']) if self.mode == BOOTSTRAP_MA else None
             if 'rm.method' in current_param_vals:
                 fields_to_values['Random Effects Method'] = python_to_R.get_random_effects_methods_descriptions(chosen_method)[current_param_vals['rm.method']]
@@ -357,8 +374,8 @@ class MetaAnalysisWizard(QtGui.QWizard):
         elif self.mode in META_REG_MODES:
             included_covariates = self.get_included_covariates()
             fixed_effects = self.using_fixed_effects()
-            conf_level = self.get_confidence_level()
-            cov_2_ref_values = self.cov_2_ref_values if len(self.cov_2_ref_values) > 0 else None
+            conf_level = self.get_covpage_conf_level()
+            cov_2_ref_values = self.get_covariate_reference_levels() if len(self.get_covariate_reference_levels()) > 0 else None
             if self.mode in [META_REG_COND_MEANS, BOOTSTRAP_META_REG_COND_MEANS]:
                 selected_cov, covs_to_values = self.get_meta_reg_cond_means_info()
             else:

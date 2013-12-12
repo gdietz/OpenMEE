@@ -25,12 +25,14 @@ INCLUDED = True
 # otherwise, include the study by default (if it is includable)
 
 class RefineStudiesPage(QWizardPage, ui_refine_studies_page.Ui_WizardPage):
-    def __init__(self, model, mode=MA_MODE, parent=None):
+    def __init__(self, model, mode=MA_MODE, previously_included_studies=None, parent=None):
         super(RefineStudiesPage, self).__init__(parent)
         self.setupUi(self)
         
         self.model = model
         self.mode=mode
+        
+        self.previously_included_studies = previously_included_studies
         
         self.studies_included_dict = {}
         self.missing_data_items_to_covs = {}
@@ -46,8 +48,8 @@ class RefineStudiesPage(QWizardPage, ui_refine_studies_page.Ui_WizardPage):
         # stores former state of tree widget item (has to do with transitions from partially_checked --> unchecked when some underlying studies are not includable
         self.treeitem_previous_states = {}
         
-        QObject.connect(self.refine_studies_list_widget, SIGNAL("itemChanged(QListWidgetItem*)"), partial(self.change_include_state, section='refine_studies'))
-        QObject.connect(self.cat_treeWidget, SIGNAL("itemChanged(QTreeWidgetItem*,int)"),         partial(self.change_include_state, section='refine_categories'))
+        QObject.connect(self.refine_studies_list_widget, SIGNAL("itemChanged(QListWidgetItem*)"), partial(self._change_include_state, section='refine_studies'))
+        QObject.connect(self.cat_treeWidget, SIGNAL("itemChanged(QTreeWidgetItem*,int)"),         partial(self._change_include_state, section='refine_categories'))
         
         #QObject.connect(self.refine_studies_list_widget, SIGNAL("itemClicked(QListWidgetItem*)"), self.item_clicked)
         QObject.connect(self.select_all_btn, SIGNAL("clicked()"), self.include_all_studies)
@@ -63,7 +65,7 @@ class RefineStudiesPage(QWizardPage, ui_refine_studies_page.Ui_WizardPage):
             self.refine_studies_btn_layout.addWidget(print_include_btn)
             QObject.connect(print_include_btn, SIGNAL("clicked()"), self.print_included_studies)
         
-        self.default_included_studies = self.model.get_previously_included_studies()
+        
         
     def handle_tab_change(self, tab_index):
         if tab_index == 2: # 2 is the index of the exclude missing data tab
@@ -97,15 +99,22 @@ class RefineStudiesPage(QWizardPage, ui_refine_studies_page.Ui_WizardPage):
         
 
     def initializePage(self):
+        # get variables associated with effect size and variance
+        data_location   = self.wizard().get_data_location()
+        effect_size_col = data_location['effect_size']
+        variance_col    = data_location['variance']
+        self.effect_size_var = self.model.get_variable_assigned_to_column(effect_size_col)
+        self.variance_var    = self.model.get_variable_assigned_to_column(variance_col)
+        
         # map studies to boolean storing whether they CAN be included (if they have values for effect size and variance)
         self.studies_includable = dict([(study, self._is_includable(study)[0]) for study in self.studies])
         # maps studies to boolean storing whether they are included or not
         self.studies_included_dict = self.get_studies_included_dict_with_previously_included_studies()
 
-        self.wizard().studies_included_table = self.studies_included_dict
-
         self._populate_refine_studies_tab()
         self._populate_refine_categories_tab()
+        
+
         
         self.emit(SIGNAL("completeChanged()"))
         
@@ -143,28 +152,25 @@ class RefineStudiesPage(QWizardPage, ui_refine_studies_page.Ui_WizardPage):
         if not isinstance(study, Study):
             raise TypeError("study argument is not a study")
         
-        def effect_size_and_var_present():
+        if self._effect_size_and_var_present(study):
+            includable = True
             reason = ""
-            # get variables associated with efffect size and variance
-            data_location   = self.wizard().data_location
-            effect_size_col = data_location['effect_size']
-            variance_col    = data_location['variance']
-            effect_size_var = self.model.get_variable_assigned_to_column(effect_size_col)
-            variance_var    = self.model.get_variable_assigned_to_column(variance_col)
-            
-            effect_size = study.get_var(effect_size_var)
-            variance = study.get_var(variance_var)
-            
-            includable= False
-            if isinstance(effect_size, float) and isinstance(variance, float):
-                includable=True
-            
+        else:
+            includable = False
             reason = "Effect size or variance missing"
-            return (includable, reason)
         
-        
-        includable, reason = effect_size_and_var_present()
         return (includable, reason)
+
+    def _effect_size_and_var_present(self, study):  
+        effect_size = study.get_var(self.effect_size_var)
+        variance = study.get_var(self.variance_var)
+        
+        includable= False
+        if isinstance(effect_size, float) and isinstance(variance, float):
+            includable=True
+            
+        return includable
+
     
     def print_old_new(self, old, new):
         print("Old: %s, New: %s" % (str(old), str(new)))
@@ -183,7 +189,10 @@ class RefineStudiesPage(QWizardPage, ui_refine_studies_page.Ui_WizardPage):
         for study, include_state in self.studies_included_dict.items():
             print("Study id,label: %d,%s\tInclude State: %s" % (study.get_id(), str(study.get_label()), str(include_state)))
     
-
+    def get_included_studies(self):
+        ''' main interface to outside '''
+        
+        return set([study for study,included in self.studies_included_dict.items()])
         
     def include_all_studies(self):
         ''' include all the studies that CAN be included '''
@@ -222,7 +231,7 @@ class RefineStudiesPage(QWizardPage, ui_refine_studies_page.Ui_WizardPage):
         
         # work on tree widget next
         for category_item in self.items_to_factor_values.keys():
-            category_item.setCheckState(0, self.get_rightful_state_of_treewidget_item(category_item))
+            category_item.setCheckState(0, self._get_rightful_state_of_treewidget_item(category_item))
         
         self.refine_studies_list_widget.blockSignals(False)
         self.cat_treeWidget.blockSignals(False)
@@ -260,14 +269,14 @@ class RefineStudiesPage(QWizardPage, ui_refine_studies_page.Ui_WizardPage):
             item = QTreeWidgetItem(QStringList(var.get_label()))
             toplevel_factor_items.append(item)
             ## add categories to factor as checkable options
-            categories = self.categories_of_var(self.studies, var)
+            categories = self._categories_of_var(self.studies, var)
             for category in categories:
                 if category is not None:
                     category_item = QTreeWidgetItem(QStringList(category))
                 else:
                     category_item = QTreeWidgetItem(QStringList(MISSING_ENTRY_STR))
                 self.items_to_factor_values[category_item] = (var, category if category is not None else None)
-                category_item.setCheckState(0, self.get_rightful_state_of_treewidget_item(category_item))
+                category_item.setCheckState(0, self._get_rightful_state_of_treewidget_item(category_item))
                 self.treeitem_previous_states[category_item] = category_item.checkState(0)
                 item.addChild(category_item)
             
@@ -279,7 +288,7 @@ class RefineStudiesPage(QWizardPage, ui_refine_studies_page.Ui_WizardPage):
             self.cat_treeWidget.expandItem(item)
         self.cat_treeWidget.blockSignals(False)
         
-    def get_rightful_state_of_treewidget_item(self, item):
+    def _get_rightful_state_of_treewidget_item(self, item):
         ''' Gets the rightful state of the item, where item is a checkable
         box from the tree widget and state is checked, partially checked, or
         unchecked '''
@@ -296,7 +305,7 @@ class RefineStudiesPage(QWizardPage, ui_refine_studies_page.Ui_WizardPage):
         else: # some studies are checked
             return Qt.PartiallyChecked
         
-    def get_maximum_checkstate_of_treewidget_item(self, item):
+    def _get_maximum_checkstate_of_treewidget_item(self, item):
         ''' determines the maximum state of the item i.e. checked vs. partially checked '''
         
         variable, category = self.items_to_factor_values[item]
@@ -311,12 +320,12 @@ class RefineStudiesPage(QWizardPage, ui_refine_studies_page.Ui_WizardPage):
             return Qt.PartiallyChecked
         
             
-    def change_include_state(self, item, column=None, section=None):
+    def _change_include_state(self, item, column=None, section=None):
         if section is None:
             raise ValueError
         
         bad_checkstate_msg = "Should not get here, did I forget to disable signals?"
-        print('entered change_include_state')
+        print('entered _change_include_state')
         
         if section == 'refine_studies':
             state = item.checkState()
@@ -335,11 +344,11 @@ class RefineStudiesPage(QWizardPage, ui_refine_studies_page.Ui_WizardPage):
             # change transition from partially checked---> checked to
             # partially checked-->unchecked
             previous_state = self.treeitem_previous_states[item]
-            if state == Qt.Checked and previous_state == Qt.PartiallyChecked and self.get_maximum_checkstate_of_treewidget_item(item) == Qt.PartiallyChecked:
+            if state == Qt.Checked and previous_state == Qt.PartiallyChecked and self._get_maximum_checkstate_of_treewidget_item(item) == Qt.PartiallyChecked:
                 state = Qt.Unchecked
                 self.treeitem_previous_states[item] = state
             # let the state think it is checked in order to includes studies but actually its just partially checked
-            elif state == Qt.Checked and previous_state == Qt.Unchecked and self.get_maximum_checkstate_of_treewidget_item(item) == Qt.PartiallyChecked:
+            elif state == Qt.Checked and previous_state == Qt.Unchecked and self._get_maximum_checkstate_of_treewidget_item(item) == Qt.PartiallyChecked:
                 self.treeitem_previous_states[item] = Qt.PartiallyChecked
             else: # no special condition
                 self.treeitem_previous_states[item] = state
@@ -367,7 +376,7 @@ class RefineStudiesPage(QWizardPage, ui_refine_studies_page.Ui_WizardPage):
 #    def item_clicked(self, item):
 #        study = self.items_to_studies[item]
         
-    def categories_of_var(self, studies, variable):
+    def _categories_of_var(self, studies, variable):
         ''' Returns a list of the categories of a categorical variable'''
         
         if variable.get_type() != CATEGORICAL:
@@ -398,9 +407,6 @@ class RefineStudiesPage(QWizardPage, ui_refine_studies_page.Ui_WizardPage):
         continuous_covariates = self.model.get_sorted_continuous_covariates()
         categorical_covariates = self.model.get_sorted_categorical_covariates()
         count_covariates = self.model.get_sorted_count_covariates()
-        
-        included_studies = self.wizard().get_included_studies_in_proper_order()
-        
         
         def add_covariates_to_list(covariates, suffix = ""):
             for cov in covariates: 

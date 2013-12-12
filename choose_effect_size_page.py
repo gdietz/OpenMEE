@@ -16,26 +16,30 @@ import ui_choose_effect_size_page
 
 
 class ChooseEffectSizePage(QWizardPage, ui_choose_effect_size_page.Ui_choose_effect_size_page):
-    def __init__(self, model, parent=None, add_generic_effect=False):
+    def __init__(self, parent=None, add_generic_effect=False, data_type=None, metric=None):
+        # data_type and metric are default values to (will be selected)
+        
         super(ChooseEffectSizePage, self).__init__(parent)
         self.setupUi(self)
         
-        self.model = model
         self.add_generic_effect = add_generic_effect
-        self.selected_data_type = None
-        self.selected_metric = None
+        self.selected_data_type = data_type
+        self.selected_metric = metric
         
-        # previously entered data_type and metric (Nones if not available)
-        self.default_data_type = self.model.get_data_type_selection()
-        self.default_metric = self.model.get_metric_selection()
         
     def initializePage(self):
+        # this has to be in initializePage() rather than __init__() because it
+        # calls self.wizard().adjustSize() and the wizard doesn't exist yet when
+        # __init__() is called
         self._populate_data_type_groupBox()
+        
         
     def isComplete(self):
         if self.selected_data_type is None:
             return False
         if self.selected_metric is None:
+            return False
+        if self.selected_metric not in DATA_TYPE_TO_METRICS[self.selected_data_type]:
             return False
         return True
         
@@ -57,11 +61,11 @@ class ChooseEffectSizePage(QWizardPage, ui_choose_effect_size_page.Ui_choose_eff
             data_type_to_btn[data_type]=dt_btn
         
         
-        if self.default_data_type in data_type_to_btn.keys():
+        if self.selected_data_type in data_type_to_btn.keys():
             self.blockSignals(True)
-            btn = data_type_to_btn[self.default_data_type]
+            btn = data_type_to_btn[self.selected_data_type]
             btn.setChecked(True)
-            self._update_data_type_selection(True, data_type=self.default_data_type)
+            self._update_data_type_selection(True, data_type=self.selected_data_type)
             self.blockSignals(False)
             
             
@@ -72,10 +76,8 @@ class ChooseEffectSizePage(QWizardPage, ui_choose_effect_size_page.Ui_choose_eff
     def _update_data_type_selection(self, state, data_type):
         if state:
             self.selected_data_type = data_type
-            self.wizard().selected_data_type = data_type
-            self.selected_metric = self.wizard().selected_metric = None
+            #self.selected_metric = None
             self.emit(SIGNAL("completeChanged()"))
-            print("Selected data type is now %s" % DATA_TYPE_TEXT[self.wizard().selected_data_type])
             
         self._populate_effect_size_groupBox()
         self.wizard().adjustSize()
@@ -104,19 +106,17 @@ class ChooseEffectSizePage(QWizardPage, ui_choose_effect_size_page.Ui_choose_eff
             effect_size_to_btn[effect_size] = btn
             
             
-        if self.default_metric in effect_size_to_btn.keys():
+        if self.selected_metric in effect_size_to_btn.keys():
             self.blockSignals(True)
-            btn = effect_size_to_btn[self.default_metric]
+            btn = effect_size_to_btn[self.selected_metric]
             btn.setChecked(True)
-            self._update_effect_size_selection(True, effect_size=self.default_metric)
+            self._update_effect_size_selection(True, effect_size=self.selected_metric)
             self.blockSignals(False)
     
     def _update_effect_size_selection(self, state, effect_size):
         if state:
             self.selected_metric = effect_size
-            self.wizard().selected_metric = effect_size
             self.emit(SIGNAL("completeChanged()"))
-            print("Selected metric is now %s" % METRIC_TEXT[self.wizard().selected_metric])
     
     #http://www.riverbankcomputing.com/pipermail/pyqt/2009-November/025214.html
     def _unfill(self, layout2delete):
@@ -130,6 +130,13 @@ class ChooseEffectSizePage(QWizardPage, ui_choose_effect_size_page.Ui_choose_eff
                     else:
                         deleteItems(item.layout())
         deleteItems(layout2delete)
+        
+    def get_metric(self):
+        return self.selected_metric
+    def get_data_type(self):
+        return self.selected_data_type
+    def get_data_type_and_metric(self):
+        return (self.selected_data_type, self.selected_metric)
 
 # Delete a layout
 #import sip

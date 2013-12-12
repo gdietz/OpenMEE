@@ -34,11 +34,6 @@ class ChooseEffectColForTransformationPage(QWizardPage, ui_choose_effect_col_for
         self.new_scale_lbl.setText("None")
         
         QObject.connect(self.comboBox, SIGNAL("currentIndexChanged(int)"), self._update_current_selection)
-        
-        
-    def initializePage(self):
-        self.wizard().get_chosen_column = self.get_chosen_column
-        self.wizard().get_transformation_direction = self.get_transformation_direction
     
     def get_transformation_direction(self):
         return self.direction

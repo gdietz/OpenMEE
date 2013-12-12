@@ -23,18 +23,18 @@ class CalculateEffectSizeWizard(QtGui.QWizard):
         super(CalculateEffectSizeWizard, self).__init__(parent)
 
         self.model = model
-
-        self.setPage(Page_ChooseEffectSize, ChooseEffectSizePage(model=model))
-        self.setPage(Page_DataLocation, DataLocationPage(model=model, mode=CALCULATE_EFFECT_SIZE_MODE))
-        self.setPage(Page_OverwriteEffectSizes, OverwriteEffectSizesPage(model=model))
+        last_analysis = model.get_last_analysis_selections()
+        
+        self.choose_effect_size_page = ChooseEffectSizePage(data_type=last_analysis['data_type'],
+                                                            metric=last_analysis['metric'])
+        self.data_location_page = DataLocationPage(model=model, mode=CALCULATE_EFFECT_SIZE_MODE)
+        self.overwrite_effect_sizes_page = OverwriteEffectSizesPage(model=model)
+        
+        self.setPage(Page_ChooseEffectSize, self.choose_effect_size_page)
+        self.setPage(Page_DataLocation, self.data_location_page)
+        self.setPage(Page_OverwriteEffectSizes, self.overwrite_effect_sizes_page)
         self.setStartId(Page_ChooseEffectSize)
         self.setWizardStyle(QWizard.ClassicStyle)
-
-        self.selected_data_type = None
-        self.selected_metric = None
-        self.data_location = None
-        self.cols_to_overwrite = None    # cols (effect and var to overwrite) if any
-        self.make_link = False
 
         # adjust window to proper size
         QObject.connect(self, SIGNAL("currentIdChanged(int)"), self._change_size)
@@ -44,6 +44,12 @@ class CalculateEffectSizeWizard(QtGui.QWizard):
     def _change_size(self):
         print("changing size")
         self.adjustSize()
+        
+    def get_data_location(self):
+        return self.data_location_page.get_data_locations()
+    
+    def get_columns_to_overwrite(self):
+        return self.overwrite_effect_sizes_page.get_columns_to_overwrite()
 
     def nextId(self):
         if self.currentId() == Page_ChooseEffectSize:
@@ -55,7 +61,14 @@ class CalculateEffectSizeWizard(QtGui.QWizard):
                 return -1
         elif self.currentId() == Page_OverwriteEffectSizes:
             return -1
-
+        
+    def get_data_type_and_metric(self):
+        ''' returns tuple (data_type, metric) '''
+        return self.choose_effect_size_page.get_data_type_and_metric()
+    
+    def make_link(self):
+        return self.data_location_page.should_make_link()
+    
     def effect_and_var_cols_exist(self):
         self.trans_effect_columns = self.model.get_trans_effect_columns()
         self.trans_var_columns = self.model.get_trans_var_columns()
