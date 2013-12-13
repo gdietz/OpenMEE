@@ -35,9 +35,12 @@ class Study:
     # Since not every study will have data for all variables, return None for
     # missing variables
     def get_var(self, var):
-        if var not in self.variables:
+#         if var not in self.variables:
+#             return None
+        try:
+            return self.variables[var]
+        except KeyError:
             return None
-        return self.variables[var]
     
     def set_var(self, var, var_value):
         self.variables[var] = var_value
