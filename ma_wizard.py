@@ -102,7 +102,7 @@ class MetaAnalysisWizard(QtGui.QWizard):
         elif mode == FUNNEL_MODE:
             self.data_location_page = DataLocationPage(model=model, mode=FUNNEL_MODE)
             self.setPage(Page_DataLocation, self.data_location_page)
-            self.funnel_params_page = FunnelPage()
+            self.funnel_params_page = FunnelPage(old_funnel_params=self.model.get_funnel_params())
             self.setPage(Page_FunnelParameters, self.funnel_params_page)
         else:
             self.setPage(Page_DataLocation, self.data_location_page)
@@ -173,8 +173,8 @@ class MetaAnalysisWizard(QtGui.QWizard):
         return self.failsafe_page.get_parameters()
     
     def get_funnel_parameters(self):
-        return self.funnel_params_page.get_parameters(ready_to_send_to_R=True)
-    
+        return self.funnel_params_page.get_parameters()
+
     def get_data_location(self):
         return self.data_location_page.get_data_locations()
     

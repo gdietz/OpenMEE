@@ -97,8 +97,9 @@ def generate_forest_plot(file_path, side_by_side=False, params_name="plot.data")
         
 def regenerate_funnel_plot(params_path, file_path, edited_funnel_params=None):
     if edited_funnel_params:
-        edited_funnel_params_robj = ro.ListVector(edited_funnel_params)
-        r_str = "regenerate.funnel.plot(out.path='%s', plot.path='%s', edited.funnel.params=%s)" % (params_path, file_path, edited_funnel_params_robj.r_repr())
+        #edited_funnel_params_robj = ro.ListVector(edited_funnel_params)
+        funnel_params_r_str = unpack_r_parameters(prepare_funnel_params_for_R(edited_funnel_params))
+        r_str = "regenerate.funnel.plot(out.path='%s', plot.path='%s', edited.funnel.params=list(%s))" % (params_path, file_path, funnel_params_r_str)
     else:
         r_str = "regenerate.funnel.plot(out.path='%s', plot.path='%s')" % (params_path, file_path)
         
@@ -505,11 +506,52 @@ def run_funnelplot_analysis(model,
                                                       var_name=var_name)
     # build up funnel pa
     ma_params_df = ro.DataFrame(ma_params)
-    print("fna")
-    r_str = "%s<-funnel.wrapper('%s',%s,%s, %s)" % (res_name,fname,var_name,ma_params_df.r_repr(),unpack_r_parameters(funnel_params))
+    funnel_params_r_str = unpack_r_parameters(prepare_funnel_params_for_R(funnel_params))
+    r_str = "%s<-funnel.wrapper('%s',%s,%s, %s)" % (res_name,fname,var_name,ma_params_df.r_repr(),funnel_params_r_str)
 
     result = execute_in_R(r_str)
     return parse_out_results(result)
+
+def prepare_funnel_params_for_R(params):
+    '''Format the results such that they can be used in a call to R without
+    any further formatting like adding quotes around strings or whatnot '''
+    
+    paramsR = {}
+    
+    try:
+        paramsR['xlim'] = "c(%f,%f)" % tuple(params['xlim'])
+    except KeyError:
+        pass
+    try:
+        paramsR['ylim'] = "c(%f,%f)" % tuple(params['ylim'])
+    except KeyError:
+        pass
+    try:
+        paramsR['xlab'] = '"%s"' % params['xlab']
+    except KeyError:
+        pass
+    try:
+        paramsR['ylab'] = '"%s"' % params['ylab']
+    except KeyError:
+        pass
+    try:
+        paramsR['steps'] = '%d' % params['steps']
+    except KeyError:
+        pass
+    try:
+        paramsR['digits'] = '%d' % params['steps']
+    except KeyError:
+        pass
+    try:
+        paramsR['addtau2'] = "TRUE" if params['addtau2'] == True else "FALSE"
+    except KeyError:
+        pass
+    try:
+        paramsR['refline'] = '%f' % params['refline']
+    except KeyError:
+        pass
+    
+    return paramsR
     
 def unpack_r_parameters(params_dict):
     ''' takes a dictionary of parameters and returns a string suitable for use
@@ -1373,3 +1415,17 @@ def cov_to_str(cov, studies, named_list=True, return_cov_vals=False):
     return cov_str
 
 ##################### END OF COVARIATE STUFF #################################
+
+def get_funnel_params(params_path):
+    '''gets the values in the 'r_tmp/{params_path}.funnel.params' object stored
+    for a plot where {params path} is the timestamp path.
+    Will return the parameters in 'python' mode i.e. lists are list not strings
+    that look like e.g. "c(1,2,3,4)" '''
+    
+    r_str = 'get.funnel.params("%s")' % params_path
+    params = execute_in_R(r_str)
+    params_pyfmt = R_parse_tools.recursioner(params)
+    print("The funnel parameters in python format are: %s" % params_pyfmt)
+    return params_pyfmt
+    
+    

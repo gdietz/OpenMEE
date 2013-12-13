@@ -16,7 +16,7 @@ import ui_funnel_page
 
 
 class FunnelPage(QWizardPage, ui_funnel_page.Ui_WizardPage):
-    def __init__(self, parent=None):
+    def __init__(self, old_funnel_params, parent=None):
         super(FunnelPage, self).__init__(parent)
         self.setupUi(self)
         
@@ -38,6 +38,50 @@ class FunnelPage(QWizardPage, ui_funnel_page.Ui_WizardPage):
         self.set_checkboxes_state(Qt.Checked)
         self.set_checkboxes_state(Qt.Unchecked)
         
+        # set up form based on last run
+        if old_funnel_params:
+            self.setup_form_from_last_run(old_funnel_params)
+        
+        
+        
+    def setup_form_from_last_run(self, old_params):
+        ''' Sets the parameters based on the last run (if it is available) '''
+        if 'xlim' in old_params:
+            self.xlimCheckBox.setCheckState(Qt.Checked)
+            self._change_target_enable_state(self.xlimCheckBox, Qt.Checked)
+            self.xlimLowSpinBox.setValue(old_params['xlim'][0])
+            self.xlimHighSpinBox.setValue(old_params['xlim'][0])
+        elif 'ylim' in old_params:
+            self.ylimCheckBox.setCheckState(Qt.Checked)
+            self._change_target_enable_state(self.ylimCheckBox, Qt.Checked)
+            self.ylimLowSpinBox.setValue(old_params['ylim'][0])
+            self.ylimHighSpinBox.setValue(old_params['ylim'][0])
+        elif 'xlab' in old_params:
+            self.xlabCheckBox.setCheckState(Qt.Checked)
+            self._change_target_enable_state(self.xlabCheckBox, Qt.Checked)
+            self.xlab_le.setText(old_params['xlab'])
+        elif 'ylab' in old_params:
+            self.ylabCheckBox.setCheckState(Qt.Checked)
+            self._change_target_enable_state(self.ylabCheckBox, Qt.Checked)
+            self.ylab_le.setText(old_params['ylab'])
+        elif 'steps' in old_params:
+            self.stepsSpinBox.setValue(old_params['steps'])
+        elif 'digits' in old_params:
+            self.digitsSpinBox.setValue(old_params['digits'])
+        elif 'addtau2' in old_params:
+            no_index = self.addtau2ComboBox.findText("no")
+            yes_index = self.addtau2ComboBox.findText("yes")
+            if -1 in [no_index, yes_index]: raise ValueError("yes and no not found in combobox")
+            if old_params['add_tau'] == True: # redundant but explicit
+                self.addtau2ComboBox.setCurrentIndex(yes_index) 
+            else:
+                self.addtau2ComboBox.setCurrentIndex(no_index)
+        elif 'refline' in old_params:
+            self.reflineCheckBox.setCheckState(Qt.Checked)
+            self._change_target_enable_state(self.reflineCheckBox, Qt.Checked)
+            self.reflineSpinBox.setValue(old_params['refline'])
+            
+        
     def set_checkboxes_state(self, state):
         for checkbox in self.checkboxes:
             checkbox.setCheckState(state)
@@ -51,7 +95,7 @@ class FunnelPage(QWizardPage, ui_funnel_page.Ui_WizardPage):
         for target in self.checkboxes_to_en_targets[checkbox]:
                 target.setEnabled(target_state)
                 
-        self._verify_choice_validity()
+        self.completeChanged.emit()
     
     def _verify_choice_validity(self):
         # xlims:
@@ -84,9 +128,13 @@ class FunnelPage(QWizardPage, ui_funnel_page.Ui_WizardPage):
         # verify state when targets change
         for spinbox in [self.xlimLowSpinBox, self.xlimHighSpinBox,
                         self.ylimLowSpinBox, self.ylimHighSpinBox]:
-            spinbox.valueChanged[float].connect(self._verify_choice_validity)
+            #spinbox.valueChanged[float].connect(self._verify_choice_validity)
+            spinbox.valueChanged[float].connect(self.spinbox_value_changed)
+    
+    def spinbox_value_changed(self):
+        self.completeChanged.emit()
             
-    def get_parameters(self, ready_to_send_to_R=True):
+    def get_parameters(self):
         # the keys given here have the same name as the parameters in metafor
         # don't change them
         # parameter read_to_send_to_R tells function to give the results such
@@ -95,24 +143,14 @@ class FunnelPage(QWizardPage, ui_funnel_page.Ui_WizardPage):
         
         p = {}
         
-        if ready_to_send_to_R:
-            p['xlim'] = "c(%f,%f)" % (self.xlimLowSpinBox.value(), self.xlimHighSpinBox.value())
-            p['ylim'] = "c(%f,%f)" % (self.ylimLowSpinBox.value(), self.ylimHighSpinBox.value())
-            p['xlab'] = '"%s"' % str(self.xlab_le.text())
-            p['ylab'] = '"%s"' % str(self.ylab_le.text())
-            p['steps'] = '%d' % self.stepsSpinBox.value()
-            p['digits'] = '%d' % self.digitsSpinBox.value()
-            p['addtau2'] = "TRUE" if str(self.addtau2ComboBox.currentText())=="yes" else "FALSE"
-            p['refline'] = '%f' % self.reflineSpinBox.value()
-        else:
-            p['xlim'] = [self.xlimLowSpinBox.value(), self.xlimHighSpinBox.value()]
-            p['ylim'] = [self.ylimLowSpinBox.value(), self.ylimHighSpinBox.value()]
-            p['xlab'] = str(self.xlab_le.text())
-            p['ylab'] = str(self.ylab_le.text())
-            p['steps'] = self.stepsSpinBox.value()
-            p['digits'] = self.digitsSpinBox.value()
-            p['addtau2'] = "TRUE" if str(self.addtau2ComboBox.currentText())=="yes" else "FALSE"
-            p['refline'] = self.reflineSpinBox.value()
+        p['xlim'] = [self.xlimLowSpinBox.value(), self.xlimHighSpinBox.value()]
+        p['ylim'] = [self.ylimLowSpinBox.value(), self.ylimHighSpinBox.value()]
+        p['xlab'] = str(self.xlab_le.text())
+        p['ylab'] = str(self.ylab_le.text())
+        p['steps'] = self.stepsSpinBox.value()
+        p['digits'] = self.digitsSpinBox.value()
+        p['addtau2'] = True if str(self.addtau2ComboBox.currentText())=="yes" else False
+        p['refline'] = self.reflineSpinBox.value()
             
         
         # Remove unchecked parameters
@@ -127,7 +165,10 @@ class FunnelPage(QWizardPage, ui_funnel_page.Ui_WizardPage):
             
         print("Funnel params: %s" % p)
         return p
+    
+
         
+            
         
 
 if __name__ == "__main__":

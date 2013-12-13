@@ -539,7 +539,7 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
             '''
 
 
-        conf_level=self.model.conf_level # TODO: ask user what conf. level they want to transform at
+        conf_level=self.model.conf_level
 
         wizard = transform_effect_size_wizard.TransformEffectSizeWizard(model=self.model)
 
@@ -780,7 +780,7 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
             included_studies = wizard.get_included_studies_in_proper_order()
             current_param_vals = wizard.get_plot_params()
             chosen_method = wizard.get_current_method()
-            funnel_params = wizard.get_funnel_parameters()
+            funnel_params = wizard.get_funnel_parameters() # funnel params in R-ish format
             summary = wizard.get_summary()
 
             # Save selections made for next analysis
@@ -790,6 +790,7 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
             self.model.update_ma_param_vals(current_param_vals)
             self.model.update_data_location_choices(data_type, data_location)     # save data locations choices for this data type in the model
             self.model.update_previously_included_studies(set(included_studies))  # save which studies were included on last meta-regression
+            self.model.update_funnel_params(funnel_params)
 
             try:
                 result = python_to_R.run_funnelplot_analysis(

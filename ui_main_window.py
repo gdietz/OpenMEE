@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'main_window.ui'
 #
-# Created: Mon Dec  9 10:51:53 2013
+# Created: Fri Dec 13 09:42:45 2013
 #      by: PyQt4 UI code generator 4.10.3
 #
 # WARNING! All changes made in this file will be lost!
@@ -175,6 +175,7 @@ class Ui_MainWindow(object):
         self.actionBootstrapped_Meta_Analysis.setIcon(icon12)
         self.actionBootstrapped_Meta_Analysis.setObjectName(_fromUtf8("actionBootstrapped_Meta_Analysis"))
         self.action_about = QtGui.QAction(MainWindow)
+        self.action_about.setMenuRole(QtGui.QAction.AboutRole)
         self.action_about.setObjectName(_fromUtf8("action_about"))
         self.actionFail_Safe_N = QtGui.QAction(MainWindow)
         self.actionFail_Safe_N.setObjectName(_fromUtf8("actionFail_Safe_N"))
@@ -308,7 +309,7 @@ class Ui_MainWindow(object):
         self.actionBootstrapped_Meta_Regression.setText(_translate("MainWindow", "Bootstrapped Meta-Regression", None))
         self.actionBootstrapped_Meta_Regression_Based_Conditional_Means.setText(_translate("MainWindow", "Bootstrapped Meta-Regression-Based Conditional Means", None))
         self.actionBootstrapped_Meta_Analysis.setText(_translate("MainWindow", "Bootstrapped Meta-Analysis", None))
-        self.action_about.setText(_translate("MainWindow", "About OpenMEE", None))
+        self.action_about.setText(_translate("MainWindow", "About", None))
         self.actionFail_Safe_N.setText(_translate("MainWindow", "Fail-Safe N", None))
         self.actionFunnel_Plot.setText(_translate("MainWindow", "Funnel Plot", None))
         self.actionResetAnalysisChoices.setText(_translate("MainWindow", "Reset Analysis Choices", None))

@@ -22,6 +22,7 @@ import python_to_R
 #import shutil
 
 from globals import *
+from edit_funnel_plot_form import EditFunnelPlotForm
 
 PageSize = (612, 792)
 padding = 25
@@ -483,7 +484,12 @@ class ResultsWindow(QMainWindow, ui_results_window.Ui_ResultsWindow):
                             lambda : self.edit_image(params_path, title,
                                                      png_path, qpixmap_item))
                     menu.addAction(action)
-                
+                elif plot_type == "funnel":
+                    action = QAction("edit plot...", self)
+                    QObject.connect(action, SIGNAL("triggered()"),
+                            lambda : self.edit_image(params_path, title,
+                                                     png_path, qpixmap_item, plot_type=plot_type))
+                    menu.addAction(action)
             
             context_menu = QMenu(self)
             if params_path:
@@ -562,19 +568,29 @@ class ResultsWindow(QMainWindow, ui_results_window.Ui_ResultsWindow):
 #            unscaled_image.save(QString(file_path),"PNG")
             
 
-    def edit_image(self, params_path, title, png_path, pixmap_item):
-        plot_editor_window = edit_forest_plot_form.EditPlotWindow(\
-                                            params_path, png_path,\
-                                            pixmap_item, title=title, parent=self)
-        if plot_editor_window is not None:
-            plot_editor_window.show()
-        else:
-            # TODO show a warning
-            print "sorry - can't edit"
+    def edit_image(self, params_path, title, png_path, pixmap_item, plot_type="forest"):
+        if plot_type == "forest":
+            plot_editor_window = edit_forest_plot_form.EditPlotWindow(\
+                                                params_path, png_path,\
+                                                pixmap_item, title=title, parent=self)
+            if plot_editor_window is not None:
+                plot_editor_window.show()
+            else:
+                # TODO show a warning
+                print "sorry - can't edit"
+        elif plot_type == "funnel":
+            funnel_params = python_to_R.get_funnel_params(params_path)
+            edit_form = EditFunnelPlotForm(funnel_params)
+            if edit_form.exec_():
+                new_funnel_params = edit_form.get_params()
+                python_to_R.regenerate_funnel_plot(params_path, png_path, edited_funnel_params=new_funnel_params)
+                new_pixmap = self.generate_pixmap(png_path, custom_scale=1)
+                pixmap_item.setPixmap(new_pixmap)
         
     def position(self):
         point = QPoint(self.x_coord, self.y_coord)
         return self.graphics_view.mapToScene(point)
+    
 
 if __name__ == "__main__":
     

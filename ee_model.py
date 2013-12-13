@@ -64,6 +64,7 @@ DEFAULT_LAST_ANALYSIS_SELECTIONS = {'data_locations': {MEANS_AND_STD_DEVS:{},
                                     'selected_cov'       : None,
                                     'covs_to_values'     : None,
                                     'failsafe_parameters': None,
+                                    'funnel_params'      : None,
                                     }
         
 
@@ -329,6 +330,13 @@ class EETableModel(QAbstractTableModel):
         ''' included studies is a set() of studies obtained from the meta-
         analysis wizard or at least should be, not a dictionary study -> boolean '''
         self.last_analysis_selections['included_studies'] = included_studies
+    def update_funnel_params(self, funnel_params):
+        self.last_analysis_selections['funnel_params'] = funnel_params.copy()
+    def get_funnel_params(self):
+        if self.last_analysis_selections['funnel_params'] is None:
+            return None
+        return self.last_analysis_selections['funnel_params'].copy()
+        
         
     def update_last_failsafe_parameters(self, failsafe_parameters):
         self.last_analysis_selections['failsafe_parameters'] = failsafe_parameters

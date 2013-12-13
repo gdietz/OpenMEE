@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'about.ui'
 #
-# Created: Wed Nov 20 14:47:09 2013
+# Created: Fri Dec 13 10:23:30 2013
 #      by: PyQt4 UI code generator 4.10.3
 #
 # WARNING! All changes made in this file will be lost!
@@ -26,58 +26,64 @@ except AttributeError:
 class Ui_Dialog(object):
     def setupUi(self, Dialog):
         Dialog.setObjectName(_fromUtf8("Dialog"))
-        Dialog.resize(576, 336)
-        self.verticalLayout = QtGui.QVBoxLayout(Dialog)
-        self.verticalLayout.setObjectName(_fromUtf8("verticalLayout"))
+        Dialog.resize(490, 300)
+        sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Fixed, QtGui.QSizePolicy.Fixed)
+        sizePolicy.setHorizontalStretch(0)
+        sizePolicy.setVerticalStretch(0)
+        sizePolicy.setHeightForWidth(Dialog.sizePolicy().hasHeightForWidth())
+        Dialog.setSizePolicy(sizePolicy)
+        Dialog.setMinimumSize(QtCore.QSize(490, 300))
+        Dialog.setMaximumSize(QtCore.QSize(490, 300))
+        Dialog.setBaseSize(QtCore.QSize(490, 300))
+        Dialog.setSizeGripEnabled(False)
+        self.verticalLayout_3 = QtGui.QVBoxLayout(Dialog)
+        self.verticalLayout_3.setObjectName(_fromUtf8("verticalLayout_3"))
         self.horizontalLayout = QtGui.QHBoxLayout()
+        self.horizontalLayout.setSizeConstraint(QtGui.QLayout.SetFixedSize)
         self.horizontalLayout.setObjectName(_fromUtf8("horizontalLayout"))
+        self.verticalLayout = QtGui.QVBoxLayout()
+        self.verticalLayout.setObjectName(_fromUtf8("verticalLayout"))
         self.label = QtGui.QLabel(Dialog)
         self.label.setText(_fromUtf8(""))
         self.label.setPixmap(QtGui.QPixmap(_fromUtf8(":/general/images/logo.png")))
         self.label.setObjectName(_fromUtf8("label"))
-        self.horizontalLayout.addWidget(self.label)
-        self.label_2 = QtGui.QLabel(Dialog)
-        font = QtGui.QFont()
-        font.setFamily(_fromUtf8("Droid Sans [unknown]"))
-        font.setPointSize(20)
-        font.setBold(True)
-        font.setWeight(75)
-        self.label_2.setFont(font)
-        self.label_2.setObjectName(_fromUtf8("label_2"))
-        self.horizontalLayout.addWidget(self.label_2)
-        spacerItem = QtGui.QSpacerItem(40, 20, QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Minimum)
-        self.horizontalLayout.addItem(spacerItem)
-        self.verticalLayout.addLayout(self.horizontalLayout)
-        spacerItem1 = QtGui.QSpacerItem(20, 40, QtGui.QSizePolicy.Minimum, QtGui.QSizePolicy.Expanding)
-        self.verticalLayout.addItem(spacerItem1)
-        self.label_3 = QtGui.QLabel(Dialog)
-        sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Fixed, QtGui.QSizePolicy.Fixed)
+        self.verticalLayout.addWidget(self.label)
+        spacerItem = QtGui.QSpacerItem(20, 40, QtGui.QSizePolicy.Minimum, QtGui.QSizePolicy.Expanding)
+        self.verticalLayout.addItem(spacerItem)
+        self.horizontalLayout.addLayout(self.verticalLayout)
+        self.verticalLayout_2 = QtGui.QVBoxLayout()
+        self.verticalLayout_2.setObjectName(_fromUtf8("verticalLayout_2"))
+        self.contents = QtGui.QLabel(Dialog)
+        sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Preferred, QtGui.QSizePolicy.Preferred)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(self.label_3.sizePolicy().hasHeightForWidth())
-        self.label_3.setSizePolicy(sizePolicy)
-        self.label_3.setWordWrap(True)
-        self.label_3.setObjectName(_fromUtf8("label_3"))
-        self.verticalLayout.addWidget(self.label_3)
-        spacerItem2 = QtGui.QSpacerItem(20, 16, QtGui.QSizePolicy.Minimum, QtGui.QSizePolicy.Expanding)
-        self.verticalLayout.addItem(spacerItem2)
-        self.label_4 = QtGui.QLabel(Dialog)
-        self.label_4.setWordWrap(True)
-        self.label_4.setObjectName(_fromUtf8("label_4"))
-        self.verticalLayout.addWidget(self.label_4)
+        sizePolicy.setHeightForWidth(self.contents.sizePolicy().hasHeightForWidth())
+        self.contents.setSizePolicy(sizePolicy)
+        self.contents.setWordWrap(True)
+        self.contents.setObjectName(_fromUtf8("contents"))
+        self.verticalLayout_2.addWidget(self.contents)
+        spacerItem1 = QtGui.QSpacerItem(20, 40, QtGui.QSizePolicy.Minimum, QtGui.QSizePolicy.Expanding)
+        self.verticalLayout_2.addItem(spacerItem1)
+        self.horizontalLayout_2 = QtGui.QHBoxLayout()
+        self.horizontalLayout_2.setObjectName(_fromUtf8("horizontalLayout_2"))
+        spacerItem2 = QtGui.QSpacerItem(40, 20, QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Minimum)
+        self.horizontalLayout_2.addItem(spacerItem2)
+        self.ok_btn = QtGui.QPushButton(Dialog)
+        self.ok_btn.setObjectName(_fromUtf8("ok_btn"))
+        self.horizontalLayout_2.addWidget(self.ok_btn)
+        spacerItem3 = QtGui.QSpacerItem(40, 20, QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Minimum)
+        self.horizontalLayout_2.addItem(spacerItem3)
+        self.verticalLayout_2.addLayout(self.horizontalLayout_2)
+        self.horizontalLayout.addLayout(self.verticalLayout_2)
+        self.verticalLayout_3.addLayout(self.horizontalLayout)
 
         self.retranslateUi(Dialog)
+        QtCore.QObject.connect(self.ok_btn, QtCore.SIGNAL(_fromUtf8("clicked()")), Dialog.accept)
         QtCore.QMetaObject.connectSlotsByName(Dialog)
 
     def retranslateUi(self, Dialog):
         Dialog.setWindowTitle(_translate("Dialog", "About", None))
-        self.label_2.setText(_translate("Dialog", "OpenMEE", None))
-        self.label_3.setText(_translate("Dialog", "Developed primarily by George Dietz based on the program OpenMetaAnalyst developed by Byron Wallace, George Dietz, Paul Trow, and Issa Dahabreh\n"
-"\n"
-"OpenMEE heavily leverages, and can largely be considered as a GUI to, the metafor R package by Wolfgang Viechtbauer.", None))
-        self.label_4.setText(_translate("Dialog", "Citation Information:\n"
-"1. OpenMEE paper (doesn\'t exist yet)\n"
-"2. metafor: Viechtbauer, Wolfgang. \"Conducting meta-analyses in R with the metafor package.\" Journal of 36 (2010).\n"
-"3. OpenMetaAnalyst: Wallace, Byron C., Issa J. Dahabreh, Thomas A. Trikalinos, Joseph Lau, Paul Trow, and Christopher H. Schmid. \"Closing the Gap between Methodologists and End-Users: R as a Computational Back-End.\" Journal of Statistical Software 49 (2012): 5. ", None))
+        self.contents.setText(_translate("Dialog", "<html><head/><body><p><span style=\" font-size:16pt; font-weight:600;\">About OpenMEE</span></p><p><a href=\"http://www.cebm.brown.edu/open_mee\"><span style=\" text-decoration: underline; color:#0000ff;\">OpenMEE</span></a> is a cross-platform tool for performing Meta-Analysis suited to the needs of ecologists and evolutionary biologists.</p><p>OpenMEE was developed at the Brown University <a href=\"http://www.cebm.brown.edu/\"><span style=\" text-decoration: underline; color:#0000ff;\">Center for Evidence-Based Medicine</span></a> by George Dietz and Byron Wallace.</p><p>OpenMEE is based on the earlier meta-analysis program <a href=\"http://www.cebm.brown.edu/open_meta\"><span style=\" text-decoration: underline; color:#0000ff;\">OpenMetaAnalyst</span></a> developed by Byron Wallace, George Dietz, Paul Trow, and Issa Dahabreh also at the Brown CEBM.</p><p>OpenMEE heavily leverages and can largely be considered as a GUI to the <a href=\"http://www.metafor-project.org/\"><span style=\" text-decoration: underline; color:#0000ff;\">metafor</span></a> R package by Wolfgang Viechtbauer.</p></body></html>", None))
+        self.ok_btn.setText(_translate("Dialog", "OK", None))
 
 import icons_rc
