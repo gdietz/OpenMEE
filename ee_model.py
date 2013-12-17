@@ -471,6 +471,9 @@ class EETableModel(QAbstractTableModel):
         desired_variables = [var for var in variables if var.get_type()==var_type]
         return desired_variables
     
+    def get_categorical_variables(self):
+        return self.get_variables(var_type=CATEGORICAL)
+    
     ################# END get columns of a particular type ###################
     
     
