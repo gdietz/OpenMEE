@@ -38,6 +38,10 @@ class MetaAnalysisWizard(QtGui.QWizard):
     def __init__(self, model, meta_f_str=None, mode = MA_MODE, parent=None):
         super(MetaAnalysisWizard, self).__init__(parent)
         
+        self.inithelper(model=model, meta_f_str=meta_f_str, mode=mode, parent=parent)
+    #@profile_this
+    def inithelper(self, model, meta_f_str=None, mode = MA_MODE, parent=None):
+        
         self.model = model
         last_analysis = model.get_last_analysis_selections() # selections from last analysis of whatever type
         

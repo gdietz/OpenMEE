@@ -6,6 +6,7 @@
 ##################
 
 from functools import partial
+import gc
 
 from PyQt4 import QtCore, QtGui
 from PyQt4.Qt import *
@@ -123,7 +124,11 @@ class RefineStudiesPage(QWizardPage, ui_refine_studies_page.Ui_WizardPage):
             self.included_cat_stats = Var_Categories_Nstudies(
                                             studies=self.get_included_studies(),
                                             categorical_variables=self.categorical_variables)
+            print("collecting the garbage")
+            gc.collect()
             self._recheck_category_tree_widget()
+            print("any problems?")
+            
         if tab_index == 2: # 2 is the index of the exclude missing data tab
             self._populate_missing_data_list()
     
