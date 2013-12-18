@@ -566,6 +566,8 @@ class ResultsWindow(QMainWindow, ui_results_window.Ui_ResultsWindow):
 #            default_path = '.'.join([title.replace(' ','_'),"png"])
 #            file_path = unicode(QFileDialog.getSaveFileName(self, "OpenMeta[Analyst] -- save plot as", QString(default_path)))
 #            unscaled_image.save(QString(file_path),"PNG")
+
+            self.statusbar.showMessage("Saved image to %s" % file_path, 10000)
             
 
     def edit_image(self, params_path, title, png_path, pixmap_item, plot_type="forest"):

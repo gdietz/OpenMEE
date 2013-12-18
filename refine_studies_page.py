@@ -125,7 +125,7 @@ class RefineStudiesPage(QWizardPage, ui_refine_studies_page.Ui_WizardPage):
                                             studies=self.get_included_studies(),
                                             categorical_variables=self.categorical_variables)
             print("collecting the garbage")
-            gc.collect()
+            gc.collect() # a test to see if collecting the garbage generates the C++ Runtime error about the deleted object, it does not.
             self._recheck_category_tree_widget()
             print("any problems?")
             
