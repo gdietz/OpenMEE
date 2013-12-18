@@ -5,6 +5,7 @@
 #              #
 ################
 
+import os
 import sys
 import time
 
@@ -15,6 +16,7 @@ from PyQt4.QtGui import QPixmap, QSplashScreen
 import python_to_R
 import main_form
 import icons_rc
+import globals
 
 SPLASH_DISPLAY_TIME = 0
 
@@ -40,6 +42,9 @@ def load_R_libraries(app, splash=None):
     rloader.load_grid()
     
 def start(open_file_path=None):
+    # clear r_tmp:
+    clear_r_tmp()
+    
     app = QtGui.QApplication(sys.argv)
     
     splash_pixmap = QPixmap(":/splash/splash.png")
@@ -72,6 +77,18 @@ def start(open_file_path=None):
     splash.finish(form)
     
     sys.exit(app.exec_())
+ 
+def clear_r_tmp():
+    dir = os.path.join(globals.BASE_PATH, "r_tmp")
+    print("Clearing %s" % dir)
+    for file in os.listdir(dir):
+        file_path = os.path.join(dir, file)
+        try:
+            if os.path.isfile(file_path):
+                print("deleting %s" % file_path)
+                os.unlink(file_path) # same as remove
+        except Exception, e:
+            print e
 
 if __name__ == "__main__":
     try:
