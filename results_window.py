@@ -42,6 +42,7 @@ class ResultsWindow(QMainWindow, ui_results_window.Ui_ResultsWindow):
         super(ResultsWindow, self).__init__(parent)
         self.setupUi(self)
         
+        self.items_to_ignore = []
         self.copied_item = QByteArray()
         self.paste_offset = 5
         self.add_offset = 5
@@ -127,6 +128,9 @@ class ResultsWindow(QMainWindow, ui_results_window.Ui_ResultsWindow):
 
         if not SHOW_PSEUDO_CONSOLE_IN_RESULTS_WINDOW:
             self.psuedo_console.setVisible(False)
+            
+        if "results_data" in results:
+            self.add_additional_values_texts(results["results_data"])
 
 
     def f(self):
@@ -176,17 +180,34 @@ class ResultsWindow(QMainWindow, ui_results_window.Ui_ResultsWindow):
             for key in keys_in_order:
                 value = values[key]
                 f.write("%s: %s\n" % (key, data['value_info'][key]['description'])) # write out key and description
-                if isinstance(value, str):
-                    f.write(value+"\n")
-                elif isinstance(value, list):
-                    for x in value:
-                        f.write("%s\n" % x)
-                else:
-                    raise TypeError("Unrecognized type in data")
+                
+                val_str = self._value_to_string(value)
+#                 if isinstance(value, str):
+#                     f.write(value+"\n")
+#                 elif isinstance(value, list):
+#                     for x in value:
+#                         f.write("%s\n" % x)
+#                 else:
+#                     raise TypeError("Unrecognized type in data")
+                f.write(val_str)
                 # add space between values
                 f.write("\n")
         
         self.statusbar.showMessage("Saved results to: %s" % fpath,5000)
+        
+        
+    def _value_to_string(self, value):
+        if isinstance(value, str):
+            val_str = value+"\n"
+        elif isinstance(value, list):
+            val_str = ""
+            for x in value:
+                val_str+= "%s\n" % x
+        else:
+            raise TypeError("Unrecognized type in data")
+        
+        return val_str
+        
 
     def set_psuedo_console_text(self):
         text = ["\t\tOpenMeta(analyst)",
@@ -279,7 +300,6 @@ class ResultsWindow(QMainWindow, ui_results_window.Ui_ResultsWindow):
 
 
     def add_text(self):
-        
         # add to the arguments to make more groups, also make sure to add them
         # in add_images
         grouped_items = self._group_items(self.texts.items(), self.groupings)
@@ -290,7 +310,25 @@ class ResultsWindow(QMainWindow, ui_results_window.Ui_ResultsWindow):
                 continue
             self._add_text_item(title, text)
             
-    def _add_text_item(self, title, text):
+    def add_additional_values_texts(self, data):
+        keys_in_order = data['keys_in_order'] # make sure key order is consistent
+        values = data['values'] # a dictionary mapping keys--> values
+        
+        #self.additional_values_item = QTreeWidgetItem(self.nav_tree, ["Additional Values"])
+        #self._add_text_item(Additional Items, val_and_description, parent_item=self.additional_values_item)
+        
+        spacer_item = self._add_text_item("", "\n\n--------------------------------------------------")
+        additional_values_item = QTreeWidgetItem(self.nav_tree, ["Additional Values"])
+        self.items_to_ignore.extend([spacer_item, additional_values_item])
+
+        for key in keys_in_order:
+            value = values[key]
+            val_str = self._value_to_string(value)
+            self._add_text_item(key+": %s" % data['value_info'][key]['description'], val_str, parent_item=additional_values_item)
+            
+    def _add_text_item(self, title, text, parent_item=None):
+        # parent_item is the parent item in the nav tree
+        
         try:
             #text = text[0]
             text = text.replace("\\n","\n") # manual escaping
@@ -298,13 +336,14 @@ class ResultsWindow(QMainWindow, ui_results_window.Ui_ResultsWindow):
             cur_y = max(0, self.y_coord)
             print "cur_y: %s" % cur_y
             # first add the title
-            qt_item = self.add_title(title)
+            qt_item = self.add_title(title, parent_item)
 
             # now the text
             text_item_rect, pos = self.create_text_item(unicode(text), self.position())
             self.items_to_coords[qt_item] =  pos
         except:
             pass
+        return qt_item # returns the item in the nav tree
     
     def _group_items(self, items, groups):
         '''Groups items together if their title contains an element in a group list.
@@ -354,7 +393,7 @@ class ResultsWindow(QMainWindow, ui_results_window.Ui_ResultsWindow):
                             
         
 
-    def add_title(self, title):
+    def add_title(self, title, parent_item=None):
         print("Adding title")
         text = QGraphicsTextItem()
         # I guess we should use a style sheet here,
@@ -364,7 +403,10 @@ class ResultsWindow(QMainWindow, ui_results_window.Ui_ResultsWindow):
         #text.setPos(self.position())
         print "  title at: %s" % self.y_coord
         self.scene.addItem(text)
-        qt_item = QTreeWidgetItem(self.nav_tree, [title])
+        if parent_item:
+            qt_item = QTreeWidgetItem(parent_item, [title])
+        else:
+            qt_item = QTreeWidgetItem(self.nav_tree, [title])
         self.scene.setSceneRect(0, 0, self.scene.width(), self.y_coord + text.boundingRect().height() + padding)
         print("  Setting position at (%d,%d)" % (self.x_coord, self.y_coord))                        
         text.setPos(self.position()) #####
@@ -372,6 +414,8 @@ class ResultsWindow(QMainWindow, ui_results_window.Ui_ResultsWindow):
         return qt_item
 
     def item_clicked(self, item, column):
+        if item in self.items_to_ignore:
+            return
         print self.items_to_coords[item]
         self.graphics_view.centerOn(self.items_to_coords[item])
 
@@ -547,9 +591,7 @@ class ResultsWindow(QMainWindow, ui_results_window.Ui_ResultsWindow):
         if file_path != "":
             if file_path[-4:] != suffix:
                 file_path += suffix
-                
-                
-            
+
             if plot_type == "forest":
                 if self._is_side_by_side_fp(title):
                     python_to_R.generate_forest_plot(file_path, side_by_side=True)

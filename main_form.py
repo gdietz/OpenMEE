@@ -1497,8 +1497,6 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
         return self.user_prefs["method_params"]
 
     def _save_user_prefs(self):
-
-
         try:
             fout = open(PREFS_PATH, 'wb')
             pickle.dump(self.user_prefs, fout)

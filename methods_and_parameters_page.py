@@ -163,6 +163,8 @@ class MethodsAndParametersPage(QWizardPage, ui_methods_and_parameters_page.Ui_Wi
     def populate_cbo_box(self):
         print("populating combo box")
         
+        self.method_cbo_box.clear()
+        
         # we first build an R object with the current data. this is to pass off         
         # to the R side to check the feasibility of the methods over the current data.
         # i.e., we do not display methods that cannot be performed over the 
