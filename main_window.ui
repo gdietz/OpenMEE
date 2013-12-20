@@ -125,12 +125,20 @@
     <addaction name="actionFail_Safe_N"/>
     <addaction name="actionFunnel_Plot"/>
    </widget>
+   <widget class="QMenu" name="menuData_Exploration">
+    <property name="title">
+     <string>Data Exploration</string>
+    </property>
+    <addaction name="actionScatterplot"/>
+    <addaction name="actionHistogram"/>
+   </widget>
    <addaction name="menuFile"/>
    <addaction name="menuEdit"/>
    <addaction name="menuTable"/>
    <addaction name="menuAnalysis"/>
    <addaction name="menuPublication_Bias"/>
    <addaction name="menuAbout"/>
+   <addaction name="menuData_Exploration"/>
   </widget>
   <widget class="QStatusBar" name="statusbar"/>
   <widget class="QToolBar" name="toolBar">
@@ -422,6 +430,16 @@
    </property>
    <property name="toolTip">
     <string>Reset choices made in analysis screens to the defaults</string>
+   </property>
+  </action>
+  <action name="actionScatterplot">
+   <property name="text">
+    <string>Scatterplot</string>
+   </property>
+  </action>
+  <action name="actionHistogram">
+   <property name="text">
+    <string>Histogram</string>
    </property>
   </action>
  </widget>
