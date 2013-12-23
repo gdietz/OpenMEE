@@ -79,7 +79,7 @@ def start(open_file_path=None):
     sys.exit(app.exec_())
  
 def clear_r_tmp():
-    r_tmp_dir = os.path.join(globals.BASE_PATH, "r_tmp")
+    r_tmp_dir = os.path.join(ome_globals.BASE_PATH, "r_tmp")
     print("Clearing %s" % r_tmp_dir)
     for file_p in os.listdir(r_tmp_dir):
         file_path = os.path.join(r_tmp_dir, file_p)

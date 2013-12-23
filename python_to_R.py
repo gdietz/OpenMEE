@@ -246,7 +246,7 @@ def dataset_to_simple_binary_robj(model, included_studies, data_location, var_na
     none_to_str = lambda n : str(n) if n is not None else "" # this will produce NA ints
     
     study_years = joiner(["as.integer(%s)" % none_to_str(None) for study in included_studies])
-    study_names = joiner(["'" + study.get_label(none_to_empty_string=True) + "'" for study in included_studies])
+    study_names = joiner(['"' + study.get_label(none_to_empty_string=True) + '"' for study in included_studies])
     
     ests_variable = model.get_variable_assigned_to_column(data_location['effect_size'])
     variance_variable = model.get_variable_assigned_to_column(data_location['variance'])
