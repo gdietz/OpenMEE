@@ -10,7 +10,7 @@
 from PyQt4 import QtCore, QtGui
 from PyQt4.Qt import *
 
-from globals import *
+from ome_globals import *
 from choose_effect_col_for_transformation_page import ChooseEffectColForTransformationPage
 from new_column_group_transform_effect_page import NewColumnGroupTransformEffectPage
 from transform_effect_summary_page import TransformEffectSummaryPage

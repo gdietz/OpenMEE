@@ -10,7 +10,7 @@ from PyQt4.Qt import *
 #import meta_globals
 
 print("Importing meta_globals")
-import globals
+import ome_globals
 #print("Importing meta_form")
 import launch
 import main_form
@@ -35,7 +35,7 @@ def setup_module(module):
     splash.show()
     splash.raise_()
     splash_starttime = time.time()
-    globals.moment.play()
+    ome_globals.moment.play()
     
     launch.load_R_libraries(app, splash)
     

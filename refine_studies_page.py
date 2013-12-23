@@ -11,7 +11,7 @@ import gc
 from PyQt4 import QtCore, QtGui
 from PyQt4.Qt import *
 
-from globals import *
+from ome_globals import *
 from dataset.study import Study
 
 import ui_refine_studies_page

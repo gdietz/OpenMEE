@@ -32,7 +32,7 @@ import csv_export_dlg
 import preferences_dlg
 from variable_group_graphic import VariableGroupGraphic
 
-from globals import *
+from ome_globals import *
 
 # TODO: Handle setting the dirty bit more correctly in undo/redo
 # right now just set it all the time/(or not) (very haphazard) during redo but don't bother unsetting it

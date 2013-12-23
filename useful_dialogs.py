@@ -12,7 +12,7 @@ Created on Jul 12, 2013
 from PyQt4.QtCore import *
 from PyQt4.QtGui import *
 
-from globals import *
+from ome_globals import *
 
 class InputForm(QDialog):
     def __init__(self, message="Dummy Message", initial_text="", parent=None):

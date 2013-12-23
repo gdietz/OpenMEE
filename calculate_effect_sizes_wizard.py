@@ -10,7 +10,7 @@
 from PyQt4 import QtCore, QtGui
 from PyQt4.Qt import *
 
-from globals import *
+from ome_globals import *
 from choose_effect_size_page import ChooseEffectSizePage
 from data_location_page import DataLocationPage
 from overwrite_effect_sizes_page import OverwriteEffectSizesPage

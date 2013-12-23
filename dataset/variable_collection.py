@@ -7,7 +7,7 @@
 
 from sets import Set
 
-from globals import *
+from ome_globals import *
 from variable import Variable
 from managed_collection import ManagedCollection
 

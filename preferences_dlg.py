@@ -13,7 +13,7 @@ from PyQt4.Qt import *
 
 
 import ui_preferences
-from globals import *
+from ome_globals import *
 #from ee_model import EETableModel
 
 class PreferencesDialog(QDialog, ui_preferences.Ui_Dialog):

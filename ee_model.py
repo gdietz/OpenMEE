@@ -18,7 +18,7 @@ from functools import partial
 
 # handrolled
 from dataset.ee_dataset import EEDataSet
-from globals import *
+from ome_globals import *
 import python_to_R
 from dataset.variable import Variable
 import copy

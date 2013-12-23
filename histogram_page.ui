@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>509</width>
-    <height>398</height>
+    <width>405</width>
+    <height>389</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -15,7 +15,7 @@
   </property>
   <layout class="QVBoxLayout" name="verticalLayout_3">
    <item>
-    <layout class="QHBoxLayout" name="horizontalLayout_7">
+    <layout class="QHBoxLayout" name="xlab_layout">
      <item>
       <widget class="QCheckBox" name="xlabCheckBox">
        <property name="text">
@@ -59,7 +59,7 @@
     </layout>
    </item>
    <item>
-    <layout class="QHBoxLayout" name="horizontalLayout_8">
+    <layout class="QHBoxLayout" name="ylab_layout">
      <item>
       <widget class="QCheckBox" name="ylabCheckBox">
        <property name="text">
@@ -103,7 +103,7 @@
     </layout>
    </item>
    <item>
-    <layout class="QHBoxLayout" name="horizontalLayout_2">
+    <layout class="QHBoxLayout" name="xlim_layout">
      <item>
       <widget class="QCheckBox" name="xlimCheckBox">
        <property name="toolTip">
@@ -187,7 +187,7 @@
     </layout>
    </item>
    <item>
-    <layout class="QHBoxLayout" name="horizontalLayout_3">
+    <layout class="QHBoxLayout" name="ylim_layout_2">
      <item>
       <widget class="QCheckBox" name="ylimCheckBox">
        <property name="toolTip">
@@ -271,7 +271,7 @@
     </layout>
    </item>
    <item>
-    <layout class="QHBoxLayout" name="horizontalLayout_9">
+    <layout class="QHBoxLayout" name="binwidth_layout">
      <item>
       <widget class="QCheckBox" name="binwidth_checkBox">
        <property name="text">

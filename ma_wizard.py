@@ -14,7 +14,7 @@
 from PyQt4 import QtCore, QtGui
 from PyQt4.Qt import *
 
-from globals import *
+from ome_globals import *
 
 import python_to_R
 from choose_effect_size_page import ChooseEffectSizePage

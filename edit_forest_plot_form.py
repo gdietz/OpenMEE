@@ -16,7 +16,7 @@ from PyQt4.QtGui import QDialog, QDialogButtonBox
 
 import ui_edit_forest_plot
 import python_to_R
-from globals import check_plot_bound, seems_sane, add_plot_params
+from ome_globals import check_plot_bound, seems_sane, add_plot_params
 
 class EditPlotWindow(QDialog, ui_edit_forest_plot.Ui_edit_forest_plot_dlg):
 

@@ -16,7 +16,7 @@ from PyQt4.QtGui import QPixmap, QSplashScreen
 import python_to_R
 import main_form
 import icons_rc
-import globals
+import ome_globals
 
 SPLASH_DISPLAY_TIME = 0
 
@@ -79,10 +79,10 @@ def start(open_file_path=None):
     sys.exit(app.exec_())
  
 def clear_r_tmp():
-    dir = os.path.join(globals.BASE_PATH, "r_tmp")
-    print("Clearing %s" % dir)
-    for file in os.listdir(dir):
-        file_path = os.path.join(dir, file)
+    r_tmp_dir = os.path.join(globals.BASE_PATH, "r_tmp")
+    print("Clearing %s" % r_tmp_dir)
+    for file_p in os.listdir(r_tmp_dir):
+        file_path = os.path.join(r_tmp_dir, file_p)
         try:
             if os.path.isfile(file_path):
                 print("deleting %s" % file_path)

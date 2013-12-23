@@ -10,7 +10,7 @@
 ##############################################################################
 
 from sets import Set
-from globals import *
+from ome_globals import *
 
 class ManagedCollection(object):
     # Holds a collection of items that all have unique ids within the collection

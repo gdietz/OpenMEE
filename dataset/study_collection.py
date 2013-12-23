@@ -8,7 +8,7 @@
 from study import Study
 from managed_collection import ManagedCollection
 
-from globals import *
+from ome_globals import *
 
 
 class StudyCollection(ManagedCollection):

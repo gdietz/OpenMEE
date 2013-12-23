@@ -12,7 +12,7 @@ from PyQt4 import QtCore, QtGui
 from PyQt4.Qt import *
 
 import ui_csv_export_dlg
-from globals import DEFAULT_FILENAME
+from ome_globals import DEFAULT_FILENAME
 
 
 

@@ -5,7 +5,7 @@
 #               #
 #################
 
-from globals import *
+from ome_globals import *
 import study_collection
 import variable_collection
 

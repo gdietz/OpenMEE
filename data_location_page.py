@@ -10,7 +10,7 @@
 from PyQt4 import QtCore, QtGui
 from PyQt4.Qt import *
 
-from globals import *
+from ome_globals import *
 
 class DataLocationPage(QWizardPage):
     def __init__(self, model, mode=None, parent=None):

@@ -8,7 +8,7 @@
 
 import math
 
-from globals import *
+from ome_globals import *
 
 import rpy2
 import rpy2.robjects

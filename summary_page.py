@@ -1,7 +1,7 @@
 from PyQt4 import QtCore, QtGui
 from PyQt4.Qt import *
 
-from globals import *
+from ome_globals import *
 import ui_summary_page
 
 class SummaryPage(QWizardPage, ui_summary_page.Ui_WizardPage):

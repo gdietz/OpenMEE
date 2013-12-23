@@ -12,7 +12,7 @@
 from PyQt4 import QtCore, QtGui
 from PyQt4.Qt import *
 
-from globals import *
+from ome_globals import *
 
 import python_to_R
 import ui_methods_and_parameters_page

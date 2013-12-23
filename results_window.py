@@ -21,7 +21,7 @@ import edit_forest_plot_form
 import python_to_R
 #import shutil
 
-from globals import *
+from ome_globals import *
 from edit_funnel_plot_form import EditFunnelPlotForm
 
 PageSize = (612, 792)
