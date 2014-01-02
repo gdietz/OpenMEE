@@ -51,24 +51,24 @@ class FunnelPage(QWizardPage, ui_funnel_page.Ui_WizardPage):
             self._change_target_enable_state(self.xlimCheckBox, Qt.Checked)
             self.xlimLowSpinBox.setValue(old_params['xlim'][0])
             self.xlimHighSpinBox.setValue(old_params['xlim'][0])
-        elif 'ylim' in old_params:
+        if 'ylim' in old_params:
             self.ylimCheckBox.setCheckState(Qt.Checked)
             self._change_target_enable_state(self.ylimCheckBox, Qt.Checked)
             self.ylimLowSpinBox.setValue(old_params['ylim'][0])
             self.ylimHighSpinBox.setValue(old_params['ylim'][0])
-        elif 'xlab' in old_params:
+        if 'xlab' in old_params:
             self.xlabCheckBox.setCheckState(Qt.Checked)
             self._change_target_enable_state(self.xlabCheckBox, Qt.Checked)
             self.xlab_le.setText(old_params['xlab'])
-        elif 'ylab' in old_params:
+        if 'ylab' in old_params:
             self.ylabCheckBox.setCheckState(Qt.Checked)
             self._change_target_enable_state(self.ylabCheckBox, Qt.Checked)
             self.ylab_le.setText(old_params['ylab'])
-        elif 'steps' in old_params:
+        if 'steps' in old_params:
             self.stepsSpinBox.setValue(old_params['steps'])
-        elif 'digits' in old_params:
+        if 'digits' in old_params:
             self.digitsSpinBox.setValue(old_params['digits'])
-        elif 'addtau2' in old_params:
+        if 'addtau2' in old_params:
             no_index = self.addtau2ComboBox.findText("no")
             yes_index = self.addtau2ComboBox.findText("yes")
             if -1 in [no_index, yes_index]: raise ValueError("yes and no not found in combobox")
@@ -76,7 +76,7 @@ class FunnelPage(QWizardPage, ui_funnel_page.Ui_WizardPage):
                 self.addtau2ComboBox.setCurrentIndex(yes_index) 
             else:
                 self.addtau2ComboBox.setCurrentIndex(no_index)
-        elif 'refline' in old_params:
+        if 'refline' in old_params:
             self.reflineCheckBox.setCheckState(Qt.Checked)
             self._change_target_enable_state(self.reflineCheckBox, Qt.Checked)
             self.reflineSpinBox.setValue(old_params['refline'])

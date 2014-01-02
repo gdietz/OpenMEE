@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>405</width>
+    <width>416</width>
     <height>389</height>
    </rect>
   </property>
@@ -298,7 +298,7 @@
      <item>
       <widget class="QLabel" name="label">
        <property name="text">
-        <string>(defaults to range/30)</string>
+        <string>(defaults to range/30 if not checked)</string>
        </property>
       </widget>
      </item>
@@ -359,7 +359,7 @@
            </widget>
           </item>
           <item>
-           <widget class="QPushButton" name="change_fixed_color_btn">
+           <widget class="QPushButton" name="fill_color_btn">
             <property name="styleSheet">
              <string notr="true">color: rgb(0, 0, 0);
 background-color: rgb(255, 255, 255);</string>
@@ -371,7 +371,7 @@ fill color</string>
            </widget>
           </item>
           <item>
-           <widget class="QPushButton" name="pushButton">
+           <widget class="QPushButton" name="outline_color_btn">
             <property name="styleSheet">
              <string notr="true">color: rgb(200, 200, 200);
 background-color: rgb(0, 0, 0);</string>
