@@ -136,9 +136,9 @@
    <addaction name="menuEdit"/>
    <addaction name="menuTable"/>
    <addaction name="menuAnalysis"/>
+   <addaction name="menuData_Exploration"/>
    <addaction name="menuPublication_Bias"/>
    <addaction name="menuAbout"/>
-   <addaction name="menuData_Exploration"/>
   </widget>
   <widget class="QStatusBar" name="statusbar"/>
   <widget class="QToolBar" name="toolBar">

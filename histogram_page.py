@@ -4,6 +4,9 @@ Created on Jan 2, 2014
 @author: george
 '''
 
+import sys
+from functools import partial
+
 from PyQt4 import QtCore, QtGui
 from PyQt4.Qt import *
 
@@ -16,10 +19,10 @@ class HistogramPage(QWizardPage, ui_histogram_page.Ui_WizardPage):
         self.setupUi(self)
         
         
-        self.fill_color    = None  # white
-        self.outline_color = None  # black
-        self.low_color     = None  # red
-        self.high_color    = None  # blue
+        self.fill_color    = "#FFFFFF"  # white
+        self.outline_color = "#000000"  # black
+        self.low_color     = "#FF0000"  # red
+        self.high_color    = "#0000FF"  # blue
         
         self.checkboxes = [self.xlabCheckBox, self.ylabCheckBox,
                            self.xlimCheckBox, self.ylimCheckBox,
@@ -29,15 +32,29 @@ class HistogramPage(QWizardPage, ui_histogram_page.Ui_WizardPage):
                                       self.ylimCheckBox: [self.ylimLowSpinBox, self.ylimHighSpinBox],
                                       self.xlabCheckBox: [self.xlab_le],
                                       self.ylabCheckBox: [self.ylab_le],
-                                      self.binwidth_checkbox: [self.binwidth_spinBox]
+                                      self.binwidth_checkBox: [self.binwidth_spinBox]
                                       }
         
         self.radio_btns_to_targets = {self.no_gradient_radiobtn:self.fixed_color_layout,
                                       self.gradient_radiobtn:self.gradient_layout}
+        self.color_btns = [self.low_color_change_btn, self.high_color_change_btn,
+                           self.fill_color_btn, self.outline_color_btn]
+        
+        self.setup_connections()
+        self.set_checkboxes_state(Qt.Checked)
+        self.set_checkboxes_state(Qt.Unchecked)
         
         # set up form based on last run
         if old_histogram_params:
             self.setup_form_from_last_run(old_histogram_params)
+            
+    def _get_btn_color(self, button):
+            color_btns_to_color_vars = {self.fill_color_btn:self.fill_color,
+                                        self.outline_color_btn:self.outline_color,
+                                        self.low_color_change_btn:self.low_color,
+                                        self.high_color_change_btn:self.high_color,
+                                        }
+            return color_btns_to_color_vars[button]
             
     def setup_form_from_last_run(self, old_params):
         ''' Sets the parameters based on the last run (if it is available) '''
@@ -64,5 +81,135 @@ class HistogramPage(QWizardPage, ui_histogram_page.Ui_WizardPage):
             self.binwidth_checkBox.setCheckState(Qt.Checked)
             self._change_target_enable_state(self.binwidth_checkBox, Qt.Checked)
             self.binwidth_spinBox.setValue(old_params['binwidth'])
-        #if old_params['gradient']:
-        #    self.low_color_change_btn.setStyleSheet()
+        if old_params['GRADIENT']:
+            self.low_color_change_btn.setStyleSheet("background-color: "+old_params['low']+";color: rgb(255, 255, 255);")
+            self.high_color_change_btn.setStyleSheet("background-color: "+old_params['high']+";color: rgb(255, 255, 255);")
+            self.low_color  = old_params['low']
+            self.high_color = old_params['high']
+            
+            self.count_le.setText(old_params['name'])
+        else:
+            self.fill_color_btn.setStyleSheet("color: rgb(0, 0, 0);\nbackground-color: "+old_params['fill']+";")
+            self.outline_color_btn.setStyleSheet("color: rgb(200, 200, 200);\nbackground-color: "+old_params['color']+";")
+            self.fill_color = old_params['fill']
+            self.outline_color = old_params['color']
+    
+    
+    def _choose_color(self, button):
+        initial_color = QColor(self._get_btn_color(button))
+        color = QColorDialog.getColor(initial_color)
+        color_str = color.name()
+        
+        if button == self.low_color_change_btn:
+            self.low_color = color_str
+            self.low_color_change_btn.setStyleSheet("background-color: "+self.low_color+";color: rgb(255, 255, 255);")
+        elif button == self.high_color_change_btn:
+            self.high_color = color_str
+            self.high_color_change_btn.setStyleSheet("background-color: "+self.high_color+";color: rgb(255, 255, 255);")
+        elif button == self.fill_color_btn:
+            self.fill_color = color_str
+            self.fill_color_btn.setStyleSheet("color: rgb(0, 0, 0);\nbackground-color: "+self.fill_color+";")
+        elif button == self.outline_color_btn:
+            self.outline_color = color_str
+            self.outline_color_btn.setStyleSheet("color: rgb(200, 200, 200);\nbackground-color: "+self.outline_color+";")
+        
+    def setup_connections(self):
+        # enable/disable targets
+        for checkbox in self.checkboxes:
+            checkbox.stateChanged.connect(partial(self._change_target_enable_state, checkbox))
+            
+        # verify state when targets change
+        for spinbox in [self.xlimLowSpinBox, self.xlimHighSpinBox,
+                        self.ylimLowSpinBox, self.ylimHighSpinBox]:
+            #spinbox.valueChanged[float].connect(self._verify_choice_validity)
+            spinbox.valueChanged[float].connect(self.spinbox_value_changed)
+            
+        for color_button in self.color_btns:
+            color_button.clicked.connect(partial(self._choose_color, color_button))
+    
+    def spinbox_value_changed(self):
+        self.completeChanged.emit()
+        
+    def _change_target_enable_state(self, checkbox, check_state):
+        if check_state == Qt.Checked:
+            target_state = True
+        else:
+            target_state = False
+        
+        for target in self.checkboxes_to_targets[checkbox]:
+                target.setEnabled(target_state)
+                
+        self.completeChanged.emit()
+        
+    def isComplete(self):
+        return self._verify_choice_validity()
+    
+    def _verify_choice_validity(self):
+        # xlims:
+        if self.xlimLowSpinBox.isEnabled():
+            if not (self.xlimLowSpinBox.value() <= self.xlimHighSpinBox.value()):
+                self.status_lbl.setText("xlim lower limit must be less\nthan xlim upper limit")
+                self.status_lbl.setStyleSheet("QLabel { color: red }")
+                return False
+        
+        # ylims
+        if self.ylimCheckBox.isEnabled():
+            if not (self.ylimLowSpinBox.value() <= self.ylimHighSpinBox.value()):
+                self.status_lbl.setText("ylim lower limit must be less\nthan ylim upper limit")
+                self.status_lbl.setStyleSheet("QLabel { color: red }")
+                return False
+            
+        # TODO: disallow quote characters in labels
+        
+        self.status_lbl.setText("a-OK")
+        self.status_lbl.setStyleSheet("QLabel { color: green }")
+        return True
+    
+    def get_parameters(self):
+        # the keys given here have the same name as the parameters in metafor
+        # don't change them
+        # parameter read_to_send_to_R tells function to give the results such
+        # that they can be used in a call to R without any further formatting
+        # like adding quotes around strings or whatnot
+        
+        p = {}
+        
+        p['xlim'] = [self.xlimLowSpinBox.value(), self.xlimHighSpinBox.value()]
+        p['ylim'] = [self.ylimLowSpinBox.value(), self.ylimHighSpinBox.value()]
+        p['xlab'] = str(self.xlab_le.text())
+        p['ylab'] = str(self.ylab_le.text())
+        p['binwidth'] = self.binwidth_checkbox.value()
+        p['GRADIENT'] = self.gradient_radiobtn.isChecked()
+        if p['GRADIENT']:
+            #c("name","low","high")
+            p['name'] = self.count_le.text() # count legend title
+            p['low']  = self.low_color # in #RRGGBBAA format
+            p['high'] = self.high_color
+        else: #no gradient, fixed color
+            p['fill'] = self.fill_color
+            p['color'] = self.outline_color  # outline color
+            
+        
+        # Remove unchecked parameters
+        checkboxes_to_param = {self.xlimCheckBox: 'xlim',
+                              self.ylimCheckBox: 'ylim',
+                              self.xlabCheckBox: 'xlab',
+                              self.ylabCheckBox: 'ylab',
+                              self.binwidth: 'binwidth'}
+        for checkbox,key in checkboxes_to_param.items():
+            if not checkbox.isChecked():
+                p.pop(key)
+            
+        print("histogram params: %s" % p)
+        return p
+    
+    def set_checkboxes_state(self, state):
+        for checkbox in self.checkboxes:
+            checkbox.setCheckState(state)
+    
+if __name__ == "__main__":
+    app = QApplication(sys.argv)
+    form = HistogramPage(old_histogram_params={})
+    form.show()
+    form.raise_()
+    sys.exit(app.exec_())

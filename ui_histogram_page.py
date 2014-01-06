@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'histogram_page.ui'
 #
-# Created: Thu Jan  2 10:45:44 2014
+# Created: Mon Jan  6 15:45:01 2014
 #      by: PyQt4 UI code generator 4.10.3
 #
 # WARNING! All changes made in this file will be lost!
@@ -26,7 +26,7 @@ except AttributeError:
 class Ui_WizardPage(object):
     def setupUi(self, WizardPage):
         WizardPage.setObjectName(_fromUtf8("WizardPage"))
-        WizardPage.resize(405, 389)
+        WizardPage.resize(416, 420)
         self.verticalLayout_3 = QtGui.QVBoxLayout(WizardPage)
         self.verticalLayout_3.setObjectName(_fromUtf8("verticalLayout_3"))
         self.xlab_layout = QtGui.QHBoxLayout()
@@ -216,6 +216,15 @@ class Ui_WizardPage(object):
         self.verticalLayout.addItem(spacerItem8)
         self.horizontalLayout_4.addLayout(self.verticalLayout)
         self.verticalLayout_3.addWidget(self.groupBox)
+        self.horizontalLayout_11 = QtGui.QHBoxLayout()
+        self.horizontalLayout_11.setObjectName(_fromUtf8("horizontalLayout_11"))
+        self.label25 = QtGui.QLabel(WizardPage)
+        self.label25.setObjectName(_fromUtf8("label25"))
+        self.horizontalLayout_11.addWidget(self.label25)
+        self.status_lbl = QtGui.QLabel(WizardPage)
+        self.status_lbl.setObjectName(_fromUtf8("status_lbl"))
+        self.horizontalLayout_11.addWidget(self.status_lbl)
+        self.verticalLayout_3.addLayout(self.horizontalLayout_11)
         self.label_3.setBuddy(self.xlab_le)
         self.label_2.setBuddy(self.ylab_le)
 
@@ -255,4 +264,6 @@ class Ui_WizardPage(object):
 "high color", None))
         self.label_14.setText(_translate("WizardPage", "Count legend title:", None))
         self.count_le.setText(_translate("WizardPage", "Count", None))
+        self.label25.setText(_translate("WizardPage", "status: ", None))
+        self.status_lbl.setText(_translate("WizardPage", "actualstatus", None))
 

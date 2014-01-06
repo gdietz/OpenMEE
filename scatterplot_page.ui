@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>341</width>
-    <height>176</height>
+    <height>201</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -267,6 +267,24 @@
         </size>
        </property>
       </spacer>
+     </item>
+    </layout>
+   </item>
+   <item>
+    <layout class="QHBoxLayout" name="horizontalLayout_10">
+     <item>
+      <widget class="QLabel" name="label25">
+       <property name="text">
+        <string>status: </string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QLabel" name="status_lbl">
+       <property name="text">
+        <string>actualstatus</string>
+       </property>
+      </widget>
      </item>
     </layout>
    </item>

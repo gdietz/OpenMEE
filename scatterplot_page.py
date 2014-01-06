@@ -4,6 +4,8 @@ Created on Jan 2, 2014
 @author: george
 '''
 
+from functools import partial
+
 from PyQt4 import QtCore, QtGui
 from PyQt4.Qt import *
 
@@ -19,11 +21,14 @@ class ScatterPlotPage(QWizardPage, ui_scatterplot_page.Ui_WizardPage):
                            self.xlimCheckBox, self.ylimCheckBox]
 
         self.checkboxes_to_targets = {self.xlimCheckBox: [self.xlimLowSpinBox, self.xlimHighSpinBox],
-                              self.ylimCheckBox: [self.ylimLowSpinBox, self.ylimHighSpinBox],
-                              self.xlabCheckBox: [self.xlab_le],
-                              self.ylabCheckBox: [self.ylab_le],
-                              self.binwidth_checkbox: [self.binwidth_spinBox]
-                              }
+                                      self.ylimCheckBox: [self.ylimLowSpinBox, self.ylimHighSpinBox],
+                                      self.xlabCheckBox: [self.xlab_le],
+                                      self.ylabCheckBox: [self.ylab_le]
+                                      }
+        
+        self.setup_connections()
+        self.set_checkboxes_state(Qt.Checked)
+        self.set_checkboxes_state(Qt.Unchecked)
         
         # set up form based on last run
         if old_scatterplot_params:
@@ -50,3 +55,56 @@ class ScatterPlotPage(QWizardPage, ui_scatterplot_page.Ui_WizardPage):
             self.ylabCheckBox.setCheckState(Qt.Checked)
             self._change_target_enable_state(self.ylabCheckBox, Qt.Checked)
             self.ylab_le.setText(old_params['ylab'])
+            
+    def setup_connections(self):
+        # enable/disable targets
+        for checkbox in self.checkboxes:
+            checkbox.stateChanged.connect(partial(self._change_target_enable_state, checkbox))
+            
+        # verify state when targets change
+        for spinbox in [self.xlimLowSpinBox, self.xlimHighSpinBox,
+                        self.ylimLowSpinBox, self.ylimHighSpinBox]:
+            #spinbox.valueChanged[float].connect(self._verify_choice_validity)
+            spinbox.valueChanged[float].connect(self.spinbox_value_changed)
+    
+    def spinbox_value_changed(self):
+        self.completeChanged.emit()
+        
+    def _change_target_enable_state(self, checkbox, check_state):
+        if check_state == Qt.Checked:
+            target_state = True
+        else:
+            target_state = False
+        
+        for target in self.checkboxes_to_targets[checkbox]:
+                target.setEnabled(target_state)
+                
+        self.completeChanged.emit()
+        
+    def _verify_choice_validity(self):
+        # xlims:
+        if self.xlimLowSpinBox.isEnabled():
+            if not (self.xlimLowSpinBox.value() <= self.xlimHighSpinBox.value()):
+                self.status_lbl.setText("xlim lower limit must be less\nthan xlim upper limit")
+                self.status_lbl.setStyleSheet("QLabel { color: red }")
+                return False
+        
+        # ylims
+        if self.ylimCheckBox.isEnabled():
+            if not (self.ylimLowSpinBox.value() <= self.ylimHighSpinBox.value()):
+                self.status_lbl.setText("ylim lower limit must be less\nthan ylim upper limit")
+                self.status_lbl.setStyleSheet("QLabel { color: red }")
+                return False
+            
+        # TODO: disallow quote characters in labels
+        
+        self.status_lbl.setText("a-OK")
+        self.status_lbl.setStyleSheet("QLabel { color: green }")
+        return True
+        
+    def isComplete(self):
+        return self._verify_choice_validity()
+    
+    def set_checkboxes_state(self, state):
+        for checkbox in self.checkboxes:
+            checkbox.setCheckState(state)

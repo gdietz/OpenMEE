@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'scatterplot_page.ui'
 #
-# Created: Thu Jan  2 10:45:27 2014
+# Created: Mon Jan  6 15:44:47 2014
 #      by: PyQt4 UI code generator 4.10.3
 #
 # WARNING! All changes made in this file will be lost!
@@ -26,7 +26,7 @@ except AttributeError:
 class Ui_WizardPage(object):
     def setupUi(self, WizardPage):
         WizardPage.setObjectName(_fromUtf8("WizardPage"))
-        WizardPage.resize(341, 176)
+        WizardPage.resize(341, 201)
         self.verticalLayout = QtGui.QVBoxLayout(WizardPage)
         self.verticalLayout.setObjectName(_fromUtf8("verticalLayout"))
         self.xlab_layout = QtGui.QHBoxLayout()
@@ -129,6 +129,15 @@ class Ui_WizardPage(object):
         spacerItem3 = QtGui.QSpacerItem(38, 20, QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Minimum)
         self.ylim_layout_2.addItem(spacerItem3)
         self.verticalLayout.addLayout(self.ylim_layout_2)
+        self.horizontalLayout_10 = QtGui.QHBoxLayout()
+        self.horizontalLayout_10.setObjectName(_fromUtf8("horizontalLayout_10"))
+        self.label25 = QtGui.QLabel(WizardPage)
+        self.label25.setObjectName(_fromUtf8("label25"))
+        self.horizontalLayout_10.addWidget(self.label25)
+        self.status_lbl = QtGui.QLabel(WizardPage)
+        self.status_lbl.setObjectName(_fromUtf8("status_lbl"))
+        self.horizontalLayout_10.addWidget(self.status_lbl)
+        self.verticalLayout.addLayout(self.horizontalLayout_10)
         self.label_3.setBuddy(self.xlab_le)
         self.label_2.setBuddy(self.ylab_le)
 
@@ -151,4 +160,6 @@ class Ui_WizardPage(object):
         self.label_8.setText(_translate("WizardPage", "[", None))
         self.label_12.setText(_translate("WizardPage", ",", None))
         self.label_10.setText(_translate("WizardPage", "]", None))
+        self.label25.setText(_translate("WizardPage", "status: ", None))
+        self.status_lbl.setText(_translate("WizardPage", "actualstatus", None))
 

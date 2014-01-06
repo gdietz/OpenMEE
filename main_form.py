@@ -22,6 +22,7 @@ import ui_main_window
 import about
 import calculate_effect_sizes_wizard
 import transform_effect_size_wizard
+import data_exploration_wizards
 import ma_wizard
 import ee_model
 import useful_dialogs
@@ -303,6 +304,10 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
         #### Publication Bias Menu ###
         self.actionFail_Safe_N.triggered.connect(self.failsafe_analysis)
         self.actionFunnel_Plot.triggered.connect(self.funnel_plot_analysis)
+        
+        #### Data Exploration Menu ###
+        self.actionHistogram.triggered.connect(self.histogram)
+        self.actionScatterplot.triggered.connect(self.scatterplot)
         
         # Help Menu
         self.action_about.triggered.connect(self.show_about_dlg)
@@ -772,7 +777,6 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
         wizard = ma_wizard.MetaAnalysisWizard(model=self.model,
                                   mode=FUNNEL_MODE,
                                   parent=self)
-              
         if wizard.exec_():
             meta_f_str = wizard.get_modified_meta_f_str()
             data_type, metric = wizard.get_data_type_and_metric()
@@ -812,6 +816,41 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
 
             self.analysis(result, summary)
     
+    def histogram(self):
+        prev_hist_var = None      # TODO: get from model
+        old_histogram_params = {} # TODO: get from model
+        wizard = data_exploration_wizards.HistogramWizard(model=self.model,
+                                                          old_histogram_params=old_histogram_params,
+                                                          prev_hist_var=prev_hist_var,)
+        if wizard.exec_():
+            # get selections
+            var = wizard.get_selected_var()
+            params = wizard.get_histogram_params()
+            
+            # store selections for next analysis
+            
+            # run analysis and display results window
+            print("selected var is: %s" % var.get_label())
+            print("params are: %s" % params)
+        
+    def scatterplot(self):
+        prev_scatterplot_data = None # TODO: get from model
+        old_scatterplot_params = {}  # TODO: get from model
+        wizard = data_exploration_wizards.ScatterPlotWizard(model=self.model,
+                                                            old_scatterplot_params=old_scatterplot_params,
+                                                            prev_scatterplot_data=prev_scatterplot_data)
+        
+        if wizard.exec_():
+            # get selections
+            xvar = wizard.get_selected_vars()['x']
+            yvar = wizard.get_selected_vars()['y']
+            params = wizard.get_scatterplot_params()
+            
+            # store selections for next analysis
+            
+            # run analysis and display results window
+            print("xvar is: %s, yvar is: %s" % (xvar.get_label(), yvar.get_label()))
+            print("params are: %s" % params)
 
   
     def run_meta_regression(self, metric, data_type, included_studies,

@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'main_window.ui'
 #
-# Created: Fri Dec 13 09:42:45 2013
+# Created: Mon Jan  6 15:33:09 2014
 #      by: PyQt4 UI code generator 4.10.3
 #
 # WARNING! All changes made in this file will be lost!
@@ -26,7 +26,7 @@ except AttributeError:
 class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
         MainWindow.setObjectName(_fromUtf8("MainWindow"))
-        MainWindow.resize(927, 622)
+        MainWindow.resize(905, 571)
         icon = QtGui.QIcon()
         icon.addPixmap(QtGui.QPixmap(_fromUtf8(":/general/images/logo.png")), QtGui.QIcon.Normal, QtGui.QIcon.Off)
         MainWindow.setWindowIcon(icon)
@@ -39,7 +39,7 @@ class Ui_MainWindow(object):
         self.verticalLayout.addWidget(self.tableView)
         MainWindow.setCentralWidget(self.centralwidget)
         self.menubar = QtGui.QMenuBar(MainWindow)
-        self.menubar.setGeometry(QtCore.QRect(0, 0, 927, 22))
+        self.menubar.setGeometry(QtCore.QRect(0, 0, 905, 22))
         self.menubar.setObjectName(_fromUtf8("menubar"))
         self.menuFile = QtGui.QMenu(self.menubar)
         self.menuFile.setObjectName(_fromUtf8("menuFile"))
@@ -59,6 +59,8 @@ class Ui_MainWindow(object):
         self.menuAbout.setObjectName(_fromUtf8("menuAbout"))
         self.menuPublication_Bias = QtGui.QMenu(self.menubar)
         self.menuPublication_Bias.setObjectName(_fromUtf8("menuPublication_Bias"))
+        self.menuData_Exploration = QtGui.QMenu(self.menubar)
+        self.menuData_Exploration.setObjectName(_fromUtf8("menuData_Exploration"))
         MainWindow.setMenuBar(self.menubar)
         self.statusbar = QtGui.QStatusBar(MainWindow)
         self.statusbar.setObjectName(_fromUtf8("statusbar"))
@@ -186,6 +188,10 @@ class Ui_MainWindow(object):
         icon13.addPixmap(QtGui.QPixmap(_fromUtf8(":/function_icon_set/images/function_icon_set/refresh_48.png")), QtGui.QIcon.Normal, QtGui.QIcon.Off)
         self.actionResetAnalysisChoices.setIcon(icon13)
         self.actionResetAnalysisChoices.setObjectName(_fromUtf8("actionResetAnalysisChoices"))
+        self.actionScatterplot = QtGui.QAction(MainWindow)
+        self.actionScatterplot.setObjectName(_fromUtf8("actionScatterplot"))
+        self.actionHistogram = QtGui.QAction(MainWindow)
+        self.actionHistogram.setObjectName(_fromUtf8("actionHistogram"))
         self.menuFile.addAction(self.actionNew)
         self.menuFile.addAction(self.actionOpen)
         self.menuFile.addAction(self.actionSave)
@@ -233,10 +239,13 @@ class Ui_MainWindow(object):
         self.menuAbout.addAction(self.action_about)
         self.menuPublication_Bias.addAction(self.actionFail_Safe_N)
         self.menuPublication_Bias.addAction(self.actionFunnel_Plot)
+        self.menuData_Exploration.addAction(self.actionScatterplot)
+        self.menuData_Exploration.addAction(self.actionHistogram)
         self.menubar.addAction(self.menuFile.menuAction())
         self.menubar.addAction(self.menuEdit.menuAction())
         self.menubar.addAction(self.menuTable.menuAction())
         self.menubar.addAction(self.menuAnalysis.menuAction())
+        self.menubar.addAction(self.menuData_Exploration.menuAction())
         self.menubar.addAction(self.menuPublication_Bias.menuAction())
         self.menubar.addAction(self.menuAbout.menuAction())
         self.toolBar.addAction(self.actionNew)
@@ -270,6 +279,7 @@ class Ui_MainWindow(object):
         self.menuMeta_Regression_Meta_Regression_Derivatives.setTitle(_translate("MainWindow", "Meta-Regression and Meta Regression Derivatives", None))
         self.menuAbout.setTitle(_translate("MainWindow", "Help", None))
         self.menuPublication_Bias.setTitle(_translate("MainWindow", "Publication Bias", None))
+        self.menuData_Exploration.setTitle(_translate("MainWindow", "Data Exploration", None))
         self.toolBar.setWindowTitle(_translate("MainWindow", "toolBar", None))
         self.actionNew.setText(_translate("MainWindow", "New", None))
         self.actionNew.setToolTip(_translate("MainWindow", "New Dataset", None))
@@ -314,5 +324,7 @@ class Ui_MainWindow(object):
         self.actionFunnel_Plot.setText(_translate("MainWindow", "Funnel Plot", None))
         self.actionResetAnalysisChoices.setText(_translate("MainWindow", "Reset Analysis Choices", None))
         self.actionResetAnalysisChoices.setToolTip(_translate("MainWindow", "Reset choices made in analysis screens to the defaults", None))
+        self.actionScatterplot.setText(_translate("MainWindow", "Scatterplot", None))
+        self.actionHistogram.setText(_translate("MainWindow", "Histogram", None))
 
 import icons_rc

@@ -32,7 +32,6 @@ class FunnelPage(QWizardPage, ui_funnel_page.Ui_WizardPage):
                                          self.reflineCheckBox: [self.reflineSpinBox],
                                          }
         self.setup_connections()
-        
         # These have suitable default options as written in the metafor
         # documentation and should not be futzed around with willy-nilly
         self.set_checkboxes_state(Qt.Checked)
