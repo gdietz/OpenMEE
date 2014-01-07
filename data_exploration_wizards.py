@@ -53,7 +53,7 @@ class ScatterPlotWizard(QtGui.QWizard):
 
         self.data_select_page = ScatterplotDataSelectPage(model=model, prev_scatterplot_data=prev_scatterplot_data)
         self.scatterplot_page = ScatterPlotPage(old_scatterplot_params=old_scatterplot_params)
-        self.setPage(Page_ScatterplotDataSelectPage, self.scatterplot_page)
+        self.setPage(Page_ScatterplotDataSelectPage, self.data_select_page)
         self.setPage(Page_ScatterplotParams, self.scatterplot_page)
         
     def nextId(self):
@@ -65,4 +65,4 @@ class ScatterPlotWizard(QtGui.QWizard):
     def get_selected_vars(self):
         return self.data_select_page.get_selected_vars()
     def get_scatterplot_params(self):
-        return self.histogram_page.get_parameters()
+        return self.scatterplot_page.get_parameters()

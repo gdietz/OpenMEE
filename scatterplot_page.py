@@ -108,3 +108,31 @@ class ScatterPlotPage(QWizardPage, ui_scatterplot_page.Ui_WizardPage):
     def set_checkboxes_state(self, state):
         for checkbox in self.checkboxes:
             checkbox.setCheckState(state)
+            
+    def get_parameters(self):
+        # the keys given here have the same name as the parameters in metafor
+        # don't change them
+        # parameter read_to_send_to_R tells function to give the results such
+        # that they can be used in a call to R without any further formatting
+        # like adding quotes around strings or whatnot
+        
+        p = {}
+        
+        p['xlim'] = [self.xlimLowSpinBox.value(), self.xlimHighSpinBox.value()]
+        p['ylim'] = [self.ylimLowSpinBox.value(), self.ylimHighSpinBox.value()]
+        p['xlab'] = str(self.xlab_le.text())
+        p['ylab'] = str(self.ylab_le.text())
+            
+        
+        # Remove unchecked parameters
+        checkboxes_to_param = {self.xlimCheckBox: 'xlim',
+                               self.ylimCheckBox: 'ylim',
+                               self.xlabCheckBox: 'xlab',
+                               self.ylabCheckBox: 'ylab',
+                              }
+        for checkbox,key in checkboxes_to_param.items():
+            if not checkbox.isChecked():
+                p.pop(key)
+            
+        print("scatterplot params: %s" % p)
+        return p

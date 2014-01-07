@@ -178,7 +178,7 @@ class HistogramPage(QWizardPage, ui_histogram_page.Ui_WizardPage):
         p['ylim'] = [self.ylimLowSpinBox.value(), self.ylimHighSpinBox.value()]
         p['xlab'] = str(self.xlab_le.text())
         p['ylab'] = str(self.ylab_le.text())
-        p['binwidth'] = self.binwidth_checkbox.value()
+        p['binwidth'] = self.binwidth_spinBox.value()
         p['GRADIENT'] = self.gradient_radiobtn.isChecked()
         if p['GRADIENT']:
             #c("name","low","high")
@@ -195,7 +195,7 @@ class HistogramPage(QWizardPage, ui_histogram_page.Ui_WizardPage):
                               self.ylimCheckBox: 'ylim',
                               self.xlabCheckBox: 'xlab',
                               self.ylabCheckBox: 'ylab',
-                              self.binwidth: 'binwidth'}
+                              self.binwidth_checkBox: 'binwidth'}
         for checkbox,key in checkboxes_to_param.items():
             if not checkbox.isChecked():
                 p.pop(key)

@@ -97,7 +97,6 @@ def generate_forest_plot(file_path, side_by_side=False, params_name="plot.data")
         
 def regenerate_funnel_plot(params_path, file_path, edited_funnel_params=None):
     if edited_funnel_params:
-        #edited_funnel_params_robj = ro.ListVector(edited_funnel_params)
         funnel_params_r_str = unpack_r_parameters(prepare_funnel_params_for_R(edited_funnel_params))
         r_str = "regenerate.funnel.plot(out.path='%s', plot.path='%s', edited.funnel.params=list(%s))" % (params_path, file_path, funnel_params_r_str)
     else:
@@ -477,6 +476,50 @@ def run_failsafe_analysis(model, included_studies, data_location, failsafe_param
     result = execute_in_R("%s" % res_name)
     return parse_out_results(result)
 
+def run_histogram(model, var, params, res_name = "result", var_name = "tmp_obj", summary=""):
+    var_type = var.get_type()
+    
+    
+    # get data
+    studies = model.get_studies_in_current_order()
+    data = [study.get_var(var) for study in studies if study.get_var(var) is not None]
+    # put data into R format
+    if var_type == COUNT:
+        data_r = ro.IntVector(data)
+    elif var_type == CONTINUOUS:
+        data_r = ro.FloatVector(data)
+    
+    # exploratory.plotter <- function(data, params, plot.type)
+    r_str = "%s<-exploratory.plotter(%s, %s, plot.type=\"HISTOGRAM\")" % (res_name, data_r.r_repr(), params)
+    
+    result = execute_in_R(r_str)
+    return parse_out_results(result)
+
+def histogram_params_toR(params):
+    r_params = {}
+    
+    if 'xlim' in params:
+        r_params['xlim'] = ro.FloatVector(params['xlim'])
+    if 'ylim' in params:
+        r_params['ylim'] = ro.FloatVector(params['ylim'])
+    if 'xlab' in params:
+        r_params['xlab'] = ro.StrVector([params['xlab']])
+    if 'ylab' in params:
+        r_params['ylab'] = ro.StrVector([params['ylab']])
+    if 'GRADIENT' in params:
+        r_params['GRADIENT'] = ro.BoolVector([params['GRADIENT']])
+    
+#         p['binwidth'] = self.binwidth_spinBox.value()
+#         p['GRADIENT'] = self.gradient_radiobtn.isChecked()
+#         if p['GRADIENT']:
+#             #c("name","low","high")
+#             p['name'] = self.count_le.text() # count legend title
+#             p['low']  = self.low_color # in #RRGGBBAA format
+#             p['high'] = self.high_color
+#         else: #no gradient, fixed color
+#             p['fill'] = self.fill_color
+#             p['color'] = self.outline_color  # outline color
+
 def run_funnelplot_analysis(model,
                             included_studies,
                             data_type,
@@ -504,7 +547,7 @@ def run_funnelplot_analysis(model,
                                                       data_location=data_location,
                                                       data_type=data_type,
                                                       var_name=var_name)
-    # build up funnel pa
+    # build up funnel parameters
     ma_params_df = ro.DataFrame(ma_params)
     funnel_params_r_str = unpack_r_parameters(prepare_funnel_params_for_R(funnel_params))
     r_str = "%s<-funnel.wrapper('%s',%s,%s, %s)" % (res_name,fname,var_name,ma_params_df.r_repr(),funnel_params_r_str)

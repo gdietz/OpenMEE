@@ -46,3 +46,5 @@ class HistogramDataSelectPage(QWizardPage, ui_histogram_dataselect_page.Ui_Wizar
         idx = self.comboBox.currentIndex()
         data = self.comboBox.itemData(idx)
         col = data.toInt()[0]
+        return self.model.get_variable_assigned_to_column(col)
+        

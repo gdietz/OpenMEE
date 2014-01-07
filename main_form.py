@@ -821,7 +821,7 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
         old_histogram_params = {} # TODO: get from model
         wizard = data_exploration_wizards.HistogramWizard(model=self.model,
                                                           old_histogram_params=old_histogram_params,
-                                                          prev_hist_var=prev_hist_var,)
+                                                          prev_hist_var=prev_hist_var)
         if wizard.exec_():
             # get selections
             var = wizard.get_selected_var()
@@ -832,6 +832,26 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
             # run analysis and display results window
             print("selected var is: %s" % var.get_label())
             print("params are: %s" % params)
+            
+#             try:
+#                 result = python_to_R.run_funnelplot_analysis(
+#                                                  model=self.model,
+#                                                  included_studies=included_studies,
+#                                                  data_type=data_type,
+#                                                  metric=metric,
+#                                                  data_location=data_location, 
+#                                                  ma_params=current_param_vals,
+#                                                  funnel_params=funnel_params,
+#                                                  fname=chosen_method,
+#                                                  res_name = "result",
+#                                                  var_name = "tmp_obj",
+#                                                  summary="")
+#             except CrazyRError as e:
+#                 if SOUND_EFFECTS:
+#                     silly.play()
+#                 QMessageBox.critical(self, "Oops", str(e))
+# 
+#             self.analysis(result, summary)
         
     def scatterplot(self):
         prev_scatterplot_data = None # TODO: get from model
