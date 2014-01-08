@@ -478,8 +478,7 @@ def run_failsafe_analysis(model, included_studies, data_location, failsafe_param
 
 def run_histogram(model, var, params, res_name = "result", var_name = "tmp_obj", summary=""):
     var_type = var.get_type()
-    
-    
+
     # get data
     studies = model.get_studies_in_current_order()
     data = [study.get_var(var) for study in studies if study.get_var(var) is not None]
@@ -489,36 +488,83 @@ def run_histogram(model, var, params, res_name = "result", var_name = "tmp_obj",
     elif var_type == CONTINUOUS:
         data_r = ro.FloatVector(data)
     
+    # params in R format
+    params_r = histogram_params_toR(params)
     # exploratory.plotter <- function(data, params, plot.type)
-    r_str = "%s<-exploratory.plotter(%s, %s, plot.type=\"HISTOGRAM\")" % (res_name, data_r.r_repr(), params)
+    r_str = "%s<-exploratory.plotter(%s, %s, plot.type=\"HISTOGRAM\")" % (res_name, data_r.r_repr(), params_r.r_repr())
     
     result = execute_in_R(r_str)
     return parse_out_results(result)
 
+def run_scatterplot(model, xvar, yvar, params, res_name = "result", var_name = "tmp_obj"):    
+    xvar_type = xvar.get_type()
+    yvar_type = yvar.get_type()
+    
+    # get data
+    studies = model.get_studies_in_current_order()
+    x_data = [study.get_var(xvar) for study in studies]
+    y_data = [study.get_var(yvar) for study in studies]
+    
+    # get rid of entries where either x or y is None
+    data = [(x,y) for (x,y) in zip(x_data,y_data) if x is not None and y is not None]
+    x_data,y_data = zip(*data)
+    # put data into R format
+    def data_to_R_fmt(donnees, data_type):
+        if xvar_type == COUNT:
+            donnees_r = ro.IntVector(donnees)
+        elif xvar_type == CONTINUOUS:
+            donnees_r = ro.FloatVector(donnees)
+        else:
+            raise Exception("Unrecognized data type")
+        return donnees_r
+    x_data = data_to_R_fmt(x_data, xvar_type)
+    y_data = data_to_R_fmt(y_data, yvar_type)
+    data = {'x':x_data, 'y':y_data}
+    data_r = ro.DataFrame(data)
+    
+    # params in R format
+    params_r = scatterplot_params_to_R(params)
+    # exploratory.plotter <- function(data, params, plot.type)
+    r_str = "%s<-exploratory.plotter(%s, %s, plot.type=\"SCATTERPLOT\")" % (res_name, data_r.r_repr(), params_r.r_repr())
+    
+    result = execute_in_R(r_str)
+    return parse_out_results(result)
+
+
+
+
+
 def histogram_params_toR(params):
+    ''' converts params to a properly formatted R-list of the params'''
+    
     r_params = {}
     
-    if 'xlim' in params:
-        r_params['xlim'] = ro.FloatVector(params['xlim'])
-    if 'ylim' in params:
-        r_params['ylim'] = ro.FloatVector(params['ylim'])
-    if 'xlab' in params:
-        r_params['xlab'] = ro.StrVector([params['xlab']])
-    if 'ylab' in params:
-        r_params['ylab'] = ro.StrVector([params['ylab']])
-    if 'GRADIENT' in params:
-        r_params['GRADIENT'] = ro.BoolVector([params['GRADIENT']])
+    for k, v in params.items():
+        if k in ['xlim','ylim']:
+            r_params[k]=ro.FloatVector(v)
+        if k in ['xlab','ylab', 'name','low','high','fill','color']:
+            r_params[k]=ro.StrVector([v])
+        if k=='GRADIENT':
+            r_params[k] = ro.BoolVector([v])
+        if k=='binwidth':
+            r_params[k]=ro.FloatVector([v])
     
-#         p['binwidth'] = self.binwidth_spinBox.value()
-#         p['GRADIENT'] = self.gradient_radiobtn.isChecked()
-#         if p['GRADIENT']:
-#             #c("name","low","high")
-#             p['name'] = self.count_le.text() # count legend title
-#             p['low']  = self.low_color # in #RRGGBBAA format
-#             p['high'] = self.high_color
-#         else: #no gradient, fixed color
-#             p['fill'] = self.fill_color
-#             p['color'] = self.outline_color  # outline color
+    r_param_list = ro.ListVector(r_params)
+    return r_param_list
+
+def scatterplot_params_to_R(params):
+    ''' converts params to a properly formatted R-list of the params'''
+    
+    r_params = {}
+    
+    for k, v in params.items():
+        if k in ['xlim','ylim']:
+            r_params[k]=ro.FloatVector(v)
+        if k in ['xlab','ylab']:
+            r_params[k]=ro.StrVector([v])
+                
+    r_param_list = ro.ListVector(r_params)
+    return r_param_list
 
 def run_funnelplot_analysis(model,
                             included_studies,

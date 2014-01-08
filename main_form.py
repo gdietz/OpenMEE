@@ -833,25 +833,17 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
             print("selected var is: %s" % var.get_label())
             print("params are: %s" % params)
             
-#             try:
-#                 result = python_to_R.run_funnelplot_analysis(
-#                                                  model=self.model,
-#                                                  included_studies=included_studies,
-#                                                  data_type=data_type,
-#                                                  metric=metric,
-#                                                  data_location=data_location, 
-#                                                  ma_params=current_param_vals,
-#                                                  funnel_params=funnel_params,
-#                                                  fname=chosen_method,
-#                                                  res_name = "result",
-#                                                  var_name = "tmp_obj",
-#                                                  summary="")
-#             except CrazyRError as e:
-#                 if SOUND_EFFECTS:
-#                     silly.play()
-#                 QMessageBox.critical(self, "Oops", str(e))
-# 
-#             self.analysis(result, summary)
+            try:
+                result = python_to_R.run_histogram(model=self.model,
+                                                   var=var,
+                                                   params=params,
+                                                   res_name = "result", var_name = "tmp_obj", summary="")
+            except CrazyRError as e:
+                if SOUND_EFFECTS:
+                    silly.play()
+                QMessageBox.critical(self, "Oops", str(e))
+ 
+            self.analysis(result, summary="")
         
     def scatterplot(self):
         prev_scatterplot_data = None # TODO: get from model
@@ -866,12 +858,24 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
             yvar = wizard.get_selected_vars()['y']
             params = wizard.get_scatterplot_params()
             
+            
             # store selections for next analysis
             
             # run analysis and display results window
             print("xvar is: %s, yvar is: %s" % (xvar.get_label(), yvar.get_label()))
             print("params are: %s" % params)
-
+            try:
+                result = python_to_R.run_scatterplot(model=self.model,
+                                                     xvar=xvar,
+                                                     yvar=yvar,
+                                                     params=params)
+            except CrazyRError as e:
+                if SOUND_EFFECTS:
+                    silly.play()
+                QMessageBox.critical(self, "Oops", str(e))
+ 
+            self.analysis(result, summary="")
+ 
   
     def run_meta_regression(self, metric, data_type, included_studies,
                             data_location, covs_to_include,
