@@ -17,6 +17,8 @@ class ScatterPlotPage(QWizardPage, ui_scatterplot_page.Ui_WizardPage):
         super(ScatterPlotPage, self).__init__(parent)
         self.setupUi(self)
         
+        self.old_scatterplot_params = old_scatterplot_params
+        
         self.checkboxes = [self.xlabCheckBox, self.ylabCheckBox,
                            self.xlimCheckBox, self.ylimCheckBox]
 
@@ -29,10 +31,11 @@ class ScatterPlotPage(QWizardPage, ui_scatterplot_page.Ui_WizardPage):
         self.setup_connections()
         self.set_checkboxes_state(Qt.Checked)
         self.set_checkboxes_state(Qt.Unchecked)
-        
+    
+    def initializePage(self):
         # set up form based on last run
-        if old_scatterplot_params:
-            self.setup_form_from_last_run(old_scatterplot_params)
+        #if old_scatterplot_params:
+        self.setup_form_from_last_run(self.old_scatterplot_params)
             
     def setup_form_from_last_run(self, old_params):
         ''' Sets the parameters based on the last run (if it is available) '''
@@ -47,14 +50,31 @@ class ScatterPlotPage(QWizardPage, ui_scatterplot_page.Ui_WizardPage):
             self._change_target_enable_state(self.ylimCheckBox, Qt.Checked)
             self.ylimLowSpinBox.setValue(old_params['ylim'][0])
             self.ylimHighSpinBox.setValue(old_params['ylim'][0])
+    
+        self.xlabCheckBox.setCheckState(Qt.Checked)
+        self._change_target_enable_state(self.xlabCheckBox, Qt.Checked)
         if 'xlab' in old_params:
-            self.xlabCheckBox.setCheckState(Qt.Checked)
-            self._change_target_enable_state(self.xlabCheckBox, Qt.Checked)
             self.xlab_le.setText(old_params['xlab'])
+        else:
+            default_xlabel = self.wizard().get_selected_vars()['x'].get_label()
+            self.xlab_le.setText(default_xlabel)
+        
+        self.ylabCheckBox.setCheckState(Qt.Checked)
+        self._change_target_enable_state(self.ylabCheckBox, Qt.Checked)
         if 'ylab' in old_params:
-            self.ylabCheckBox.setCheckState(Qt.Checked)
-            self._change_target_enable_state(self.ylabCheckBox, Qt.Checked)
             self.ylab_le.setText(old_params['ylab'])
+        else:
+            default_ylabel = self.wizard().get_selected_vars()['y'].get_label()
+            self.ylab_le.setText(default_ylabel)
+            
+#         if 'xlab' in old_params:
+#             self.xlabCheckBox.setCheckState(Qt.Checked)
+#             self._change_target_enable_state(self.xlabCheckBox, Qt.Checked)
+#             self.xlab_le.setText(old_params['xlab'])
+#         if 'ylab' in old_params:
+#             self.ylabCheckBox.setCheckState(Qt.Checked)
+#             self._change_target_enable_state(self.ylabCheckBox, Qt.Checked)
+#             self.ylab_le.setText(old_params['ylab'])
             
     def setup_connections(self):
         # enable/disable targets
@@ -96,7 +116,8 @@ class ScatterPlotPage(QWizardPage, ui_scatterplot_page.Ui_WizardPage):
                 self.status_lbl.setStyleSheet("QLabel { color: red }")
                 return False
             
-        # TODO: disallow quote characters in labels
+        # TODO: disallow quote characters in labels or make sure allowing them
+        # doesn't break anything
         
         self.status_lbl.setText("a-OK")
         self.status_lbl.setStyleSheet("QLabel { color: green }")

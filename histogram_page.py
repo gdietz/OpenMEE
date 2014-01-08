@@ -18,6 +18,7 @@ class HistogramPage(QWizardPage, ui_histogram_page.Ui_WizardPage):
         super(HistogramPage, self).__init__(parent)
         self.setupUi(self)
         
+        self.old_histogram_params = old_histogram_params
         
         self.fill_color    = "#FFFFFF"  # white
         self.outline_color = "#000000"  # black
@@ -44,9 +45,10 @@ class HistogramPage(QWizardPage, ui_histogram_page.Ui_WizardPage):
         self.set_checkboxes_state(Qt.Checked)
         self.set_checkboxes_state(Qt.Unchecked)
         
+    def initializePage(self):
         # set up form based on last run
-        if old_histogram_params:
-            self.setup_form_from_last_run(old_histogram_params)
+        #if self.old_histogram_params:
+        self.setup_form_from_last_run(self.old_histogram_params)
             
     def _get_btn_color(self, button):
             color_btns_to_color_vars = {self.fill_color_btn:self.fill_color,
@@ -69,10 +71,16 @@ class HistogramPage(QWizardPage, ui_histogram_page.Ui_WizardPage):
             self._change_target_enable_state(self.ylimCheckBox, Qt.Checked)
             self.ylimLowSpinBox.setValue(old_params['ylim'][0])
             self.ylimHighSpinBox.setValue(old_params['ylim'][0])
+            
+        self.xlabCheckBox.setCheckState(Qt.Checked)
+        self._change_target_enable_state(self.xlabCheckBox, Qt.Checked)
         if 'xlab' in old_params:
-            self.xlabCheckBox.setCheckState(Qt.Checked)
-            self._change_target_enable_state(self.xlabCheckBox, Qt.Checked)
             self.xlab_le.setText(old_params['xlab'])
+            print("old xlabel found: %s" % old_params['xlab'])
+        else:
+            default_xlabel = self.wizard().get_selected_var().get_label()
+            self.xlab_le.setText(default_xlabel)
+            print("using default xlabel: %s" % default_xlabel)
         if 'ylab' in old_params:
             self.ylabCheckBox.setCheckState(Qt.Checked)
             self._change_target_enable_state(self.ylabCheckBox, Qt.Checked)
@@ -81,18 +89,23 @@ class HistogramPage(QWizardPage, ui_histogram_page.Ui_WizardPage):
             self.binwidth_checkBox.setCheckState(Qt.Checked)
             self._change_target_enable_state(self.binwidth_checkBox, Qt.Checked)
             self.binwidth_spinBox.setValue(old_params['binwidth'])
-        if old_params['GRADIENT']:
-            self.low_color_change_btn.setStyleSheet("background-color: "+old_params['low']+";color: rgb(255, 255, 255);")
-            self.high_color_change_btn.setStyleSheet("background-color: "+old_params['high']+";color: rgb(255, 255, 255);")
-            self.low_color  = old_params['low']
-            self.high_color = old_params['high']
-            
-            self.count_le.setText(old_params['name'])
+        if 'GRADIENT' in old_params:
+            if old_params['GRADIENT']:
+                self.low_color_change_btn.setStyleSheet("background-color: "+old_params['low']+";color: rgb(255, 255, 255);")
+                self.high_color_change_btn.setStyleSheet("background-color: "+old_params['high']+";color: rgb(255, 255, 255);")
+                self.low_color  = old_params['low']
+                self.high_color = old_params['high']
+                self.count_le.setText(old_params['name'])
+                
+                self.gradient_radiobtn.click()
+            else:
+                self.fill_color_btn.setStyleSheet("color: rgb(0, 0, 0);\nbackground-color: "+old_params['fill']+";")
+                self.outline_color_btn.setStyleSheet("color: rgb(200, 200, 200);\nbackground-color: "+old_params['color']+";")
+                self.fill_color = old_params['fill']
+                self.outline_color = old_params['color']
+                self.no_gradient_radiobtn.click()
         else:
-            self.fill_color_btn.setStyleSheet("color: rgb(0, 0, 0);\nbackground-color: "+old_params['fill']+";")
-            self.outline_color_btn.setStyleSheet("color: rgb(200, 200, 200);\nbackground-color: "+old_params['color']+";")
-            self.fill_color = old_params['fill']
-            self.outline_color = old_params['color']
+            self.no_gradient_radiobtn.click()
     
     
     def _choose_color(self, button):
@@ -126,6 +139,26 @@ class HistogramPage(QWizardPage, ui_histogram_page.Ui_WizardPage):
             
         for color_button in self.color_btns:
             color_button.clicked.connect(partial(self._choose_color, color_button))
+            
+        self.no_gradient_radiobtn.clicked.connect(self._fixed_clicked)
+        self.gradient_radiobtn.clicked.connect(self._gradient_clicked)
+    
+    def _fixed_clicked(self):
+        # hide gradient and show fixed
+        self.fixed_color_widget.show()
+        self.gradient_widget.hide()
+        self.hist_colors_groupbox.adjustSize()
+        self.adjustSize()
+        self.wizard().adjustSize()
+        
+    def _gradient_clicked(self):
+        # show gradient and hidefixed
+        self.fixed_color_widget.hide()
+        self.gradient_widget.show()
+        self.hist_colors_groupbox.adjustSize()
+        self.adjustSize()
+        self.wizard().adjustSize()
+            
     
     def spinbox_value_changed(self):
         self.completeChanged.emit()

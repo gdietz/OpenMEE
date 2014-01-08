@@ -248,6 +248,7 @@ class ResultsWindow(QMainWindow, ui_results_window.Ui_ResultsWindow):
             # custom scales to which special plots should be scaled
             title_contents_to_scale = {"histogram":1,
                                        "funnel":1,
+                                       "scatterplot":1,
                                        }
             for title_contents, scale in title_contents_to_scale.items():
                 if title.lower().rfind(title_contents) != -1:
@@ -461,6 +462,10 @@ class ResultsWindow(QMainWindow, ui_results_window.Ui_ResultsWindow):
             plot_type = "regression"
         elif "funnel" in tmp_title:
             plot_type = "funnel"
+        elif "histogram" in tmp_title:
+            plot_type = "histogram"
+        elif "scatterplot" in tmp_title:
+            plot_type = "scatterplot"
         return plot_type
 
     def create_pixmap_item(self, pixmap, position, title, image_path,\
@@ -563,14 +568,16 @@ class ResultsWindow(QMainWindow, ui_results_window.Ui_ResultsWindow):
         # note that the params object will, by convention,
         # have the (generic) name 'plot.data' -- after this
         # call, this object will be in the namespace
-        if plot_type != "funnel":
+        if plot_type not in ["funnel", "histogram", "scatterplot"]:
             python_to_R.load_in_R("%s.plotdata" % params_path)
             print("Loaded: %s" % "%s.plotdata" % params_path)
 
         suffix = unicode("."+fmt)
         default_filename = {"forest":"forest_plot", 
                             "regression":"regression",
-                            "funnel":"funnel_plot"}[plot_type] + suffix
+                            "funnel":"funnel_plot",
+                            "histogram":"histogram",
+                            "scatterplot":"scatterplot"}[plot_type] + suffix
         
                         
         default_path = os.path.join(BASE_PATH, default_filename)
@@ -601,6 +608,8 @@ class ResultsWindow(QMainWindow, ui_results_window.Ui_ResultsWindow):
                 python_to_R.generate_reg_plot(file_path)
             elif plot_type == "funnel":
                 python_to_R.regenerate_funnel_plot(params_path, file_path)
+            elif plot_type in ["histogram","scatterplot"]:
+                python_to_R.regenerate_exploratory_plot(params_path, file_path, plot_type=plot_type)
             else:
                 print "sorry -- I don't know how to draw %s plots!" % plot_type
 #        else: # case where we just have the png and can't regenerate the pdf from plot data

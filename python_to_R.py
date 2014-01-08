@@ -103,6 +103,30 @@ def regenerate_funnel_plot(params_path, file_path, edited_funnel_params=None):
         r_str = "regenerate.funnel.plot(out.path='%s', plot.path='%s')" % (params_path, file_path)
         
     execute_in_R(r_str)
+    
+def regenerate_exploratory_plot(params_path, file_path, plot_type, edited_params=None):
+#     params_r = histogram_params_toR(params)
+#     # exploratory.plotter <- function(data, params, plot.type)
+#     r_str = "%s<-exploratory.plotter(%s, %s, plot.type=\"HISTOGRAM\")" % (res_name, data_r.r_repr(), params_r.r_repr())
+#     
+#regenerate.exploratory.plot <- function(out.path, plot.path, plot.type, edited.params=NULL) {
+    if plot_type == "histogram":
+        params_r = histogram_params_toR(edited_params) if edited_params else None
+        plot_type = "HISTOGRAM"
+    elif plot_type == "scatterplot":
+        params_r = scatterplot_params_to_R(edited_params) if edited_params else None
+        plot_type = "SCATTERPLOT"
+    else:
+        raise Exception("Unrecognized plot type")
+    
+    if edited_params:
+        r_str = "regenerate.exploratory.plot(out.path='%s', plot.path='%s', plot.type='%s', edited.params=%s)" % (params_path, file_path, plot_type, params_r.r_repr())
+    else:
+        r_str = "regenerate.exploratory.plot(out.path='%s', plot.path='%s', plot.type='%s')" % (params_path, file_path, plot_type)
+        
+    execute_in_R(r_str)
+    
+
 
 def load_in_R(fpath):
     ''' loads what is presumed to be .Rdata into the R environment '''
