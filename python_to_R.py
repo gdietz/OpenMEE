@@ -1540,5 +1540,15 @@ def get_funnel_params(params_path):
     params_pyfmt = R_parse_tools.recursioner(params)
     print("The funnel parameters in python format are: %s" % params_pyfmt)
     return params_pyfmt
+
+def get_exploratory_params(params_path, plot_type=None):
+    ''' gets the stored params from r_tmp from R for histograms and scatterplots
+    and puts them into 'python' mode ''' 
+    
+    r_str = 'get.exploratory.params("%s")' % params_path
+    params = execute_in_R(r_str)
+    params_pyfmt = R_parse_tools.recursioner(params)
+    print("The parameters in python format are: %s" % params_pyfmt)
+    return params_pyfmt
     
     

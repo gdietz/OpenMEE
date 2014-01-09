@@ -23,6 +23,7 @@ import python_to_R
 
 from ome_globals import *
 from edit_funnel_plot_form import EditFunnelPlotForm
+from edit_data_exploration_plot_form import EditDataExplorationPlotForm
 
 PageSize = (612, 792)
 padding = 25
@@ -533,7 +534,7 @@ class ResultsWindow(QMainWindow, ui_results_window.Ui_ResultsWindow):
                             lambda : self.edit_image(params_path, title,
                                                      png_path, qpixmap_item))
                     menu.addAction(action)
-                elif plot_type == "funnel":
+                elif plot_type in ["funnel","histogram","scatterplot"]:
                     action = QAction("edit plot...", self)
                     QObject.connect(action, SIGNAL("triggered()"),
                             lambda : self.edit_image(params_path, title,
@@ -637,6 +638,14 @@ class ResultsWindow(QMainWindow, ui_results_window.Ui_ResultsWindow):
             if edit_form.exec_():
                 new_funnel_params = edit_form.get_params()
                 python_to_R.regenerate_funnel_plot(params_path, png_path, edited_funnel_params=new_funnel_params)
+                new_pixmap = self.generate_pixmap(png_path, custom_scale=1)
+                pixmap_item.setPixmap(new_pixmap)
+        elif plot_type in ["histogram","scatterplot"]:
+            params = python_to_R.get_exploratory_params(params_path)
+            edit_form = EditDataExplorationPlotForm(form_type=plot_type, params=params)
+            if edit_form.exec_():
+                new_params = edit_form.get_params()
+                python_to_R.regenerate_exploratory_plot(params_path, png_path, plot_type=plot_type, edited_params=new_params)
                 new_pixmap = self.generate_pixmap(png_path, custom_scale=1)
                 pixmap_item.setPixmap(new_pixmap)
         
