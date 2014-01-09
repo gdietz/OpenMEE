@@ -1360,13 +1360,36 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
 
         return choice != QMessageBox.Cancel
 
+    def what_to_do_about_unsaved_data_prompt(self):
+        choices = {QMessageBox.Save:'SAVE',
+                   QMessageBox.Discard:'DISCARD',
+                   QMessageBox.Cancel:'CANCEL',
+                   QMessageBox.Close:'CANCEL'}
+        
+        choice = QMessageBox.warning(self, "Warning",
+                        "Changes have been made to the data. Do you want to save your changes, discard them, or cancel?",
+                        QMessageBox.Save | QMessageBox.Discard | QMessageBox.Cancel)
+        
+        return choices[choice]
+
+    def model_has_unsaved_data(self):
+        return self.model.dirty
 
     def open(self, file_path=None):
         ''' Prompts user to open a file and then opens it (picked data model) '''
-
-        # If user pressed cancel do nothing
-        if not self.prompt_user_about_unsaved_data():
-            return False
+        
+        # What to do if current dataset is unsaved
+        if self.model_has_unsaved_data():
+            what_to_do_about_unsaved_data = self.what_to_do_about_unsaved_data_prompt()
+            if what_to_do_about_unsaved_data == 'SAVE':
+                save_successful = self.save()
+                if not save_successful:
+                    QMessageBox.information(self, "Saving failed", "Saving the dataset failed for some reason")
+                    return True
+            elif what_to_do_about_unsaved_data == 'CANCEL':
+                return True;
+            elif what_to_do_about_unsaved_data == 'DISCARD':
+                pass # ok to disregard current data
 
         # prompt the user if no file_name is provided
         if file_path is None:
@@ -1528,28 +1551,37 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
         self.statusBar().showMessage(action.text(), 2000)
 
     def closeEvent(self, event):
-        ok_to_close = self.prompt_user_about_unsaved_data()
-        if ok_to_close:
-            print("*** Till we meet again, dear analyst ***")
-            event.accept()
-        else: # user cancelled
-            event.ignore()
+        self.quit(event)
 
+    def quit(self, event=None):
+        # What to do if current dataset is unsaved
+        if self.model_has_unsaved_data():
+            what_to_do_about_unsaved_data = self.what_to_do_about_unsaved_data_prompt()
+            if what_to_do_about_unsaved_data == 'SAVE':
+                save_successful = self.save()
+                if save_successful:
+                    print("*** Till we meet again, dear analyst ***")
+                    if event:
+                        event.accept()
+                else:
+                    QMessageBox.information(self, "Saving failed", "Saving the dataset failed for some reason")
+                    if event:
+                        event.ignore()
+                    return True
+                
+            elif what_to_do_about_unsaved_data == 'CANCEL':
+                if event:
+                    event.ignore()
+                return True;
+            elif what_to_do_about_unsaved_data == 'DISCARD':
+                if event:
+                    event.ignore()
+                pass # ok to disregard current data
 
         # save user prefs
         self._save_user_prefs()
-
+        
         QApplication.quit()
-
-    def quit(self):
-        ok_to_close = self.prompt_user_about_unsaved_data()
-        if ok_to_close:
-            print("*** Till we meet again, dear analyst ***")
-            QApplication.quit()
-        else:
-            pass # do nothing, user cancelled
-
-
 
 ### HANDLE USER PREFERENCES
     def update_user_prefs(self, field, value):
