@@ -1090,8 +1090,10 @@ class EETableModel(QAbstractTableModel):
                 if proposed_label == existing_label:
                     return True
                 # check for duplicate labels
-                current_labels = set([study.get_label() for study in self.get_studies_in_current_order()])
-                if proposed_label in current_labels:
+                current_labels = set(
+                    [study.get_label() for study in self.get_studies_in_current_order()])
+                # amending this conditional for issue #73
+                if proposed_label is not None and proposed_label in current_labels:
                     self.duplicate_label.emit()
                     print("bad setData: proposed label %s already in current labels" % proposed_label)
                     return False
