@@ -30,6 +30,9 @@ class RlibLoader:
     def __init__(self):
         print("R Libary loader (RlibLoader) initialized...")
         
+    def load_ape(self):
+        return self._load_r_lib("ape")
+
     def load_metafor(self):
         return self._load_r_lib("metafor")
     
@@ -60,6 +63,24 @@ try:
         print("success -- temporary results will be written to ./r_tmp")
 except:
     raise Exception, "unable to create temporary directory for R results! make sure you have sufficient permissions."
+
+
+def load_ape_file(ape_path):
+    print("loading ape file... {0}".format(ape_path))
+    ext = ape_path.split(".")[-1]
+    r_str = "phylo.tree <- read."
+    if ext == "tre":
+        print("parsing Newick file...")
+        r_str = r_str + "tree"
+    else:
+        # @TODO return error message to user
+        print("I do not know how to parse {0} files!".format(ext))
+        return False
+    r_str = r_str + "('{0}')".format(ape_path)
+    execute_in_R(r_str)
+    print("ok! loaded.")
+    return True
+
 
 def reset_Rs_working_dir():
     print("resetting R working dir")
@@ -105,11 +126,6 @@ def regenerate_funnel_plot(params_path, file_path, edited_funnel_params=None):
     execute_in_R(r_str)
     
 def regenerate_exploratory_plot(params_path, file_path, plot_type, edited_params=None):
-#     params_r = histogram_params_toR(params)
-#     # exploratory.plotter <- function(data, params, plot.type)
-#     r_str = "%s<-exploratory.plotter(%s, %s, plot.type=\"HISTOGRAM\")" % (res_name, data_r.r_repr(), params_r.r_repr())
-#     
-#regenerate.exploratory.plot <- function(out.path, plot.path, plot.type, edited.params=NULL) {
     if plot_type == "histogram":
         params_r = histogram_params_toR(edited_params) if edited_params else None
         plot_type = "HISTOGRAM"
@@ -126,7 +142,6 @@ def regenerate_exploratory_plot(params_path, file_path, plot_type, edited_params
         
     execute_in_R(r_str)
     
-
 
 def load_in_R(fpath):
     ''' loads what is presumed to be .Rdata into the R environment '''

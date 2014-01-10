@@ -13,8 +13,6 @@ import pdb
 import string
 from sets import Set
 from functools import partial
-#import copy
-
 
 # handrolled
 from dataset.ee_dataset import EEDataSet

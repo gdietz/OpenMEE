@@ -247,6 +247,8 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
         QObject.connect(self.actionOpen, SIGNAL("triggered()"), self.open)
         self.actionOpen.setShortcut(QKeySequence.Open)
         
+        QObject.connect(self.actionInsert_Row, SIGNAL("triggered()"), self.open_ape)
+
         QObject.connect(self.actionSave, SIGNAL("triggered()"), self.save)
         self.actionSave.setShortcut(QKeySequence.Save)
         
@@ -1375,6 +1377,21 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
     def model_has_unsaved_data(self):
         return self.model.dirty
 
+
+    def open_ape(self):
+        ''' open ape file; parse into R. '''
+        # @TODO additional formats!
+        file_path = unicode(
+            QFileDialog.getOpenFileName(
+                parent=self, caption=QString("Open ape file"), 
+                filter="Newick files (*.tre)"))
+        
+        print file_path
+        python_to_R.load_ape_file(file_path)
+
+
+
+
     def open(self, file_path=None):
         ''' Prompts user to open a file and then opens it (picked data model) '''
         
@@ -1688,14 +1705,14 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
             return False
         self.copy_contents_in_range(upper_left_index, lower_right_index,
                                     to_clipboard=True)  
-        
+
         # create a matrix of Nones and then 'paste' that in to the space we
         # just copied from
         nrows = lower_right_index.row() - upper_left_index.row() + 1
         ncols = lower_right_index.column() - upper_left_index.column() + 1
-        nonerow = [None]*ncols
+        nonerow = [None] * ncols
         none_matrix = []
-        for _ in range(nrows):
+        for _ in xrange(nrows):
             none_matrix.append(nonerow[:])
 
         self.paste_contents(upper_left_index, none_matrix)
@@ -1864,8 +1881,7 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
         nrows = len(source_content)
         ncols = len(source_content[0])
         end_row, end_col = origin_row+nrows-1, origin_col+ncols-1
-        #ncells = nrows*ncols
-
+        
         progress_dlg = QProgressDialog(QString(progress_bar_title),QString("cancel"),0,(nrows-1)*(ncols-1),parent=self)
         progress_dlg.setWindowModality(Qt.WindowModal)
         
@@ -1875,20 +1891,21 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
             else:
                 progress_dlg.setLabelText("Pasting...")
             
-            for src_row in range(len(source_content)):
-                for src_col in range(len(source_content[0])):
+            for src_row in xrange(len(source_content)):
+                for src_col in xrange(len(source_content[0])):
                     new_progress_val = src_row*ncols + src_col
                     if new_progress_val % 100 == 0:
                         progress_dlg.setValue(new_progress_val)
                         QApplication.processEvents()
-                    #try:
+                    
                     # note that we treat all of the data pasted as
                     # one event; i.e., when undo is called, it undos the
                     # whole paste
+                    print "index: {0}, {1}".format(origin_row+src_row, origin_col+src_col)
                     index = self.model.createIndex(origin_row+src_row, origin_col+src_col)
                     raw_value = source_content[src_row][src_col]
                     if raw_value in [None, QVariant(None),QVariant()]:
-                        value=None
+                        value = None
                     else:
                         unicode_value = unicode(raw_value)
                         in_ascii = unicode_value.encode('ascii','replace')
@@ -1900,8 +1917,6 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
                             return False
                     else:
                         setdata_ok = self.model.setData(index, QVariant(value))
-                        if not setdata_ok:
-                            print("SETDATA FAILED!!!")
                         if not self.model.big_paste_mode:
                             if not setdata_ok:
                                 cancel_macro_creation_and_revert_state()

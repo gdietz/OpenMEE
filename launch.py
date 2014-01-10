@@ -40,7 +40,11 @@ def load_R_libraries(app, splash=None):
     splash.showMessage("Loading grid\n................")
     app.processEvents()
     rloader.load_grid()
-    
+
+    splash.showMessage("Loading APE\n................")
+    app.processEvents()
+    rloader.load_ape()
+
 def start(open_file_path=None):
     # clear r_tmp:
     clear_r_tmp()
