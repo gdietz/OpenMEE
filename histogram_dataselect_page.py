@@ -21,9 +21,7 @@ class HistogramDataSelectPage(QWizardPage, ui_histogram_dataselect_page.Ui_Wizar
     def _populate_combo_box(self):
         ''' populates combo box with numerical variables '''
         
-        cont_vars = self.model.get_variables(var_type=CONTINUOUS)
-        count_vars = self.model.get_variables(var_type=COUNT)
-        vars = cont_vars + count_vars
+        vars= self.model.get_variables()
         vars.sort(key=lambda var: var.get_label())
         
         default_index = 0

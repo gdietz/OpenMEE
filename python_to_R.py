@@ -505,12 +505,14 @@ def run_histogram(model, var, params, res_name = "result", var_name = "tmp_obj",
 
     # get data
     studies = model.get_studies_in_current_order()
-    data = [study.get_var(var) for study in studies if study.get_var(var) is not None]
+    data = [study.get_var(var) for study in studies if study.get_var(var) not in [None,""]]
     # put data into R format
     if var_type == COUNT:
         data_r = ro.IntVector(data)
     elif var_type == CONTINUOUS:
         data_r = ro.FloatVector(data)
+    elif var_type == CATEGORICAL:
+        data_r = ro.StrVector(data)
     
     # params in R format
     params_r = histogram_params_toR(params)
