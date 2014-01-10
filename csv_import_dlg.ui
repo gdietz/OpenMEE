@@ -11,19 +11,20 @@
    </rect>
   </property>
   <property name="windowTitle">
-   <string>CSV Import</string>
+   <string>Import a CSV</string>
   </property>
   <layout class="QVBoxLayout" name="verticalLayout_3">
    <item>
     <widget class="QLabel" name="instructions">
      <property name="font">
       <font>
-       <pointsize>17</pointsize>
+       <pointsize>12</pointsize>
+       <weight>75</weight>
+       <bold>true</bold>
       </font>
      </property>
      <property name="text">
-      <string>Please select a csv file to import.
-Remember to assign a proper format to each column.</string>
+      <string>Please select a csv file to import.</string>
      </property>
      <property name="alignment">
       <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
@@ -33,6 +34,16 @@ Remember to assign a proper format to each column.</string>
      </property>
      <property name="margin">
       <number>10</number>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <widget class="QLabel" name="label">
+     <property name="text">
+      <string>This window lets you determine the delimeters in your *.csv file. The sub-window below provides a preview of the imported data based on your selection in the &quot;Import Options&quot; box.</string>
+     </property>
+     <property name="wordWrap">
+      <bool>true</bool>
      </property>
     </widget>
    </item>
@@ -57,14 +68,14 @@ Remember to assign a proper format to each column.</string>
       <item>
        <widget class="QCheckBox" name="from_excel_chkbx">
         <property name="text">
-         <string>csv exported from excel?</string>
+         <string>Was this *.csv file exported/saved from Microsoft Excel?</string>
         </property>
        </widget>
       </item>
       <item>
        <widget class="QCheckBox" name="has_headers_chkbx">
         <property name="text">
-         <string>Has column labels?</string>
+         <string>Are the columns labeled? (i.e. first row has text?)</string>
         </property>
         <property name="checked">
          <bool>true</bool>
@@ -73,16 +84,6 @@ Remember to assign a proper format to each column.</string>
       </item>
       <item>
        <layout class="QGridLayout" name="gridLayout">
-        <item row="1" column="0">
-         <widget class="QLabel" name="quotelbl">
-          <property name="text">
-           <string>Quote Character:</string>
-          </property>
-          <property name="buddy">
-           <cstring>delimter_le</cstring>
-          </property>
-         </widget>
-        </item>
         <item row="0" column="1">
          <widget class="QLineEdit" name="delimter_le">
           <property name="sizePolicy">
@@ -93,67 +94,12 @@ Remember to assign a proper format to each column.</string>
           </property>
           <property name="maximumSize">
            <size>
-            <width>20</width>
-            <height>16777215</height>
+            <width>50</width>
+            <height>20</height>
            </size>
           </property>
           <property name="text">
            <string>,</string>
-          </property>
-         </widget>
-        </item>
-        <item row="0" column="0">
-         <widget class="QLabel" name="delimter_lbl">
-          <property name="text">
-           <string>Delimter:</string>
-          </property>
-          <property name="buddy">
-           <cstring>delimter_le</cstring>
-          </property>
-         </widget>
-        </item>
-        <item row="2" column="1">
-         <widget class="QLineEdit" name="missing_data_le">
-          <property name="minimumSize">
-           <size>
-            <width>0</width>
-            <height>0</height>
-           </size>
-          </property>
-          <property name="maximumSize">
-           <size>
-            <width>30</width>
-            <height>16777215</height>
-           </size>
-          </property>
-         </widget>
-        </item>
-        <item row="2" column="0">
-         <widget class="QLabel" name="missing_data_lbl">
-          <property name="toolTip">
-           <string>treat entries matching this string as missing data e.g. if you use '.' (without quotes) to represent missing data</string>
-          </property>
-          <property name="text">
-           <string>missing data string:</string>
-          </property>
-         </widget>
-        </item>
-        <item row="1" column="1">
-         <widget class="QLineEdit" name="quotechar_le">
-          <property name="sizePolicy">
-           <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-            <horstretch>0</horstretch>
-            <verstretch>0</verstretch>
-           </sizepolicy>
-          </property>
-          <property name="maximumSize">
-           <size>
-            <width>30</width>
-            <height>16777215</height>
-           </size>
-          </property>
-          <property name="text">
-           <string>&quot;</string>
           </property>
          </widget>
         </item>
@@ -183,6 +129,35 @@ Remember to assign a proper format to each column.</string>
           </property>
          </spacer>
         </item>
+        <item row="1" column="1">
+         <widget class="QLineEdit" name="quotechar_le">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+          <property name="maximumSize">
+           <size>
+            <width>30</width>
+            <height>16777215</height>
+           </size>
+          </property>
+          <property name="text">
+           <string>&quot;</string>
+          </property>
+         </widget>
+        </item>
+        <item row="2" column="0">
+         <widget class="QLabel" name="missing_data_lbl">
+          <property name="toolTip">
+           <string>treat entries matching this string as missing data e.g. if you use '.' (without quotes) to represent missing data</string>
+          </property>
+          <property name="text">
+           <string>Missing data are marked by:</string>
+          </property>
+         </widget>
+        </item>
         <item row="2" column="2">
          <spacer name="horizontalSpacer_4">
           <property name="orientation">
@@ -195,6 +170,63 @@ Remember to assign a proper format to each column.</string>
            </size>
           </property>
          </spacer>
+        </item>
+        <item row="2" column="1">
+         <widget class="QLineEdit" name="missing_data_le">
+          <property name="minimumSize">
+           <size>
+            <width>0</width>
+            <height>0</height>
+           </size>
+          </property>
+          <property name="maximumSize">
+           <size>
+            <width>30</width>
+            <height>16777215</height>
+           </size>
+          </property>
+         </widget>
+        </item>
+        <item row="0" column="0">
+         <widget class="QLabel" name="delimter_lbl">
+          <property name="text">
+           <string>Column delimiter:</string>
+          </property>
+          <property name="buddy">
+           <cstring>delimter_le</cstring>
+          </property>
+         </widget>
+        </item>
+        <item row="1" column="0">
+         <widget class="QLabel" name="quotelbl">
+          <property name="text">
+           <string>Quote Character:</string>
+          </property>
+          <property name="buddy">
+           <cstring>delimter_le</cstring>
+          </property>
+         </widget>
+        </item>
+        <item row="0" column="3">
+         <widget class="QLabel" name="label_2">
+          <property name="text">
+           <string>For example: a space or comma</string>
+          </property>
+         </widget>
+        </item>
+        <item row="1" column="3">
+         <widget class="QLabel" name="label_3">
+          <property name="text">
+           <string>This is important if some of your data contains spaces.</string>
+          </property>
+         </widget>
+        </item>
+        <item row="2" column="3">
+         <widget class="QLabel" name="label_4">
+          <property name="text">
+           <string>For example, in R this is NA</string>
+          </property>
+         </widget>
         </item>
        </layout>
       </item>

@@ -1260,7 +1260,7 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
                                                   on_undo_exit=on_exit,
                                                   description="Mark column '%s' as label" % variable_name)
         self.undo_stack.push(mark_column_as_label_cmd)
-        self.model._set_dirty_bit()
+        self.model.set_dirty_bit()
 
 
 
@@ -1279,7 +1279,7 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
                                             on_undo_exit=on_exit,
                                             description="Unmark column '%s' as label" % label_column_name)
         self.undo_stack.push(unmark_column_as_label_cmd)
-        self.model._set_dirty_bit()
+        self.model.set_dirty_bit()
 
     def make_new_variable_at_col(self, col, var_type=CATEGORICAL,var_name=None):
         if var_name is None:
@@ -1344,7 +1344,7 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
                                                    on_redo_exit=resize_columns,
                                                    description=description)
         self.undo_stack.push(rename_column_command)
-        self.model._set_dirty_bit()
+        self.model.set_dirty_bit()
 
     def prompt_user_about_unsaved_data(self):
         ''' Prompts user to save if data as has changed. Returns true if user
@@ -1489,6 +1489,7 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
             out_fpath = unicode(QFileDialog.getSaveFileName(parent=self, caption="OpenMEE - Save File",
                                                             directory=out_fpath, filter="OpenMEE files: (.ome)"))
             if out_fpath in ["", None]:
+                print("save cancelled")
                 return "CANCEL"
 
             if out_fpath[-4:] != u".ome": # add proper file extension
@@ -2030,8 +2031,27 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
 ######################## END COPY & PASTE #####################
 
     def import_csv(self):
-        form = csv_import_dlg.CSVImportDialog(self)
+        # What to do if current dataset is unsaved
+        if self.model_has_unsaved_data():
+            what_to_do_about_unsaved_data = self.what_to_do_about_unsaved_data_prompt()
+            if what_to_do_about_unsaved_data == 'SAVE':
+                save_successful = self.save()
+                if not save_successful:
+                    QMessageBox.information(self, "Saving failed", "Saving the dataset failed for some reason")
+                    return False
+                elif save_successful == "CANCEL":
+                    print("cancelling save")
+                    return True
+            elif what_to_do_about_unsaved_data == 'CANCEL':
+                return True;
+            elif what_to_do_about_unsaved_data == 'DISCARD':
+                self.model.set_dirty_bit(False)
+                pass # ok to disregard current data
         
+        
+        
+        
+        form = csv_import_dlg.CSVImportDialog(self)
         if form.exec_():
             data = form.get_csv_data()
             if data is None:
