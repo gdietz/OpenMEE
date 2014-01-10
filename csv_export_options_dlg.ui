@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>275</width>
-    <height>230</height>
+    <width>315</width>
+    <height>205</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -18,11 +18,14 @@
     <widget class="QLabel" name="label">
      <property name="font">
       <font>
-       <pointsize>15</pointsize>
+       <pointsize>12</pointsize>
       </font>
      </property>
      <property name="text">
-      <string>Formatting options for CSV export</string>
+      <string>This tool exports your current datasheet as a *.csv file.</string>
+     </property>
+     <property name="wordWrap">
+      <bool>true</bool>
      </property>
     </widget>
    </item>
@@ -36,60 +39,24 @@
    <item>
     <widget class="QCheckBox" name="excel_dialect_chkbox">
      <property name="text">
-      <string>excel CSV dialect?</string>
+      <string>Apply Microsoft Excel friendly formatting?</string>
      </property>
     </widget>
    </item>
    <item>
-    <widget class="QCheckBox" name="quote_text_cells_chkbox">
-     <property name="text">
-      <string>Quote text cells?</string>
-     </property>
-     <property name="checked">
-      <bool>true</bool>
-     </property>
-    </widget>
-   </item>
-   <item>
-    <widget class="QCheckBox" name="include_headers_chkbox">
-     <property name="text">
-      <string>include column headers</string>
-     </property>
-     <property name="checked">
-      <bool>true</bool>
-     </property>
-    </widget>
-   </item>
-   <item>
-    <layout class="QHBoxLayout" name="horizontalLayout">
+    <layout class="QHBoxLayout" name="horizontalLayout_2">
      <item>
-      <widget class="QLabel" name="delimter_lbl">
+      <widget class="QCheckBox" name="quote_text_cells_chkbox">
        <property name="text">
-        <string>Delimiter: </string>
+        <string>Use quotations to fromat text?</string>
+       </property>
+       <property name="checked">
+        <bool>true</bool>
        </property>
       </widget>
      </item>
      <item>
-      <widget class="QLineEdit" name="delimeter_le">
-       <property name="sizePolicy">
-        <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-         <horstretch>0</horstretch>
-         <verstretch>0</verstretch>
-        </sizepolicy>
-       </property>
-       <property name="maximumSize">
-        <size>
-         <width>20</width>
-         <height>16777215</height>
-        </size>
-       </property>
-       <property name="text">
-        <string>,</string>
-       </property>
-      </widget>
-     </item>
-     <item>
-      <spacer name="horizontalSpacer">
+      <spacer name="horizontalSpacer_2">
        <property name="orientation">
         <enum>Qt::Horizontal</enum>
        </property>
@@ -101,10 +68,6 @@
        </property>
       </spacer>
      </item>
-    </layout>
-   </item>
-   <item>
-    <layout class="QHBoxLayout" name="horizontalLayout_2">
      <item>
       <widget class="QLabel" name="quotechar_lbl">
        <property name="text">
@@ -131,8 +94,48 @@
        </property>
       </widget>
      </item>
+    </layout>
+   </item>
+   <item>
+    <widget class="QCheckBox" name="include_headers_chkbox">
+     <property name="text">
+      <string>Include column headers?</string>
+     </property>
+     <property name="checked">
+      <bool>true</bool>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <layout class="QHBoxLayout" name="horizontalLayout">
      <item>
-      <spacer name="horizontalSpacer_2">
+      <widget class="QLabel" name="delimter_lbl">
+       <property name="text">
+        <string>Column delimiter: </string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QLineEdit" name="delimeter_le">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+         <horstretch>0</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
+       </property>
+       <property name="maximumSize">
+        <size>
+         <width>20</width>
+         <height>16777215</height>
+        </size>
+       </property>
+       <property name="text">
+        <string>,</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <spacer name="horizontalSpacer">
        <property name="orientation">
         <enum>Qt::Horizontal</enum>
        </property>

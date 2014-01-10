@@ -1324,7 +1324,7 @@ class EETableModel(QAbstractTableModel):
             header_string.append(QString(label))
         return header_string
     
-    def _set_dirty_bit(self, state=True):
+    def set_dirty_bit(self, state=True):
         self.dirty = state
     
     def add_transformed_effect_sizes_to_model(self, metric, effect_sizes, transform_direction, column_group):

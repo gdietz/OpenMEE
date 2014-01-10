@@ -22,8 +22,8 @@ class CSVImportDialog(QDialog, ui_csv_import_dlg.Ui_CSVImportDialog):
         self.setupUi(self)
     
         self.connect(self.select_file_btn, SIGNAL("clicked()"), self._select_file)
-        self.connect(self.from_excel_chkbx,  SIGNAL("stateChanged(int)"), self._rebuild_display)
-        self.connect(self.has_headers_chkbx, SIGNAL("stateChanged(int)"), self._rebuild_display)
+        #self.connect(self.from_excel_chkbx,  SIGNAL("stateChanged(int)"), self._rebuild_display)
+        #self.connect(self.has_headers_chkbx, SIGNAL("stateChanged(int)"), self._rebuild_display)
         self.reimport_btn.clicked.connect(self._rebuild_display)
         
         self.file_path = None

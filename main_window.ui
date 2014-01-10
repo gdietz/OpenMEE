@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>905</width>
-    <height>571</height>
+    <width>590</width>
+    <height>378</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -29,8 +29,8 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>905</width>
-     <height>22</height>
+     <width>590</width>
+     <height>21</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">
@@ -71,11 +71,6 @@
     <property name="title">
      <string>Table</string>
     </property>
-    <addaction name="actionInsert_Row"/>
-    <addaction name="actionDelete_Row"/>
-    <addaction name="actionInsert_Column"/>
-    <addaction name="actionDelete_Column"/>
-    <addaction name="separator"/>
     <addaction name="actionChange_Column_Format"/>
     <addaction name="actionRename_Column"/>
     <addaction name="actionMark_Column_as_Label"/>
@@ -234,26 +229,6 @@
   <action name="actionCut">
    <property name="text">
     <string>Cut</string>
-   </property>
-  </action>
-  <action name="actionInsert_Row">
-   <property name="text">
-    <string>Insert Row</string>
-   </property>
-  </action>
-  <action name="actionDelete_Row">
-   <property name="text">
-    <string>Delete Row</string>
-   </property>
-  </action>
-  <action name="actionInsert_Column">
-   <property name="text">
-    <string>Insert Column</string>
-   </property>
-  </action>
-  <action name="actionDelete_Column">
-   <property name="text">
-    <string>Delete Column</string>
    </property>
   </action>
   <action name="actionChange_Column_Format">
