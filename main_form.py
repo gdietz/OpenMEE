@@ -1439,7 +1439,21 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
         return True
 
     def new_dataset(self):
-        self.prompt_user_about_unsaved_data()
+        # What to do if current dataset is unsaved
+        if self.model_has_unsaved_data():
+            what_to_do_about_unsaved_data = self.what_to_do_about_unsaved_data_prompt()
+            if what_to_do_about_unsaved_data == 'SAVE':
+                save_successful = self.save()
+                if not save_successful:
+                    QMessageBox.information(self, "Saving failed", "Saving the dataset failed for some reason")
+                    return False
+                elif save_successful == "CANCEL":
+                    print("cancelling save")
+                    return True
+            elif what_to_do_about_unsaved_data == 'CANCEL':
+                return True;
+            elif what_to_do_about_unsaved_data == 'DISCARD':
+                pass # ok to disregard current data
 
         self.set_model(state=None) # disconnects old model, makes new model, etc
         self.outpath = None
@@ -1458,7 +1472,7 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
             out_fpath = unicode(QFileDialog.getSaveFileName(parent=self, caption="OpenMEE - Save File",
                                                             directory=out_fpath, filter="OpenMEE files: (.ome)"))
             if out_fpath in ["", None]:
-                return False
+                return "CANCEL"
 
             if out_fpath[-4:] != u".ome": # add proper file extension
                 out_fpath += u".ome"
