@@ -1591,6 +1591,10 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
             what_to_do_about_unsaved_data = self.what_to_do_about_unsaved_data_prompt()
             if what_to_do_about_unsaved_data == 'SAVE':
                 save_successful = self.save()
+                if save_successful == "CANCEL":
+                    if event:
+                        event.ignore()
+                    return True
                 if save_successful:
                     print("*** Till we meet again, dear analyst ***")
                     if event:
