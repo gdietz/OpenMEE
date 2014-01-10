@@ -1032,9 +1032,6 @@ class EETableModel(QAbstractTableModel):
         elif orientation == Qt.Vertical:
             return QVariant(int(section + 1))
     
-
-
-    #@profile_this
     def setData(self, index, value, role=Qt.EditRole, basic_value=False): # basic_value means a regular python type not a QVariant
         if not index.isValid() and not (0 <= index.row() < self.rowCount()):
             print("bad setData: Index not valid")
@@ -1108,9 +1105,11 @@ class EETableModel(QAbstractTableModel):
                     cancel_macro_creation_and_revert_state(self.undo_stack)
                 return True
 
-        else: # we are in a variable column (initialized or not)
+        else: 
+            # we are in a variable column (initialized or not)
             make_new_variable = not self.column_assigned_to_variable(col)
-            if make_new_variable: # make a new variable and give it the default column header name
+            if make_new_variable: 
+                # make a new variable and give it the default column header name
                 if value_blank:
                     if not self.big_paste_mode:
                         cancel_macro_creation_and_revert_state(self.undo_stack)
@@ -1155,13 +1154,10 @@ class EETableModel(QAbstractTableModel):
         if study.is_totally_blank():
             self.undo_stack.push(RemoveStudyCommand(model=self, row=row))
             
-        
-        
         if not self.big_paste_mode:
             # End of the macro for undo/redo
             self.undo_stack.push(EmitDataChangedCommand(model=self, index=index))
             self.undo_stack.endMacro()
-            
             self.change_row_count_if_needed()
             self.change_column_count_if_needed()
         else: # don't check unnessarily (optimization)
@@ -1170,9 +1166,6 @@ class EETableModel(QAbstractTableModel):
             if col > self.collimit-10:
                 self.change_column_count_if_needed()
                 
-                
-        #self.emit(SIGNAL("dataChanged(QModelIndex,QModelIndex)"),
-        #          index, index)
         return True
     
     
@@ -1210,13 +1203,13 @@ class EETableModel(QAbstractTableModel):
             if not label_valid():
                 return False
 
-        else: # we are in a variable column (initialized or not)
+        else: 
+            # we are in a variable column (initialized or not)
             make_new_variable = not self.column_assigned_to_variable(col)
             if make_new_variable:
                 var_type = CATEGORICAL # most general
             else:
                 var = self.cols_2_vars[col]
-                #var_name = var.get_label()
                 var_type = var.get_type()
             
             can_convert_value_to_desired_type = self.dataset.can_convert_var_value_to_type(var_type, value_as_string)
@@ -1234,7 +1227,6 @@ class EETableModel(QAbstractTableModel):
             var_key = var_grp.get_var_key(var)
             if not var_grp.key_in_data(var_key): # var is an effect so we don't care
                 continue
-            #data_keys = var_grp.get_data_keys()
             if not var_grp.data_full():
                 continue
             
@@ -1264,13 +1256,12 @@ class EETableModel(QAbstractTableModel):
         trans_scale_data = listvals_to_scalars(trans_scale_data)
         raw_scale_data = listvals_to_scalars(raw_scale_data)
         
-        #
         row = self.get_row_assigned_to_study(study)
         
         def set_data_helper(data):
             for key, val in data.items():
                 var = var_grp.get_var_with_key(key)
-                if not var:
+                if var is not None:
                     continue
                 col = self.get_column_assigned_to_variable(var)
                 model_index = self.createIndex(row, col)
@@ -1289,10 +1280,8 @@ class EETableModel(QAbstractTableModel):
         if new_value_length > self.get_max_length_in_col(col):
             self.col_2_max_length[col] = new_value_length
             # emit signal to reset size of this column
-            ##
             self.should_resize_column.emit(col)
             
-    
     
     def _emitdatachanged(self, model, index):
         model.emit(SIGNAL("dataChanged(QModelIndex,QModelIndex)"),
@@ -1429,7 +1418,7 @@ class EETableModel(QAbstractTableModel):
             for study, yi_val, vi_val in zip(studies, effect_sizes[TRANS_EFFECT], effect_sizes[TRANS_VAR]):
                 self.undo_stack.push(SetVariableValueCommand(study, trans_yi, yi_val))
                 self.undo_stack.push(SetVariableValueCommand(study, trans_vi, vi_val))
-        ##########
+     
         self.undo_stack.push(end_cmd)
         
         self.undo_stack.endMacro()
@@ -1459,7 +1448,7 @@ class EETableModel(QAbstractTableModel):
         start_cmd = GenericUndoCommand(redo_fn=do_nothing,
                                       undo_fn=emit_change_signals)
         self.undo_stack.push(start_cmd)
-        ##################################################################
+        
         if not bool(cols_to_overwrite):
             # Make new variables to hold the effect size calculations
             add_vi_cmd = MakeNewVariableCommand(model=self,
@@ -1472,8 +1461,6 @@ class EETableModel(QAbstractTableModel):
                                                 var_type=CONTINUOUS)
             self.undo_stack.push(add_vi_cmd)
             self.undo_stack.push(add_yi_cmd)
-        #else: # variables already exist!
-        
 
         variable_yi = self.get_variable_assigned_to_column(yi_col)
         variable_vi = self.get_variable_assigned_to_column(vi_col)
@@ -1484,7 +1471,8 @@ class EETableModel(QAbstractTableModel):
         
         # add variables to new column_group
         old_col_group = self.get_variable_group_of_var(variable_vi)
-        if old_col_group: # this will exist in the case of overwriting existing columns probably (unless the columns were constucted by hand)
+        if old_col_group: 
+            # this will exist in the case of overwriting existing columns probably (unless the columns were constucted by hand)
             col_group = old_col_group
         else:
             col_group = self.make_new_variable_group(metric=metric, name=METRIC_TEXT_SIMPLE[metric] + " column group")
@@ -1498,15 +1486,13 @@ class EETableModel(QAbstractTableModel):
                                      var_yi=variable_yi, var_vi=variable_vi,
                                      raw_yi=effect_sizes['yi'], raw_vi=effect_sizes['vi'])
             
-        ##################################################################
         end_cmd = GenericUndoCommand(redo_fn=emit_change_signals,
                                      undo_fn=do_nothing)
         self.undo_stack.push(end_cmd)
-        
         self.undo_stack.endMacro()
-        
-        return {TRANS_EFFECT: yi_col, # returns columns of new assignments
-                TRANS_VAR: vi_col}
+
+        # returns columns of new assignments
+        return {TRANS_EFFECT: yi_col, TRANS_VAR: vi_col}
     
     def set_values_of_variables(self, studies, var_yi, var_vi, raw_yi, raw_vi, emit_change_signals=False):
         def emit_change_signals():
@@ -1519,13 +1505,11 @@ class EETableModel(QAbstractTableModel):
         start_cmd = GenericUndoCommand(redo_fn=do_nothing,
                                       undo_fn=emit_change_signals)
         self.undo_stack.push(start_cmd)
-        #######################################
         for study, val_yi, val_vi in zip(studies, raw_yi, raw_vi):
             set_vi_cmd = SetVariableValueCommand(study, var_yi, val_yi)
             set_yi_cmd = SetVariableValueCommand(study, var_vi, val_vi)
             self.undo_stack.push(set_vi_cmd)
             self.undo_stack.push(set_yi_cmd)
-        #######################################
         end_cmd = GenericUndoCommand(redo_fn=emit_change_signals,
                                      undo_fn=do_nothing)
         self.undo_stack.push(end_cmd)
@@ -1538,8 +1522,6 @@ class EETableModel(QAbstractTableModel):
         for study, value in zip(studies, values):
             study.set_var(variable, value)
         
-        
-
     def make_new_variable_group(self, metric, name):
         print("Making new column group")
         col_group = VariableGroup(metric=metric, name=name)    
@@ -1552,7 +1534,6 @@ class EETableModel(QAbstractTableModel):
         self.undo_stack.push(make_col_grp_cmd)
         
         return col_group
-    
     
     def remove_variable_group(self, var_group):
         if var_group is None:
@@ -1581,7 +1562,8 @@ class EETableModel(QAbstractTableModel):
         
         if is_label_column:
             sorted_studies = sorted(studies, key=lambda study: study.get_label())
-        else: # is a variable-ish column
+        else: 
+            # is a variable-ish column
             var = self.get_variable_assigned_to_column(col)
             sorted_studies = sorted(studies, key=lambda study: study.get_var(var))
         
@@ -1604,10 +1586,8 @@ class EETableModel(QAbstractTableModel):
     def _set_rows_to_studies(self, new_rows_to_studies):
         self.rows_2_studies = new_rows_to_studies
     
-
     def get_variable_groups_of_var(self,var):
         ''' Returns a list containing the variable groups to which var belongs'''
-        
         var_groups = []
         for var_group in self.variable_groups:
             if var_group.contains_var(var):
@@ -1656,7 +1636,7 @@ class VariableGroup:
                            'correlation': None,
                            'sample_size': None,
                            
-                           }
+        }
         self.effect_keys = [TRANS_VAR, TRANS_EFFECT, RAW_EFFECT, RAW_LOWER, RAW_UPPER]
         data_continuous_keys = ['control_mean', 'control_std_dev', 'control_sample_size',   
                                      'experimental_mean', 'experimental_std_dev', 'experimental_sample_size'] 
@@ -1690,11 +1670,13 @@ class VariableGroup:
     
     def set_name(self, name):
         self.name = name
+
     def get_name(self):
         return self.name
     
     def get_metric(self):
         return self.metric
+
     def get_data_type(self):
         return self.data_type
     
@@ -1721,6 +1703,7 @@ class VariableGroup:
     
     def get_group_data_copy(self):
         return self.group_data.copy()
+
     def set_group_data(self, grp_data):
         ''' shouldn't be used except during undo/redo to reset the group data '''
         self.group_data=grp_data
@@ -1834,10 +1817,7 @@ class RemoveStudyCommand(QUndoCommand):
         if DEBUG_MODE: print("undo: remove study")
         self.model.dataset.add_existing_study(self.study)
         self.model.rows_2_studies[self.row]=self.study
-        
         self.model.max_occupied_row = self.old_max_occupied_row
-        
-        #emit signal
         self.model.studies_changed.emit()
 
         
@@ -1864,7 +1844,6 @@ class SetStudyLabelCommand(QUndoCommand):
 class MakeNewVariableCommand(QUndoCommand):
     ''' Creates/Deletes a new variable and assigns it to the given column '''
     
-    
     def __init__(self, model, var_name, col, var_type=CATEGORICAL):
         super(MakeNewVariableCommand, self).__init__()
         
@@ -1872,7 +1851,6 @@ class MakeNewVariableCommand(QUndoCommand):
         self.var_name = var_name
         self.col = col
         self.var_type = var_type
-        
         self.var = None # this is where the new variable will be kept
         
         self.setText(QString("Created variable '%s'" % self.var_name))
@@ -1890,14 +1868,14 @@ class MakeNewVariableCommand(QUndoCommand):
             self.model.max_occupied_col = self.col
         
     def undo(self):
-        if DEBUG_MODE: print("undo: make new variable_command")
+        if DEBUG_MODE: 
+            print("undo: make new variable_command")
         self.model.remove_variable(self.var)
         self.model.max_occupied_col=self.old_max_occupied_col
         
 
 class SetVariableValueCommand(QUndoCommand):
     ''' Sets/unsets the value of the variable for the given study'''
-    
     def __init__(self, study, variable, value):
         super(SetVariableValueCommand, self).__init__()
         
@@ -1949,7 +1927,6 @@ class SetVariableSubTypeCommand(QUndoCommand):
 class EmitDataChangedCommand(QUndoCommand):
     ''' Not really a command, just the last thing called @ the end of the macro
     in setData in order to notify the view that the model has changed '''
-    
     def __init__(self, model, index):
         super(EmitDataChangedCommand, self).__init__()
         
@@ -1972,7 +1949,6 @@ class EmitDataChangedCommand(QUndoCommand):
 class RemoveColumnsCommand(QUndoCommand):
     ''' Removes columns from the model spreadsheet: used in reimplemented
     removeColumns function'''
-    
     # column is the start column
     def __init__(self, model, column, count, description="Remove columns"):
         super(RemoveColumnsCommand, self).__init__()
@@ -2147,18 +2123,14 @@ class RemoveRowsCommand(QUndoCommand):
         rows_to_shift_down = [row-self.count for row in self.rows_to_shift]
         self.model.shift_row_assignments(rows_to_shift_down, self.count)
         
-        
         # restore studies to rows and in dataset
         for row, study in self.removed_rows_2_studies.items():
             self.model.dataset.add_existing_study(study)
             self.model.rows_2_studies[row] = study
-        #emit signal
+      
         self.model.studies_changed.emit()
-        
         self.model.endInsertRows()
         
-        
-
 class InsertRowsCommand(QUndoCommand):
     ''' Inserts rows at the requested location: used in reimplemented
     insertRows function '''
@@ -2177,23 +2149,19 @@ class InsertRowsCommand(QUndoCommand):
         self.model.beginInsertRows(QModelIndex(), self.row, self.row+self.count-1)
         
         # shift rows down making space for more studies
-        self.rows_to_shift_down = [row for row in self.model.rows_2_studies.keys() if row >= self.row]
+        self.rows_to_shift_down = [row for row 
+                                    in self.model.rows_2_studies.keys() 
+                                    if row >= self.row]
         self.model.shift_row_assignments(self.rows_to_shift_down, self.count)
-        
-        
         self.model.endInsertRows()
-        
-        
         
     def undo(self):
         self.model.beginRemoveRows(QModelIndex(), self.row, self.row+self.count-1)
-        
         # shift rows back up
         rows_to_shift_up = [row+self.count for row in self.rows_to_shift_down]
         self.model.shift_row_assignments(rows_to_shift_up, -self.count)
         
         self.model.endRemoveRows()
-        
         
 class InsertColumnsCommand(QUndoCommand):
     ''' Inserts columns at the requested location: used in reimplemented
@@ -2237,7 +2205,6 @@ class InsertColumnsCommand(QUndoCommand):
         
         self.model.endRemoveColumns()
         
-
 class ChangeVariableFormatCommand(QUndoCommand):
     ''' Changes the format of a variable '''
     
