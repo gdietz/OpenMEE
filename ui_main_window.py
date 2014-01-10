@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'main_window.ui'
 #
-# Created: Mon Jan  6 15:33:09 2014
+# Created: Fri Jan 10 14:07:05 2014
 #      by: PyQt4 UI code generator 4.10.3
 #
 # WARNING! All changes made in this file will be lost!
@@ -26,7 +26,7 @@ except AttributeError:
 class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
         MainWindow.setObjectName(_fromUtf8("MainWindow"))
-        MainWindow.resize(905, 571)
+        MainWindow.resize(590, 378)
         icon = QtGui.QIcon()
         icon.addPixmap(QtGui.QPixmap(_fromUtf8(":/general/images/logo.png")), QtGui.QIcon.Normal, QtGui.QIcon.Off)
         MainWindow.setWindowIcon(icon)
@@ -39,7 +39,7 @@ class Ui_MainWindow(object):
         self.verticalLayout.addWidget(self.tableView)
         MainWindow.setCentralWidget(self.centralwidget)
         self.menubar = QtGui.QMenuBar(MainWindow)
-        self.menubar.setGeometry(QtCore.QRect(0, 0, 905, 22))
+        self.menubar.setGeometry(QtCore.QRect(0, 0, 590, 21))
         self.menubar.setObjectName(_fromUtf8("menubar"))
         self.menuFile = QtGui.QMenu(self.menubar)
         self.menuFile.setObjectName(_fromUtf8("menuFile"))
@@ -97,14 +97,6 @@ class Ui_MainWindow(object):
         self.actionSelect_All.setObjectName(_fromUtf8("actionSelect_All"))
         self.actionCut = QtGui.QAction(MainWindow)
         self.actionCut.setObjectName(_fromUtf8("actionCut"))
-        self.actionInsert_Row = QtGui.QAction(MainWindow)
-        self.actionInsert_Row.setObjectName(_fromUtf8("actionInsert_Row"))
-        self.actionDelete_Row = QtGui.QAction(MainWindow)
-        self.actionDelete_Row.setObjectName(_fromUtf8("actionDelete_Row"))
-        self.actionInsert_Column = QtGui.QAction(MainWindow)
-        self.actionInsert_Column.setObjectName(_fromUtf8("actionInsert_Column"))
-        self.actionDelete_Column = QtGui.QAction(MainWindow)
-        self.actionDelete_Column.setObjectName(_fromUtf8("actionDelete_Column"))
         self.actionChange_Column_Format = QtGui.QAction(MainWindow)
         self.actionChange_Column_Format.setObjectName(_fromUtf8("actionChange_Column_Format"))
         self.actionRename_Column = QtGui.QAction(MainWindow)
@@ -211,11 +203,6 @@ class Ui_MainWindow(object):
         self.menuEdit.addAction(self.actionClear_Selected_Cells)
         self.menuEdit.addSeparator()
         self.menuEdit.addAction(self.actionShow_toolbar)
-        self.menuTable.addAction(self.actionInsert_Row)
-        self.menuTable.addAction(self.actionDelete_Row)
-        self.menuTable.addAction(self.actionInsert_Column)
-        self.menuTable.addAction(self.actionDelete_Column)
-        self.menuTable.addSeparator()
         self.menuTable.addAction(self.actionChange_Column_Format)
         self.menuTable.addAction(self.actionRename_Column)
         self.menuTable.addAction(self.actionMark_Column_as_Label)
@@ -293,10 +280,6 @@ class Ui_MainWindow(object):
         self.actionClear_Selected_Cells.setText(_translate("MainWindow", "Clear Selected Cells", None))
         self.actionSelect_All.setText(_translate("MainWindow", "Select All", None))
         self.actionCut.setText(_translate("MainWindow", "Cut", None))
-        self.actionInsert_Row.setText(_translate("MainWindow", "Insert Row", None))
-        self.actionDelete_Row.setText(_translate("MainWindow", "Delete Row", None))
-        self.actionInsert_Column.setText(_translate("MainWindow", "Insert Column", None))
-        self.actionDelete_Column.setText(_translate("MainWindow", "Delete Column", None))
         self.actionChange_Column_Format.setText(_translate("MainWindow", "Change Column Format", None))
         self.actionRename_Column.setText(_translate("MainWindow", "Rename Column", None))
         self.actionMark_Column_as_Label.setText(_translate("MainWindow", "Mark Column as Label", None))
