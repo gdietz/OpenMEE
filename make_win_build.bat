@@ -24,7 +24,7 @@ REM copy over launch file
 cp ../building/building_in_windows/LaunchOpenMEE.bat .
 
 REM make batch file into exe and set icon, 64 bit version does'nt work on windows 8
-"C:\Program Files\Bat_To_Exe_Converter\Windows (32 bit)\Bat_To_Exe_Converter.exe" -bat LaunchOpenMEE.bat -save LaunchOpenMEE.exe -icon ../images/win_icon.ico
+"C:\Program Files\Bat_To_Exe_Converter\Windows (32 bit)\Bat_To_Exe_Converter.exe" -bat LaunchOpenMEE.bat -save StartOpenMEE.exe -icon ../images/win_icon.ico
 
 REM go back to original folder
 cd ..
