@@ -5,18 +5,16 @@
 #              #
 ################                
 
-from PyQt4 import QtCore, QtGui
-from PyQt4.Qt import *
-
 import sys
 import pdb
-#import os
 import copy
 from functools import partial
-#from sets import Set
 from collections import deque
 import pickle
 import cProfile
+
+from PyQt4 import QtCore, QtGui
+from PyQt4.Qt import *
 
 import ui_main_window
 import about
@@ -1178,11 +1176,7 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
         
         context_menu.popup(QCursor.pos())
         
-#         # profiling fun
-#         pr.disable()
-#         pr.create_stats()
-#         pr.print_stats(sort='cumulative')
-        
+
     def remove_column(self, column):
         is_variable_column = self.model.column_assigned_to_variable(column)
         
@@ -1947,7 +1941,9 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
             return True
         
         self.model.blockSignals(False)
-        loop_will_succeed = paste_loop(test=True) # note: doesn't test redundant labels properly since it just tests each row by itself, not all together
+         # note: doesn't test redundant labels properly 
+         # since it just tests each row by itself, not all together
+        loop_will_succeed = paste_loop(test=True)
         self.model.blockSignals(True)
         if loop_will_succeed:
             # temporarily disable sorting to prevent automatic sorting of pasted data.
@@ -2103,16 +2099,6 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
 
     def _writeout_test_parameters(self, fnc_name, make_dataset_in_r_str="", results=None, **parameter_args):
         with open('test_data.txt', 'a') as f:
-#             f.write("Test Data            :\n")
-#             f.write("Function name        : '%s'\n" % fnc_name)
-#             f.write("Make dataset in R_str: %s\n" % make_dataset_in_r_str)
-#             f.write("Results              : %s\n" % str(results))
-#             for param_name, value in parameter_args.iteritems():
-#                 if type(value)==str:
-#                     value = "'%s'" % value
-#                 f.write("%s=%s\n" % (param_name, value))
-#             f.write("\n")
-            
             f.write("Test Data:\n")
             f.write("{\n")
             f.write(" 'test_name': \"Insert Test Name here\"\n")
