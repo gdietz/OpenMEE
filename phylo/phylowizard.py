@@ -13,27 +13,16 @@ from tree_page import TreePage
 # Histogram wizard ids
 [Page_TreePage,] = range(1)
 
+class PhyloWizard(QtGui.QWizard):
+    def __init__(self, parent=None):
+        super(PhyloWizard, self).__init__(parent)
+        
+        self.tree_page = TreePage()
+        self.setPage(Page_TreePage, self.tree_page)
 
-class HistogramWizard(QtGui.QWizard):
-    def __init__(self, model, old_histogram_params={}, prev_hist_var=None, parent=None):
-        super(HistogramWizard, self).__init__(parent)
-        
-        self.model=model
-        self.setWindowTitle("Histogram Wizard")
-        
-        self.data_select_page = HistogramDataSelectPage(model=model, prev_hist_var=prev_hist_var)
-        self.histogram_page = HistogramPage(old_histogram_params=old_histogram_params)
-        
-        self.setPage(Page_HistogramDataSelectPage, self.data_select_page)
-        self.setPage(Page_HistogramParams, self.histogram_page)
-        
-    def nextId(self):
-        if self.currentId()==Page_HistogramDataSelectPage:
-            return Page_HistogramParams
-        elif self.currentId() == Page_HistogramParams:
+    def nextID(self):
+        if self.currentId() == Page_TreePage:
             return -1
         
-    def get_selected_var(self):
-        return self.data_select_page.get_selected_var()
-    def get_histogram_params(self):
-        return self.histogram_page.get_parameters()
+    def get_phylo_object(self):
+        return self.tree_page.get_phylo_object()

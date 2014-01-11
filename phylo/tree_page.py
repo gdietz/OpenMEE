@@ -23,6 +23,7 @@ class TreePage(QWizardPage, ui_tree_page.Ui_WizardPage):
         
         self.selected_file_path = None
         self.phylo = None # the phylo object (if successfully obtained from ape)
+        self.valid_format = False
         
         self.radioButtons_to_formats = {self.caic_radioButton:"caic",
                                         self.nexus_radioButton:"nexus",
@@ -31,22 +32,25 @@ class TreePage(QWizardPage, ui_tree_page.Ui_WizardPage):
         
         # connect radiobuttons to completeChanged signal
         for radioButton in self.radioButtons_to_formats.keys():
-            radioButton.clicked.connect(self.completeChanged.emit)
+            radioButton.clicked.connect(self.radioButton_clicked)
             
         self.select_file_PushButton.clicked.connect(self.select_file)
-        
+    
+    def radioButton_clicked(self):
+        print("radio button clicked")
+        self.completeChanged.emit()
+    
     def initializePage(self):
         self.isComplete()
         
     def select_file(self):
-        self.file_path = unicode(
+        self.selected_file_path = unicode(
             QFileDialog.getOpenFileName(
                 parent=self, caption=QString("Select tree file")))
         
-        self.filename_Label.setText(self.file_path)
+        self.filename_Label.setText(self.selected_file_path)
         self.completeChanged.emit()
-            
-    
+        
     def isComplete(self):
         if self.selected_file_path:
             file_exists = os.path.exists(self.selected_file_path)
@@ -62,6 +66,7 @@ class TreePage(QWizardPage, ui_tree_page.Ui_WizardPage):
                 self.show_invalid_message()
                 return False
         else:
+            self.filename_Label.setText("none yet")
             self.hide_validity_message()
             return False
         
@@ -78,16 +83,16 @@ class TreePage(QWizardPage, ui_tree_page.Ui_WizardPage):
         
         
     def get_selected_format(self):
-        for radioButton, format in self.radioButtons_to_formats.items():
+        for radioButton, tree_format in self.radioButtons_to_formats.items():
             if radioButton.isChecked():
-                return format
+                return tree_format
         raise Exception("No tree format selected")
         
-    def file_matches_format(self, file_path, format):
+    def file_matches_format(self, file_path, tree_format):
         ''' returns a phylo object if the file matches the format '''
         
         try:
-            phylo = python_to_R.load_ape_file(file_path, format)
+            phylo = python_to_R.load_ape_file(file_path, tree_format)
         except CrazyRError:
             return None
         self.phylo = phylo # store created phylo object

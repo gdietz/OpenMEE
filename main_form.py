@@ -29,6 +29,7 @@ import results_window
 import csv_import_dlg
 import csv_export_dlg
 import preferences_dlg
+from phylo.phylowizard import PhyloWizard
 from variable_group_graphic import VariableGroupGraphic
 
 from ome_globals import *
@@ -300,7 +301,7 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
         self.actionBootstrapped_Meta_Regression_Based_Conditional_Means.triggered.connect(lambda: self.meta_regression(mode=BOOTSTRAP_META_REG_COND_MEANS))
         
         
-        QObject.connect(self.actionPhyloAnalysis, SIGNAL("triggered()"), self.open_ape)
+        QObject.connect(self.actionPhyloAnalysis, SIGNAL("triggered()"), self.phylo_analysis)
         
         #### Publication Bias Menu ###
         self.actionFail_Safe_N.triggered.connect(self.failsafe_analysis)
@@ -1373,16 +1374,25 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
         return self.model.dirty
 
 
-    def open_ape(self):
-        ''' open ape file; parse into R. '''
-        # @TODO additional formats!
-        file_path = unicode(
-            QFileDialog.getOpenFileName(
-                parent=self, caption=QString("Open ape file"), 
-                filter="Newick files (*.tre)"))
-        
-        print file_path
-        python_to_R.load_ape_file(file_path)
+    def phylo_analysis(self):
+        wizard = PhyloWizard()
+        if wizard.exec_():
+            # get selections
+            phylo_object = wizard.get_phylo_object()
+            # run analysis and display results window
+            print("Here is the phylo object: %s" % phylo_object)
+            
+#             try:
+#                 result = python_to_R.run_histogram(model=self.model,
+#                                                    var=var,
+#                                                    params=params,
+#                                                    res_name = "result", var_name = "tmp_obj", summary="")
+#             except CrazyRError as e:
+#                 if SOUND_EFFECTS:
+#                     silly.play()
+#                 QMessageBox.critical(self, "Oops", str(e))
+#  
+#             self.analysis(result, summary="")
 
 
 
@@ -1942,8 +1952,8 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
             return True
         
         self.model.blockSignals(False)
-         # note: doesn't test redundant labels properly 
-         # since it just tests each row by itself, not all together
+        # note: doesn't test redundant labels properly 
+        # since it just tests each row by itself, not all together
         loop_will_succeed = paste_loop(test=True)
         self.model.blockSignals(True)
         if loop_will_succeed:
