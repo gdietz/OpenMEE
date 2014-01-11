@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'main_window.ui'
 #
-# Created: Fri Jan 10 14:07:05 2014
+# Created: Sat Jan 11 09:49:22 2014
 #      by: PyQt4 UI code generator 4.10.3
 #
 # WARNING! All changes made in this file will be lost!
@@ -184,6 +184,8 @@ class Ui_MainWindow(object):
         self.actionScatterplot.setObjectName(_fromUtf8("actionScatterplot"))
         self.actionHistogram = QtGui.QAction(MainWindow)
         self.actionHistogram.setObjectName(_fromUtf8("actionHistogram"))
+        self.actionPhyloAnalysis = QtGui.QAction(MainWindow)
+        self.actionPhyloAnalysis.setObjectName(_fromUtf8("actionPhyloAnalysis"))
         self.menuFile.addAction(self.actionNew)
         self.menuFile.addAction(self.actionOpen)
         self.menuFile.addAction(self.actionSave)
@@ -223,6 +225,7 @@ class Ui_MainWindow(object):
         self.menuAnalysis.addAction(self.menuMeta_Analysis.menuAction())
         self.menuAnalysis.addAction(self.menuMeta_Regression_Meta_Regression_Derivatives.menuAction())
         self.menuAnalysis.addSeparator()
+        self.menuAnalysis.addAction(self.actionPhyloAnalysis)
         self.menuAbout.addAction(self.action_about)
         self.menuPublication_Bias.addAction(self.actionFail_Safe_N)
         self.menuPublication_Bias.addAction(self.actionFunnel_Plot)
@@ -309,5 +312,6 @@ class Ui_MainWindow(object):
         self.actionResetAnalysisChoices.setToolTip(_translate("MainWindow", "Reset choices made in analysis screens to the defaults", None))
         self.actionScatterplot.setText(_translate("MainWindow", "Scatterplot", None))
         self.actionHistogram.setText(_translate("MainWindow", "Histogram", None))
+        self.actionPhyloAnalysis.setText(_translate("MainWindow", "PhyloAnalysis", None))
 
 import icons_rc

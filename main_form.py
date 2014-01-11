@@ -244,8 +244,6 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
         
         QObject.connect(self.actionOpen, SIGNAL("triggered()"), self.open)
         self.actionOpen.setShortcut(QKeySequence.Open)
-        
-        QObject.connect(self.actionInsert_Row, SIGNAL("triggered()"), self.open_ape)
 
         QObject.connect(self.actionSave, SIGNAL("triggered()"), self.save)
         self.actionSave.setShortcut(QKeySequence.Save)
@@ -300,6 +298,9 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
         self.actionBootstrapped_Meta_Analysis.triggered.connect(self.bootstrap_ma)
         self.actionBootstrapped_Meta_Regression.triggered.connect(lambda: self.meta_regression(mode=BOOTSTRAP_META_REG))
         self.actionBootstrapped_Meta_Regression_Based_Conditional_Means.triggered.connect(lambda: self.meta_regression(mode=BOOTSTRAP_META_REG_COND_MEANS))
+        
+        
+        QObject.connect(self.actionPhyloAnalysis, SIGNAL("triggered()"), self.open_ape)
         
         #### Publication Bias Menu ###
         self.actionFail_Safe_N.triggered.connect(self.failsafe_analysis)

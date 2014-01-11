@@ -106,6 +106,7 @@
     <addaction name="menuMeta_Analysis"/>
     <addaction name="menuMeta_Regression_Meta_Regression_Derivatives"/>
     <addaction name="separator"/>
+    <addaction name="actionPhyloAnalysis"/>
    </widget>
    <widget class="QMenu" name="menuAbout">
     <property name="title">
@@ -415,6 +416,11 @@
   <action name="actionHistogram">
    <property name="text">
     <string>Histogram</string>
+   </property>
+  </action>
+  <action name="actionPhyloAnalysis">
+   <property name="text">
+    <string>PhyloAnalysis</string>
    </property>
   </action>
  </widget>

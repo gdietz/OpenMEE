@@ -65,21 +65,28 @@ except:
     raise Exception, "unable to create temporary directory for R results! make sure you have sufficient permissions."
 
 
-def load_ape_file(ape_path):
-    print("loading ape file... {0}".format(ape_path))
-    ext = ape_path.split(".")[-1]
-    r_str = "phylo.tree <- read."
-    if ext == "tre":
-        print("parsing Newick file...")
-        r_str = r_str + "tree"
+def load_ape_file(ape_path, tree_format):
+    # uses r package APE to load a tree in to object of class phylo (R object)
+    
+    print("loading ape file... {0} of format {1}".format(ape_path, tree_format))
+    #ext = ape_path.split(".")[-1]
+    #r_str = "phylo.tree <- read."
+    if tree_format == "caic":
+        print("parsing caic file")
+        r_str = 'read.caic("%s")' % ape_path
+    elif tree_format == "nexus":
+        print("parsing nexus file")
+        r_str = 'read.nexus("%s")' % ape_path
+    elif tree_format in ["newick", "new_hampshire"]:
+        print("parsing either a Newick or New Hampshire file...")
+        r_str = 'read.tree("%s")' % ape_path
     else:
         # @TODO return error message to user
-        print("I do not know how to parse {0} files!".format(ext))
-        return False
-    r_str = r_str + "('{0}')".format(ape_path)
-    execute_in_R(r_str)
+        print("I do not know how to parse {0} files!".format(tree_format))
+        raise Exception("Unrecognized tree file format")
+    phylo_obj = execute_in_R(r_str)
     print("ok! loaded.")
-    return True
+    return phylo_obj
 
 
 def reset_Rs_working_dir():
