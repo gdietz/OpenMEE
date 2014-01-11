@@ -81,8 +81,8 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
         
         # Confidence level spinbox
         self.conf_level_toolbar_widget = ConfLevelToolbarWidget(parent=self)
-        #self.toolBar.addWidget(self.conf_level_toolbar_widget)
-        self.toolBar.insertWidget(self.actionResetAnalysisChoices, self.conf_level_toolbar_widget)
+        self.toolBar.insertWidget(self.actionResetAnalysisChoices, 
+                                    self.conf_level_toolbar_widget)
         
         self.undo_stack = QUndoStack(self)
         self.load_user_prefs()
@@ -146,8 +146,6 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
         ''' do custom stuff upon showing the window '''
 
         self.initialize_display()
-        
-        
         QMainWindow.showEvent(self, show_event)
     
     
@@ -248,7 +246,8 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
         QObject.connect(self.actionSave, SIGNAL("triggered()"), self.save)
         self.actionSave.setShortcut(QKeySequence.Save)
         
-        QObject.connect(self.actionSave_As, SIGNAL("triggered()"), lambda: self.save(save_as=True))
+        QObject.connect(self.actionSave_As, SIGNAL("triggered()"), 
+                                        lambda: self.save(save_as=True))
         self.actionSave_As.setShortcut(QKeySequence.SaveAs)
         
         QObject.connect(self.actionQuit, SIGNAL("triggered()"), self.quit)
@@ -256,7 +255,6 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
         
         QObject.connect(self.actionImportCSV, SIGNAL("triggered()"), self.import_csv)
         QObject.connect(self.actionExportCSV, SIGNAL("triggered()"), self.export_csv)
-        
         
         ### Edit Menu ###
         QObject.connect(self.actionUndo, SIGNAL("triggered()"), self.undo)
@@ -299,7 +297,6 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
         self.actionBootstrapped_Meta_Regression.triggered.connect(lambda: self.meta_regression(mode=BOOTSTRAP_META_REG))
         self.actionBootstrapped_Meta_Regression_Based_Conditional_Means.triggered.connect(lambda: self.meta_regression(mode=BOOTSTRAP_META_REG_COND_MEANS))
         
-        
         QObject.connect(self.actionPhyloAnalysis, SIGNAL("triggered()"), self.open_ape)
         
         #### Publication Bias Menu ###
@@ -341,14 +338,8 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
         self.undo_stack.canUndoChanged.connect(self.update_undo_enable_status)
         self.undo_stack.canRedoChanged.connect(self.update_redo_enable_status)
 
-
         self.tableView.horizontalScrollBar().actionTriggered.connect(lambda: QTimer.singleShot(0, self.update_vargroup_graphic))
 
-#        self.resize
-#        QObject.connect(self.model, SIGNAL("DataError"), self.warning_msg)
-#        QObject.connect(self.tableView.selectionModel(), 
-#                            SIGNAL("selectionChanged(QItemSelection, QItemSelection)"), 
-#                            self.table_selection_changed)
 
     def stupid(self):
         print("column formats changed")
@@ -382,9 +373,6 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
         else:
             self.actionRedo.setEnabled(False)
 
-
-        
-        
     def populate_recent_datasets(self):
         self.menuRecent_Data.clear()
         
@@ -395,10 +383,8 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
         
     def disconnect_model_connections(self):
         QObject.disconnect(self.model, SIGNAL("DataError"), self.warning_msg)
-        QObject.disconnect(self.model, SIGNAL("dataChanged(QModelIndex, QModelIndex)"), self.change_index_after_data_edited)
-        #QObject.disconnect(self.tableView.selectionModel(), 
-        #            SIGNAL("selectionChanged(QItemSelection, QItemSelection)"), 
-        #            self.table_selection_changed)
+        QObject.disconnect(self.model, SIGNAL("dataChanged(QModelIndex, QModelIndex)"), 
+                            self.change_index_after_data_edited)
         QObject.disconnect(self.tableView_selection_model, 
                     SIGNAL("selectionChanged(QItemSelection, QItemSelection)"), 
                     self.table_selection_changed)
@@ -409,17 +395,15 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
         self.model.duplicate_label.disconnect(self.duplicate_label_attempt)
         self.model.error_msg_signal.disconnect(self.error_msg_signal_handler)
         self.model.should_resize_column.disconnect(self.resize_column)
-        #self.model.column_formats_changed.disconnect(lambda: QTimer.singleShot(1, self.update_vargroup_graphic))
-        self.conf_level_toolbar_widget.conf_level_spinbox.valueChanged[float].disconnect(self.model.set_conf_level)
+        self.conf_level_toolbar_widget.conf_level_spinbox.valueChanged[float].disconnect(
+            self.model.set_conf_level)
         self.model.conf_level_changed_during_undo.disconnect(self.conf_level_toolbar_widget.set_spinbox_value_no_signals)
         
         
     def make_model_connections(self):
         QObject.connect(self.model, SIGNAL("DataError"), self.warning_msg)
-        QObject.connect(self.model, SIGNAL("dataChanged(QModelIndex, QModelIndex)"), self.change_index_after_data_edited)
-        #QObject.connect(self.tableView.selectionModel(), 
-        #            SIGNAL("selectionChanged(QItemSelection, QItemSelection)"), 
-        #            self.table_selection_changed)
+        QObject.connect(self.model, SIGNAL("dataChanged(QModelIndex, QModelIndex)"), 
+                        self.change_index_after_data_edited)
         self.tableView_selection_model = self.tableView.selectionModel()
         QObject.connect(self.tableView_selection_model, 
                     SIGNAL("selectionChanged(QItemSelection, QItemSelection)"), 
@@ -986,9 +970,6 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
                                                     function_name = chosen_method,
                                                     params = current_param_vals)
                     
-                #_writeout_test_data(meta_f_str, self.current_method, current_param_vals, result) # FOR MAKING TESTS
-                #self._writeout_test_parameters(function_name, make_dataset_in_r_str="", **parameter_args):
-                
             elif OMA_CONVENTION[data_type] == "continuous":
                 make_dataset_r_str = python_to_R.dataset_to_simple_continuous_robj(model=self.model,
                                                               included_studies=included_studies,
@@ -1476,7 +1457,9 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
     def save(self, save_as=False):
         if self.outpath is None or save_as:
             if self.outpath is None:
-                out_fpath = os.path.join(BASE_PATH, DEFAULT_FILENAME)
+                # fix for issue #71
+                DEFAULT_SAVE_PATH = os.path.expanduser("~")
+                out_fpath = os.path.join(DEFAULT_SAVE_PATH, DEFAULT_FILENAME)
             else:
                 out_fpath = QString(self.outpath) # already have filename, maybe want to change it
             print("proposed file path: %s" % out_fpath)
