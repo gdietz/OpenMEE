@@ -18,100 +18,75 @@
         <script src="js/vendor/modernizr-2.6.2.min.js"></script>
     </head>
     <body>
-        <!--[if lt IE 7]>
-            <p class="browsehappy">You are using an <strong>outdated</strong> browser. Please <a href="http://browsehappy.com/">upgrade your browser</a> to improve your experience.</p>
-        <![endif]-->
-
-        <!-- Add your site or application content here -->
-        <!--<p>Hello world! This is HTML5 Boilerplate.</p> -->
-
-<h1> This is h1 </h1>
-<h2> This is h2 </h2>
-<h3> This is h3 </h3>
-<h4> This is h4 </h4>
-<h5> This is h5 </h5>
-<h6> This is h6 </h6>
-
 
 
 <h1>Introducing OpenMEE</h1>
 
-<p>OpenMEE is open-source software for performing meta-analysis suited to the need of ecologist and evolutionary biologists.</p>
-
+<p>OpenMEE is open-source software for performing meta-analysis suited to the need of ecologist and evolutionary biologists. This program is made possible by the National Science Foundation (NSF), award numbers: DBI-1262402 (J. Gurevitch), DBI-1262442 (B. Wallace), DBI-1262545 (M.J. Lajeunesse).</p>
 
 <h3>Installing OpenMEE</h3>
 <ol>
-    <li>To install OpenMEE, download the program from:</br> http://www.cebm.brown.edu/open_mee/download </li>
-    <li>Save the zip file somewhere convenient and extract it.</li>
+    <li>To install OpenMEE, download the program from:<br/> <a href="http://www.cebm.brown.edu/open_mee/download">http://www.cebm.brown.edu/open_mee/download</a></li>
+    <li>Save the zip file somewhere convenient and extract it (just double-clicking should do on most systems).</li>
 </ol>
 
 <h3> Starting OpenMEE </h3>
 
-<p>Launch the program by clicking on LaunchOpenMEE.exe in the case of Windows or the OpenMEE app in the case of Macintosh. This opens the main spreadsheet as shown below. </p>
-
-
-<figure>
-  <img src="img/opening_screen.png">
-  <figcaption>Figure 1. The main spreadsheet screen</figcaption>
-</figure>
-
-<p>
-You enter and interact with your data on this spreadsheet. 
-
-
-<p>  --------------- NEW PAGE?  --------------- </p>
+<p>Launch the program by clicking on LaunchOpenMEE.exe in the case of Windows or, on Mac, the OpenMEE app. This will open the main spreadsheet. </p>
 
 <h3> The OpenMEE Spreadsheet </h3>
 
 <figure>
   <img src="img/opening_screen.png">
-  <figcaption>Figure 1. The main spreadsheet screen</figcaption>
+  <figcaption>Figure 1. The main spreadsheet interface</figcaption>
 </figure>
 
-From this spreadsheet you can enter your data by:
+<p>You will enter and interact with your data via this spreadsheet. From this spreadsheet you can enter your data in the following ways:</p>
 
 <ol>
 <li>Entering the data manually by typing it in to the spreadsheet.</li>
-<li>Opening a previously saved dataset (.ome) file from the file menu</li>
+<li>Opening a previously saved dataset (.ome) file</li>
 <li>Importing a CSV file (with or without column headers)</li>
 </ol>
 
+<p>The latter two are accessible via the <i>File</i> menu.</p>
+
 <figure>
   <img src="img/file_menu.png">
-  <figcaption>Figure 2. The file menu </figcaption>
+  <figcaption>Figure 2. The <i>File</i> menu </figcaption>
 </figure>
 
-
-
-<p>The OpenMEE spreadsheet is very flexible. It has an unlimited number of rows and columns. The spreadsheets starts off with a fixed (large) size. As your data approaches the limits, the spreadsheet automatically resizes itself to accomodate more data. You also don't have to worry about formatting your data beforehand. You simply enter your data in whatever format you have it. For example, After typing in some two-by-two contingency table data we see the screen below. </p>
+<p>The OpenMEE spreadsheet is very flexible. It has an unlimited number of rows and columns. The spreadsheets starts off with a fixed (large) size. As your data approaches the limits, the spreadsheet automatically resizes itself to accomodate more data. You also don't have to worry about formatting your data beforehand. Simply enter your data in whatever format you have it. For example, After typing in some two-by-two contingency table data we see the screen below.</p>
 
 <figure>
   <img src="img/screen_after_entering_data.png">
   <figcaption>Figure 3. Main screen after typing in data </figcaption>
 </figure>
 
-<p>Along the top of the spreadsheet we see the columns are labelled 'A', 'B', 'C' etc. along with '(cat)'. When you enter data into a new column, by default OpenMEE assumes that column is a new categorical variable and assigns it the default name. When you are done typing in new information, you have to tell OpenMEE what kind of data each column contains. You also must mark one column as the study labels column. In addition to telling OpenMEE the types of each column, you also assign your own custom labels to each column. All this is done by right-clicking on column headers and choosing the desired option as shown below:</p>
+<p>Along the top of the spreadsheet we see columns labelled 'A', 'B', 'C', etc., along with '(cat)'. When you enter data into a new column, OpenMEE assumes by default that said column is a new categorical variable and assigns it a default name. When you are done typing in new data, you have to tell OpenMEE what kind of data type each column contains (e.g., continuous). You also must mark one column as the study labels column.</p>
+
+<p>In addition to telling OpenMEE the types of each column, you may also assign your own custom labels (names) to each column. All this is done by right-clicking on column headers and choosing the desired option as shown below:</p>
 
 <figure>
   <img src="img/context_menu.png">
-  <figcaption>Figure 4. Context Menu</figcaption>
+  <figcaption>Figure 4. <i>Context</i> menu, accessible by right-click.</figcaption>
 </figure>
 
-Let's rename the columns now. We do this by clicking on the 'rename variable' option of the context menu. After renaming the columns, the screen looks like this:
+You can rename columns by clicking on the 'rename variable' option of the <i>context</i> menu. 
 
 <figure>
   <img src="img/after_renaming_columns.png">
-  <figcaption>Figure 5. After Renaming Columns</figcaption>
+  <figcaption>Figure 5. After renaming columns.</figcaption>
 </figure>
 
-<p>We now have to tell OpenMEE what type of data these columns contain. Again, this is done by right clicking and selecting a target format from the 'Change format' submenu as shown in Figure 4: Context Menu. Since this is two-by-two data, the 4 numerical columns are 'counts' while 'Country' and 'Year' are categorical variables, and 'study_name' is clearly the variable we will mark as the study labels by selecting 'Mark as label column' in the context menu. Finally out of pedagogical necesssity, let's add a continuous column after country called 'Avg. Rainfall (cm)'. After assigning all these formats, we obtain the following: </p>
+<p>We now have to tell OpenMEE what type of data these columns contain. Again, this is done by right-clicking and selecting a target format from the <i>Change format</i> submenu as shown in Figure 4. Since this is two-by-two data, the four numerical columns are 'counts' while 'Country' and 'Year' are categorical variables, and 'study_name' is the variable we will mark as containing study labels (by selecting 'Mark as label column' from the <i>context</i> menu). Finally out of pedagogical necesssity, let's add a continuous column after country called 'Avg. Rainfall (cm)'. After assigning all these formats, we see </p>
 
 <figure>
   <img src="img/after_setting_types.png">
   <figcaption>Figure 6. After Setting Variable Formats</figcaption>
 </figure>
 
-<p>Note that for each variable format has its own color scheme as reminder when you're working with the spreadsheet. If you can't stand the default color scheme you can change it by clicking on the 'Table Menu' and then 'Table Preferences':
+<p>Note that for each variable format has its own color scheme as reminder when you're working with the spreadsheet. If you can't stand the default color scheme you can change it by clicking on the <i>Table</i> menu and then <i>Table Preferences</i>:
 
 <figure>
   <img src="img/preferences_dlg.png">
@@ -120,87 +95,96 @@ Let's rename the columns now. We do this by clicking on the 'rename variable' op
 
 <p>Here, you can change the color schemes of the variables as well as the font used on the spreadsheet as well as the number of digits displayed for continuous variables. </p>
 
-<h3> Calculating an Effect Size </h3>
+<h3>Calculating an Effect Size </h3>
 
-Before we can run an analysis, we need an effect size and variance. We can get this in one of two ways:
+<p>Before we can run an analysis, we need effect sizes and associated variances. These can be input in one of two ways:
 
 <ol>
-    <li>Entering an effect size and variance manually (e.g. when raw data is not available)</li>
-    <li>Calculating an Effect Size from the raw data
+    <li>Entering an effect size and variance manually (i.e., not entering 'raw data')</li>
+    <li>Calculating an Effect Size from the raw data</li>
 </ol>
 
-<p> We will examine each option in turn </p>
+We will consider each option in turn </p>
 
-<h4> Entering an effect size and variance manually </h4>
-<p> To do this, we simply create two new continuous variables using the method we described earlier. Let's call them "my effect size" and "my variance". In order to use these variables as effects in a meta analysis we need to tell OpenMEE that these are effects. Right click on the header for "my effect size" and choose 'Change format -----> Trans. Effect'. Likewise, choose 'Change Format ----> Trans. Var' for "my variance" as shown in the Figure below.
-</p>
+<h4>Entering an effect size and variance manually </h4>
+
+<p>To do this, simply create two new continuous variables using the method described above. Let's call them "my effect size" and "my variance". Now we need to tell OpenMEE that these are effects. Right-click on the header for "my effect size" and choose <i>Change format</i> &#8594; <i>Trans. Effect</i>. Likewise, choose 'Change Format &#8594; Trans. Var' for "my variance" as shown in the Figure below.</p>
 
 <figure>
   <img src="img/change_continuous_var_to_trans_effect.png">
-  <figcaption>Figure 8. Change Continuous Variance to Transformed-scale Effect</figcaption>
+  <figcaption>Figure 8. Changing continuous variance to transformed-scale effect</figcaption>
 </figure>
 
-<p> Once we have finished changing the format of these two variables, we have the screen shown below </p>
+<p>We will then see the screen below</p>
 
 
 <figure>
   <img src="img/set_effect_size_format.png">
-  <figcaption>Figure 9. After Setting Effect Size Format </figcaption>
+  <figcaption>Figure 9. After setting effect size format.</figcaption>
 </figure>
 
 
-<p> We show now take an aside to discuss transformed-scale vs. raw-scale. In order to perform a meta-analysis, we need an effect size and a single measure of dispersion for each study. For example, if our metric is "Odds ratio" we need the effect size on the transformed (log) scale since confidence intervals for odds ratios are generally not symmetric in the raw (untransformed) scale. It just so happens, however, that OpenMEE is capable of transforming an effect size and confidence interval or effect size and variance from one scale to the other. We will see how to do this soon.</p>
+<p>Here we need to discuss the issue of 'transformed' scale vs. 'raw' scale. To perform a meta-analysis, we need an effect size and a measure of dispersion for each study. For example, if our metric is the odds ratio, we need the effect size on the transformed (log) scale because confidence intervals for odds ratios are generally not symmetric in the raw (untransformed) scale. Fortunately, OpenMEE can transform an effect size and confidence interval (or effect size and variance) from one scale another.</p>
 
-<h4> Calculating an Effect Size from the raw data </h4>
+<h4>Calculating an effect size from raw data</h4>
 
 <figure>
   <img src="img/calc_effect_size/1_calculate_effect_size_wizard.png">
   <figcaption>Figure 10. Calculate Effect Size Wizard</figcaption>
 </figure>
 
-<p>In order to calculate an effect size from raw data, click the 'Calculate Effect Size' button on the toolbar or select 'Calculate Effect Size' from the analysis menu. This will show the wizard in Figure 10. First, you have to select a data type and a metric.</p>
+<p>To calculate an effect size from raw data, click the 'Calculate Effect Size' button on the toolbar, or select 'Calculate Effect Size' from the <i>analysis</i> menu. This will show the wizard in Figure 10. First, you have to select a data type and a metric.</p>
 
 <figure>
   <img src="img/calc_effect_size/2_data_location_selection.png">
   <figcaption>Figure 11. Data location selection</figcaption>
 </figure>
 
-
-<p> Then, you tell OpenMEE the locations of the necessary variables as show in Figure 11. You will be given the option to link the raw data columns to the resulting effect size columns (selected by default). This makes it so that when you change a value in the raw data, the effect column result will update automatically.
-
+<p>Next tell OpenMEE the locations of the necessary variables as show in Figure 11. You will be given the option to link the raw data columns to the resulting effect size columns (selected by default). This makes it so that when you change a value in the raw data, the effect column will update automagically.</p>
 
 <figure>
   <img src="img/calc_effect_size/3_effects_calculated.png">
-  <figcaption>Figure 12. Effect Size calculated </figcaption>
+  <figcaption>Figure 12. Calculated effect size.</figcaption>
 </figure>
 
-<p> In Figure 12, we see the calculated effect size and variance in the 'transformed scale' (lnOR and Var(ln OR)). Also, note on the bottom of the window, we see a red bar. This provides a visual cue that the four raw data columns cont. #events, #cont #noevents, etc are linked to the effect and variance columns.
+<p>In Figure 12, we see the calculated effect size and variance in the 'transformed' (natural log) scale. Also, note that on the bottom of the window we see a red bar. This provides a visual cue that the four raw data columns cont. #events, #cont #noevents, etc are 'linked' to the effect and variance columns.</p>
 
 <figure>
   <img src="img/calc_effect_size/6_transformed_effect_result.png">
   <figcaption>Figure 13. Transformed Effect Size Result </figcaption>
 </figure>
 
-<p> Finally in Figure 13, we see the result of transforming the effect size. Three new columns have been added containing the 'raw scale' effect size and upper and lower confidence bounds given the current confidence level shown in the toolbar. Changing the confidence level in the toolbar will cause the confidence interval to recalculate.
+<p>In Figure 13, we see the result of transforming the effect size. Three new columns have been added containing the 'raw scale' effect size and upper and lower confidence bounds given the current confidence level shown in the toolbar. Changing the confidence level in the toolbar will cause the confidence interval to be recalculated.
 </p>
 
-<!-- This would be a good breakpoint -->
-
 <h2> Running Analyses </h2>
-<p> All analyses are performed similiarly. You can choose to perform an analysis by clicking its icon in the toolbar or by selecting it from the Analysis menu. More exotic analyses such as bootstrapped meta regression, meta-regression-based conditional means and, boostrapped meta regression-based conditional means are only accessible from the menu bar. </p>
-<p> Since all the analyses are similiar, I will describe the pages you see on the wizards for each analysis.</p>
 
-<h3> Standard Meta Analysis </h3>
+<p> All analyses are performed similiarly. You can choose to perform an analysis by clicking its icon in the toolbar or by selecting it from the <i>Analysis</i> menu. More exotic analyses (such as 'bootstrapped' meta regression, meta-regression-based conditional means and boostrapped meta regression-based conditional means) are only accessible from the menu bar. </p>
+
+<p>Here we describe the pages you see on the wizards for each analysis (this is similar for all analyses).</p>
+
+<h3>Standard Meta Analysis</h3>
+
+<p>Here we refer to analyses that look to estimate a 'grand mean', i.e., with no covariates. The pages you will see are as follows.</p>
+
 <ol>
-  <li>Data Type & Metric</li>
-  <li>Data Location</li>
+  <li><b>Data Type and Metric</b>. <br/><br/>
+    <img src="img/data_type_effect_size.png" width="25%" height="25%"/> <br/><br/>
+    Here you will need to select the data type and effect size. Note that for the latter, you can elect a 'generic effect' if you need.
+  </li><br/>
+
+  <li><b>Data Location</b>
+    <img src="img/choose_outcome.png" width="25%" height="25%"/> <br/><br/>
+    Now you will need to select your effect size and variance columns. Here, for example, we have selected ln OR and the variance thereof. In general, the effect size and variance combo boxes will allow you to select any columns that you have designated as effect sizes and variances, respectively.
+  </li>
+
   <li>Refine studies/categories/exclude studies with specific missing data </li>
   <li>Analysis Method and Parameters</li>
   <li>Summary Page</li>
 </ol>
 
-<h3> Cumulative Meta Analysis </h3>
-<h3> Leave One Out Meta Analysis </h3>
+<h3>Cumulative Meta Analysis </h3>
+<h3>Leave One Out Meta Analysis </h3>
 <p> The options for Cumulative Meta Analaysis and Leave-One-Out meta analysis are the same as for Standard Meta Analysis </p>
 
 <h3> Subgroup Meta Analysis </h3>
@@ -236,5 +220,5 @@ Before we can run an analysis, we need an effect size and variance. We can get t
             r.parentNode.insertBefore(e,r)}(window,document,'script','ga'));
             ga('create','UA-XXXXX-X');ga('send','pageview');
         </script>
-    </body>
+</body>
 </html>
