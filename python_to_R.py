@@ -26,7 +26,7 @@ def execute_in_R(r_str):
 
 
 #################### R Library Loader ####################
-class RlibLoader:
+class RlibLoader:  
     def __init__(self):
         print("R Libary loader (RlibLoader) initialized...")
         
@@ -67,7 +67,6 @@ except:
 
 def load_ape_file(ape_path, tree_format):
     # uses r package APE to load a tree in to object of class phylo (R object)
-    
     print("loading ape file... {0} of format {1}".format(ape_path, tree_format))
     #ext = ape_path.split(".")[-1]
     #r_str = "phylo.tree <- read."
