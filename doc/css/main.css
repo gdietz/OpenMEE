@@ -71,7 +71,6 @@ video {
 fieldset {
     border: 0;
     margin: 0;
-    padding: 0;
 }
 
 /*
@@ -98,10 +97,13 @@ textarea {
    ========================================================================== */
 
 
+body {
+    padding-top:25px;
+    padding-bottom:25px;
+    padding-right:50px;
+    padding-left:50px;
 
-
-
-
+}
 
 
 
