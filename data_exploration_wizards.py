@@ -18,7 +18,6 @@ from scatterplot_dataselect_page import ScatterplotDataSelectPage
 [Page_ScatterplotDataSelectPage, Page_ScatterplotParams,] = range(2)
 
 
-
 class HistogramWizard(QtGui.QWizard):
     def __init__(self, model, old_histogram_params={}, prev_hist_var=None, parent=None):
         super(HistogramWizard, self).__init__(parent)
@@ -40,6 +39,7 @@ class HistogramWizard(QtGui.QWizard):
         
     def get_selected_var(self):
         return self.data_select_page.get_selected_var()
+        
     def get_histogram_params(self):
         return self.histogram_page.get_parameters()
         
@@ -64,5 +64,6 @@ class ScatterPlotWizard(QtGui.QWizard):
         
     def get_selected_vars(self):
         return self.data_select_page.get_selected_vars()
+
     def get_scatterplot_params(self):
         return self.scatterplot_page.get_parameters()

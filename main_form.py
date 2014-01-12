@@ -211,10 +211,7 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
             else:
                 self.actionSubgroup.setEnabled(True)
         else:
-            self.actionSubgroup.setEnabled(False)
-        
-        
-        
+            self.actionSubgroup.setEnabled(False)   
 
     def set_model(self, state):
         '''
@@ -297,13 +294,8 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
         self.actionBootstrapped_Meta_Analysis.triggered.connect(self.bootstrap_ma)
         self.actionBootstrapped_Meta_Regression.triggered.connect(lambda: self.meta_regression(mode=BOOTSTRAP_META_REG))
         self.actionBootstrapped_Meta_Regression_Based_Conditional_Means.triggered.connect(lambda: self.meta_regression(mode=BOOTSTRAP_META_REG_COND_MEANS))
-        
-<<<<<<< HEAD
-        QObject.connect(self.actionPhyloAnalysis, SIGNAL("triggered()"), self.open_ape)
-=======
-        
+         
         QObject.connect(self.actionPhyloAnalysis, SIGNAL("triggered()"), self.phylo_analysis)
->>>>>>> 51385a721087e9cdfecb1032c4d8ae13aa411361
         
         #### Publication Bias Menu ###
         self.actionFail_Safe_N.triggered.connect(self.failsafe_analysis)
@@ -760,9 +752,6 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
             result = python_to_R.run_failsafe_analysis(self.model, included_studies, data_location, failsafe_parameters)
             self.analysis(result, summary)
             
-        
-        #print("are we there yet?")
-        
 
     def funnel_plot_analysis(self):
         wizard = ma_wizard.MetaAnalysisWizard(model=self.model,
@@ -828,7 +817,8 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
                 result = python_to_R.run_histogram(model=self.model,
                                                    var=var,
                                                    params=params,
-                                                   res_name = "result", var_name = "tmp_obj", summary="")
+                                                   res_name="result", var_name="tmp_obj", 
+                                                   summary="")
             except CrazyRError as e:
                 if SOUND_EFFECTS:
                     silly.play()
@@ -836,20 +826,32 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
  
             self.analysis(result, summary="")
         
+    def impute_data(self):
+        '''
+        This method handles (basic?) data imputation via MICE.
+        I think the idea here will be to replace the current
+        data set with the imputed values. 
+
+        @TODO this needs to be made undoable
+        @TODO probably we are going to need to write a wizard
+        to walk the user through this.
+        '''
+        # get the current dataset
+        python_to_R.
+
     def scatterplot(self):
         prev_scatterplot_data = None # TODO: get from model
         old_scatterplot_params = {}  # TODO: get from model
         wizard = data_exploration_wizards.ScatterPlotWizard(model=self.model,
-                                                            old_scatterplot_params=old_scatterplot_params,
-                                                            prev_scatterplot_data=prev_scatterplot_data)
+                                old_scatterplot_params=old_scatterplot_params,
+                                prev_scatterplot_data=prev_scatterplot_data)
         
         if wizard.exec_():
             # get selections
             xvar = wizard.get_selected_vars()['x']
             yvar = wizard.get_selected_vars()['y']
             params = wizard.get_scatterplot_params()
-            
-            
+
             # store selections for next analysis
             
             # run analysis and display results window
@@ -1515,12 +1517,6 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
         converted to and provides the action to do so.
         * Should not be here if the clicked column was the label column
         '''
-        
-#         # profiling fun
-#         pr=cProfile.Profile()
-#         pr.enable()
-#         ###############
-
         var = self.model.get_variable_assigned_to_column(col)
 
         possible_target_conversions = []

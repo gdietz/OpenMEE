@@ -66,16 +66,7 @@ class ScatterPlotPage(QWizardPage, ui_scatterplot_page.Ui_WizardPage):
         else:
             default_ylabel = self.wizard().get_selected_vars()['y'].get_label()
             self.ylab_le.setText(default_ylabel)
-            
-#         if 'xlab' in old_params:
-#             self.xlabCheckBox.setCheckState(Qt.Checked)
-#             self._change_target_enable_state(self.xlabCheckBox, Qt.Checked)
-#             self.xlab_le.setText(old_params['xlab'])
-#         if 'ylab' in old_params:
-#             self.ylabCheckBox.setCheckState(Qt.Checked)
-#             self._change_target_enable_state(self.ylabCheckBox, Qt.Checked)
-#             self.ylab_le.setText(old_params['ylab'])
-            
+
     def setup_connections(self):
         # enable/disable targets
         for checkbox in self.checkboxes:

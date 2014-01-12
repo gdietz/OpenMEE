@@ -147,8 +147,7 @@ class EETableModel(QAbstractTableModel):
             self.undo_stack.endMacro()
         print("Confidence level is now %.1f" % self.conf_level)
     
-    def do_when_conf_level_changes(self, old_conf_level, new_conf_level, use_undo=True):
-        
+    def do_when_conf_level_changes(self, old_conf_level, new_conf_level, use_undo=True):    
         ################## Update raw effect columns ########################
         if use_undo:
             self.undo_stack.beginMacro("Updating raw effect columns")
@@ -199,11 +198,6 @@ class EETableModel(QAbstractTableModel):
             self.undo_stack.endMacro()
         ################## end update raw effect columns ########################
             
-            
-            
-            
-            
-    
     def get_conf_level(self):
         return self.conf_level
         
@@ -218,7 +212,9 @@ class EETableModel(QAbstractTableModel):
     
     def get_sorted_covariates(self, var_type):
         covs = self.get_variables(var_type)
-        covs = [cov for cov in covs if cov.get_subtype() not in EFFECT_TYPES] # stuff in EFFECT_TYPES are not really covariates
+        # stuff in EFFECT_TYPES are not really covariates
+        covs = [cov for cov in covs if 
+                    cov.get_subtype() not in EFFECT_TYPES] 
         covs.sort(key=lambda cov_var: cov_var.get_label().lower())
         return covs
     
@@ -1047,8 +1043,10 @@ class EETableModel(QAbstractTableModel):
         is_label_col = col == self.label_column
         if basic_value:
             value_as_string = str(value)
-        else: # value is a QVariant
-            value_as_string = str(value.toString()) if value not in ["", None,QVariant(),QVariant(None)] else ""
+        else: 
+            # value is a QVariant
+            # fix for issue #78
+            value_as_string = str(value.toString().strip()) if value not in ["", None,QVariant(),QVariant(None)] else ""
             
         if '"' in value_as_string:
             self.error_msg_signal.emit("You have entered the land of forbidden characters, from which none have ever returned", "\" character not allowed, it breaks things")

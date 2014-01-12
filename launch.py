@@ -45,6 +45,11 @@ def load_R_libraries(app, splash=None):
     app.processEvents()
     rloader.load_ape()
 
+    splash.showMessage("Loading mice\n................")
+    app.processEvents()
+    rloader.load_mice()
+
+
 def start(open_file_path=None):
     # clear r_tmp:
     clear_r_tmp()

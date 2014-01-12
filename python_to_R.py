@@ -33,6 +33,9 @@ class RlibLoader:
     def load_ape(self):
         return self._load_r_lib("ape")
 
+    def load_mice(self):
+        return self._load_r_lib("mice")
+        
     def load_metafor(self):
         return self._load_r_lib("metafor")
     
@@ -543,7 +546,59 @@ def run_histogram(model, var, params, res_name = "result", var_name = "tmp_obj",
     result = execute_in_R(r_str)
     return parse_out_results(result)
 
-def run_scatterplot(model, xvar, yvar, params, res_name = "result", var_name = "tmp_obj"):    
+# put data into R format
+def col_data_to_R_fmt(col_data, data_type):
+    if data_type == COUNT:
+        col_data = ro.IntVector(col_data)
+    elif data_type == CONTINUOUS:
+        col_data = ro.FloatVector(col_data)
+    else:
+        raise Exception("Unrecognized data type")
+    return col_data
+
+def cols_to_data_frame(model):
+    '''
+    Create an R data from the model.
+    '''
+    var_col_d = {}
+    col_variables = model.get_variables
+    for col_var in col_variables:
+        col_var_name = col_var.get_label()
+        var_col_d[col_var_name] = col_var
+
+    data_r = ro.DataFrame(var_col_d)
+    return data_r
+
+def impute(model):
+    '''
+    Here is a start at issue #86
+    '''
+    # @TODO
+    # add pop-up, and possibly (probably?) a small wizard
+    # that tells the user what we're doing here and assumptions
+    # that are being made. the thinking is that we'll just use
+    # mice 'out of the box'. it seems like it's relatively
+    # straight forward to select different imputation methods
+    # for each variable column, so we may want to allow the user
+    # to do this eventually
+    #
+    # See MICE: Multivariate Imputation by Chained Equations in R
+    # http://www.stefvanbuuren.nl/publications/MICE%20in%20R%20-%20Draft.pdf
+    # Also: http://cran.r-project.org/web/packages/mice/index.html 
+    ####
+
+    # convert to a data frame 
+    data_f = cols_to_data_frame(model)
+    imputed_data_f = execute_in_R("mice(%s)" % data_f.r_repr())
+    # @TODO TODO TODO
+    # in theory, all that needs to happen here is we need
+    # to overwrite the current variable columns with 
+    # imputed variable columns (in imputed_data_f).
+    # probably this should be an undoable action
+
+
+def run_scatterplot(model, xvar, yvar, params, 
+                        res_name="result", var_name="tmp_obj"):    
     xvar_type = xvar.get_type()
     yvar_type = yvar.get_type()
     
@@ -553,32 +608,23 @@ def run_scatterplot(model, xvar, yvar, params, res_name = "result", var_name = "
     y_data = [study.get_var(yvar) for study in studies]
     
     # get rid of entries where either x or y is None
-    data = [(x,y) for (x,y) in zip(x_data,y_data) if x is not None and y is not None]
+    data = [(x,y) for (x,y) in zip(x_data,y_data) 
+                if x is not None and y is not None]
     x_data,y_data = zip(*data)
-    # put data into R format
-    def data_to_R_fmt(donnees, data_type):
-        if xvar_type == COUNT:
-            donnees_r = ro.IntVector(donnees)
-        elif xvar_type == CONTINUOUS:
-            donnees_r = ro.FloatVector(donnees)
-        else:
-            raise Exception("Unrecognized data type")
-        return donnees_r
-    x_data = data_to_R_fmt(x_data, xvar_type)
-    y_data = data_to_R_fmt(y_data, yvar_type)
+
+    x_data = col_data_to_R_fmt(x_data, xvar_type)
+    y_data = col_data_to_R_fmt(y_data, yvar_type)
     data = {'x':x_data, 'y':y_data}
     data_r = ro.DataFrame(data)
     
     # params in R format
     params_r = scatterplot_params_to_R(params)
     # exploratory.plotter <- function(data, params, plot.type)
-    r_str = "%s<-exploratory.plotter(%s, %s, plot.type=\"SCATTERPLOT\")" % (res_name, data_r.r_repr(), params_r.r_repr())
+    r_str = "%s<-exploratory.plotter(%s, %s, plot.type=\"SCATTERPLOT\")" % (
+            res_name, data_r.r_repr(), params_r.r_repr())
     
     result = execute_in_R(r_str)
     return parse_out_results(result)
-
-
-
 
 
 def histogram_params_toR(params):
