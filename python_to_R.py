@@ -35,7 +35,7 @@ class RlibLoader:
 
     def load_mice(self):
         return self._load_r_lib("mice")
-        
+
     def load_metafor(self):
         return self._load_r_lib("metafor")
     
@@ -561,7 +561,7 @@ def cols_to_data_frame(model):
     Create an R data from the model.
     '''
     var_col_d = {}
-    col_variables = model.get_variables
+    col_variables = model.get_variables()
     for col_var in col_variables:
         col_var_name = col_var.get_label()
         var_col_d[col_var_name] = col_var
