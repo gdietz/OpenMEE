@@ -564,7 +564,9 @@ def cols_to_data_frame(model):
     col_variables = model.get_variables()
     for col_var in col_variables:
         col_var_name = col_var.get_label()
-        var_col_d[col_var_name] = col_var
+        var_col_d[col_var_name] = [
+                study.get_var(col_var) for study in 
+                model.get_studies_in_current_order()]
 
     data_r = ro.DataFrame(var_col_d)
     return data_r
