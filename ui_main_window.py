@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'main_window.ui'
 #
-# Created: Sat Jan 11 09:49:22 2014
+# Created: Sun Jan 12 11:51:32 2014
 #      by: PyQt4 UI code generator 4.10.3
 #
 # WARNING! All changes made in this file will be lost!
@@ -26,7 +26,7 @@ except AttributeError:
 class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
         MainWindow.setObjectName(_fromUtf8("MainWindow"))
-        MainWindow.resize(590, 378)
+        MainWindow.resize(780, 504)
         icon = QtGui.QIcon()
         icon.addPixmap(QtGui.QPixmap(_fromUtf8(":/general/images/logo.png")), QtGui.QIcon.Normal, QtGui.QIcon.Off)
         MainWindow.setWindowIcon(icon)
@@ -39,7 +39,7 @@ class Ui_MainWindow(object):
         self.verticalLayout.addWidget(self.tableView)
         MainWindow.setCentralWidget(self.centralwidget)
         self.menubar = QtGui.QMenuBar(MainWindow)
-        self.menubar.setGeometry(QtCore.QRect(0, 0, 590, 21))
+        self.menubar.setGeometry(QtCore.QRect(0, 0, 780, 21))
         self.menubar.setObjectName(_fromUtf8("menubar"))
         self.menuFile = QtGui.QMenu(self.menubar)
         self.menuFile.setObjectName(_fromUtf8("menuFile"))
@@ -186,6 +186,8 @@ class Ui_MainWindow(object):
         self.actionHistogram.setObjectName(_fromUtf8("actionHistogram"))
         self.actionPhyloAnalysis = QtGui.QAction(MainWindow)
         self.actionPhyloAnalysis.setObjectName(_fromUtf8("actionPhyloAnalysis"))
+        self.actionModel_Building = QtGui.QAction(MainWindow)
+        self.actionModel_Building.setObjectName(_fromUtf8("actionModel_Building"))
         self.menuFile.addAction(self.actionNew)
         self.menuFile.addAction(self.actionOpen)
         self.menuFile.addAction(self.actionSave)
@@ -226,6 +228,7 @@ class Ui_MainWindow(object):
         self.menuAnalysis.addAction(self.menuMeta_Regression_Meta_Regression_Derivatives.menuAction())
         self.menuAnalysis.addSeparator()
         self.menuAnalysis.addAction(self.actionPhyloAnalysis)
+        self.menuAnalysis.addAction(self.actionModel_Building)
         self.menuAbout.addAction(self.action_about)
         self.menuPublication_Bias.addAction(self.actionFail_Safe_N)
         self.menuPublication_Bias.addAction(self.actionFunnel_Plot)
@@ -313,5 +316,6 @@ class Ui_MainWindow(object):
         self.actionScatterplot.setText(_translate("MainWindow", "Scatterplot", None))
         self.actionHistogram.setText(_translate("MainWindow", "Histogram", None))
         self.actionPhyloAnalysis.setText(_translate("MainWindow", "PhyloAnalysis", None))
+        self.actionModel_Building.setText(_translate("MainWindow", "Model Building", None))
 
 import icons_rc

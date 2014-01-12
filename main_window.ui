@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>590</width>
-    <height>378</height>
+    <width>780</width>
+    <height>504</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -29,7 +29,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>590</width>
+     <width>780</width>
      <height>21</height>
     </rect>
    </property>
@@ -107,6 +107,7 @@
     <addaction name="menuMeta_Regression_Meta_Regression_Derivatives"/>
     <addaction name="separator"/>
     <addaction name="actionPhyloAnalysis"/>
+    <addaction name="actionModel_Building"/>
    </widget>
    <widget class="QMenu" name="menuAbout">
     <property name="title">
@@ -421,6 +422,11 @@
   <action name="actionPhyloAnalysis">
    <property name="text">
     <string>PhyloAnalysis</string>
+   </property>
+  </action>
+  <action name="actionModel_Building">
+   <property name="text">
+    <string>Model Building</string>
    </property>
   </action>
  </widget>

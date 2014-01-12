@@ -55,6 +55,7 @@ def start(open_file_path=None):
     clear_r_tmp()
     
     app = QtGui.QApplication(sys.argv)
+    app.setApplicationName("OpenMEE")
     
     splash_pixmap = QPixmap(":/splash/splash.png")
     splash = QSplashScreen(splash_pixmap)
