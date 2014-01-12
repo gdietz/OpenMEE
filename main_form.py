@@ -837,7 +837,7 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
         to walk the user through this.
         '''
         # get the current dataset
-        python_to_R.
+        python_to_R.impute()
 
     def scatterplot(self):
         prev_scatterplot_data = None # TODO: get from model
