@@ -71,10 +71,27 @@ class Var_Categories_Nstudies:
         except KeyError: # if the category is not found, there are zero studies
             return 0
         
-
+class StudyFilter:
+    def __init__(self, allowed_studies, reason_others_excluded=""):
+        self.allowed_studies = allowed_studies
+        self.reason_others_excluded = reason_others_excluded
+        
+    def is_allowed(self, study):
+        ''' Returns true if the study is allowed, False otherwise.
+            If false, the reason string is provided '''
+        allowed = study in self.allowed_studies
+        if allowed:
+            return (True, None)
+        else:
+            return (False, self.reason_others_excluded)
 
 class RefineStudiesPage(QWizardPage, ui_refine_studies_page.Ui_WizardPage):
-    def __init__(self, model, mode=MA_MODE, previously_included_studies=None, parent=None):
+    def __init__(self,
+                 model,
+                 mode=MA_MODE,
+                 previously_included_studies=None,
+                 study_filter = None, # an object which contains info about which studies are allowed
+                 parent=None):
         super(RefineStudiesPage, self).__init__(parent)
         self.setupUi(self)
         

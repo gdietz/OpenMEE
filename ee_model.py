@@ -63,6 +63,7 @@ DEFAULT_LAST_ANALYSIS_SELECTIONS = {'data_locations': {MEANS_AND_STD_DEVS:{},
                                     'covs_to_values'     : None,
                                     'failsafe_parameters': None,
                                     'funnel_params'      : None,
+                                    'random_effects_method' : None,
                                     }
         
 
@@ -218,6 +219,30 @@ class EETableModel(QAbstractTableModel):
         covs.sort(key=lambda cov_var: cov_var.get_label().lower())
         return covs
     
+    def get_variables_with_data(self, studies, missing_data=[None, "", QString("")]):
+        ''' Returns a dictionary: {'valid':[...],
+                                   'invalid':[...]}
+            Valid list contains the variables that have data for each study
+            given in studies. Invalid list contains variables that do not not
+            have data for each study '''
+        
+        valid_list = []
+        invalid_list = []
+        
+        variables = self.dataset.get_variables()
+        
+        isValidValue = lambda x: x not in missing_data
+        for var in variables:
+            values = (isValidValue(study.get_var(var)) for study in studies) # generator
+            if all(values):
+                valid_list.append(var)
+            else:
+                invalid_list.append(var)
+                
+        return {'valid':valid_list,
+                'invalid':invalid_list}
+        
+    
     def get_state(self):
         ''' returns a class representing the model's state '''
         
@@ -336,6 +361,12 @@ class EETableModel(QAbstractTableModel):
         self.last_analysis_selections['failsafe_parameters'] = failsafe_parameters
     def get_last_failsafe_parameters(self):
         return self.try_to_get_last_selection('failsafe_parameters')
+    
+    def update_random_effects_method(self, random_effects_method):
+        self.last_analysis_selections['random_effects_method']=random_effects_method
+    def get_last_random_effects_method(self):
+        return self.try_to_get_last_selection('random_effects_method')
+    
     
     def try_to_get_last_selection(self, key):
         '''tries to get the last selection from self.last_analysis_selections
@@ -1046,7 +1077,7 @@ class EETableModel(QAbstractTableModel):
         else: 
             # value is a QVariant
             # fix for issue #78
-            value_as_string = str(value.toString().strip()) if value not in ["", None,QVariant(),QVariant(None)] else ""
+            value_as_string = str(value.toString()).strip() if value not in ["", None,QVariant(),QVariant(None)] else ""
             
         if '"' in value_as_string:
             self.error_msg_signal.emit("You have entered the land of forbidden characters, from which none have ever returned", "\" character not allowed, it breaks things")

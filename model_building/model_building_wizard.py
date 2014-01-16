@@ -21,7 +21,13 @@ Created on Jan 11, 2014
 #
 # 4) The rest will be like the normal meta-regression wizard
 #
-# 
+# Progress:
+# Page  ui-designed page_code
+#  1       [X]         [ ] 
+#  2       [X]         [ ]
+#  3a      [ ]         [ ]
+#  3b      [X]         [ ]
+#  4       [ ]         [ ]
 #
 # Results:
 #   Option A: Show results in a table (see jessica email) with each successive
@@ -33,3 +39,48 @@ Created on Jan 11, 2014
 # diagonal will be blank. Clicking a square will show the results output on the
 # right hand side of the dialog. (exportable like the results_window)
 #
+
+from PyQt4 import QtCore, QtGui
+from PyQt4.Qt import *
+
+# Should use relative import here but eclipse doesn't seem to like it
+from choose_effect_size_page import ChooseEffectSizePage
+#from data_location_page import DataLocationPage
+from refine_studies_page import RefineStudiesPage, StudyFilter
+from reference_value_page import ReferenceValuePage
+from summary_page import SummaryPage
+
+
+# Histogram wizard ids
+[Page_SaturatedModelPage, Page_AddModelsPage,
+Page_ChooseEffectSize, Page_DataLocation, Page_RefineStudies,
+Page_PageReferenceValues, Page_Summary] = range(7)
+
+class ModelBuildingWizard(QtGui.QWizard):
+    def __init__(self, model, parent=None):
+        super(ModelBuildingWizard, self).__init__(parent)
+        
+        last_analysis = model.get_last_analysis_selections()
+        self.saturated_model_page = SaturatedModelPage(model=model)
+        self.add_models_page = AddModelsPage()
+        self.choose_effect_size_page = ChooseEffectSizePage(
+            add_generic_effect=True,
+            data_type=last_analysis['data_type'],
+            metric=last_analyis['metric'])
+        self.data_location_page = EffectSizeAndVarLocationPage(model=model)
+        self.refine_studies_page = RefineStudiesPage(model=model)
+        self.summary_page = SummaryPage()
+        
+        self.setPage(Page_SaturatedModelPage, self.saturated_model_page)
+        self.setPage(Page_AddModelsPage, self.add_models_page)
+        self.setPage(Page_ChooseEffectSize, self.choose_effect_size_page)
+        self.setPage(Page_DataLocation, self.data_location_page)
+        self.setPage(Page_RefineStudies, self.refine_studies_page)
+        self.setPage(Page_Summary, self.summary_page)
+        
+    def nextID(self):
+        if self.currentId() == Page_TreePage:
+            return -1
+        
+    def get_phylo_object(self):
+        return self.tree_page.get_phylo_object()

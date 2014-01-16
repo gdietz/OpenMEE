@@ -688,6 +688,7 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
             included_covariates = wizard.get_included_covariates()
             fixed_effects = wizard.using_fixed_effects()
             conf_level = wizard.get_covpage_conf_level()
+            random_effects_method = wizard.get_random_effects_method()
             cov_2_ref_values = wizard.get_covariate_reference_levels()
             summary = wizard.get_summary()
             if mode in [META_REG_COND_MEANS, BOOTSTRAP_META_REG_COND_MEANS]:
@@ -709,6 +710,7 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
             self.model.update_previously_included_studies(set(included_studies)) # save which studies were included on last meta-regression
             self.model.update_previously_included_covariates(set(included_covariates)) # save which covariates were included on last meta-regression
             self.model.update_selected_cov_and_covs_to_values(selected_cov, covs_to_values)
+            self.model.update_random_effects_method(random_effects_method)    
                 
             try:
                 self.run_meta_regression(metric,
@@ -719,6 +721,7 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
                                          covariate_reference_values = cov_2_ref_values,
                                          fixed_effects=fixed_effects,
                                          conf_level=conf_level,
+                                         random_effects_method = random_effects_method,
                                          selected_cov=selected_cov, covs_to_values=covs_to_values,
                                          mode=mode,
                                          bootstrap_params=bootstrap_params, # for bootstrapping
@@ -873,6 +876,7 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
     def run_meta_regression(self, metric, data_type, included_studies,
                             data_location, covs_to_include,
                             fixed_effects, conf_level,
+                            random_effects_method,
                             covariate_reference_values={},
                             selected_cov = None, covs_to_values = None,
                             mode=META_REG_MODE,
@@ -923,6 +927,7 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
                 result = python_to_R.run_meta_regression(metric=metric,
                                                          fixed_effects=fixed_effects,
                                                          conf_level=conf_level,
+                                                         random_effects_method = random_effects_method,
                                                          selected_cov=selected_cov, covs_to_values = covs_to_values)
                 if MAKE_TESTS:
                     self._writeout_test_parameters("python_to_R.run_meta_regression", make_dataset_r_str, result,

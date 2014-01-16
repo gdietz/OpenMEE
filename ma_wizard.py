@@ -63,9 +63,14 @@ class MetaAnalysisWizard(QtGui.QWizard):
         self.setPage(Page_ChooseEffectSize, self.choose_effect_size_page)
         self.data_location_page = DataLocationPage(model=model, mode=MA_MODE)
         
-        self.select_covariates_page = SelectCovariatesPage(model=model, mode=mode,
-                                                           prev_conf_level=model.get_conf_level_selection(),
-                                                           using_fixed_effects=model.get_fixed_vs_random_effects_selection())
+        need_categorical = True if mode in [META_REG_COND_MEANS, BOOTSTRAP_META_REG_COND_MEANS] else False
+        self.select_covariates_page = SelectCovariatesPage(
+                model=model,
+                previously_included_covs = self.model.get_previously_included_covariates(),
+                fixed_effects=model.get_fixed_vs_random_effects_selection(),
+                conf_level=model.get_conf_level_selection(),
+                random_effects_method = None, # change this, store/recall in model
+                need_categorical = need_categorical)
         self.reference_value_page = ReferenceValuePage(model=model,
                                                        prev_cov_to_ref_level=model.get_cov_2_ref_values_selection())
         self.setPage(Page_MethodsAndParameters, self.methods_and_params_page_instance)
@@ -134,7 +139,9 @@ class MetaAnalysisWizard(QtGui.QWizard):
     def using_fixed_effects(self):
         return self.select_covariates_page.get_using_fixed_effects()
     def get_covpage_conf_level(self):
-        return self.select_covariates_page.get_covpage_conf_level()
+        return self.select_covariates_page.get_confidence_level()
+    def get_random_effects_method(self):
+        return self.select_covariates_page.get_random_effects_method()
     ################################################################
         
     def get_subgroup_variable(self):
@@ -356,7 +363,7 @@ class MetaAnalysisWizard(QtGui.QWizard):
             fields_to_values['Metric']        = METRIC_TEXT[metric]
             fields_to_values['Data Location'] = self._get_data_location_string(data_location)
             fields_to_values['Included Studies'] = self._get_labels_string(included_studies)
-        
+            fields_to_values['Random Effects Method']=self.get_random_effects_method()
         
         if self.mode in META_ANALYSIS_MODES:
             meta_f_str = self.get_modified_meta_f_str()
@@ -385,9 +392,10 @@ class MetaAnalysisWizard(QtGui.QWizard):
             else:
                 selected_cov, covs_to_values = None, None
             bootstrap_params = self.get_bootstrap_params() if self.mode in [BOOTSTRAP_META_REG, BOOTSTRAP_META_REG_COND_MEANS] else {}
+            
     
             if not fixed_effects:
-                fields_to_values['Random Effects Method'] = DEFAULT_METAREG_RANDOM_EFFECTS_METHOD
+                fields_to_values['Random Effects Method'] = RANDOM_EFFECTS_METHODS_TO_PRETTY_STRS[self.get_random_effects_method()]
             fields_to_values['# Bootstrap Replicates'] = str(bootstrap_params['num.bootstrap.replicates']) if self.mode in [BOOTSTRAP_META_REG, BOOTSTRAP_META_REG_COND_MEANS] else None
             fields_to_values['Included Covariates'] = self._get_labels_string(included_covariates)
             fields_to_values['Fixed Effects or Random Effects'] = "Fixed Effects" if fixed_effects else "Random Effects"

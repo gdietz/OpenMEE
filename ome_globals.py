@@ -23,6 +23,15 @@ MAKE_TESTS = False
 HEADER_LINE_LENGTH = 70 # maximum length of header labels 
 
 DEFAULT_METAREG_RANDOM_EFFECTS_METHOD = "DL"
+RANDOM_EFFECTS_METHODS_TO_PRETTY_STRS = {"DL":"DerSimonian-Laird estimator",
+                                         "HE":"Hedges estimator",
+                                         "SJ":"Sidik-Jonkman estimator",
+                                         "ML":"maximum-likelihood estimator",
+                                         "REML":"restricted maximum likelihood estimator",
+                                         "EB":"empirical Bayes estimator",
+                                         "HS":"Hunter-Schmidt estimator",
+                                         }
+
 
 # The different types of data that can be associated with studies
 CATEGORICAL, CONTINUOUS, COUNT = range(3)

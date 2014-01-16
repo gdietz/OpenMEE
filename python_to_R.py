@@ -1243,13 +1243,14 @@ def run_meta_method(meta_function_name, function_name, params, \
 def run_meta_regression(metric, fixed_effects=False, data_name="tmp_obj",
                         results_name="results_obj", 
                         conf_level=DEFAULT_CONFIDENCE_LEVEL,
+                        random_effects_method = "DL",
                         selected_cov=None, covs_to_values = None):  # for meta-reg cond means
     
     if conf_level is None:
         raise ValueError("Confidence level must be specified")
     
     # Set fixed-effects vs. random effects        
-    method_str = "FE" if fixed_effects else "DL"    
+    method_str = "FE" if fixed_effects else random_effects_method   
 
     # TODO: digits should be user-specified
     params = {"conf.level": conf_level,
@@ -1295,12 +1296,13 @@ def run_bootstrap_meta_regression(metric,
                                   data_name="tmp_obj",
                                   results_name="results_obj", 
                                   conf_level=DEFAULT_CONFIDENCE_LEVEL,
+                                  random_effects_method = "DL",
                                   selected_cov=None, covs_to_values = None,
                                   data_type="binary",
                                   bootstrap_params={}):
     
     # Set fixed-effects vs. random effects        
-    method_str = "FE" if fixed_effects else "DL"    
+    method_str = "FE" if fixed_effects else random_effects_method  
 
     params = {"conf.level": conf_level,
               "digits": 3,
