@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'select_covariates_page.ui'
 #
-# Created: Thu Jan 16 16:30:56 2014
+# Created: Thu Jan 16 16:47:35 2014
 #      by: PyQt4 UI code generator 4.10.3
 #
 # WARNING! All changes made in this file will be lost!
@@ -26,7 +26,7 @@ except AttributeError:
 class Ui_WizardPage(object):
     def setupUi(self, WizardPage):
         WizardPage.setObjectName(_fromUtf8("WizardPage"))
-        WizardPage.resize(629, 426)
+        WizardPage.resize(506, 386)
         self.verticalLayout_8 = QtGui.QVBoxLayout(WizardPage)
         self.verticalLayout_8.setObjectName(_fromUtf8("verticalLayout_8"))
         self.frame = QtGui.QFrame(WizardPage)
@@ -36,6 +36,11 @@ class Ui_WizardPage(object):
         self.horizontalLayout_2 = QtGui.QHBoxLayout(self.frame)
         self.horizontalLayout_2.setObjectName(_fromUtf8("horizontalLayout_2"))
         self.groupBox = QtGui.QGroupBox(self.frame)
+        sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Expanding)
+        sizePolicy.setHorizontalStretch(0)
+        sizePolicy.setVerticalStretch(0)
+        sizePolicy.setHeightForWidth(self.groupBox.sizePolicy().hasHeightForWidth())
+        self.groupBox.setSizePolicy(sizePolicy)
         self.groupBox.setObjectName(_fromUtf8("groupBox"))
         self.verticalLayout_7 = QtGui.QVBoxLayout(self.groupBox)
         self.verticalLayout_7.setObjectName(_fromUtf8("verticalLayout_7"))
@@ -69,6 +74,11 @@ class Ui_WizardPage(object):
         self.verticalLayout_6 = QtGui.QVBoxLayout()
         self.verticalLayout_6.setObjectName(_fromUtf8("verticalLayout_6"))
         self.groupBox_3 = QtGui.QGroupBox(self.frame)
+        sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Expanding)
+        sizePolicy.setHorizontalStretch(0)
+        sizePolicy.setVerticalStretch(0)
+        sizePolicy.setHeightForWidth(self.groupBox_3.sizePolicy().hasHeightForWidth())
+        self.groupBox_3.setSizePolicy(sizePolicy)
         self.groupBox_3.setObjectName(_fromUtf8("groupBox_3"))
         self.verticalLayout_4 = QtGui.QVBoxLayout(self.groupBox_3)
         self.verticalLayout_4.setObjectName(_fromUtf8("verticalLayout_4"))
@@ -77,6 +87,11 @@ class Ui_WizardPage(object):
         self.verticalLayout_4.addWidget(self.selected_covs_listWidget)
         self.verticalLayout_6.addWidget(self.groupBox_3)
         self.groupBox_4 = QtGui.QGroupBox(self.frame)
+        sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Expanding)
+        sizePolicy.setHorizontalStretch(0)
+        sizePolicy.setVerticalStretch(0)
+        sizePolicy.setHeightForWidth(self.groupBox_4.sizePolicy().hasHeightForWidth())
+        self.groupBox_4.setSizePolicy(sizePolicy)
         self.groupBox_4.setObjectName(_fromUtf8("groupBox_4"))
         self.verticalLayout_3 = QtGui.QVBoxLayout(self.groupBox_4)
         self.verticalLayout_3.setObjectName(_fromUtf8("verticalLayout_3"))
