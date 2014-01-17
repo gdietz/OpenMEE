@@ -29,7 +29,9 @@ class Analyzer:
         return self.main_form.model
     
     def _show_additional_values(self):
-        reutrn self.main_form.user_prefs['show_additional_values']
+        return self.main_form.user_prefs['show_additional_values']
+    def _show_analysis_selections(self):
+        return self.main_form.user_prefs['show_analysis_selections']
     
     #### META ANALYSIS & META-REGRESSION ####
     def cum_ma(self):
@@ -191,7 +193,7 @@ class Analyzer:
         current_dict[chosen_method] = current_param_vals
         self.main_form.update_user_prefs("method_params", current_dict)
         
-        self.analysis(result, summary)
+        self._display_results(result, summary)
         
     def meta_regression(self, mode = META_REG_MODE):
         model = self._get_model()
@@ -320,7 +322,7 @@ class Analyzer:
             
         finally:
             bar.hide()
-        self.display_results(result, summary)
+        self._display_results(result, summary)
         
         
     def phylo_analysis(self):
@@ -369,7 +371,7 @@ class Analyzer:
             model.update_last_failsafe_parameters(failsafe_parameters)
             
             result = python_to_R.run_failsafe_analysis(model, included_studies, data_location, failsafe_parameters)
-            self.display_results(result, summary)
+            self._display_results(result, summary)
     
         
     def funnel_plot_analysis(self):
@@ -415,7 +417,7 @@ class Analyzer:
                     silly.play()
                 QMessageBox.critical(self.main_form, "Oops", str(e))
 
-            self.display_results(result, summary)
+            self._display_results(result, summary)
     
     ### DATA EXPLORATION ####
     def histogram(self):
@@ -448,7 +450,7 @@ class Analyzer:
                     silly.play()
                 QMessageBox.critical(self.main_form, "Oops", str(e))
  
-            self.display_results(result, summary="")
+            self._display_results(result, summary="")
             
     def scatterplot(self):
         model=self._get_model()
@@ -480,16 +482,21 @@ class Analyzer:
                     silly.play()
                 QMessageBox.critical(self.main_form, "Oops", str(e))
  
-            self.display_results(result, summary="")
+            self._display_results(result, summary="")
     
             
     #### RESULTS OUTPUT ####
 
-    def display_results(self, results, summary=""):
+    def _display_results(self, results, summary=""):
         if results is None:
             return # analysis failed
         else: # analysis succeeded
-            form = results_window.ResultsWindow(results, summary, parent=self.main_form)
+            form = results_window.ResultsWindow(
+                    results=results,
+                    show_additional_values=self._show_additional_values(),
+                    show_analysis_selections=self._show_analysis_selections(),
+                    summary=summary,
+                    parent=self.main_form)
             form.show()
 
 

@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'main_window.ui'
 #
-# Created: Sun Jan 12 11:51:32 2014
+# Created: Fri Jan 17 16:35:28 2014
 #      by: PyQt4 UI code generator 4.10.3
 #
 # WARNING! All changes made in this file will be lost!
@@ -207,12 +207,12 @@ class Ui_MainWindow(object):
         self.menuEdit.addAction(self.actionClear_Selected_Cells)
         self.menuEdit.addSeparator()
         self.menuEdit.addAction(self.actionShow_toolbar)
+        self.menuEdit.addAction(self.actionTable_Preferences)
         self.menuTable.addAction(self.actionChange_Column_Format)
         self.menuTable.addAction(self.actionRename_Column)
         self.menuTable.addAction(self.actionMark_Column_as_Label)
         self.menuTable.addAction(self.actionUnmark_Column_as_Label)
         self.menuTable.addSeparator()
-        self.menuTable.addAction(self.actionTable_Preferences)
         self.menuMeta_Analysis.addAction(self.actionStandard_Meta_Analysis)
         self.menuMeta_Analysis.addAction(self.actionCumulative)
         self.menuMeta_Analysis.addAction(self.actionLeave_one_out)
@@ -291,7 +291,7 @@ class Ui_MainWindow(object):
         self.actionMark_Column_as_Label.setText(_translate("MainWindow", "Mark Column as Label", None))
         self.actionUnmark_Column_as_Label.setText(_translate("MainWindow", "Unmark Column as Label", None))
         self.actionDecimal_Places.setText(_translate("MainWindow", "Decimal Places", None))
-        self.actionTable_Preferences.setText(_translate("MainWindow", "Table Preferences", None))
+        self.actionTable_Preferences.setText(_translate("MainWindow", "Preferences ...", None))
         self.actionShow_toolbar.setText(_translate("MainWindow", "Show toolbar", None))
         self.actionUndo.setText(_translate("MainWindow", "Undo", None))
         self.actionRedo.setText(_translate("MainWindow", "Redo", None))

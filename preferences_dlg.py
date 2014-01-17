@@ -17,13 +17,16 @@ from ome_globals import *
 #from ee_model import EETableModel
 
 class PreferencesDialog(QDialog, ui_preferences.Ui_Dialog):
-    def __init__(self, color_scheme, precision, font, parent=None):
+    def __init__(self, color_scheme, precision, font,
+                 show_additional_values, show_analysis_selections,
+                 parent=None):
         super(PreferencesDialog, self).__init__(parent)
         self.setupUi(self)
         
         self.color_scheme = copy.deepcopy(color_scheme)
         self.digits_spinBox.setValue(precision)
-        
+        self.additional_values_checkBox.setChecked(show_additional_values)
+        self.analysis_selections_checkBox.setChecked(show_analysis_selections)
         
         self.color_buttons()
         # Connect buttons to color pickers
@@ -158,7 +161,12 @@ class PreferencesDialog(QDialog, ui_preferences.Ui_Dialog):
     
     def get_font(self):
         return self.font
-
+    
+    def get_show_additional_values(self):
+        return self.additional_values_checkBox.isChecked()
+    
+    def get_show_analysis_selections(self):
+        return self.analysis_selections_checkBox.isChecked()
 
 if __name__ == '__main__':
 

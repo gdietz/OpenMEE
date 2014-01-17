@@ -434,14 +434,16 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
                 color_scheme=self.user_prefs['color_scheme'],
                 precision=self.user_prefs['digits'],
                 font=QFont(self.model.data(self.model.createIndex(0,0), role=Qt.FontRole)),
-                show_additional_vals=self.user_prefs['show_additional_vals'])
+                show_additional_values=self.user_prefs['show_additional_values'],
+                show_analysis_selections=self.user_prefs['show_analysis_selections'])
         
         if form.exec_():
             self.model.beginResetModel()
             self.update_user_prefs('color_scheme', form.get_color_scheme())
             self.update_user_prefs('digits', form.get_precision())
             self.update_user_prefs('font', form.get_font().toString())
-            self.update_user_prefs('show_additional_vals', form.get_show_additional_vals())
+            self.update_user_prefs('show_additional_values', form.get_show_additional_values())
+            self.update_user_prefs('show_analysis_selections', form.get_show_analysis_selections())
             font = QFont()
             font.fromString(self.user_prefs['font'])
             QApplication.setFont(font)
@@ -1211,7 +1213,8 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
                 "method_params":{},
                 "color_scheme": copy.deepcopy(DEFAULT_COLOR_SCHEME),
                 'font': QApplication.font().toString(),
-                'show_additional_vals':True,
+                'show_additional_values':True,
+                'show_analysis_selections':True,
                 }
 
 
