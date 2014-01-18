@@ -129,6 +129,12 @@
     <addaction name="actionScatterplot"/>
     <addaction name="actionHistogram"/>
    </widget>
+   <widget class="QMenu" name="menuThrough_the_looking_glass">
+    <property name="title">
+     <string>Through the looking glass</string>
+    </property>
+    <addaction name="actionR_log"/>
+   </widget>
    <addaction name="menuFile"/>
    <addaction name="menuEdit"/>
    <addaction name="menuTable"/>
@@ -136,6 +142,7 @@
    <addaction name="menuData_Exploration"/>
    <addaction name="menuPublication_Bias"/>
    <addaction name="menuAbout"/>
+   <addaction name="menuThrough_the_looking_glass"/>
   </widget>
   <widget class="QStatusBar" name="statusbar"/>
   <widget class="QToolBar" name="toolBar">
@@ -427,6 +434,11 @@
   <action name="actionModel_Building">
    <property name="text">
     <string>Model Building</string>
+   </property>
+  </action>
+  <action name="actionR_log">
+   <property name="text">
+    <string>R output viewer</string>
    </property>
   </action>
  </widget>

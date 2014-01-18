@@ -16,7 +16,6 @@ import cProfile
 from PyQt4 import QtCore, QtGui
 from PyQt4.Qt import *
 
-from meta_progress import MetaProgress
 import ui_main_window
 import about
 import calculate_effect_sizes_wizard
@@ -24,13 +23,14 @@ import transform_effect_size_wizard
 import ee_model
 import useful_dialogs
 import python_to_R
-import results_window
+from python_to_R import exR
 import csv_import_dlg
 import csv_export_dlg
 import preferences_dlg
 
 from variable_group_graphic import VariableGroupGraphic
 from analyses import Analyzer
+import r_log_dlg
 
 from ome_globals import *
 
@@ -78,6 +78,9 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
         
         # Setup analyzer (which performs analyses)
         self.analyst = Analyzer(main_form=self)
+        
+        # R log dialog
+        self.r_log_dlg = None
         
         layout = self.verticalLayout # 
         self.vargroup_graphic = VariableGroupGraphic()
@@ -311,6 +314,9 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
         
         # Help Menu
         self.action_about.triggered.connect(self.show_about_dlg)
+        
+        # Through the looking glass .... Menu
+        self.actionR_log.triggered.connect(self.show_R_log_dlg)
         
         # Toolbar
         self.actionResetAnalysisChoices.triggered.connect(self.reset_analysis_selection)
@@ -1723,14 +1729,24 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
             return self.model.get_column_assigned_to_variable(cov_or_col)
         else:
             return self.model.get_variable_assigned_to_column(cov_or_col)
-            
-    
-
-
-
-
-
         
+    def show_R_log_dlg(self):
+        print("Opening R log dialog")
+        self.r_log_dlg = r_log_dlg.RLogDialog(parent=self)
+        self.r_log_dlg.show()
+        self.r_log_dlg.raise_()
+        self.actionR_log.setEnabled(False)
+        
+        exR.set_R_log_dialog(self.r_log_dlg)
+        self.r_log_dlg.destroyed.connect(self.close_r_log_dlg)
+        
+    def close_r_log_dlg(self):
+        print("R log dialog has been destroyed")
+        self.r_log_dlg = None
+        exR.unset_R_log_dialog()
+        self.actionR_log.setEnabled(True)
+
+
 if __name__ == '__main__':
     #pass        
     app = QApplication(sys.argv)

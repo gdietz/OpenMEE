@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'main_window.ui'
 #
-# Created: Fri Jan 17 16:35:28 2014
+# Created: Fri Jan 17 16:53:16 2014
 #      by: PyQt4 UI code generator 4.10.3
 #
 # WARNING! All changes made in this file will be lost!
@@ -61,6 +61,8 @@ class Ui_MainWindow(object):
         self.menuPublication_Bias.setObjectName(_fromUtf8("menuPublication_Bias"))
         self.menuData_Exploration = QtGui.QMenu(self.menubar)
         self.menuData_Exploration.setObjectName(_fromUtf8("menuData_Exploration"))
+        self.menuThrough_the_looking_glass = QtGui.QMenu(self.menubar)
+        self.menuThrough_the_looking_glass.setObjectName(_fromUtf8("menuThrough_the_looking_glass"))
         MainWindow.setMenuBar(self.menubar)
         self.statusbar = QtGui.QStatusBar(MainWindow)
         self.statusbar.setObjectName(_fromUtf8("statusbar"))
@@ -188,6 +190,8 @@ class Ui_MainWindow(object):
         self.actionPhyloAnalysis.setObjectName(_fromUtf8("actionPhyloAnalysis"))
         self.actionModel_Building = QtGui.QAction(MainWindow)
         self.actionModel_Building.setObjectName(_fromUtf8("actionModel_Building"))
+        self.actionR_log = QtGui.QAction(MainWindow)
+        self.actionR_log.setObjectName(_fromUtf8("actionR_log"))
         self.menuFile.addAction(self.actionNew)
         self.menuFile.addAction(self.actionOpen)
         self.menuFile.addAction(self.actionSave)
@@ -234,6 +238,7 @@ class Ui_MainWindow(object):
         self.menuPublication_Bias.addAction(self.actionFunnel_Plot)
         self.menuData_Exploration.addAction(self.actionScatterplot)
         self.menuData_Exploration.addAction(self.actionHistogram)
+        self.menuThrough_the_looking_glass.addAction(self.actionR_log)
         self.menubar.addAction(self.menuFile.menuAction())
         self.menubar.addAction(self.menuEdit.menuAction())
         self.menubar.addAction(self.menuTable.menuAction())
@@ -241,6 +246,7 @@ class Ui_MainWindow(object):
         self.menubar.addAction(self.menuData_Exploration.menuAction())
         self.menubar.addAction(self.menuPublication_Bias.menuAction())
         self.menubar.addAction(self.menuAbout.menuAction())
+        self.menubar.addAction(self.menuThrough_the_looking_glass.menuAction())
         self.toolBar.addAction(self.actionNew)
         self.toolBar.addAction(self.actionOpen)
         self.toolBar.addAction(self.actionSave)
@@ -273,6 +279,7 @@ class Ui_MainWindow(object):
         self.menuAbout.setTitle(_translate("MainWindow", "Help", None))
         self.menuPublication_Bias.setTitle(_translate("MainWindow", "Publication Bias", None))
         self.menuData_Exploration.setTitle(_translate("MainWindow", "Data Exploration", None))
+        self.menuThrough_the_looking_glass.setTitle(_translate("MainWindow", "Through the looking glass", None))
         self.toolBar.setWindowTitle(_translate("MainWindow", "toolBar", None))
         self.actionNew.setText(_translate("MainWindow", "New", None))
         self.actionNew.setToolTip(_translate("MainWindow", "New Dataset", None))
@@ -317,5 +324,6 @@ class Ui_MainWindow(object):
         self.actionHistogram.setText(_translate("MainWindow", "Histogram", None))
         self.actionPhyloAnalysis.setText(_translate("MainWindow", "PhyloAnalysis", None))
         self.actionModel_Building.setText(_translate("MainWindow", "Model Building", None))
+        self.actionR_log.setText(_translate("MainWindow", "R output viewer", None))
 
 import icons_rc
