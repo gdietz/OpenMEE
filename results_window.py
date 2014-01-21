@@ -39,10 +39,13 @@ ROW_HEIGHT = 15 # by trial-and-error; seems to work very well
 
 class ResultsWindow(QMainWindow, ui_results_window.Ui_ResultsWindow):
 
-    def __init__(self, results, summary="", parent=None):
+    def __init__(self, results, show_additional_values, show_analysis_selections, summary="", parent=None):
         super(ResultsWindow, self).__init__(parent)
         self.setupUi(self)
         
+        self.texts_for_export = [] # text for export not included 'additional values'
+        self.show_additional_values = show_additional_values
+        self.show_analysis_selections = show_analysis_selections
         self.items_to_ignore = []
         self.copied_item = QByteArray()
         self.paste_offset = 5
@@ -65,10 +68,10 @@ class ResultsWindow(QMainWindow, ui_results_window.Ui_ResultsWindow):
         QObject.connect(self.psuedo_console, SIGNAL("downArrowPressed()"),
                                        self.f)
         
-        if "results_data" in results: # not really csv data but using 'text' too much here is confusing
-            self.export_btn.clicked.connect(lambda: self.export_results(results["results_data"]))
-        else:
-            self.export_btn.hide()
+        if "results_data" not in results:
+            results["results_data"] = None
+        self.export_btn.clicked.connect(lambda: self.export_results(results["results_data"]))
+            
                                        
                               
         self.nav_tree.setHeaderLabels(["results"])
@@ -122,6 +125,7 @@ class ResultsWindow(QMainWindow, ui_results_window.Ui_ResultsWindow):
         # Add post-facto text items (for now, just the references)
         for title, text in self.post_facto_text_to_add:
             self._add_text_item(title, text)
+            self.texts_for_export.append((title, text))
 
         # reset the scene
         self.graphics_view.setScene(self.scene)
@@ -130,7 +134,7 @@ class ResultsWindow(QMainWindow, ui_results_window.Ui_ResultsWindow):
         if not SHOW_PSEUDO_CONSOLE_IN_RESULTS_WINDOW:
             self.psuedo_console.setVisible(False)
             
-        if "results_data" in results:
+        if "results_data" in results and self.show_additional_values:
             self.add_additional_values_texts(results["results_data"])
 
 
@@ -155,17 +159,6 @@ class ResultsWindow(QMainWindow, ui_results_window.Ui_ResultsWindow):
             fpath+= ".txt"
             
         print("Filepath: %s" % fpath)
-
-# APPARENTLY THIS IS HANDLED BY THE SAVE FILE DIALOG ALREADY
-#         if os.path.exists(fpath):
-#             msgBox = QMessageBox()
-#             msgBox.setText("A file by that name already exists, overwrite it?")
-#             msgBox.setWindowTitle("Overwrite existing file?")
-#             msgBox.setStandardButtons(QMessageBox.Yes | QMessageBox.Cancel)
-#             msgBox.setDefaultButton(QMessageBox.Yes)
-#             choice = msgBox.exec_()
-#             if choice == QMessageBox.Cancel:
-#                 return
         
         keys_in_order = data['keys_in_order'] # make sure key order is consistent
         values = data['values'] # a dictionary mapping keys--> values
@@ -174,25 +167,29 @@ class ResultsWindow(QMainWindow, ui_results_window.Ui_ResultsWindow):
         # write the file
         with open(fpath,'w') as f:
             # Add input summary
-            if len(self.summary) > 0:
-                f.write("Analysis selections summary:\n")
-                f.write(boxify(self.summary))
+            if self.show_analysis_selections:
+                if len(self.summary) > 0:
+                    f.write("%s\n" % boxify("Analysis selections summary"))
+                    f.write(boxify(self.summary))
+                    f.write("\n\n")
+            
+            # Output summary
+            for title, text in self.texts_for_export:
+                f.write("%s\n" % boxify(title))
+                f.write(text)
                 f.write("\n\n")
-            for key in keys_in_order:
-                value = values[key]
-                f.write("%s: %s\n" % (key, data['value_info'][key]['description'])) # write out key and description
-                
-                val_str = self._value_to_string(value)
-#                 if isinstance(value, str):
-#                     f.write(value+"\n")
-#                 elif isinstance(value, list):
-#                     for x in value:
-#                         f.write("%s\n" % x)
-#                 else:
-#                     raise TypeError("Unrecognized type in data")
-                f.write(val_str)
-                # add space between values
-                f.write("\n")
+            
+            # Additional Values    
+            if self.show_additional_values:
+                f.write("%s\n" % boxify("Additional Values"))
+                for key in keys_in_order:
+                    value = values[key]
+                    f.write("%s: %s\n" % (key, data['value_info'][key]['description'])) # write out key and description
+                    
+                    val_str = self._value_to_string(value)
+                    f.write(val_str)
+                    # add space between values
+                    f.write("\n")
         
         self.statusbar.showMessage("Saved results to: %s" % fpath,5000)
         
@@ -311,6 +308,9 @@ class ResultsWindow(QMainWindow, ui_results_window.Ui_ResultsWindow):
                 self.post_facto_text_to_add.append((title, text))
                 continue
             self._add_text_item(title, text)
+            # append to texts for export:
+            self.texts_for_export.append((title,text))
+    
             
     def add_additional_values_texts(self, data):
         keys_in_order = data['keys_in_order'] # make sure key order is consistent
