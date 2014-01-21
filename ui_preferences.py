@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'preferences_dlg.ui'
 #
-# Created: Fri Jan 17 16:36:14 2014
+# Created: Tue Jan 21 14:17:58 2014
 #      by: PyQt4 UI code generator 4.10.3
 #
 # WARNING! All changes made in this file will be lost!
@@ -26,7 +26,7 @@ except AttributeError:
 class Ui_Dialog(object):
     def setupUi(self, Dialog):
         Dialog.setObjectName(_fromUtf8("Dialog"))
-        Dialog.resize(320, 403)
+        Dialog.resize(402, 465)
         palette = QtGui.QPalette()
         brush = QtGui.QBrush(QtGui.QColor(112, 220, 188))
         brush.setStyle(QtCore.Qt.SolidPattern)
@@ -209,6 +209,26 @@ class Ui_Dialog(object):
         spacerItem3 = QtGui.QSpacerItem(20, 40, QtGui.QSizePolicy.Minimum, QtGui.QSizePolicy.Expanding)
         self.verticalLayout_4.addItem(spacerItem3)
         self.tabWidget.addTab(self.tab_2, _fromUtf8(""))
+        self.tab = QtGui.QWidget()
+        self.tab.setObjectName(_fromUtf8("tab"))
+        self.verticalLayout_5 = QtGui.QVBoxLayout(self.tab)
+        self.verticalLayout_5.setObjectName(_fromUtf8("verticalLayout_5"))
+        spacerItem4 = QtGui.QSpacerItem(20, 113, QtGui.QSizePolicy.Minimum, QtGui.QSizePolicy.Expanding)
+        self.verticalLayout_5.addItem(spacerItem4)
+        self.horizontalLayout_7 = QtGui.QHBoxLayout()
+        self.horizontalLayout_7.setObjectName(_fromUtf8("horizontalLayout_7"))
+        spacerItem5 = QtGui.QSpacerItem(40, 20, QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Minimum)
+        self.horizontalLayout_7.addItem(spacerItem5)
+        self.reset_pushButton = QtGui.QPushButton(self.tab)
+        self.reset_pushButton.setMinimumSize(QtCore.QSize(200, 100))
+        self.reset_pushButton.setObjectName(_fromUtf8("reset_pushButton"))
+        self.horizontalLayout_7.addWidget(self.reset_pushButton)
+        spacerItem6 = QtGui.QSpacerItem(40, 20, QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Minimum)
+        self.horizontalLayout_7.addItem(spacerItem6)
+        self.verticalLayout_5.addLayout(self.horizontalLayout_7)
+        spacerItem7 = QtGui.QSpacerItem(20, 113, QtGui.QSizePolicy.Minimum, QtGui.QSizePolicy.Expanding)
+        self.verticalLayout_5.addItem(spacerItem7)
+        self.tabWidget.addTab(self.tab, _fromUtf8(""))
         self.verticalLayout_3.addWidget(self.tabWidget)
         self.buttonBox = QtGui.QDialogButtonBox(Dialog)
         self.buttonBox.setOrientation(QtCore.Qt.Horizontal)
@@ -241,4 +261,7 @@ class Ui_Dialog(object):
 "exported results (essentially a dump of the R output)", None))
         self.analysis_selections_checkBox.setText(_translate("Dialog", "Show analysis selections in exported results", None))
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab_2), _translate("Dialog", "Results Output", None))
+        self.reset_pushButton.setText(_translate("Dialog", "Reset Everything\n"
+"to Default!", None))
+        self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab), _translate("Dialog", "Reset Everything", None))
 

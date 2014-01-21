@@ -17,16 +17,20 @@ from ome_globals import *
 #from ee_model import EETableModel
 
 class PreferencesDialog(QDialog, ui_preferences.Ui_Dialog):
-    def __init__(self, color_scheme, precision, font,
-                 show_additional_values, show_analysis_selections,
+    def __init__(self,
+                 get_init_params_fn,
+                 reset_user_prefs_fn,
                  parent=None):
         super(PreferencesDialog, self).__init__(parent)
         self.setupUi(self)
         
-        self.color_scheme = copy.deepcopy(color_scheme)
-        self.digits_spinBox.setValue(precision)
-        self.additional_values_checkBox.setChecked(show_additional_values)
-        self.analysis_selections_checkBox.setChecked(show_analysis_selections)
+        self.get_init_params_fn = get_init_params_fn
+        self.reset_user_prefs_fn = reset_user_prefs_fn
+        
+        init_params = get_init_params_fn()
+        self.initializeDialog(init_params)
+
+        
         
         self.color_buttons()
         # Connect buttons to color pickers
@@ -39,14 +43,29 @@ class PreferencesDialog(QDialog, ui_preferences.Ui_Dialog):
                    self.default_bg]
         
         
+        
         for btn in buttons:
             btn.clicked.connect(partial(self.get_new_color,btn))
         self.choose_font_btn.clicked.connect(self.set_font)
+        self.reset_pushButton.clicked.connect(self._reset_everything)
+        
+    def initializeDialog(self, init_params):
+        self.color_scheme = copy.deepcopy(init_params['color_scheme'])
+        self.digits_spinBox.setValue(init_params['precision'])
+        self.additional_values_checkBox.setChecked(init_params['show_additional_values'])
+        self.analysis_selections_checkBox.setChecked(init_params['show_analysis_selections'])
+        self.set_font(init_params['font_str'])
         
     def showEvent(self, show_event):
         QDialog.showEvent(self, show_event)
         
-        self.set_font(dont_ask=True)
+    def _reset_everything(self):
+        choice = QMessageBox.warning(self, "Reset Preferences", "Are you sure you want to reset all the user preferences?", buttons=QMessageBox.Yes|QMessageBox.Cancel)
+
+        if choice == QMessageBox.Yes:
+            print("reseting everyfrom from prefereces dlg")
+            self.reset_user_prefs_fn() # in main_form
+            self.initializeDialog(init_params = self.get_init_params_fn())
         
     def get_new_color(self, btn):
         ''' Pops up a dialog to get the new color for the btn, then sets
@@ -58,10 +77,9 @@ class PreferencesDialog(QDialog, ui_preferences.Ui_Dialog):
             # set new color
             self.set_color_for_btn(btn, color)
             
-    def set_font(self, dont_ask=False):
-        if dont_ask:
-            font = QApplication.font()
-            ok = True
+    def set_font(self, font=None):
+        if font:
+            ok=True
         else:
             font, ok = QFontDialog.getFont(QFont(self.font_preview_lbl.text()), self)
         if ok:

@@ -169,7 +169,7 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
         self.toggle_analyses_enable_status()
         
         font = QFont()
-        font.fromString(self.user_prefs['font'])
+        font.fromString(self.user_prefs['font_str'])
         QApplication.setFont(font)
     
     def toggle_analyses_enable_status(self):
@@ -435,23 +435,27 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
     def error_msg_signal_handler(self, title, err_msg):
         QMessageBox.critical(self, title, err_msg)
     
+    def _get_preferences_init_params(self):
+        return {'color_scheme':self.user_prefs['color_scheme'],
+                'precision':self.user_prefs['digits'],
+                #'font':QFont(self.model.data(self.model.createIndex(0,0), role=Qt.FontRole)),
+                'font_str':QApplication.font(),
+                'show_additional_values':self.user_prefs['show_additional_values'],
+                'show_analysis_selections':self.user_prefs['show_analysis_selections']}
+    
     def adjust_preferences(self):
-        form = preferences_dlg.PreferencesDialog(
-                color_scheme=self.user_prefs['color_scheme'],
-                precision=self.user_prefs['digits'],
-                font=QFont(self.model.data(self.model.createIndex(0,0), role=Qt.FontRole)),
-                show_additional_values=self.user_prefs['show_additional_values'],
-                show_analysis_selections=self.user_prefs['show_analysis_selections'])
+        form = preferences_dlg.PreferencesDialog(get_init_params_fn=self._get_preferences_init_params,
+                                                 reset_user_prefs_fn=self.reset_user_prefs_to_default)
         
         if form.exec_():
-            self.model.beginResetModel()
             self.update_user_prefs('color_scheme', form.get_color_scheme())
             self.update_user_prefs('digits', form.get_precision())
-            self.update_user_prefs('font', form.get_font().toString())
+            self.update_user_prefs('font_str', form.get_font().toString())
             self.update_user_prefs('show_additional_values', form.get_show_additional_values())
             self.update_user_prefs('show_analysis_selections', form.get_show_analysis_selections())
+            self.model.beginResetModel()
             font = QFont()
-            font.fromString(self.user_prefs['font'])
+            font.fromString(self.user_prefs['font_str'])
             QApplication.setFont(font)
             self.model.endResetModel()
 
@@ -1213,16 +1217,37 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
             raise e
 
     def _default_user_prefs(self):
-        return {"splash":True,
-                "digits":DEFAULT_PRECISION,
-                'recent_files': RecentFilesManager(),
-                "method_params":{},
-                "color_scheme": copy.deepcopy(DEFAULT_COLOR_SCHEME),
-                'font': QApplication.font().toString(),
-                'show_additional_values':True,
-                'show_analysis_selections':True,
-                }
+        default_user_prefs = {"splash":True,
+                              "digits":DEFAULT_PRECISION,
+                              'recent_files': RecentFilesManager(),
+                              "method_params":{},
+                              "color_scheme": copy.deepcopy(DEFAULT_COLOR_SCHEME),
+                              'font_str': ".Lucida Grande UI,13,-1,5,50,0,0,0,0,0",
+                              'show_additional_values':True,
+                              'show_analysis_selections':True,
+                              }
+        print("default user prefs:\n%s" % civilized_dict_str(default_user_prefs))
+        
+        return default_user_prefs
 
+    def reset_user_prefs_to_default(self):
+        print("Resetting user prefs to default")
+        
+        if os.path.exists(PREFS_PATH):
+            print("Deleting %s" % PREFS_PATH)
+            os.unlink(PREFS_PATH)
+        else:
+            print("user prefs file doesn't exists")
+            
+        self.user_prefs = self._default_user_prefs()
+        
+        # reset everything 
+        self.model.beginResetModel()
+        font = QFont()
+        font.fromString(self.user_prefs['font_str'])
+        QApplication.setFont(font)
+        self.tableView.resizeColumnsToContents()
+        self.model.endResetModel()
 
     def load_user_prefs(self):
         '''
@@ -1245,6 +1270,11 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
         # for backwards-compatibility
         if not "method_params" in self.user_prefs:
             self.user_prefs["method_params"] = {}
+        
+        # set font
+        font = QFont()
+        font.fromString(self.user_prefs['font_str'])
+        QApplication.setFont(font)
 
         self._save_user_prefs()
         print "loaded user preferences: %s" % self.user_prefs

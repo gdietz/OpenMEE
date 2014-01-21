@@ -526,3 +526,9 @@ def boxify(astr, border="#", margin=1):
     all_together_now = top+lstr_content+bottom
     return "\n".join(all_together_now)
 
+def civilized_dict_str(a_dict):
+    content = []
+    for k in sorted(a_dict.keys()):
+        content.append(" %s: '%s'" % (k, a_dict[k]))
+    
+    return "{\n%s\n}" % "\n".join(content)
