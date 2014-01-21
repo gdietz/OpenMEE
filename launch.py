@@ -18,7 +18,7 @@ import main_form
 import icons_rc
 import ome_globals
 
-SPLASH_DISPLAY_TIME = 0
+SPLASH_DISPLAY_TIME = 3
 
 def load_R_libraries(app, splash=None):
     ''' Loads the R libraries while updating the splash screen'''
