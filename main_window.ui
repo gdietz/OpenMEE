@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>780</width>
-    <height>504</height>
+    <width>918</width>
+    <height>611</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -29,8 +29,8 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>780</width>
-     <height>21</height>
+     <width>918</width>
+     <height>22</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">
@@ -101,8 +101,6 @@
      <addaction name="actionBootstrapped_Meta_Regression"/>
      <addaction name="actionBootstrapped_Meta_Regression_Based_Conditional_Means"/>
     </widget>
-    <addaction name="actionCalculate_Effect_Size"/>
-    <addaction name="actionTransform_Effect_Size"/>
     <addaction name="menuMeta_Analysis"/>
     <addaction name="menuMeta_Regression_Meta_Regression_Derivatives"/>
     <addaction name="separator"/>
@@ -115,19 +113,20 @@
     </property>
     <addaction name="action_about"/>
    </widget>
-   <widget class="QMenu" name="menuPublication_Bias">
-    <property name="title">
-     <string>Publication Bias</string>
-    </property>
-    <addaction name="actionFail_Safe_N"/>
-    <addaction name="actionFunnel_Plot"/>
-   </widget>
    <widget class="QMenu" name="menuData_Exploration">
     <property name="title">
      <string>Data Exploration</string>
     </property>
+    <widget class="QMenu" name="menuPublication_Bias_2">
+     <property name="title">
+      <string>Publication Bias</string>
+     </property>
+     <addaction name="actionFail_Safe_N"/>
+     <addaction name="actionFunnel_Plot"/>
+    </widget>
     <addaction name="actionScatterplot"/>
     <addaction name="actionHistogram"/>
+    <addaction name="menuPublication_Bias_2"/>
    </widget>
    <widget class="QMenu" name="menuThrough_the_looking_glass">
     <property name="title">
@@ -135,12 +134,19 @@
     </property>
     <addaction name="actionR_log"/>
    </widget>
+   <widget class="QMenu" name="menuEffect_Size">
+    <property name="title">
+     <string>Effect Size</string>
+    </property>
+    <addaction name="actionCalculate_Effect_Size"/>
+    <addaction name="actionTransform_Effect_Size"/>
+   </widget>
    <addaction name="menuFile"/>
    <addaction name="menuEdit"/>
    <addaction name="menuTable"/>
+   <addaction name="menuEffect_Size"/>
    <addaction name="menuAnalysis"/>
    <addaction name="menuData_Exploration"/>
-   <addaction name="menuPublication_Bias"/>
    <addaction name="menuAbout"/>
    <addaction name="menuThrough_the_looking_glass"/>
   </widget>
@@ -168,7 +174,6 @@
    <addaction name="actionLeave_one_out"/>
    <addaction name="actionSubgroup"/>
    <addaction name="actionMeta_Regression"/>
-   <addaction name="actionBootstrapped_Meta_Analysis"/>
    <addaction name="separator"/>
    <addaction name="actionResetAnalysisChoices"/>
   </widget>
