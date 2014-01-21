@@ -1049,7 +1049,7 @@ class EETableModel(QAbstractTableModel):
             is_label_col = section == self.label_column
             if is_label_col:
                 col_name = self.label_column_name_label
-                suffix = "\n(label)"
+                suffix = "\n(Study ID)"
             else: # is a variable column
                 col_name = self.cols_2_vars[section].get_label()
                 var_type = self.cols_2_vars[section].get_type()

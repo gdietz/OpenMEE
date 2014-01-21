@@ -191,7 +191,7 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
             
         if self.model.label_column is None:
             enable = False
-            not_enabled_msg = "Can't enable analyses yet, did you set a label column?"
+            not_enabled_msg = "Can't enable analyses yet, did you set a study ID column?"
         
 
         if (old_enable_status != True) and (not enable) and (not_enabled_msg != ""):
@@ -739,22 +739,22 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
 
                     # Mark column as label
                     if label_column is None and variable.get_type() == CATEGORICAL:
-                        mark_as_label_action = context_menu.addAction("Mark as label column")
+                        mark_as_label_action = context_menu.addAction("Mark as Study ID column")
                         QAction.connect(mark_as_label_action, SIGNAL("triggered()"),
                                         partial(self.mark_column_as_label, column_clicked))
 
             else:     #  column is label column
                 # Unmark column as label
-                unmark_as_label_action = context_menu.addAction("Unmark as label column")
+                unmark_as_label_action = context_menu.addAction("Unmark as Study ID column")
                 QAction.connect(unmark_as_label_action, SIGNAL("triggered()"),
                                 partial(self.unmark_column_as_label, column_clicked))
 
             # rename label column
-            rename_column_action = context_menu.addAction("Rename %s" % ('variable' if is_variable_column else 'label column')) 
+            rename_column_action = context_menu.addAction("Rename %s" % ('variable' if is_variable_column else 'Study ID column')) 
             QAction.connect(rename_column_action, SIGNAL("triggered()"), lambda: self.rename_column(column_clicked))
 
             # delete column
-            delete_column_action = context_menu.addAction("Remove %s" % ('variable' if is_variable_column else 'label column'))
+            delete_column_action = context_menu.addAction("Remove %s" % ('variable' if is_variable_column else 'Study ID column'))
             QAction.connect(delete_column_action, SIGNAL("triggered()"), partial(self.remove_column, column_clicked))
 
             # insert column
