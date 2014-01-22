@@ -985,12 +985,13 @@ class EETableModel(QAbstractTableModel):
                       
             return QVariant(QBrush(self.user_prefs["color_scheme"]['DEFAULT_BACKGROUND_COLOR']))
         elif role == Qt.FontRole:
-            if 'font' not in self.user_prefs:
-                return QVariant()
-            else:
+            font_str = self.user_prefs['model_data_font_str']
+            if font_str:
                 font = QFont()
-                font.fromString(self.user_prefs['font'])
-                return QVariant(font) 
+                font.fromString(font_str)
+                return QVariant(font)
+            else:
+                return QVariant()
             
         return QVariant()
     
@@ -1036,6 +1037,17 @@ class EETableModel(QAbstractTableModel):
         return row_index in self.rows_2_studies
 
     def headerData(self, section, orientation, role=Qt.DisplayRole):
+
+        
+        if role==Qt.FontRole:
+            font_str = self.user_prefs['model_header_font_str']
+            if font_str:
+                font = QFont()
+                font.fromString(font_str)
+                return QVariant(font)
+            else:
+                return QVariant()
+            
         if role != Qt.DisplayRole:
             return QVariant()
         

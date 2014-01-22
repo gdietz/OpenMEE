@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>402</width>
-    <height>465</height>
+    <height>499</height>
    </rect>
   </property>
   <property name="palette">
@@ -96,22 +96,36 @@
         </layout>
        </item>
        <item>
-        <layout class="QHBoxLayout" name="font_layout">
-         <item>
-          <widget class="QPushButton" name="choose_font_btn">
+        <layout class="QGridLayout" name="gridLayout">
+         <item row="1" column="1">
+          <widget class="QLabel" name="data_font_preview_lbl">
            <property name="text">
-            <string>Choose Font</string>
+            <string>default data font</string>
            </property>
           </widget>
          </item>
-         <item>
-          <widget class="QLabel" name="font_preview_lbl">
+         <item row="0" column="0">
+          <widget class="QPushButton" name="header_font_btn">
            <property name="text">
-            <string>Font preview area</string>
+            <string>Header font</string>
            </property>
           </widget>
          </item>
-         <item>
+         <item row="1" column="0">
+          <widget class="QPushButton" name="data_font_btn">
+           <property name="text">
+            <string>Data font</string>
+           </property>
+          </widget>
+         </item>
+         <item row="0" column="1">
+          <widget class="QLabel" name="header_font_preview_lbl">
+           <property name="text">
+            <string>default header font</string>
+           </property>
+          </widget>
+         </item>
+         <item row="0" column="2">
           <spacer name="horizontalSpacer_2">
            <property name="orientation">
             <enum>Qt::Horizontal</enum>

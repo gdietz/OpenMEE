@@ -18,17 +18,14 @@ from ome_globals import *
 
 class PreferencesDialog(QDialog, ui_preferences.Ui_Dialog):
     def __init__(self,
-                 get_init_params_fn,
-                 reset_user_prefs_fn,
+                 current_preferences,
+                 default_preferences,
                  parent=None):
         super(PreferencesDialog, self).__init__(parent)
         self.setupUi(self)
-        
-        self.get_init_params_fn = get_init_params_fn
-        self.reset_user_prefs_fn = reset_user_prefs_fn
-        
-        init_params = get_init_params_fn()
-        self.initializeDialog(init_params)
+
+        self.default_preferences = default_preferences
+        self.initializeDialog(current_preferences)
 
         
         
@@ -41,20 +38,34 @@ class PreferencesDialog(QDialog, ui_preferences.Ui_Dialog):
                    self.count_bg, self.count_fg,
                    self.calc_bg, self.calc_fg,
                    self.default_bg]
-        
-        
-        
+
         for btn in buttons:
             btn.clicked.connect(partial(self.get_new_color,btn))
-        self.choose_font_btn.clicked.connect(self.set_font)
+        self.header_font_btn.clicked.connect(partial(self.set_font, which="header"))
+        self.data_font_btn.clicked.connect(partial(self.set_font, which="data"))
         self.reset_pushButton.clicked.connect(self._reset_everything)
         
     def initializeDialog(self, init_params):
         self.color_scheme = copy.deepcopy(init_params['color_scheme'])
-        self.digits_spinBox.setValue(init_params['precision'])
+        self.digits_spinBox.setValue(init_params['digits'])
         self.additional_values_checkBox.setChecked(init_params['show_additional_values'])
         self.analysis_selections_checkBox.setChecked(init_params['show_analysis_selections'])
-        self.set_font(init_params['font_str'])
+        
+        self.header_font, self.data_font = None, None
+        if init_params['model_header_font_str']:
+            font = QFont()
+            font.fromString(init_params['model_header_font_str'])
+            self.set_font(which="header", font=font)
+        else:
+            font = QLabel().font()
+            self.set_font(which="header", font=font)
+        if init_params['model_data_font_str']:
+            font = QFont()
+            font.fromString(init_params['model_data_font_str'])
+            self.set_font(which="data", font=font)
+        else:
+            font = QLabel().font()
+            self.set_font(which="data", font=font)
         
     def showEvent(self, show_event):
         QDialog.showEvent(self, show_event)
@@ -64,8 +75,10 @@ class PreferencesDialog(QDialog, ui_preferences.Ui_Dialog):
 
         if choice == QMessageBox.Yes:
             print("reseting everyfrom from prefereces dlg")
-            self.reset_user_prefs_fn() # in main_form
-            self.initializeDialog(init_params = self.get_init_params_fn())
+            default_prefs = {}
+            default_prefs.update(self.default_preferences)
+            
+            self.initializeDialog(default_prefs)
         
     def get_new_color(self, btn):
         ''' Pops up a dialog to get the new color for the btn, then sets
@@ -77,16 +90,33 @@ class PreferencesDialog(QDialog, ui_preferences.Ui_Dialog):
             # set new color
             self.set_color_for_btn(btn, color)
             
-    def set_font(self, font=None):
+    def set_font(self, which, font=None,):
         if font:
             ok=True
         else:
-            font, ok = QFontDialog.getFont(QFont(self.font_preview_lbl.text()), self)
+            print("No font given")
+            
+            if which == "data":
+                font, ok = QFontDialog.getFont(self.data_font_preview_lbl)
+            elif which == "header":
+                font, ok = QFontDialog.getFont(self.header_font_preview_lbl)
+            else:
+                raise Exception("unrecognized font role")
+            
         if ok:
             print("Font family: '%s'" % str(font.family()))
-            self.font_preview_lbl.setText(font.family())
-            self.font_preview_lbl.setFont(font)
-            self.font = font
+            
+            if which == "data":
+                self.data_font_preview_lbl.setText(font.family())
+                self.data_font_preview_lbl.setFont(font)
+                self.data_font = font
+            elif which == "header":
+                self.header_font_preview_lbl.setText(font.family())
+                self.header_font_preview_lbl.setFont(font)
+                self.header_font = font
+            else:
+                raise Exception("unrecognized font role")
+
             
     def get_btn_color(self, btn):
         if btn == self.label_bg:
@@ -177,8 +207,11 @@ class PreferencesDialog(QDialog, ui_preferences.Ui_Dialog):
     def get_precision(self):
         return self.digits_spinBox.value()
     
-    def get_font(self):
-        return self.font
+    def get_model_header_font(self):
+        return self.header_font
+    
+    def get_model_data_font(self):
+        return self.data_font
     
     def get_show_additional_values(self):
         return self.additional_values_checkBox.isChecked()

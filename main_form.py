@@ -92,8 +92,8 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
                                     self.conf_level_toolbar_widget)
         
         self.undo_stack = QUndoStack(self)
-        self.load_user_prefs()
         
+        self.load_user_prefs()
         self.model = ee_model.EETableModel(undo_stack=self.undo_stack, user_prefs=self.user_prefs)
         self.tableView.setModel(self.model)
         self.tableView.resizeColumnsToContents()
@@ -168,9 +168,6 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
         
         self.toggle_analyses_enable_status()
         
-        font = QFont()
-        font.fromString(self.user_prefs['font_str'])
-        QApplication.setFont(font)
     
     def toggle_analyses_enable_status(self):
         ''' Toggle the enable status of the analysis actions according whether
@@ -435,29 +432,29 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
     def error_msg_signal_handler(self, title, err_msg):
         QMessageBox.critical(self, title, err_msg)
     
-    def _get_preferences_init_params(self):
-        return {'color_scheme':self.user_prefs['color_scheme'],
-                'precision':self.user_prefs['digits'],
-                #'font':QFont(self.model.data(self.model.createIndex(0,0), role=Qt.FontRole)),
-                'font_str':QApplication.font(),
-                'show_additional_values':self.user_prefs['show_additional_values'],
-                'show_analysis_selections':self.user_prefs['show_analysis_selections']}
+#     def _get_preferences_init_params(self):
+#         return {'color_scheme':self.user_prefs['color_scheme'],
+#                 'precision':self.user_prefs['digits'],
+#                 'model_header_font_str':self.user_prefs['model_data_font_str'],
+#                 'model_data_font_str':self.user_prefs['model_data_font_str'],
+#                 'show_additional_values':self.user_prefs['show_additional_values'],
+#                 'show_analysis_selections':self.user_prefs['show_analysis_selections']}
     
     def adjust_preferences(self):
-        form = preferences_dlg.PreferencesDialog(get_init_params_fn=self._get_preferences_init_params,
-                                                 reset_user_prefs_fn=self.reset_user_prefs_to_default)
+        form = preferences_dlg.PreferencesDialog(
+                        current_preferences=self.user_prefs,
+                        default_preferences=self._default_user_prefs())
         
         if form.exec_():
             self.update_user_prefs('color_scheme', form.get_color_scheme())
             self.update_user_prefs('digits', form.get_precision())
-            self.update_user_prefs('font_str', form.get_font().toString())
+            self.update_user_prefs('model_header_font_str', form.get_model_header_font().toString())
+            self.update_user_prefs('model_data_font_str', form.get_model_data_font().toString())
             self.update_user_prefs('show_additional_values', form.get_show_additional_values())
             self.update_user_prefs('show_analysis_selections', form.get_show_analysis_selections())
             self.model.beginResetModel()
-            font = QFont()
-            font.fromString(self.user_prefs['font_str'])
-            QApplication.setFont(font)
             self.model.endResetModel()
+            self.tableView.resizeColumnsToContents()
 
     def calculate_effect_size(self):
         ''' Opens the calculate effect size wizard form and then calculates the new
@@ -1222,7 +1219,8 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
                               'recent_files': RecentFilesManager(),
                               "method_params":{},
                               "color_scheme": copy.deepcopy(DEFAULT_COLOR_SCHEME),
-                              'font_str': ".Lucida Grande UI,13,-1,5,50,0,0,0,0,0",
+                              "model_data_font_str":None,
+                              "model_header_font_str":None,
                               'show_additional_values':True,
                               'show_analysis_selections':True,
                               }
@@ -1230,24 +1228,21 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
         
         return default_user_prefs
 
-    def reset_user_prefs_to_default(self):
-        print("Resetting user prefs to default")
-        
-        if os.path.exists(PREFS_PATH):
-            print("Deleting %s" % PREFS_PATH)
-            os.unlink(PREFS_PATH)
-        else:
-            print("user prefs file doesn't exists")
-            
-        self.user_prefs = self._default_user_prefs()
-        
-        # reset everything 
-        self.model.beginResetModel()
-        font = QFont()
-        font.fromString(self.user_prefs['font_str'])
-        QApplication.setFont(font)
-        self.tableView.resizeColumnsToContents()
-        self.model.endResetModel()
+#     def reset_user_prefs_to_default(self):
+#         print("Resetting user prefs to default")
+#         
+#         if os.path.exists(PREFS_PATH):
+#             print("Deleting %s" % PREFS_PATH)
+#             os.unlink(PREFS_PATH)
+#         else:
+#             print("user prefs file doesn't exists")
+#             
+#         self.user_prefs = self._default_user_prefs()
+#         
+#         # reset everything 
+#         self.model.beginResetModel()
+#         self.tableView.resizeColumnsToContents()
+#         self.model.endResetModel()
 
     def load_user_prefs(self):
         '''
@@ -1270,11 +1265,6 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
         # for backwards-compatibility
         if not "method_params" in self.user_prefs:
             self.user_prefs["method_params"] = {}
-        
-        # set font
-        font = QFont()
-        font.fromString(self.user_prefs['font_str'])
-        QApplication.setFont(font)
 
         self._save_user_prefs()
         print "loaded user preferences: %s" % self.user_prefs

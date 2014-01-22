@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'preferences_dlg.ui'
 #
-# Created: Tue Jan 21 14:17:58 2014
+# Created: Wed Jan 22 10:52:07 2014
 #      by: PyQt4 UI code generator 4.10.3
 #
 # WARNING! All changes made in this file will be lost!
@@ -26,7 +26,7 @@ except AttributeError:
 class Ui_Dialog(object):
     def setupUi(self, Dialog):
         Dialog.setObjectName(_fromUtf8("Dialog"))
-        Dialog.resize(402, 465)
+        Dialog.resize(402, 499)
         palette = QtGui.QPalette()
         brush = QtGui.QBrush(QtGui.QColor(112, 220, 188))
         brush.setStyle(QtCore.Qt.SolidPattern)
@@ -59,17 +59,23 @@ class Ui_Dialog(object):
         spacerItem = QtGui.QSpacerItem(40, 20, QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Minimum)
         self.digits_layout.addItem(spacerItem)
         self.verticalLayout.addLayout(self.digits_layout)
-        self.font_layout = QtGui.QHBoxLayout()
-        self.font_layout.setObjectName(_fromUtf8("font_layout"))
-        self.choose_font_btn = QtGui.QPushButton(self.spreadsheet_tab)
-        self.choose_font_btn.setObjectName(_fromUtf8("choose_font_btn"))
-        self.font_layout.addWidget(self.choose_font_btn)
-        self.font_preview_lbl = QtGui.QLabel(self.spreadsheet_tab)
-        self.font_preview_lbl.setObjectName(_fromUtf8("font_preview_lbl"))
-        self.font_layout.addWidget(self.font_preview_lbl)
+        self.gridLayout = QtGui.QGridLayout()
+        self.gridLayout.setObjectName(_fromUtf8("gridLayout"))
+        self.data_font_preview_lbl = QtGui.QLabel(self.spreadsheet_tab)
+        self.data_font_preview_lbl.setObjectName(_fromUtf8("data_font_preview_lbl"))
+        self.gridLayout.addWidget(self.data_font_preview_lbl, 1, 1, 1, 1)
+        self.header_font_btn = QtGui.QPushButton(self.spreadsheet_tab)
+        self.header_font_btn.setObjectName(_fromUtf8("header_font_btn"))
+        self.gridLayout.addWidget(self.header_font_btn, 0, 0, 1, 1)
+        self.data_font_btn = QtGui.QPushButton(self.spreadsheet_tab)
+        self.data_font_btn.setObjectName(_fromUtf8("data_font_btn"))
+        self.gridLayout.addWidget(self.data_font_btn, 1, 0, 1, 1)
+        self.header_font_preview_lbl = QtGui.QLabel(self.spreadsheet_tab)
+        self.header_font_preview_lbl.setObjectName(_fromUtf8("header_font_preview_lbl"))
+        self.gridLayout.addWidget(self.header_font_preview_lbl, 0, 1, 1, 1)
         spacerItem1 = QtGui.QSpacerItem(40, 20, QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Minimum)
-        self.font_layout.addItem(spacerItem1)
-        self.verticalLayout.addLayout(self.font_layout)
+        self.gridLayout.addItem(spacerItem1, 0, 2, 1, 1)
+        self.verticalLayout.addLayout(self.gridLayout)
         self.color_choices_GroupBox = QtGui.QGroupBox(self.spreadsheet_tab)
         self.color_choices_GroupBox.setObjectName(_fromUtf8("color_choices_GroupBox"))
         self.gridLayout_2 = QtGui.QGridLayout(self.color_choices_GroupBox)
@@ -245,8 +251,10 @@ class Ui_Dialog(object):
     def retranslateUi(self, Dialog):
         Dialog.setWindowTitle(_translate("Dialog", "Preferences", None))
         self.label.setText(_translate("Dialog", "# digits to display: ", None))
-        self.choose_font_btn.setText(_translate("Dialog", "Choose Font", None))
-        self.font_preview_lbl.setText(_translate("Dialog", "Font preview area", None))
+        self.data_font_preview_lbl.setText(_translate("Dialog", "default data font", None))
+        self.header_font_btn.setText(_translate("Dialog", "Header font", None))
+        self.data_font_btn.setText(_translate("Dialog", "Data font", None))
+        self.header_font_preview_lbl.setText(_translate("Dialog", "default header font", None))
         self.color_choices_GroupBox.setTitle(_translate("Dialog", "Color Choices", None))
         self.label_12.setText(_translate("Dialog", "label", None))
         self.label_14.setText(_translate("Dialog", "Categorical Variable", None))
