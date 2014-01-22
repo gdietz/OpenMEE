@@ -2,6 +2,7 @@ import nose
 from nose import with_setup, tools
 import os, sys, time
 
+
 from PyQt4 import QtCore, QtGui, Qt
 from PyQt4.Qt import *
 
@@ -16,6 +17,8 @@ import launch
 import main_form
 print("Importing meta_py_r")
 import python_to_R
+from python_to_R import exR
+from meta_progress import MetaProgress
 
 app,form = None, None
 bar = None
@@ -57,7 +60,7 @@ def setup_module(module):
     form.open(fullpath)
     app.processEvents() #show the data
     
-    bar = main_form.MetaProgress("Running self-tests")
+    bar = MetaProgress("Running self-tests")
     bar.show()
 
 def teardown_module():
@@ -99,7 +102,7 @@ def check_analysis(test_data, check_images=False):
             function_params_dict[key] = value
     
     analysis_function = eval(fnc_to_evaluate)
-    python_to_R.execute_in_R(make_dataset_r_str)
+    exR.execute_in_R(make_dataset_r_str)
     test_results = analysis_function(**function_params_dict)
     
     if not check_images:

@@ -9,7 +9,7 @@ import sys
 from PyQt4 import QtCore, QtGui
 from PyQt4.Qt import *
 
-from funnel_page import FunnelPage
+from common_wizard_pages.funnel_page import FunnelPage
 
 # TODO: add checkbox asking whether the values should be saved or not
 

@@ -8,8 +8,8 @@ import sys
 from PyQt4 import QtCore, QtGui
 from PyQt4.Qt import *
 
-from histogram_page import HistogramPage
-from scatterplot_page import ScatterPlotPage
+from common_wizard_pages.histogram_page import HistogramPage
+from common_wizard_pages.scatterplot_page import ScatterPlotPage
 
 # TODO: add checkbox asking whether the values should be saved or not?
 

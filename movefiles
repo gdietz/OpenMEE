@@ -1,0 +1,7 @@
+#!/bin/bash
+
+for f in *page*
+do
+	echo "Moving file $f"
+	git mv "$f" common_wizard_pages/"$f"
+done

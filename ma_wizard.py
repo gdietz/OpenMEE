@@ -17,18 +17,19 @@ from PyQt4.Qt import *
 from ome_globals import *
 
 import python_to_R
-from choose_effect_size_page import ChooseEffectSizePage
-from data_location_page import DataLocationPage
-from refine_studies_page import RefineStudiesPage
-from methods_and_parameters_page import MethodsAndParametersPage
-from subgroup_variable_page import SubgroupVariablePage
-from select_covariates_page import SelectCovariatesPage
-from reference_value_page import ReferenceValuePage
-from meta_reg_cond_means import CondMeansPage
-from bootstrap_page import BootstrapPage
-from summary_page import SummaryPage
-from failsafe_page import FailsafeWizardPage
-from funnel_page import FunnelPage
+from common_wizard_pages.choose_effect_size_page import ChooseEffectSizePage
+from common_wizard_pages.data_location_page import DataLocationPage
+from common_wizard_pages.refine_studies_page import RefineStudiesPage
+from common_wizard_pages.methods_and_parameters_page import MethodsAndParametersPage
+from common_wizard_pages.subgroup_variable_page import SubgroupVariablePage
+from common_wizard_pages.select_covariates_page import SelectCovariatesPage
+from common_wizard_pages.reference_value_page import ReferenceValuePage
+from common_wizard_pages.meta_reg_cond_means_page import CondMeansPage
+from common_wizard_pages.bootstrap_page import BootstrapPage
+from common_wizard_pages.summary_page import SummaryPage
+from common_wizard_pages.failsafe_page import FailsafeWizardPage
+from common_wizard_pages.funnel_page import FunnelPage
+
 
 (Page_ChooseEffectSize, Page_DataLocation, Page_RefineStudies,
 Page_MethodsAndParameters, Page_SubgroupVariable, Page_SelectCovariates,

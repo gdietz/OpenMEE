@@ -11,9 +11,9 @@ from PyQt4 import QtCore, QtGui
 from PyQt4.Qt import *
 
 from ome_globals import *
-from choose_effect_col_for_transformation_page import ChooseEffectColForTransformationPage
-from new_column_group_transform_effect_page import NewColumnGroupTransformEffectPage
-from transform_effect_summary_page import TransformEffectSummaryPage
+from common_wizard_pages.choose_effect_col_for_transformation_page import ChooseEffectColForTransformationPage
+from common_wizard_pages.new_column_group_transform_effect_page import NewColumnGroupTransformEffectPage
+from common_wizard_pages.transform_effect_summary_page import TransformEffectSummaryPage
 
 (Page_ChooseEffectColForTransformation, Page_NewColumnGroupTransformEffect,
 Page_TransformEffectSummary) = range(3)

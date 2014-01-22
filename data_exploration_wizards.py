@@ -7,10 +7,10 @@ Created on Jan 6, 2014
 from PyQt4 import QtCore, QtGui
 from PyQt4.Qt import *
 
-from histogram_page import HistogramPage
-from scatterplot_page import ScatterPlotPage
-from histogram_dataselect_page import HistogramDataSelectPage
-from scatterplot_dataselect_page import ScatterplotDataSelectPage
+from common_wizard_pages.histogram_page import HistogramPage
+from common_wizard_pages.scatterplot_page import ScatterPlotPage
+from common_wizard_pages.histogram_dataselect_page import HistogramDataSelectPage
+from common_wizard_pages.scatterplot_dataselect_page import ScatterplotDataSelectPage
 
 # Histogram wizard ids
 [Page_HistogramDataSelectPage, Page_HistogramParams,] = range(2)

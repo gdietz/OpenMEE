@@ -11,9 +11,9 @@ from PyQt4 import QtCore, QtGui
 from PyQt4.Qt import *
 
 from ome_globals import *
-from choose_effect_size_page import ChooseEffectSizePage
-from data_location_page import DataLocationPage
-from overwrite_effect_sizes_page import OverwriteEffectSizesPage
+from common_wizard_pages.choose_effect_size_page import ChooseEffectSizePage
+from common_wizard_pages.data_location_page import DataLocationPage
+from common_wizard_pages.overwrite_effect_sizes_page import OverwriteEffectSizesPage
 
 Page_ChooseEffectSize, Page_DataLocation, Page_OverwriteEffectSizes = range(3)
 

@@ -11,9 +11,9 @@ from PyQt4.Qt import *
 from ome_globals import *
 
 import python_to_R
-import ui_meta_reg_cond_means
+import ui_meta_reg_cond_means_page
 
-class CondMeansPage(QWizardPage, ui_meta_reg_cond_means.Ui_WizardPage):
+class CondMeansPage(QWizardPage, ui_meta_reg_cond_means_page.Ui_WizardPage):
     def __init__(self, model, parent=None):
         super(CondMeansPage, self).__init__(parent)
         self.setupUi(self)

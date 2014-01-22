@@ -44,11 +44,11 @@ from PyQt4 import QtCore, QtGui
 from PyQt4.Qt import *
 
 # Should use relative import here but eclipse doesn't seem to like it
-from choose_effect_size_page import ChooseEffectSizePage
+from common_wizard_pages.choose_effect_size_page import ChooseEffectSizePage
 #from data_location_page import DataLocationPage
-from refine_studies_page import RefineStudiesPage, StudyFilter
-from reference_value_page import ReferenceValuePage
-from summary_page import SummaryPage
+from common_wizard_pages.refine_studies_page import RefineStudiesPage, StudyFilter
+from common_wizard_pages.reference_value_page import ReferenceValuePage
+from common_wizard_pages.summary_page import SummaryPage
 
 
 # Histogram wizard ids
@@ -66,7 +66,7 @@ class ModelBuildingWizard(QtGui.QWizard):
         self.choose_effect_size_page = ChooseEffectSizePage(
             add_generic_effect=True,
             data_type=last_analysis['data_type'],
-            metric=last_analyis['metric'])
+            metric=last_analysis['metric'])
         self.data_location_page = EffectSizeAndVarLocationPage(model=model)
         self.refine_studies_page = RefineStudiesPage(model=model)
         self.summary_page = SummaryPage()
