@@ -204,14 +204,15 @@ class Analyzer:
         
         if wizard.exec_():
             data_type, metric = wizard.get_data_type_and_metric()
-            data_location = wizard.get_data_location()
-            included_studies = wizard.get_included_studies_in_proper_order()
-            included_covariates = wizard.get_included_covariates()
-            fixed_effects = wizard.using_fixed_effects()
-            conf_level = wizard.get_covpage_conf_level()
+            data_location     = wizard.get_data_location()
+            included_studies  = wizard.get_included_studies_in_proper_order()
+            covariates        = wizard.get_included_covariates()
+            interactions      = wizard.get_included_interactions()
+            fixed_effects     = wizard.using_fixed_effects()
+            conf_level        = wizard.get_covpage_conf_level()
             random_effects_method = wizard.get_random_effects_method()
-            cov_2_ref_values = wizard.get_covariate_reference_levels()
-            summary = wizard.get_summary()
+            cov_2_ref_values  = wizard.get_covariate_reference_levels()
+            summary           = wizard.get_summary()
             if mode in [META_REG_COND_MEANS, BOOTSTRAP_META_REG_COND_MEANS]:
                 selected_cov, covs_to_values = wizard.get_meta_reg_cond_means_info()
             else:
@@ -229,31 +230,42 @@ class Analyzer:
             model.update_bootstrap_params_selection(bootstrap_params)
             model.update_data_location_choices(data_type, data_location)  # save data locations choices for this data type in the model
             model.update_previously_included_studies(set(included_studies)) # save which studies were included on last meta-regression
-            model.update_previously_included_covariates(set(included_covariates)) # save which covariates were included on last meta-regression
+            model.update_previously_included_covariates(set(covariates)) # save which covariates were included on last meta-regression
             model.update_selected_cov_and_covs_to_values(selected_cov, covs_to_values)
             model.update_random_effects_method(random_effects_method)    
                 
             try:
-                self.run_meta_regression(metric,
-                                         data_type,
-                                         included_studies,
-                                         data_location,
-                                         covs_to_include=included_covariates,
-                                         covariate_reference_values = cov_2_ref_values,
-                                         fixed_effects=fixed_effects,
-                                         conf_level=conf_level,
-                                         random_effects_method = random_effects_method,
-                                         selected_cov=selected_cov, covs_to_values=covs_to_values,
-                                         mode=mode,
-                                         bootstrap_params=bootstrap_params, # for bootstrapping
-                                         summary=summary)
+                if mode == META_REG_MODE:
+                    self.grun_meta_regression(metric,
+                                             data_type,
+                                             included_studies,
+                                             data_location,
+                                             covariates=covariates,
+                                             interactions = interactions,
+                                             #covariate_reference_values = cov_2_ref_values,
+                                             fixed_effects=fixed_effects,
+                                             conf_level=conf_level,
+                                             random_effects_method = random_effects_method,
+                                             summary=summary)
+                else:
+                    self.run_meta_regression(metric,
+                                             data_type,
+                                             included_studies,
+                                             data_location,
+                                             covs_to_include=covariates,
+                                             covariate_reference_values = cov_2_ref_values,
+                                             fixed_effects=fixed_effects,
+                                             conf_level=conf_level,
+                                             random_effects_method = random_effects_method,
+                                             selected_cov=selected_cov, covs_to_values=covs_to_values,
+                                             mode=mode,
+                                             bootstrap_params=bootstrap_params, # for bootstrapping
+                                             summary=summary)
             except CrazyRError as e:
                 if SOUND_EFFECTS:
                     silly.play()
                 QMessageBox.critical(self.main_form, "Oops", str(e))
-
-
-
+                
   
     def run_meta_regression(self, metric, data_type, included_studies,
                             data_location, covs_to_include,
@@ -324,6 +336,26 @@ class Analyzer:
             bar.hide()
         self._display_results(result, summary)
         
+    def run_gmeta_regression(self,
+                             metric, data_type, included_studies,
+                             data_location, covariates, interactions,
+                             fixed_effects, conf_level, random_effects_method,
+                             summary=""):
+        
+        model = self._get_model()
+        
+        
+        bar = MetaProgress()
+        
+        # Make dataframe of data with associates covariates
+        
+        
+        # Call python_to_R gmeta regression routine
+        result = python_to_R.run_gmeta_regression(metric, fixed_effects, data_name, results_name, conf_level, random_effects_method, selected_cov, covs_to_values)
+        
+        self._display_results(result, summary)
+        bar.show()
+        bar.deleteLater()
         
     def phylo_analysis(self):
         wizard = PhyloWizard()
