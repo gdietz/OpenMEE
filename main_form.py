@@ -1122,20 +1122,10 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
 
         for target_conversion in possible_target_conversions:
             variable_type_str = VARIABLE_TYPE_STRING_REPS[target_conversion]
-
-            # Construct undo/redo command
-            # TODO: warn user about permanent loss of precision upon converting a double to an int
-            convert_to_target = ee_model.ChangeVariableFormatCommand(
-                                    model=self.model,
-                                    variable=var,
-                                    target_type=target_conversion,
-                                    precision=self.model.get_precision(),
-                                    description="Change format of '%s' from '%s' to '%s'" % (var.get_label(),
-                                                                                             VARIABLE_TYPE_STRING_REPS[var.get_type()],
-                                                                                             VARIABLE_TYPE_STRING_REPS[target_conversion]))
-
+            
             action = change_format_menu.addAction("--> %s" % variable_type_str)
-            QObject.connect(action, SIGNAL("triggered()"), partial(self.undo_stack.push, convert_to_target))
+            action.triggered.connect(partial(self.change_var_format, var=var, target_type=target_conversion))                                   
+                                                                   
             QObject.connect(change_format_menu, SIGNAL("hovered(QAction*)"), self.status_from_action)
 
         if var.get_type() == CONTINUOUS and var.get_subtype() is None:
@@ -1154,6 +1144,31 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
 #         pr.print_stats(sort='cumulative')
         
         return change_format_menu
+    
+    def change_var_format(self, var, target_type):
+        var_type = var.get_type()
+        
+        if var_type == CONTINUOUS and target_type == COUNT:
+            choice = QMessageBox.warning(
+                self,
+                "Loss of precision",
+                "This conversion will result in a loss of precision. Are you sure?",
+                buttons=QMessageBox.Yes|QMessageBox.No,
+                defaultButton=QMessageBox.Yes)
+            if choice != QMessageBox.Yes:
+                return
+            
+        
+        convert_to_target = ee_model.ChangeVariableFormatCommand(
+                model=self.model,
+                variable=var,
+                target_type=target_type,
+                precision=self.model.get_precision(),
+                description="Change format of '%s' from '%s' to '%s'" % (var.get_label(),
+                                                                         VARIABLE_TYPE_STRING_REPS[var.get_type()],
+                                                                         VARIABLE_TYPE_STRING_REPS[target_type]))
+        self.undo_stack.push(convert_to_target)
+        
 
     def status_from_action(self, action):
         self.statusBar().showMessage(action.text(), 2000)

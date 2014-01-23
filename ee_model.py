@@ -2279,6 +2279,7 @@ class ChangeVariableFormatCommand(QUndoCommand):
 
         self.model.dirty = True
         
+        
     def undo(self):
         self.model.change_variable_type(self.variable, self.original_var_type, self.precision)
         self._restore_orignal_data_values_for_variable()
