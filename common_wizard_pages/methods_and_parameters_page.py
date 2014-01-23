@@ -221,14 +221,6 @@ class MethodsAndParametersPage(QWizardPage, ui_methods_and_parameters_page.Ui_Wi
         # they selected then are automatically set as the defaults now.
         # these defaults, if they exist, are stored in the user_preferences 
         # dictionary
-# TODO: save preferences like in OMA???
-#        method_params = self.parent().user_prefs["method_params"]
-#        if self.current_method in method_params:
-#            print "loading default from user preferences!"
-#            self.current_defaults = method_params[self.current_method]
-            
-#        # override conf.level with global conf.level
-#        self.current_defaults['conf.level'] = self.conf_level
 
         # override default from openmetar with choice from table preferences
         self.current_defaults['digits'] = self.model.get_precision()

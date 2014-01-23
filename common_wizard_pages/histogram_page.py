@@ -142,6 +142,9 @@ class HistogramPage(QWizardPage, ui_histogram_page.Ui_WizardPage):
             
         self.no_gradient_radiobtn.clicked.connect(self._fixed_clicked)
         self.gradient_radiobtn.clicked.connect(self._gradient_clicked)
+        
+        self.xlab_le.textEdited.connect(self.completeChanged.emit)
+        self.ylab_le.textEdited.connect(self.completeChanged.emit)
     
     def _fixed_clicked(self):
         # hide gradient and show fixed
@@ -191,8 +194,14 @@ class HistogramPage(QWizardPage, ui_histogram_page.Ui_WizardPage):
                 self.status_lbl.setText("ylim lower limit must be less\nthan ylim upper limit")
                 self.status_lbl.setStyleSheet("QLabel { color: red }")
                 return False
+    
+        quote_char_in_xlab = '"' in str(self.xlab_le.text())
+        quote_char_in_ylab = '"' in str(self.ylab_le.text())
+        if quote_char_in_xlab or quote_char_in_ylab:
+            self.status_lbl.setText("'\"' character not allowed in labels")
+            self.status_lbl.setStyleSheet("QLabel { color: red }")
+            return False
             
-        # TODO: disallow quote characters in labels
         
         self.status_lbl.setText("a-OK")
         self.status_lbl.setStyleSheet("QLabel { color: green }")

@@ -75,7 +75,7 @@ class MetaAnalysisWizard(QtGui.QWizard):
         self.reference_value_page = ReferenceValuePage(model=model,
                                                        prev_cov_to_ref_level=model.get_cov_2_ref_values_selection())
         self.setPage(Page_MethodsAndParameters, self.methods_and_params_page_instance)
-        self.refine_studies_page = RefineStudiesPage(model=model, mode=mode)
+        self.refine_studies_page = RefineStudiesPage(model=model)
         self.setPage(Page_RefineStudies, self.refine_studies_page)
         self.setPage(Page_Summary, SummaryPage())
         if mode==SUBGROUP_MODE:

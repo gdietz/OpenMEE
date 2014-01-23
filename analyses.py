@@ -347,7 +347,7 @@ class Analyzer:
         
         bar = MetaProgress()
         
-        # Make dataframe of data with associates covariates
+        # Make dataframe of data with associated covariates + interactions
         
         
         # Call python_to_R gmeta regression routine

@@ -88,7 +88,6 @@ class StudyFilter:
 class RefineStudiesPage(QWizardPage, ui_refine_studies_page.Ui_WizardPage):
     def __init__(self,
                  model,
-                 mode=MA_MODE,
                  previously_included_studies=None,
                  study_filter = None, # an object which contains info about which studies are allowed
                  parent=None):
@@ -96,7 +95,6 @@ class RefineStudiesPage(QWizardPage, ui_refine_studies_page.Ui_WizardPage):
         self.setupUi(self)
         
         self.model = model
-        self.mode = mode
         self.previously_included_studies = previously_included_studies
         
         self.studies_to_include_status = {} # map study ---> included?
