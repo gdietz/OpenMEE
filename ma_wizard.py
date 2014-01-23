@@ -77,7 +77,9 @@ class MetaAnalysisWizard(QtGui.QWizard):
         self.setPage(Page_MethodsAndParameters, self.methods_and_params_page_instance)
         self.refine_studies_page = RefineStudiesPage(model=model)
         self.setPage(Page_RefineStudies, self.refine_studies_page)
-        self.setPage(Page_Summary, SummaryPage())
+        
+        self.summary_page = SummaryPage()
+        self.setPage(Page_Summary, self.summary_page)
         if mode==SUBGROUP_MODE:
             self.setPage(Page_DataLocation, self.data_location_page)
             self.subgroup_var_page = SubgroupVariablePage(model=model)
@@ -457,6 +459,9 @@ class MetaAnalysisWizard(QtGui.QWizard):
         for cov in sorted(covs_to_values.keys(), key=lambda cov: cov.get_label()):
             cond_means_str += "\n    " + cov.get_label() + ": " + str(covs_to_values[cov])
         return cond_means_str
+    
+    def save_selections(self):
+        return self.summary_page.save_selections()
 
 
 

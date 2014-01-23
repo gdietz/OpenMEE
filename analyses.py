@@ -73,6 +73,7 @@ class Analyzer:
             included_studies = wizard.get_included_studies_in_proper_order()
             current_param_vals = wizard.get_plot_params()
             chosen_method = wizard.get_current_method()
+            save_selections = wizard.save_selections() # a bool
             if mode == SUBGROUP_MODE:
                 subgroup_variable = wizard.get_subgroup_variable()
             summary = wizard.get_summary()
@@ -80,15 +81,16 @@ class Analyzer:
                 current_param_vals.update(wizard.get_bootstrap_params())
                 meta_f_str = unmodified_meta_f_str
 
-            # Save selections made for next analysis
-            model.update_data_type_selection(data_type)    # int
-            model.update_metric_selection(metric)          # int
-            model.update_method_selection(chosen_method)   #int??? str??
-            model.update_ma_param_vals(current_param_vals)
-            model.update_data_location_choices(data_type, data_location)     # save data locations choices for this data type in the model
-            model.update_previously_included_studies(set(included_studies))  # save which studies were included on last meta-regression
-            if mode == SUBGROUP_MODE: model.update_subgroup_var_selection(subgroup_variable)
-            if mode == BOOTSTRAP_MA: model.update_bootstrap_params_selection(wizard.get_bootstrap_params())
+            if save_selections:
+                # Save selections made for next analysis
+                model.update_data_type_selection(data_type)    # int
+                model.update_metric_selection(metric)          # int
+                model.update_method_selection(chosen_method)   #int??? str??
+                model.update_ma_param_vals(current_param_vals)
+                model.update_data_location_choices(data_type, data_location)     # save data locations choices for this data type in the model
+                model.update_previously_included_studies(set(included_studies))  # save which studies were included on last meta-regression
+                if mode == SUBGROUP_MODE: model.update_subgroup_var_selection(subgroup_variable)
+                if mode == BOOTSTRAP_MA: model.update_bootstrap_params_selection(wizard.get_bootstrap_params())
 
 
 
@@ -213,6 +215,7 @@ class Analyzer:
             random_effects_method = wizard.get_random_effects_method()
             cov_2_ref_values  = wizard.get_covariate_reference_levels()
             summary           = wizard.get_summary()
+            save_selections = wizard.save_selections() # a bool
             if mode in [META_REG_COND_MEANS, BOOTSTRAP_META_REG_COND_MEANS]:
                 selected_cov, covs_to_values = wizard.get_meta_reg_cond_means_info()
             else:
@@ -221,18 +224,19 @@ class Analyzer:
             
             print("Covariates to reference values: %s" % str(cov_2_ref_values))
             
-            # Save analysis analysis info that we just gathered
-            model.update_data_type_selection(data_type) # int
-            model.update_metric_selection(metric) # int
-            model.update_fixed_vs_random_effects_selection(fixed_effects) #bool
-            model.update_conf_level_selection(conf_level) #double
-            model.update_cov_2_ref_values_selection(cov_2_ref_values) # dict
-            model.update_bootstrap_params_selection(bootstrap_params)
-            model.update_data_location_choices(data_type, data_location)  # save data locations choices for this data type in the model
-            model.update_previously_included_studies(set(included_studies)) # save which studies were included on last meta-regression
-            model.update_previously_included_covariates(set(covariates)) # save which covariates were included on last meta-regression
-            model.update_selected_cov_and_covs_to_values(selected_cov, covs_to_values)
-            model.update_random_effects_method(random_effects_method)    
+            if save_selections:
+                # Save analysis analysis info that we just gathered
+                model.update_data_type_selection(data_type) # int
+                model.update_metric_selection(metric) # int
+                model.update_fixed_vs_random_effects_selection(fixed_effects) #bool
+                model.update_conf_level_selection(conf_level) #double
+                model.update_cov_2_ref_values_selection(cov_2_ref_values) # dict
+                model.update_bootstrap_params_selection(bootstrap_params)
+                model.update_data_location_choices(data_type, data_location)  # save data locations choices for this data type in the model
+                model.update_previously_included_studies(set(included_studies)) # save which studies were included on last meta-regression
+                model.update_previously_included_covariates(set(covariates)) # save which covariates were included on last meta-regression
+                model.update_selected_cov_and_covs_to_values(selected_cov, covs_to_values)
+                model.update_random_effects_method(random_effects_method)    
                 
             try:
                 if mode == META_REG_MODE:
@@ -390,6 +394,7 @@ class Analyzer:
             included_studies = wizard.get_included_studies_in_proper_order()
             failsafe_parameters = wizard.get_failsafe_parameters()
             summary = wizard.get_summary()
+            save_selections = wizard.save_selections() # a bool
             
             # figure out the data type
             var = model.get_variable_assigned_to_column(data_location['effect_size'])
@@ -397,10 +402,11 @@ class Analyzer:
             metric = var_grp.get_metric()
             data_type = get_data_type_for_metric(metric)
             
-            # Save selections made for next analysis
-            model.update_data_location_choices(data_type, data_location)     # save data locations choices for this data type in the model
-            model.update_previously_included_studies(set(included_studies))  # save which studies were included on last meta-regression
-            model.update_last_failsafe_parameters(failsafe_parameters)
+            if save_selections:
+                # Save selections made for next analysis
+                model.update_data_location_choices(data_type, data_location)     # save data locations choices for this data type in the model
+                model.update_previously_included_studies(set(included_studies))  # save which studies were included on last meta-regression
+                model.update_last_failsafe_parameters(failsafe_parameters)
             
             result = python_to_R.run_failsafe_analysis(model, included_studies, data_location, failsafe_parameters)
             self._display_results(result, summary)
@@ -421,15 +427,17 @@ class Analyzer:
             chosen_method = wizard.get_current_method()
             funnel_params = wizard.get_funnel_parameters() # funnel params in R-ish format
             summary = wizard.get_summary()
+            save_selections = wizard.save_selections() # a bool
 
-            # Save selections made for next analysis
-            model.update_data_type_selection(data_type)    # int
-            model.update_metric_selection(metric)          # int
-            model.update_method_selection(chosen_method)   #int??? str??
-            model.update_ma_param_vals(current_param_vals)
-            model.update_data_location_choices(data_type, data_location)     # save data locations choices for this data type in the model
-            model.update_previously_included_studies(set(included_studies))  # save which studies were included on last meta-regression
-            model.update_funnel_params(funnel_params)
+            if save_selections:
+                # Save selections made for next analysis
+                model.update_data_type_selection(data_type)    # int
+                model.update_metric_selection(metric)          # int
+                model.update_method_selection(chosen_method)   #int??? str??
+                model.update_ma_param_vals(current_param_vals)
+                model.update_data_location_choices(data_type, data_location)     # save data locations choices for this data type in the model
+                model.update_previously_included_studies(set(included_studies))  # save which studies were included on last meta-regression
+                model.update_funnel_params(funnel_params)
 
             try:
                 result = python_to_R.run_funnelplot_analysis(
@@ -465,7 +473,7 @@ class Analyzer:
             var = wizard.get_selected_var()
             params = wizard.get_histogram_params()
             
-            # store selections for next analysis
+            # TODO: store selections for next analysis
             
             # run analysis and display results window
             print("selected var is: %s" % var.get_label())
@@ -499,7 +507,7 @@ class Analyzer:
             yvar = wizard.get_selected_vars()['y']
             params = wizard.get_scatterplot_params()
 
-            # store selections for next analysis
+            # TODO: store selections for next analysis
             
             # run analysis and display results window
             print("xvar is: %s, yvar is: %s" % (xvar.get_label(), yvar.get_label()))

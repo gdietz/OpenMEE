@@ -12,3 +12,6 @@ class SummaryPage(QWizardPage, ui_summary_page.Ui_WizardPage):
     def initializePage(self):
         self.plainTextEdit.clear()
         self.plainTextEdit.insertPlainText(self.wizard().get_summary())
+        
+    def save_selections(self):
+        return self.save_selections_checkBox.isChecked()

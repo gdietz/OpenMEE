@@ -2,8 +2,8 @@
 
 # Form implementation generated from reading ui file 'summary_page.ui'
 #
-# Created: Wed Oct 16 14:37:12 2013
-#      by: PyQt4 UI code generator 4.10.2
+# Created: Thu Jan 23 09:59:14 2014
+#      by: PyQt4 UI code generator 4.10.3
 #
 # WARNING! All changes made in this file will be lost!
 
@@ -26,13 +26,17 @@ except AttributeError:
 class Ui_WizardPage(object):
     def setupUi(self, WizardPage):
         WizardPage.setObjectName(_fromUtf8("WizardPage"))
-        WizardPage.resize(401, 264)
+        WizardPage.resize(381, 302)
         self.verticalLayout = QtGui.QVBoxLayout(WizardPage)
         self.verticalLayout.setObjectName(_fromUtf8("verticalLayout"))
         self.plainTextEdit = QtGui.QPlainTextEdit(WizardPage)
         self.plainTextEdit.setReadOnly(True)
         self.plainTextEdit.setObjectName(_fromUtf8("plainTextEdit"))
         self.verticalLayout.addWidget(self.plainTextEdit)
+        self.save_selections_checkBox = QtGui.QCheckBox(WizardPage)
+        self.save_selections_checkBox.setChecked(True)
+        self.save_selections_checkBox.setObjectName(_fromUtf8("save_selections_checkBox"))
+        self.verticalLayout.addWidget(self.save_selections_checkBox)
 
         self.retranslateUi(WizardPage)
         QtCore.QMetaObject.connectSlotsByName(WizardPage)
@@ -65,4 +69,5 @@ class Ui_WizardPage(object):
 "Come to my arms, my beamish boy!\n"
 "O frabjous day! Callooh! Callay!\"\n"
 "He chortled in his joy.", None))
+        self.save_selections_checkBox.setText(_translate("WizardPage", "Save selections for next analysis?", None))
 
