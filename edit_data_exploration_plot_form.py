@@ -11,8 +11,6 @@ from PyQt4.Qt import *
 from common_wizard_pages.histogram_page import HistogramPage
 from common_wizard_pages.scatterplot_page import ScatterPlotPage
 
-# TODO: add checkbox asking whether the values should be saved or not?
-
 class EditDataExplorationPlotForm(QDialog):
     # form type is "histogram" or "scatterplot"
     def __init__(self, form_type, params, parent=None):

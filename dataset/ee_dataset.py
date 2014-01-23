@@ -98,8 +98,6 @@ class EEDataSet():
         var.set_type(new_type)
     
     def can_convert_var_value_to_type(self, new_type, value):
-        # TODO: remember to warn user if converting to integer from continuous that they will lose precision
-        
         if value in [None,""]:
             return True
         

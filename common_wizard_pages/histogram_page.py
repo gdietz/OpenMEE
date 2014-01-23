@@ -195,6 +195,7 @@ class HistogramPage(QWizardPage, ui_histogram_page.Ui_WizardPage):
                 self.status_lbl.setStyleSheet("QLabel { color: red }")
                 return False
     
+        # make sure '"' character not in the labels
         quote_char_in_xlab = '"' in str(self.xlab_le.text())
         quote_char_in_ylab = '"' in str(self.ylab_le.text())
         if quote_char_in_xlab or quote_char_in_ylab:

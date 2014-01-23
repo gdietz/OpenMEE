@@ -11,8 +11,6 @@ from PyQt4.Qt import *
 
 from common_wizard_pages.funnel_page import FunnelPage
 
-# TODO: add checkbox asking whether the values should be saved or not
-
 class EditFunnelPlotForm(QDialog):
     def __init__(self, funnel_params, parent=None):
         super(EditFunnelPlotForm, self).__init__(parent)

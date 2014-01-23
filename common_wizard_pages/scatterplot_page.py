@@ -77,6 +77,9 @@ class ScatterPlotPage(QWizardPage, ui_scatterplot_page.Ui_WizardPage):
                         self.ylimLowSpinBox, self.ylimHighSpinBox]:
             #spinbox.valueChanged[float].connect(self._verify_choice_validity)
             spinbox.valueChanged[float].connect(self.spinbox_value_changed)
+            
+        self.xlab_le.textEdited.connect(self.completeChanged.emit)
+        self.ylab_le.textEdited.connect(self.completeChanged.emit)
     
     def spinbox_value_changed(self):
         self.completeChanged.emit()
@@ -107,8 +110,13 @@ class ScatterPlotPage(QWizardPage, ui_scatterplot_page.Ui_WizardPage):
                 self.status_lbl.setStyleSheet("QLabel { color: red }")
                 return False
             
-        # TODO: disallow quote characters in labels or make sure allowing them
-        # doesn't break anything
+        # make sure '"' character not in the labels
+        quote_char_in_xlab = '"' in str(self.xlab_le.text())
+        quote_char_in_ylab = '"' in str(self.ylab_le.text())
+        if quote_char_in_xlab or quote_char_in_ylab:
+            self.status_lbl.setText("'\"' character not allowed in labels")
+            self.status_lbl.setStyleSheet("QLabel { color: red }")
+            return False
         
         self.status_lbl.setText("a-OK")
         self.status_lbl.setStyleSheet("QLabel { color: green }")
