@@ -11,5 +11,11 @@ class Interaction:
     def __str__(self):
         covs_in_order = sorted(self.combination, key=lambda cov: cov.get_label())
         return "*".join(covs_in_order)
+    
+    def __eq__(self, otherInteraction):
+        return self.combination == otherInteraction.combination
+    
+    def __contains__(self, var):
+        return var in self.combination
         
-    #def output # how should send this to R?
+    #def output # how to send this to R?

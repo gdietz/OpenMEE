@@ -5,21 +5,28 @@
 #                #
 ##################
 
+import itertools
+
 from PyQt4 import QtCore, QtGui
 from PyQt4.Qt import *
 
 from ome_globals import *
+from interaction import Interaction
 
-import python_to_R
 import ui_select_covariates_page
 
 
+
+
 class SelectCovariatesPage(QWizardPage, ui_select_covariates_page.Ui_WizardPage):
+    
+    covariateAdded = pyqtSignal()
+    covariateRemoved = pyqtSignal()
+    interactionAdded = pyqtSignal()
+    interactionRemoved = pyqtSignal()
+    
     def __init__(self, model,
                  previously_included_covs = [],
-                 fixed_effects=True,
-                 conf_level=95,
-                 random_effects_method = "DL",
                  need_categorical = False, # need at least one categorical variable?
                  parent=None): # todo: set defaults of previous parameters to None
         super(SelectCovariatesPage, self).__init__(parent)
@@ -28,15 +35,73 @@ class SelectCovariatesPage(QWizardPage, ui_select_covariates_page.Ui_WizardPage)
         self.model = model
         self.need_categorical = need_categorical
         
+        self.interactions = []
+        self.interaction_to_item = {}
+        self.item_to_interaction = {}
+        
         ### Set values from previous analysis ###
         self.setup_values_from_previous_analysis(
-            conf_level=conf_level,
-            random_effects_method=random_effects_method,
-            fixed_effects = fixed_effects,
             prev_covs=previously_included_covs)
         
         # Setup connections
         self.setup_connections()
+        
+    def add_interaction_clicked(self):
+        # TODO: implement this
+        
+        # interaction was added
+        self.interactionAdded.emit()
+    
+    def remove_interaction_clicked(self):
+        # TODO: implement this
+        
+        # interaction was removed
+        self.interactionRemoved.emit()
+        
+    def chg_add_interaction_btn_enabled_status(self):
+        # 1. You can only add an interaction if not every interaction is there
+        # already, given the added covariates
+        # 2. Also, only interactions betwixt added covariates are allowed.
+        # 3. Only interactions between two variables are allowed
+        #
+        # NOTE: should be run when:
+        #    1) a covariate(s) is added
+        #    2) a covariate(s) is removed
+        #    3) an interaction is added
+        #    4) an interaction is removed
+        
+        enable = True
+        
+        covariates = self.get_included_covariates()
+        interactions = self.get_interactions()
+        
+        possible_interactions = self._get_possible_interactions(covariates)
+        
+        if len(possible_interactions) == 0:
+            enable = False # due to no covariates yet selected
+        
+        if len(possible_interactions) == len(interactions):
+            enable = False # all interactions possible already added
+        
+        self.add_all_pushbutton.setEnabled(enable)
+        
+    def chg_remove_interaction_btn_enabled_status(self):
+        # You can only remove an interaction if there is at least one
+        # interaction
+        #
+        # Should be run when:
+        #     a) interaction added
+        #     b) interaction removed
+        
+        enable = True
+        if len(self.get_interactions()) == 0:
+            enable = False
+        self.remove_interaction_pushButton.setEnabled(enable)
+            
+        
+    
+    def _get_possible_interactions(self, covariate_list):
+        return set([Interaction(var_a,var_b) for var_a, var_b in itertools.combinations(covariate_list,2)])
         
     def setup_connections(self):
         # adding and removing covariates
@@ -48,50 +113,21 @@ class SelectCovariatesPage(QWizardPage, ui_select_covariates_page.Ui_WizardPage)
         self.available_covs_listWidget.itemDoubleClicked.connect(self.add_one_cov)
         self.selected_covs_listWidget.itemDoubleClicked.connect(self.remove_one_cov)
         
-        # radio buttons
-        self.fixed_effects_radio_btn.clicked.connect(self.choose_fixed_effects)
-        self.random_effects_radio_btn.clicked.connect(self.choose_random_effects)
-        
-    def setup_values_from_previous_analysis(self,
-                                            conf_level,
-                                            random_effects_method,
-                                            fixed_effects, prev_covs):
-        ### Set values from previous analysis ###
-        if conf_level:
-            self.conf_level_spinbox.setValue(conf_level)
-        
-        # populate random effects combobox
-        self.add_random_effect_methods_to_combo_box(default_method=random_effects_method)
-        
-        # Using random effects or fixed effects?
-        if fixed_effects:
-            self.choose_fixed_effects()
-            self.fixed_effects_radio_btn.setChecked(True)
-        else:
-            self.choose_random_effects()
-            self.random_effects_radio_btn.setChecked(True)
-        
+        #### interaction buttons
+        # add interaction button
+        self.covariateAdded.connect(self.chg_add_interaction_btn_enabled_status)
+        self.covariateRemoved.connect(self.chg_add_interaction_btn_enabled_status)
+        self.interactionAdded.connect(self.chg_add_interaction_btn_enabled_status)
+        self.interactionRemoved.connect(self.chg_add_interaction_btn_enabled_status)
+        # remove interaction button
+        self.interactionAdded.connect(self.chg_remove_interaction_btn_enabled_status)
+        self.interactionRemoved.connect(self.chg_remove_interaction_btn_enabled_status)
+    
+    def setup_values_from_previous_analysis(self, prev_covs):        
         if prev_covs:
             self.prev_covs = prev_covs
         else:
             self.prev_covs = []
-    
-    
-    def choose_fixed_effects(self):
-        self.random_effects_method_GroupBox.setEnabled(False)
-    def choose_random_effects(self):
-        self.random_effects_method_GroupBox.setEnabled(True)
-    
-    def add_random_effect_methods_to_combo_box(self, default_method):
-        self.random_effects_method_ComboBox.clear()
-        
-        for short_name, pretty_name in RANDOM_EFFECTS_METHODS_TO_PRETTY_STRS.items():
-            self.random_effects_method_ComboBox.addItem(
-                        pretty_name,
-                        userData=QVariant(short_name))
-        if default_method:
-            idx = self.random_effects_method_ComboBox.findData(QVariant(default_method))
-            self.random_effects_method_ComboBox.setCurrentIndex(idx)
     
     def initializePage(self):
         self.init_covariates_lists()
@@ -107,6 +143,10 @@ class SelectCovariatesPage(QWizardPage, ui_select_covariates_page.Ui_WizardPage)
         self.populate_listWidget(self.available_covs_listWidget, self.available_covariates)
         self.populate_listWidget(self.selected_covs_listWidget, self.selected_covariates)
         self.populate_listWidget(self.unavailable_covs_listWidget, self.unavailable_covariates, enabled=False)
+        
+        # enable/disable interaction buttons
+        self.chg_add_interaction_btn_enabled_status()
+        self.chg_remove_interaction_btn_enabled_status()
         
     def init_covariates_lists(self):
         self.available_covariates = []
@@ -192,6 +232,8 @@ class SelectCovariatesPage(QWizardPage, ui_select_covariates_page.Ui_WizardPage)
     
         if emit_change_signal:
             self.completeChanged.emit()
+        self.covariateAdded.emit()
+        
         
     def remove_one_cov(self, item, emit_change_signal=True):
         ''' 1) Moves item from the selected_listWidget to the available_listWidget
@@ -207,6 +249,7 @@ class SelectCovariatesPage(QWizardPage, ui_select_covariates_page.Ui_WizardPage)
 
         if emit_change_signal:
             self.completeChanged.emit() 
+        self.covariateRemoved.emit()
 
         
     def add_all_covs(self):
@@ -244,26 +287,9 @@ class SelectCovariatesPage(QWizardPage, ui_select_covariates_page.Ui_WizardPage)
             return len(self.selected_covariates) > 0
                 
         
-    ############################################################
-    
-    def get_parameters(self):
-        ''' main getter function to interact with the selections made on this page'''
-          
-        return {'included_covariates': self.get_included_covariates(),
-                'fixed_effects': self.fixed_effects_radio_btn.isChecked(),
-                'conf_level': self.get_confidence_level(),
-                'random_effects_method': self.get_random_effects_method(),
-                }
-    
-    def get_confidence_level(self):
-        return self.conf_level_spinbox.value()    
+    ############################################################   
     def get_included_covariates(self):
         return self.selected_covariates
-    def get_using_fixed_effects(self):
-        return self.fixed_effects_radio_btn.isChecked()
-    def get_random_effects_method(self):
-        current_index = self.random_effects_method_ComboBox.currentIndex()
-        current_data = self.random_effects_method_ComboBox.itemData(current_index)
-        method = str(current_data.toString())
-        return method
-        
+    
+    def get_interactions(self):
+        return self.interactions
