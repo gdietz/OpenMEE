@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'meta_regression_details_page.ui'
 #
-# Created: Thu Jan 23 16:31:49 2014
+# Created: Fri Jan 24 11:48:10 2014
 #      by: PyQt4 UI code generator 4.10.3
 #
 # WARNING! All changes made in this file will be lost!
@@ -69,6 +69,14 @@ class Ui_WizardPage(object):
         self.bootstrapped_radioButton.setObjectName(_fromUtf8("bootstrapped_radioButton"))
         self.verticalLayout.addWidget(self.bootstrapped_radioButton)
         self.horizontalLayout_4.addWidget(self.groupBox)
+        self.groupBox_3 = QtGui.QGroupBox(WizardPage)
+        self.groupBox_3.setObjectName(_fromUtf8("groupBox_3"))
+        self.verticalLayout_4 = QtGui.QVBoxLayout(self.groupBox_3)
+        self.verticalLayout_4.setObjectName(_fromUtf8("verticalLayout_4"))
+        self.conditional_means_checkBox = QtGui.QCheckBox(self.groupBox_3)
+        self.conditional_means_checkBox.setObjectName(_fromUtf8("conditional_means_checkBox"))
+        self.verticalLayout_4.addWidget(self.conditional_means_checkBox)
+        self.horizontalLayout_4.addWidget(self.groupBox_3)
         self.groupBox_2 = QtGui.QGroupBox(WizardPage)
         self.groupBox_2.setObjectName(_fromUtf8("groupBox_2"))
         self.horizontalLayout = QtGui.QHBoxLayout(self.groupBox_2)
@@ -106,6 +114,8 @@ class Ui_WizardPage(object):
         self.groupBox.setTitle(_translate("WizardPage", "Type of Analysis", None))
         self.parametric_radioButton.setText(_translate("WizardPage", "Parametric", None))
         self.bootstrapped_radioButton.setText(_translate("WizardPage", "Bootstrapped", None))
+        self.groupBox_3.setTitle(_translate("WizardPage", "Output Type", None))
+        self.conditional_means_checkBox.setText(_translate("WizardPage", "Conditional Means", None))
         self.groupBox_2.setTitle(_translate("WizardPage", "Confidence Level", None))
         self.conf_level_spinbox.setSuffix(_translate("WizardPage", " %", None))
         self.phylogen_checkBox.setToolTip(_translate("WizardPage", "if checked, you will be asked to provide a phylogenetic tree", None))

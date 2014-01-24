@@ -14,6 +14,7 @@ from PyQt4.Qt import *
 
 import results_window
 import ma_wizard
+import meta_regression_wizard
 import data_exploration_wizards
 import python_to_R
 from phylo.phylowizard import PhyloWizard
@@ -200,21 +201,30 @@ class Analyzer:
     def meta_regression(self, mode = META_REG_MODE):
         model = self._get_model()
         
-        wizard = ma_wizard.MetaAnalysisWizard(model=model,
-                                              mode=mode,
-                                              parent=self.main_form)
-        
+# DELETE
+#         wizard = ma_wizard.MetaAnalysisWizard(model=model,
+#                                               mode=mode,
+#                                               parent=self.main_form)
+        wizard = meta_regression_wizard.MetaRegressionWizard(
+                        model=model,
+                        parent=self.main_form)
+    
         if wizard.exec_():
+            # Selections to store
             data_type, metric = wizard.get_data_type_and_metric()
             data_location     = wizard.get_data_location()
             included_studies  = wizard.get_included_studies_in_proper_order()
             covariates        = wizard.get_included_covariates()
             interactions      = wizard.get_included_interactions()
             fixed_effects     = wizard.using_fixed_effects()
-            conf_level        = wizard.get_covpage_conf_level()
+            conf_level        = wizard.get_conf_level()
             random_effects_method = wizard.get_random_effects_method()
             cov_2_ref_values  = wizard.get_covariate_reference_levels()
-            summary           = wizard.get_summary()
+            
+            # Unstored selections
+            phylogen        = wizard.get_phylogen()
+            analysis_type   = wizard.get_analysis_type()
+            summary         = wizard.get_summary()
             save_selections = wizard.save_selections() # a bool
             if mode in [META_REG_COND_MEANS, BOOTSTRAP_META_REG_COND_MEANS]:
                 selected_cov, covs_to_values = wizard.get_meta_reg_cond_means_info()
@@ -351,15 +361,15 @@ class Analyzer:
         
         bar = MetaProgress()
         
-        # Make dataframe of data with associated covariates + interactions
-        
-        
-        # Call python_to_R gmeta regression routine
-        result = python_to_R.run_gmeta_regression(metric, fixed_effects, data_name, results_name, conf_level, random_effects_method, selected_cov, covs_to_values)
-        
-        self._display_results(result, summary)
-        bar.show()
-        bar.deleteLater()
+#         # Make dataframe of data with associated covariates + interactions
+#         
+#         
+#         # Call python_to_R gmeta regression routine
+#         result = python_to_R.run_gmeta_regression(metric, fixed_effects, data_name, results_name, conf_level, random_effects_method, selected_cov, covs_to_values)
+#         
+#         self._display_results(result, summary)
+#         bar.show()
+#         bar.deleteLater()
         
     def phylo_analysis(self):
         wizard = PhyloWizard()

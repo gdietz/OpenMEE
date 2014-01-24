@@ -1354,7 +1354,7 @@ class EETableModel(QAbstractTableModel):
     
     def _generate_header_string(self, length):
         self.default_headers = []
-        for i,label in zip(range(length), excel_column_headers()):
+        for _,label in zip(range(length), excel_column_headers()):
             self.default_headers.append(QString(label))
         return self.default_headers
     
