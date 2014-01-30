@@ -89,6 +89,9 @@ def cancel_macro_creation_and_revert_state(undo_stack):
  BOOTSTRAP_MA, BOOTSTRAP_META_REG, BOOTSTRAP_META_REG_COND_MEANS,
  FAILSAFE_MODE, FUNNEL_MODE) = range(13)
  
+PARAMETRIC, BOOTSTRAP = range(2)     # analysis type
+NORMAL, CONDITIONAL_MEANS = range(2) # output type
+ 
 MODE_TITLES = {CALCULATE_EFFECT_SIZE_MODE: "Calculate Effect Size",
                MA_MODE: "Meta Analysis",
                CUM_MODE: "Cumulative Meta Analysis",

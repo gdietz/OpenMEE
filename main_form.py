@@ -291,7 +291,7 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
         
         self.actionTransform_Effect_Size.triggered.connect(self.transform_effect_size_bulk)
         
-        self.actionMeta_Regression.triggered.connect(lambda: self.analyst.meta_regression(mode=META_REG_MODE))
+        self.actionMeta_Regression.triggered.connect(self.analyst.meta_regression)
         self.actionMeta_cond_mean.triggered.connect(lambda: self.analyst.meta_regression(mode=META_REG_COND_MEANS))
         
         self.actionBootstrapped_Meta_Analysis.triggered.connect(self.analyst.bootstrap_ma)

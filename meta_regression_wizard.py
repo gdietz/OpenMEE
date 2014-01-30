@@ -9,10 +9,12 @@ from common_wizard_pages.select_covariates_page import SelectCovariatesPage
 from common_wizard_pages.reference_value_page import ReferenceValuePage
 from common_wizard_pages.meta_regression_details_page import MetaRegDetailsPage
 from common_wizard_pages.summary_page import SummaryPage
+from common_wizard_pages.meta_reg_cond_means_page import CondMeansPage
+from common_wizard_pages.bootstrap_page import BootstrapPage
 
 (Page_ChooseEffectSize, Page_DataLocation, Page_RefineStudies,
 Page_MetaRegDetails, Page_SelectCovariates, Page_ReferenceValues,
-Page_Bootstrap, Page_Summary) = range(8)
+Page_Bootstrap, Page_Summary, Page_CondMeans) = range(9)
 
 class MetaRegressionWizard(QtGui.QWizard):
     def __init__(self, model, parent=None):
@@ -23,11 +25,12 @@ class MetaRegressionWizard(QtGui.QWizard):
         
         self.setWindowTitle("Meta Regression")
     
-        self.setup_pages(last_analysis)
+        self.setup_pages(model=model, last_analysis=last_analysis)
         
         self.setWizardStyle(QWizard.ClassicStyle)
         # Automatically resize wizard on each page flip
         self.currentIdChanged.connect(self._change_size)
+        
     
     def _change_size(self, pageid):
         print("changing size")
@@ -45,15 +48,17 @@ class MetaRegressionWizard(QtGui.QWizard):
         self.refine_studies_page = RefineStudiesPage(model=model)
         self.setPage(Page_RefineStudies, self.refine_studies_page)
         
-        self.meta_reg_details_page = MetaRegDetailsPage()
+        self.meta_reg_details_page = MetaRegDetailsPage(
+                fixed_effects=last_analysis['fixed_effects'], 
+                random_effects_method = last_analysis['random_effects_method'],
+                analysis_type=last_analysis['analysis_type'], # PARAMETRIC or BOOTSTRAP
+                conf_level=last_analysis['conf_level'],
+                phylogen=last_analysis['phylogen'])
         self.setPage(Page_MetaRegDetails, self.meta_reg_details_page)
         
         self.select_covariates_page = SelectCovariatesPage(
                 model=model,
                 previously_included_covs = last_analysis['included_covariates'],
-                fixed_effects=last_analysis['fixed_effects'],
-                conf_level=last_analysis['conf_level'],
-                random_effects_method = last_analysis['random_effects_method'],
                 need_categorical = False)
         self.setPage(Page_SelectCovariates, self.select_covariates_page)
         
@@ -65,8 +70,20 @@ class MetaRegressionWizard(QtGui.QWizard):
         self.summary_page = SummaryPage()
         self.setPage(Page_Summary, self.summary_page)
         
+        # weird stuff
+        self.cond_means_pg = CondMeansPage(model=model)
+        self.setPage(Page_CondMeans, self.cond_means_pg)
+        
+        self.bootstrap_page = BootstrapPage(model=model)
+        self.setPage(Page_Bootstrap, self.bootstrap_page)
+        
     def nextId(self):
         current_id = self.currentId()
+        
+        if current_id not in [Page_ChooseEffectSize, Page_DataLocation,
+                              Page_RefineStudies, Page_MetaRegDetails]:
+            analysis_type = self.get_analysis_type() # PARAMETRIC or BOOTSTRAP
+            output_type = self.get_output_type()     # NORMAL or CONDITIONAL_MEANS
         
         if current_id == Page_ChooseEffectSize:
             return Page_DataLocation
@@ -80,11 +97,29 @@ class MetaRegressionWizard(QtGui.QWizard):
             if self._categorical_covariates_selected():
                 return Page_ReferenceValues
             else:
-                return Page_Summary
-        elif current_id == Page_ReferenceValues:
+                if analysis_type == BOOTSTRAP:
+                    return Page_Bootstrap
+                elif output_type == CONDITIONAL_MEANS:
+                    return Page_CondMeans
+                else:
+                    return Page_Summary
+        elif current_id == Page_Bootstrap:
+            if output_type == CONDITIONAL_MEANS:
+                return Page_CondMeans
+            else:
+                return Page_Summary 
+        elif current_id == Page_CondMeans:
             return Page_Summary
+        elif current_id == Page_ReferenceValues:
+            if analysis_type == BOOTSTRAP:
+                return Page_Bootstrap
+            elif output_type == CONDITIONAL_MEANS:
+                return Page_CondMeans
+            else:
+                return Page_Summary
         elif current_id == Page_Summary:
             return -1
+        
 
     def _categorical_covariates_selected(self):
         '''are categorical variables selected?'''
@@ -115,7 +150,7 @@ class MetaRegressionWizard(QtGui.QWizard):
     def get_included_covariates(self):
         return self.select_covariates_page.get_included_covariates()
     def get_included_interactions(self):
-        return self.select_covariates_page.get_included_interactions()
+        return self.select_covariates_page.get_interactions()
     
     # Meta regression details page
     def using_fixed_effects(self):
@@ -126,12 +161,23 @@ class MetaRegressionWizard(QtGui.QWizard):
         return self.meta_reg_details_page.get_random_effects_method()
     def get_phylogen(self):
         return self.meta_reg_details_page.get_phylogen()
-    def get_analysis_type(self):
+    def get_analysis_type(self): # NORMAL or BOOTSTRAP
         return self.meta_reg_details_page.get_analysis_type()
+    def get_output_type(self): # PARAMETRIC or CONDITIONAL_MEANS
+        return self.meta_reg_details_page.get_output_type()
         
     # Reference Values page
     def get_covariate_reference_levels(self):
         return self.reference_value_page.get_covariate_reference_levels()
+    
+    # Conditional Means page
+    def get_meta_reg_cond_means_info(self):
+        # returns a tuple (cat. cov to stratify over, the values for the other covariates)
+        return self.cond_means_pg.get_meta_reg_cond_means_data()
+    
+    # Bootstrap page
+    def get_bootstrap_params(self):
+        return self.bootstrap_page.get_bootstrap_params()
 
     # Summary page
     def save_selections(self):
@@ -143,20 +189,20 @@ class MetaRegressionWizard(QtGui.QWizard):
         # TODO: refactor this into a much more light-weight function
         # instead, each wizard age should generate a summary of selections made
         # via the __str__ function and then this(get_summary) function will
-        # just combine the various strings togehter
+        # just combine the various strings together
         
         
         ''' Make a summary string to show the user at the end of the wizard summarizing most of the user selections '''
         # This code is very similiar to that appearing in the meta_analysis() and meta_regression() functions of main_form
         # so be sure that the two are kept synchronized
         
-        if self.get_analysis_type() == "parametric":
-            if self.wizard().get_output_type == "conditional_means":
+        if self.get_analysis_type() == PARAMETRIC:
+            if self.get_output_type == CONDITIONAL_MEANS:
                 mode = META_REG_COND_MEANS
             else:
                 mode = META_REG_MODE
-        elif self.get_analysis_type() == "bootstrapped":
-            if self.wizard().get_output_type == "conditional_means":
+        elif self.get_analysis_type() == BOOTSTRAP:
+            if self.get_output_type == CONDITIONAL_MEANS:
                 mode = BOOTSTRAP_META_REG_COND_MEANS
             else:
                 mode = BOOTSTRAP_META_REG

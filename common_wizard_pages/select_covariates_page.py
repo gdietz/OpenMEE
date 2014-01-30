@@ -12,11 +12,9 @@ from PyQt4.Qt import *
 
 from ome_globals import *
 from interaction import Interaction
+from add_interaction_dlg import AddInteractionDlg
 
 import ui_select_covariates_page
-
-
-
 
 class SelectCovariatesPage(QWizardPage, ui_select_covariates_page.Ui_WizardPage):
     
@@ -36,7 +34,6 @@ class SelectCovariatesPage(QWizardPage, ui_select_covariates_page.Ui_WizardPage)
         self.need_categorical = need_categorical
         
         self.interactions = []
-        self.interaction_to_item = {}
         self.item_to_interaction = {}
         
         ### Set values from previous analysis ###
@@ -47,13 +44,31 @@ class SelectCovariatesPage(QWizardPage, ui_select_covariates_page.Ui_WizardPage)
         self.setup_connections()
         
     def add_interaction_clicked(self):
-        # TODO: implement this
-        
-        # interaction was added
-        self.interactionAdded.emit()
+        dlg = AddInteractionDlg(covariates=self.selected_covariates,
+                                existing_interactions=self.interactions,
+                                possible_interactions=self._get_possible_interactions(self.selected_covariates))
+        if dlg.exec_():
+            interaction = dlg.get_interaction()
+            
+            # create item and add to interactions
+            item = QListWidgetItem(str(interaction))
+            self.interactions_listWidget.addItem(item)
+            self.item_to_interaction[item] = interaction
+            self.interactions.append(interaction)
+            
+            # interaction was added
+            self.interactionAdded.emit()
     
     def remove_interaction_clicked(self):
-        # TODO: implement this
+        # Identify interaction and item
+        item = self.interactions_listWidget.currentItem()
+        item_row = self.interactions_listWidget.row(item)
+        interaction = self.item_to_interaction[item]
+        
+        # Remove interaction and item
+        self.interactions_listWidget.takeItem(item_row)
+        del self.item_to_interaction[item]
+        self.interactions.remove(interaction)
         
         # interaction was removed
         self.interactionRemoved.emit()
@@ -101,7 +116,13 @@ class SelectCovariatesPage(QWizardPage, ui_select_covariates_page.Ui_WizardPage)
         
     
     def _get_possible_interactions(self, covariate_list):
-        return set([Interaction(var_a,var_b) for var_a, var_b in itertools.combinations(covariate_list,2)])
+        if len(covariate_list) < 2:
+            return []
+        interactions = [Interaction([var_a,var_b]) for var_a, var_b in itertools.combinations(covariate_list,2)]
+        #for interaction in interactions:
+        #    print("%s" % interaction)
+        
+        return interactions
         
     def setup_connections(self):
         # adding and removing covariates

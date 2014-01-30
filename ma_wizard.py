@@ -84,31 +84,12 @@ class MetaAnalysisWizard(QtGui.QWizard):
             self.setPage(Page_DataLocation, self.data_location_page)
             self.subgroup_var_page = SubgroupVariablePage(model=model)
             self.setPage(Page_SubgroupVariable, self.subgroup_var_page)
-        elif mode==META_REG_MODE:
-            self.setPage(Page_DataLocation, self.data_location_page)
-            self.setPage(Page_SelectCovariates, self.select_covariates_page)
-            self.setPage(Page_ReferenceValues, self.reference_value_page)
-        elif mode==META_REG_COND_MEANS:
-            self.setPage(Page_DataLocation, self.data_location_page)
-            self.setPage(Page_SelectCovariates, self.select_covariates_page)
-            self.setPage(Page_CondMeans, self.cond_means_pg)
         elif mode==BOOTSTRAP_MA:
             self.setPage(Page_DataLocation, self.data_location_page)
-            self.setPage(Page_Bootstrap, self.bootstrap_page)
-        elif mode==BOOTSTRAP_META_REG:
-            self.setPage(Page_DataLocation, self.data_location_page)
-            self.setPage(Page_SelectCovariates, self.select_covariates_page)
-            self.setPage(Page_ReferenceValues, self.reference_value_page)
-            self.setPage(Page_Bootstrap, self.bootstrap_page)
-        elif mode==BOOTSTRAP_META_REG_COND_MEANS:
-            self.setPage(Page_DataLocation, self.data_location_page)
-            self.setPage(Page_SelectCovariates, self.select_covariates_page)
-            self.setPage(Page_CondMeans, self.cond_means_pg)
             self.setPage(Page_Bootstrap, self.bootstrap_page)
         elif mode==FAILSAFE_MODE:
             self.data_location_page = DataLocationPage(model=model, mode=FAILSAFE_MODE)
             self.setPage(Page_DataLocation, self.data_location_page)
-            
             self.failsafe_page = FailsafeWizardPage(previous_parameters=self.model.get_last_failsafe_parameters())
             self.setPage(Page_Failsafe, self.failsafe_page)
         elif mode == FUNNEL_MODE:
@@ -178,9 +159,7 @@ class MetaAnalysisWizard(QtGui.QWizard):
         categorical_covariates = [cov for cov in included_covariates if cov.get_type()==CATEGORICAL]
         return len(categorical_covariates) > 0
     
-    def get_meta_reg_cond_means_info(self):
-        # returns a tuple (cat. cov to stratify over, the values for the other covariates)
-        return self.cond_means_pg.get_meta_reg_cond_means_data()
+
 
     def get_failsafe_parameters(self):
         # parameters for failsafe calculation
@@ -217,22 +196,6 @@ class MetaAnalysisWizard(QtGui.QWizard):
                 return Page_Summary
             elif page_id == Page_Summary:
                 return -1
-        elif self.mode == META_REG_MODE:
-            if page_id == Page_ChooseEffectSize:
-                return Page_DataLocation
-            elif page_id == Page_DataLocation:
-                return Page_RefineStudies
-            elif page_id == Page_RefineStudies:
-                return Page_SelectCovariates
-            elif page_id == Page_SelectCovariates:
-                if self.categorical_covariates_selected():
-                    return Page_ReferenceValues
-                else:
-                    return Page_Summary
-            elif page_id == Page_ReferenceValues:
-                return Page_Summary
-            elif page_id == Page_Summary:
-                return -1
         elif self.mode == META_REG_COND_MEANS:
             if page_id == Page_ChooseEffectSize:
                 return Page_DataLocation
@@ -254,39 +217,6 @@ class MetaAnalysisWizard(QtGui.QWizard):
             elif page_id == Page_RefineStudies:
                 return Page_MethodsAndParameters
             elif page_id == Page_MethodsAndParameters:
-                return Page_Bootstrap
-            elif page_id == Page_Bootstrap:
-                return Page_Summary
-            elif page_id == Page_Summary:
-                return -1
-        elif self.mode == BOOTSTRAP_META_REG:
-            if page_id == Page_ChooseEffectSize:
-                return Page_DataLocation
-            elif page_id == Page_DataLocation:
-                return Page_RefineStudies
-            elif page_id == Page_RefineStudies:
-                return Page_SelectCovariates
-            elif page_id == Page_SelectCovariates:
-                if self.categorical_covariates_selected():
-                    return Page_ReferenceValues
-                else:
-                    return Page_Bootstrap
-            elif page_id == Page_ReferenceValues:
-                return Page_Bootstrap
-            elif page_id == Page_Bootstrap:
-                return Page_Summary
-            elif page_id == Page_Summary:
-                return -1
-        elif self.mode == BOOTSTRAP_META_REG_COND_MEANS:
-            if page_id == Page_ChooseEffectSize:
-                return Page_DataLocation
-            elif page_id == Page_DataLocation:
-                return Page_RefineStudies
-            elif page_id == Page_RefineStudies:
-                return Page_SelectCovariates
-            elif page_id == Page_SelectCovariates:
-                return Page_CondMeans
-            elif page_id == Page_CondMeans:
                 return Page_Bootstrap
             elif page_id == Page_Bootstrap:
                 return Page_Summary
@@ -460,7 +390,8 @@ class MetaAnalysisWizard(QtGui.QWizard):
             cond_means_str += "\n    " + cov.get_label() + ": " + str(covs_to_values[cov])
         return cond_means_str
     
-    def save_selections(self):
+    def save_selections(self): # returns a bool
+        # Should the selections be saved? 
         return self.summary_page.save_selections()
 
 

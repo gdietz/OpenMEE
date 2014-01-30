@@ -198,7 +198,7 @@ class Analyzer:
         
         self._display_results(result, summary)
         
-    def meta_regression(self, mode = META_REG_MODE):
+    def meta_regression(self):
         model = self._get_model()
         
 # DELETE
@@ -224,8 +224,18 @@ class Analyzer:
             # Unstored selections
             phylogen        = wizard.get_phylogen()
             analysis_type   = wizard.get_analysis_type()
+            output_type     = wizard.get_output_type()
             summary         = wizard.get_summary()
             save_selections = wizard.save_selections() # a bool
+            
+            if analysis_type == PARAMETRIC and output_type == NORMAL:
+                mode = META_REG_MODE
+            elif analysis_type == PARAMETRIC and output_type == CONDITIONAL_MEANS:
+                mode = META_REG_COND_MEANS
+            elif analysis_type == BOOTSTRAP and output_type == NORMAL:
+                mode = BOOTSTRAP_META_REG
+            elif analysis_type == BOOTSTRAP and output_type == CONDITIONAL_MEANS:
+                mode = BOOTSTRAP_META_REG_COND_MEANS
             if mode in [META_REG_COND_MEANS, BOOTSTRAP_META_REG_COND_MEANS]:
                 selected_cov, covs_to_values = wizard.get_meta_reg_cond_means_info()
             else:
@@ -249,32 +259,45 @@ class Analyzer:
                 model.update_random_effects_method(random_effects_method)    
                 
             try:
-                if mode == META_REG_MODE:
-                    self.grun_meta_regression(metric,
-                                             data_type,
-                                             included_studies,
-                                             data_location,
-                                             covariates=covariates,
-                                             interactions = interactions,
-                                             #covariate_reference_values = cov_2_ref_values,
-                                             fixed_effects=fixed_effects,
-                                             conf_level=conf_level,
-                                             random_effects_method = random_effects_method,
-                                             summary=summary)
-                else:
-                    self.run_meta_regression(metric,
-                                             data_type,
-                                             included_studies,
-                                             data_location,
-                                             covs_to_include=covariates,
-                                             covariate_reference_values = cov_2_ref_values,
-                                             fixed_effects=fixed_effects,
-                                             conf_level=conf_level,
-                                             random_effects_method = random_effects_method,
-                                             selected_cov=selected_cov, covs_to_values=covs_to_values,
-                                             mode=mode,
-                                             bootstrap_params=bootstrap_params, # for bootstrapping
-                                             summary=summary)
+#                 if mode == META_REG_MODE:
+#                     self.grun_meta_regression(metric,
+#                                              data_type,
+#                                              included_studies,
+#                                              data_location,
+#                                              covariates=covariates,
+#                                              interactions = interactions,
+#                                              #covariate_reference_values = cov_2_ref_values,
+#                                              fixed_effects=fixed_effects,
+#                                              conf_level=conf_level,
+#                                              random_effects_method = random_effects_method,
+#                                              summary=summary)
+#                 else:
+#                     self.run_meta_regression(metric,
+#                                              data_type,
+#                                              included_studies,
+#                                              data_location,
+#                                              covs_to_include=covariates,
+#                                              covariate_reference_values = cov_2_ref_values,
+#                                              fixed_effects=fixed_effects,
+#                                              conf_level=conf_level,
+#                                              random_effects_method = random_effects_method,
+#                                              selected_cov=selected_cov, covs_to_values=covs_to_values,
+#                                              mode=mode,
+#                                              bootstrap_params=bootstrap_params, # for bootstrapping
+#                                              summary=summary)
+                self.run_meta_regression(metric,
+                             data_type,
+                             included_studies,
+                             data_location,
+                             covs_to_include=covariates,
+                             covariate_reference_values = cov_2_ref_values,
+                             fixed_effects=fixed_effects,
+                             conf_level=conf_level,
+                             random_effects_method = random_effects_method,
+                             selected_cov=selected_cov, covs_to_values=covs_to_values,
+                             mode=mode,
+                             bootstrap_params=bootstrap_params, # for bootstrapping
+                             summary=summary)
             except CrazyRError as e:
                 if SOUND_EFFECTS:
                     silly.play()

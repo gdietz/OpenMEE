@@ -9,14 +9,14 @@ class MetaRegDetailsPage(QWizardPage, ui_meta_regression_details_page.Ui_WizardP
     def __init__(self,
                  fixed_effects,
                  random_effects_method,
-                 analysis_type, # 'parametric' or 'bootstrapped'
+                 analysis_type, # PARAMETRIC or BOOTSTRAP
                  conf_level,
 				 phylogen,
                  parent=None): # todo: set defaults of previous parameters to None
         super(MetaRegDetailsPage, self).__init__(parent)
         self.setupUi(self)
         
-        if analysis_type not in ['parametric', 'bootstrapped']:
+        if analysis_type not in [PARAMETRIC, BOOTSTRAP]:
             raise Exception("Unrecognized analysis type")
 
         ### Set values from previous analysis ###
@@ -29,6 +29,11 @@ class MetaRegDetailsPage(QWizardPage, ui_meta_regression_details_page.Ui_WizardP
 
         # Setup connections
         self.setup_connections()
+        
+        self.visited = False
+        
+    def initializePage(self):
+        self.visited = True
     
     def setup_connections(self):
         # radio buttons
@@ -56,9 +61,9 @@ class MetaRegDetailsPage(QWizardPage, ui_meta_regression_details_page.Ui_WizardP
             self.random_effects_radio_btn.setChecked(True)
 
         # analysis type: parametric or bootstrapped?
-        if analysis_type == "parametric":
+        if analysis_type == PARAMETRIC:
             self.parametric_radioButton.setChecked(True)
-        elif analysis_type == "bootstrapped":
+        elif analysis_type == BOOTSTRAP:
             self.bootstrapped_radioButton.setChecked(True)
             
         # Use phylogenetic correlations?
@@ -100,11 +105,12 @@ class MetaRegDetailsPage(QWizardPage, ui_meta_regression_details_page.Ui_WizardP
         return self.phylogen_checkBox.isChecked()
     
     def get_analysis_type(self):
-        '''parametric or bootstrapped'''
-        analysis_type = "parametric" if self.parametric_radioButton.isChecked() else "bootstrapped"
+        '''PARAMETRIC or BOOTSTRAP'''
+        analysis_type = PARAMETRIC if self.parametric_radioButton.isChecked() else BOOTSTRAP
         return analysis_type
     
     def get_output_type(self):
-        ''' None (regular) or conditional_means '''
+        ''' NORMAL or CONDITIOAL_MEANS '''
         if self.conditional_means_checkBox.isChecked():
-            return "conditional_means"
+            return CONDITIONAL_MEANS
+        return NORMAL

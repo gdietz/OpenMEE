@@ -64,6 +64,8 @@ DEFAULT_LAST_ANALYSIS_SELECTIONS = {'data_locations': {MEANS_AND_STD_DEVS:{},
                                     'failsafe_parameters': None,
                                     'funnel_params'      : None,
                                     'random_effects_method' : None,
+                                    'analysis_type'      : PARAMETRIC,
+                                    'phylogen'           : False,
                                     }
         
 

@@ -11,12 +11,11 @@ BOOTSTRAP_DEFAULT_FILENAME = "bootstrap.png"
 
 
 class BootstrapPage(QWizardPage, ui_bootstrap_page.Ui_BootstrapPage):
-    def __init__(self, model, mode=BOOTSTRAP_MA, parent=None):
+    def __init__(self, model, parent=None):
         super(BootstrapPage, self).__init__(parent)
         self.setupUi(self)
 
         self.model = model
-        self.mode = mode
         self.base_path = os.getcwd()
         self.base_path = os.path.join(self.base_path, "r_tmp", BOOTSTRAP_DEFAULT_FILENAME)
 
@@ -36,10 +35,11 @@ class BootstrapPage(QWizardPage, ui_bootstrap_page.Ui_BootstrapPage):
             self.plot_path_le.setText(self.base_path)
     
     def get_bootstrap_params(self):
+        
         params = {'bootstrap.plot.path': str(self.plot_path_le.text()),
                 'num.bootstrap.replicates': self.replicates_spinBox.value(),
                 'histogram.title': str(self.plot_title_le.text()),
                 'histogram.xlab': str(self.xlab_le.text())}
-        params['bootstrap.type'] = BOOTSTRAP_MODES_TO_STRING[self.mode]
+        ###params['bootstrap.type'] = BOOTSTRAP_MODES_TO_STRING[self.mode]
         
         return params

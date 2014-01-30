@@ -10,7 +10,9 @@ class Interaction:
         
     def __str__(self):
         covs_in_order = sorted(self.combination, key=lambda cov: cov.get_label())
-        return "*".join(covs_in_order)
+        cov_labels = [cov.get_label() for cov in covs_in_order]
+        
+        return "*".join(cov_labels)
     
     def __eq__(self, otherInteraction):
         return self.combination == otherInteraction.combination
