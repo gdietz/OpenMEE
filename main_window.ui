@@ -92,17 +92,8 @@
      <addaction name="actionSubgroup"/>
      <addaction name="actionBootstrapped_Meta_Analysis"/>
     </widget>
-    <widget class="QMenu" name="menuMeta_Regression_Meta_Regression_Derivatives">
-     <property name="title">
-      <string>Meta-Regression and Meta Regression Derivatives</string>
-     </property>
-     <addaction name="actionMeta_Regression"/>
-     <addaction name="actionMeta_cond_mean"/>
-     <addaction name="actionBootstrapped_Meta_Regression"/>
-     <addaction name="actionBootstrapped_Meta_Regression_Based_Conditional_Means"/>
-    </widget>
     <addaction name="menuMeta_Analysis"/>
-    <addaction name="menuMeta_Regression_Meta_Regression_Derivatives"/>
+    <addaction name="actionMeta_Regression"/>
     <addaction name="separator"/>
     <addaction name="actionPhyloAnalysis"/>
     <addaction name="actionModel_Building"/>
@@ -365,21 +356,6 @@
   <action name="actionTransform_Effect_Size">
    <property name="text">
     <string>Transform Effect Size</string>
-   </property>
-  </action>
-  <action name="actionMeta_cond_mean">
-   <property name="text">
-    <string>Meta-Regression-Based Conditional Means</string>
-   </property>
-  </action>
-  <action name="actionBootstrapped_Meta_Regression">
-   <property name="text">
-    <string>Bootstrapped Meta-Regression</string>
-   </property>
-  </action>
-  <action name="actionBootstrapped_Meta_Regression_Based_Conditional_Means">
-   <property name="text">
-    <string>Bootstrapped Meta-Regression-Based Conditional Means</string>
    </property>
   </action>
   <action name="actionBootstrapped_Meta_Analysis">

@@ -240,7 +240,13 @@ class Analyzer:
                 selected_cov, covs_to_values = wizard.get_meta_reg_cond_means_info()
             else:
                 selected_cov, covs_to_values = None, None
-            bootstrap_params = wizard.get_bootstrap_params() if mode in [BOOTSTRAP_META_REG, BOOTSTRAP_META_REG_COND_MEANS] else {}
+            
+            if mode in [BOOTSTRAP_META_REG, BOOTSTRAP_META_REG_COND_MEANS]:
+                bootstrap_params = wizard.get_bootstrap_params()
+                bootstrap_params.update({'bootstrap.type':BOOTSTRAP_MODES_TO_STRING[mode]})
+            else:
+                bootstrap_params = {}
+            
             
             print("Covariates to reference values: %s" % str(cov_2_ref_values))
             
@@ -302,7 +308,6 @@ class Analyzer:
                 if SOUND_EFFECTS:
                     silly.play()
                 QMessageBox.critical(self.main_form, "Oops", str(e))
-                
   
     def run_meta_regression(self, metric, data_type, included_studies,
                             data_location, covs_to_include,

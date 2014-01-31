@@ -29,11 +29,11 @@ class MetaRegDetailsPage(QWizardPage, ui_meta_regression_details_page.Ui_WizardP
 
         # Setup connections
         self.setup_connections()
+    
+        # Disable phylogen checkbox until phylogenetic component included
+        self.phylogen_checkBox.setEnabled(False)
+        self.phylogen_checkBox.setToolTip("Disabled until phylogenetic component included")
         
-        self.visited = False
-        
-    def initializePage(self):
-        self.visited = True
     
     def setup_connections(self):
         # radio buttons

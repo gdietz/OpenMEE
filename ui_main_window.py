@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'main_window.ui'
 #
-# Created: Tue Jan 21 10:51:28 2014
+# Created: Fri Jan 31 12:17:23 2014
 #      by: PyQt4 UI code generator 4.10.3
 #
 # WARNING! All changes made in this file will be lost!
@@ -53,8 +53,6 @@ class Ui_MainWindow(object):
         self.menuAnalysis.setObjectName(_fromUtf8("menuAnalysis"))
         self.menuMeta_Analysis = QtGui.QMenu(self.menuAnalysis)
         self.menuMeta_Analysis.setObjectName(_fromUtf8("menuMeta_Analysis"))
-        self.menuMeta_Regression_Meta_Regression_Derivatives = QtGui.QMenu(self.menuAnalysis)
-        self.menuMeta_Regression_Meta_Regression_Derivatives.setObjectName(_fromUtf8("menuMeta_Regression_Meta_Regression_Derivatives"))
         self.menuAbout = QtGui.QMenu(self.menubar)
         self.menuAbout.setObjectName(_fromUtf8("menuAbout"))
         self.menuData_Exploration = QtGui.QMenu(self.menubar)
@@ -161,12 +159,6 @@ class Ui_MainWindow(object):
         self.actionExportCSV.setObjectName(_fromUtf8("actionExportCSV"))
         self.actionTransform_Effect_Size = QtGui.QAction(MainWindow)
         self.actionTransform_Effect_Size.setObjectName(_fromUtf8("actionTransform_Effect_Size"))
-        self.actionMeta_cond_mean = QtGui.QAction(MainWindow)
-        self.actionMeta_cond_mean.setObjectName(_fromUtf8("actionMeta_cond_mean"))
-        self.actionBootstrapped_Meta_Regression = QtGui.QAction(MainWindow)
-        self.actionBootstrapped_Meta_Regression.setObjectName(_fromUtf8("actionBootstrapped_Meta_Regression"))
-        self.actionBootstrapped_Meta_Regression_Based_Conditional_Means = QtGui.QAction(MainWindow)
-        self.actionBootstrapped_Meta_Regression_Based_Conditional_Means.setObjectName(_fromUtf8("actionBootstrapped_Meta_Regression_Based_Conditional_Means"))
         self.actionBootstrapped_Meta_Analysis = QtGui.QAction(MainWindow)
         icon12 = QtGui.QIcon()
         icon12.addPixmap(QtGui.QPixmap(_fromUtf8(":/analysis_icons/images/boot.png")), QtGui.QIcon.Normal, QtGui.QIcon.Off)
@@ -224,12 +216,8 @@ class Ui_MainWindow(object):
         self.menuMeta_Analysis.addAction(self.actionLeave_one_out)
         self.menuMeta_Analysis.addAction(self.actionSubgroup)
         self.menuMeta_Analysis.addAction(self.actionBootstrapped_Meta_Analysis)
-        self.menuMeta_Regression_Meta_Regression_Derivatives.addAction(self.actionMeta_Regression)
-        self.menuMeta_Regression_Meta_Regression_Derivatives.addAction(self.actionMeta_cond_mean)
-        self.menuMeta_Regression_Meta_Regression_Derivatives.addAction(self.actionBootstrapped_Meta_Regression)
-        self.menuMeta_Regression_Meta_Regression_Derivatives.addAction(self.actionBootstrapped_Meta_Regression_Based_Conditional_Means)
         self.menuAnalysis.addAction(self.menuMeta_Analysis.menuAction())
-        self.menuAnalysis.addAction(self.menuMeta_Regression_Meta_Regression_Derivatives.menuAction())
+        self.menuAnalysis.addAction(self.actionMeta_Regression)
         self.menuAnalysis.addSeparator()
         self.menuAnalysis.addAction(self.actionPhyloAnalysis)
         self.menuAnalysis.addAction(self.actionModel_Building)
@@ -277,7 +265,6 @@ class Ui_MainWindow(object):
         self.menuTable.setTitle(_translate("MainWindow", "Table", None))
         self.menuAnalysis.setTitle(_translate("MainWindow", "Analysis", None))
         self.menuMeta_Analysis.setTitle(_translate("MainWindow", "Meta-Analysis", None))
-        self.menuMeta_Regression_Meta_Regression_Derivatives.setTitle(_translate("MainWindow", "Meta-Regression and Meta Regression Derivatives", None))
         self.menuAbout.setTitle(_translate("MainWindow", "Help", None))
         self.menuData_Exploration.setTitle(_translate("MainWindow", "Data Exploration", None))
         self.menuPublication_Bias_2.setTitle(_translate("MainWindow", "Publication Bias", None))
@@ -314,9 +301,6 @@ class Ui_MainWindow(object):
         self.actionImportCSV.setText(_translate("MainWindow", "Import CSV", None))
         self.actionExportCSV.setText(_translate("MainWindow", "Export CSV", None))
         self.actionTransform_Effect_Size.setText(_translate("MainWindow", "Transform Effect Size", None))
-        self.actionMeta_cond_mean.setText(_translate("MainWindow", "Meta-Regression-Based Conditional Means", None))
-        self.actionBootstrapped_Meta_Regression.setText(_translate("MainWindow", "Bootstrapped Meta-Regression", None))
-        self.actionBootstrapped_Meta_Regression_Based_Conditional_Means.setText(_translate("MainWindow", "Bootstrapped Meta-Regression-Based Conditional Means", None))
         self.actionBootstrapped_Meta_Analysis.setText(_translate("MainWindow", "Bootstrapped Meta-Analysis", None))
         self.action_about.setText(_translate("MainWindow", "About", None))
         self.actionFail_Safe_N.setText(_translate("MainWindow", "Fail-Safe N", None))

@@ -58,8 +58,7 @@ class MetaRegressionWizard(QtGui.QWizard):
         
         self.select_covariates_page = SelectCovariatesPage(
                 model=model,
-                previously_included_covs = last_analysis['included_covariates'],
-                need_categorical = False)
+                previously_included_covs=last_analysis['included_covariates'])
         self.setPage(Page_SelectCovariates, self.select_covariates_page)
         
         self.reference_value_page = ReferenceValuePage(
@@ -76,6 +75,9 @@ class MetaRegressionWizard(QtGui.QWizard):
         
         self.bootstrap_page = BootstrapPage(model=model)
         self.setPage(Page_Bootstrap, self.bootstrap_page)
+        
+    def _require_categorical(self):
+        return self.meta_reg_details_page.get_output_type() == CONDITIONAL_MEANS
         
     def nextId(self):
         current_id = self.currentId()

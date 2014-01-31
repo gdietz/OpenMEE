@@ -25,13 +25,11 @@ class SelectCovariatesPage(QWizardPage, ui_select_covariates_page.Ui_WizardPage)
     
     def __init__(self, model,
                  previously_included_covs = [],
-                 need_categorical = False, # need at least one categorical variable?
                  parent=None): # todo: set defaults of previous parameters to None
         super(SelectCovariatesPage, self).__init__(parent)
         self.setupUi(self)
         
         self.model = model
-        self.need_categorical = need_categorical
         
         self.interactions = []
         self.item_to_interaction = {}
@@ -296,10 +294,12 @@ class SelectCovariatesPage(QWizardPage, ui_select_covariates_page.Ui_WizardPage)
             self.remove_one_cov(item, emit_change_signal=False)
         
         self.completeChanged.emit()
-        
+    
+    def _require_categorical(self):
+        return self.wizard()._require_categorical()
                    
     def isComplete(self):
-        if self.need_categorical:
+        if self._require_categorical():
             # is there at least one categorical variable selected?
             select_cov_types = (cov.get_type()==CATEGORICAL for cov in self.selected_covariates)
             return any(select_cov_types)
