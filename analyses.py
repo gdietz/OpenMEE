@@ -77,6 +77,7 @@ class Analyzer:
             save_selections = wizard.save_selections() # a bool
             if mode == SUBGROUP_MODE:
                 subgroup_variable = wizard.get_subgroup_variable()
+                current_param_vals.update({"cov_name":subgroup_variable.get_label()})
             summary = wizard.get_summary()
             if mode == BOOTSTRAP_MA:
                 current_param_vals.update(wizard.get_bootstrap_params())

@@ -18,26 +18,22 @@ import python_to_R
 import ui_methods_and_parameters_page
 
 class MethodsAndParametersPage(QWizardPage, ui_methods_and_parameters_page.Ui_WizardPage):
-    def __init__(self, model, meta_f_str=None, external_params=None, mode=None, parent=None):
+    def __init__(self, model, meta_f_str=None, external_params=None, disable_forest_plot_tab=False, parent=None):
         super(MethodsAndParametersPage, self).__init__(parent)
         self.setupUi(self)
         
         self.external_params = external_params
         self.model = model
         self.meta_f_str = meta_f_str
-        self.mode = mode
         
         # previous values not restored currently
         self.default_method     = self.model.get_method_selection()
         self.default_param_vals = self.model.get_ma_param_vals()
         
-        # disable parameters tab for forest plot since we're not displaying a forest plot
-        if mode == FUNNEL_MODE:
+        if disable_forest_plot_tab:
             self.specs_tab.setTabEnabled(1, False)
         
     def initializePage(self):
-        if self.mode==SUBGROUP_MODE:
-            self.external_params = {"cov_name":self.wizard().get_subgroup_variable().get_label()}
         self.current_param_vals = self.external_params or {}
         
         self.data_type, self.metric = self.wizard().get_data_type_and_metric()
@@ -172,8 +168,9 @@ class MethodsAndParametersPage(QWizardPage, ui_methods_and_parameters_page.Ui_Wi
         tmp_obj_name = "tmp_obj"
         
         covs_to_include = []
-        if self.mode==SUBGROUP_MODE:
-                covs_to_include = [self.wizard().get_subgroup_variable(),]
+        #if self.mode==SUBGROUP_MODE:
+        #       covs_to_include = [self.wizard().get_subgroup_variable(),]
+        covs_to_include = []
         
         if OMA_CONVENTION[self.data_type] == "binary":
             python_to_R.dataset_to_simple_binary_robj(self.model,

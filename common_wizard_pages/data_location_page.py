@@ -13,13 +13,16 @@ from PyQt4.Qt import *
 from ome_globals import *
 
 class DataLocationPage(QWizardPage):
-    def __init__(self, model, mode=None, parent=None):
+    def __init__(self, model, show_raw_data = True, linkage_checkbox=False, 
+                 effect_size = True, parent=None):
         super(DataLocationPage, self).__init__(parent)
 
         
         self.model = model
-        self.mode = mode
         self.data_type = None
+        self.raw_data = show_raw_data
+        self.linkage_checkbox = linkage_checkbox
+        self.effect_size = effect_size
         
         self.setSubTitle("In what columns is the data located?")
         
@@ -31,6 +34,9 @@ class DataLocationPage(QWizardPage):
         self.effect_and_var_boxes_exist = False
         
         self.box_names_to_boxes = {}
+        
+    def set_show_raw_data(self, show_raw_data):
+        self.raw_data = show_raw_data
     
     def _col_assigned_to_effect_variable(self, col):
         var = self.model.get_variable_assigned_to_column(col)
@@ -61,16 +67,16 @@ class DataLocationPage(QWizardPage):
         # make grid layout
         layout = QGridLayout()
         
-        if self.mode==MA_MODE:
-            calculate_ma_data_loc_instructions = "When performing a meta-analysis only the options in the bottom two boxes need to be chosen. However, choosing options for the boxes above will provide more options when plotting."
-            instructions_label = QLabel(calculate_ma_data_loc_instructions)
-            instructions_label.setWordWrap(True)
-            
-            vlayout.addWidget(instructions_label)
+        calculate_ma_data_loc_instructions = "When performing an analysis only the options in the bottom two boxes need to be chosen. However, choosing options for the boxes above may provide more options when plotting."
+        instructions_label = QLabel(calculate_ma_data_loc_instructions)
+        instructions_label.setWordWrap(True)
+        
+        vlayout.addWidget(instructions_label)
             
         vlayout.addLayout(layout) # grid layout with column choices
         
-        if self.mode in ANALYSIS_MODES or self.mode==CALCULATE_EFFECT_SIZE_MODE:
+        # Add raw data combo boxes
+        if self.raw_data:
             if self.data_type == MEANS_AND_STD_DEVS:
                 if self.metric != GENERIC_EFFECT:
                     self._setup_MEAN_AND_STD_DEV_table(layout, startrow=layout.rowCount())
@@ -80,12 +86,10 @@ class DataLocationPage(QWizardPage):
                 self._setup_TWO_BY_TWO_CONTINGENCY_table(layout, startrow=layout.rowCount())
             elif self.data_type == CORRELATION_COEFFICIENTS:
                 self._setup_CORRELATION_COEFFICIENTS_table(layout, startrow=layout.rowCount())
-            elif self.mode==FAILSAFE_MODE:
-                pass # don't care about data type here
             else:
                 raise Exception("Unrecognized Data type")
         
-        if self.mode in ANALYSIS_MODES or self.mode==FAILSAFE_MODE:
+        if self.effect_size:
             eff_var_layout = QGridLayout()
             
             # Lables:
@@ -124,7 +128,7 @@ class DataLocationPage(QWizardPage):
         self.clear_selections_btn.clicked.connect(self._clear_selections)
         
         # add make linkage checkbox for when we are calculating effect sizes
-        if self.mode == CALCULATE_EFFECT_SIZE_MODE:
+        if self.linkage_checkbox:
             self.make_linkage_chkbox = QCheckBox("Establish linkage between raw-data and calculated effects")
             self.make_linkage_chkbox.setCheckState(Qt.Checked)
             vlayout.addWidget(self.make_linkage_chkbox)
@@ -335,7 +339,7 @@ class DataLocationPage(QWizardPage):
             return selected_column
         
         current_selections = {}
-        if self.mode in ANALYSIS_MODES or self.mode == CALCULATE_EFFECT_SIZE_MODE:
+        if self.raw_data:
             if self.data_type == MEANS_AND_STD_DEVS:
                 if self.metric != GENERIC_EFFECT:
                     current_selections = {
@@ -357,7 +361,7 @@ class DataLocationPage(QWizardPage):
                 current_selections = {'correlation': selected_column(self.correlation_combo_box),
                                       'sample_size': selected_column(self.sample_size_combo_box),}
             
-        if self.mode in ANALYSIS_MODES and self.effect_and_var_boxes_exist:
+        if self.effect_size and self.effect_and_var_boxes_exist:
             current_selections['effect_size'] = selected_column(self.effect_size_combo_box)
             current_selections['variance']    = selected_column(self.variance_combo_box)
                 
@@ -372,10 +376,10 @@ class DataLocationPage(QWizardPage):
         current_selections = self.get_data_locations()
         if current_selections is None:
             return False
-        if self.mode==CALCULATE_EFFECT_SIZE_MODE:
+        if self.raw_data:
             if None in current_selections.values():
                 return False
-        elif self.mode in ANALYSIS_MODES: # in the case of performing a meta-analysis (where we really only need effect size and variance)
+        elif self.effect_size:
             if not self.effect_and_var_boxes_exist:
                 return False
             if None in [current_selections['effect_size'], current_selections['variance']]:

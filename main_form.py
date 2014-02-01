@@ -205,8 +205,6 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
         self.actionCumulative.setEnabled(enable)
         self.actionMeta_Regression.setEnabled(enable)
         self.actionBootstrapped_Meta_Analysis.setEnabled(enable)
-        self.actionBootstrapped_Meta_Regression.setEnabled(enable)
-        self.actionBootstrapped_Meta_Regression_Based_Conditional_Means.setEnabled(enable)
         
         if enable:
             if self.model.get_variables(var_type=CATEGORICAL) == []:

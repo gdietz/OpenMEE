@@ -25,9 +25,12 @@ class CalculateEffectSizeWizard(QtGui.QWizard):
         self.model = model
         last_analysis = model.get_last_analysis_selections()
         
-        self.choose_effect_size_page = ChooseEffectSizePage(data_type=last_analysis['data_type'],
-                                                            metric=last_analysis['metric'])
-        self.data_location_page = DataLocationPage(model=model, mode=CALCULATE_EFFECT_SIZE_MODE)
+        self.choose_effect_size_page = ChooseEffectSizePage(
+                        data_type=last_analysis['data_type'],
+                        metric=last_analysis['metric'])
+        self.data_location_page = DataLocationPage(model=model,
+                                                   linkage_checkbox=True,
+                                                   effect_size=False)
         self.overwrite_effect_sizes_page = OverwriteEffectSizesPage(model=model)
         
         self.setPage(Page_ChooseEffectSize, self.choose_effect_size_page)
