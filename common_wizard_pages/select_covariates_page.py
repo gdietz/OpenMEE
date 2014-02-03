@@ -308,9 +308,19 @@ class SelectCovariatesPage(QWizardPage, ui_select_covariates_page.Ui_WizardPage)
             return len(self.selected_covariates) > 0
                 
         
-    ############################################################   
+    ############ getters ################################################   
     def get_included_covariates(self):
         return self.selected_covariates
     
     def get_interactions(self):
         return self.interactions
+    
+    ###########################################################################
+    
+    def __str__(self):
+        covariates_str = "\n".join([" " + cov.get_label() for cov in self.get_included_covariates()])
+        interactions_str = "\n".join([" " + str(interaction) for interaction in self.interactions])
+        
+        summary = "Included Covariates: %s\n\nInteractions: %s" % (covariates_str, interactions_str)
+        return summary
+        

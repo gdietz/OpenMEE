@@ -102,9 +102,6 @@ class ReferenceValuePage(QWizardPage, ui_reference_value_page.Ui_WizardPage):
         self.cov_to_ref_level[self.current_cov] = ref_level
         print("For covariate: %s, reference is now: %s" % (self.current_cov.get_label(), ref_level))
     
-    def get_covariate_reference_levels(self):
-        return self.cov_to_ref_level
-    
     def _populate_left_list(self, covariates):
         self.cov_listWidget.blockSignals(True)
         self.cov_listWidget.clear()
@@ -149,4 +146,18 @@ class ReferenceValuePage(QWizardPage, ui_reference_value_page.Ui_WizardPage):
                     if cov not in self.cov_to_ref_level: # set defaults
                         self.cov_to_ref_level[cov]=val
             cov_to_levels[cov]=levels
-        return cov_to_levels   
+        return cov_to_levels
+    
+    ########################## Getter #########################################
+    def get_covariate_reference_levels(self):
+        return self.cov_to_ref_level
+    
+    #########################################
+    def __str__(self):
+        summary = "Covariate Reference Levels:\n"
+    
+        sorted_covs = sorted(self.cov_to_ref_level.keys(), key = lambda cov: cov.get_label())
+        lines = ["  %s: %s" % (cov.get_label(), str(self.cov_to_ref_level[cov])) for cov in sorted_covs]
+        summary += "\n".join(lines)
+        return summary
+        

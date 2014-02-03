@@ -43,3 +43,9 @@ class BootstrapPage(QWizardPage, ui_bootstrap_page.Ui_BootstrapPage):
         ###params['bootstrap.type'] = BOOTSTRAP_MODES_TO_STRING[self.mode]
         
         return params
+    
+    def __str__(self):
+        summary = "# Bootstrap replicates: %d" % self.replicates_spinBox.value()
+        return summary
+        
+        

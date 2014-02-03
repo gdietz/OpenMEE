@@ -249,6 +249,7 @@ class HistogramPage(QWizardPage, ui_histogram_page.Ui_WizardPage):
     def set_checkboxes_state(self, state):
         for checkbox in self.checkboxes:
             checkbox.setCheckState(state)
+            
     
 if __name__ == "__main__":
     app = QApplication(sys.argv)

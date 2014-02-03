@@ -64,7 +64,8 @@ class ScatterplotDataSelectPage(QWizardPage, ui_scatterplot_dataselect_page.Ui_W
         return {'x':xvar,
                 'y':yvar}
         
-        
-        
     def isComplete(self):
         return True
+    
+    def __str__(self):
+        return "" # don't want summary data

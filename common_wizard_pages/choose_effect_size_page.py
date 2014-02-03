@@ -130,14 +130,26 @@ class ChooseEffectSizePage(QWizardPage, ui_choose_effect_size_page.Ui_choose_eff
                     else:
                         deleteItems(item.layout())
         deleteItems(layout2delete)
-        
+    
+    
+    ############################### Getters ###################################
+    
     def get_metric(self):
         return self.selected_metric
     def get_data_type(self):
         return self.selected_data_type
     def get_data_type_and_metric(self):
         return (self.selected_data_type, self.selected_metric)
-
+    
+    ##########################################################################
+    
+    def __str__(self):
+        metric_str = "Metric: %s" % METRIC_TEXT[self.get_metric()]
+        data_type_str  = "Data Type: %s" % DATA_TYPE_TEXT[self.get_data_type()]
+        
+        summary = "\n".join([metric_str, data_type_str])
+        return summary
+        
 # Delete a layout
 #import sip
 #sip.delete(widget.layout())

@@ -201,11 +201,23 @@ class CondMeansPage(QWizardPage, ui_meta_reg_cond_means_page.Ui_WizardPage):
         wanted_covariates = [cov for cov in covariates if cov.get_type() in cov_types]
         return sorted(wanted_covariates, key = lambda cov: cov.get_label().lower())
     
+    ########## getter ########################################################
+    
     def get_meta_reg_cond_means_data(self):
         if self.selected_cov in self.cov_value_settings:
             del self.cov_value_settings[self.selected_cov]
         return (self.selected_cov, self.cov_value_settings)
-        
+    
+    #########################################################################
+    
+    def __str__(self):
+        selected_cov, cov_value_settings = self.get_meta_reg_cond_means_data()
+        cov_vals_strs = []
+        for cov in sorted(cov_value_settings.keys()):
+            cov_vals_strs.append("    %s: %s\n" % (cov.get_label(), str(cov_value_settings[cov])))
+        cov_vals_str = "\n".join(cov_vals_strs)
+        summary = "Conditional Means:\n" + "  Selected Covariate: %s\n" % selected_cov.get_label() + "  Values for other covariates: %s" % cov_vals_str
+        return summary
     
 
     

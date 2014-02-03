@@ -20,7 +20,7 @@ import python_to_R
 from phylo.phylowizard import PhyloWizard
 from ome_globals import *
 from meta_progress import MetaProgress
-
+from publication_bias_wizards import FunnelWizard, FailsafeWizard
 
 class Analyzer:
     def __init__(self, main_form):
@@ -425,9 +425,12 @@ class Analyzer:
     def failsafe_analysis(self):
         model = self._get_model()
         
-        wizard = ma_wizard.MetaAnalysisWizard(model=model,
-                                              mode=FAILSAFE_MODE,
-                                              parent=self.main_form)
+# DELETE
+#         wizard = ma_wizard.MetaAnalysisWizard(model=model,
+#                                               mode=FAILSAFE_MODE,
+#                                               parent=self.main_form)
+        wizard = FailsafeWizard(model=model, parent=self.main_form)
+    
         if wizard.exec_():
             data_location = wizard.get_data_location()
             included_studies = wizard.get_included_studies_in_proper_order()
@@ -453,10 +456,13 @@ class Analyzer:
         
     def funnel_plot_analysis(self):
         model = self._get_model()
-        
-        wizard = ma_wizard.MetaAnalysisWizard(model=model,
-                                  mode=FUNNEL_MODE,
-                                  parent=self.main_form)
+
+# DELETE
+#         wizard = ma_wizard.MetaAnalysisWizard(model=model,
+#                                   mode=FUNNEL_MODE,
+#                                   parent=self.main_form)
+        wizard = FunnelWizard(model=model, parent=self.main_form)
+
         if wizard.exec_():
             meta_f_str = wizard.get_modified_meta_f_str()
             data_type, metric = wizard.get_data_type_and_metric()

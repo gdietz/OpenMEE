@@ -991,7 +991,7 @@ def dataframe_to_pydict(dataframe):
 
 
 
-def get_available_methods(for_data_type=None, data_obj_name=None, metric=None, mode=None):
+def get_available_methods(for_data_type=None, data_obj_name=None, metric=None, funnel_mode=False):
     '''
     Returns a list of methods available in OpenMeta for the particular data_type
     (if one is given). Excludes "*.parameters" methods
@@ -1035,7 +1035,7 @@ def get_available_methods(for_data_type=None, data_obj_name=None, metric=None, m
                 # object to assess if a given method is feasible (e.g,.
                 # PETO for binary data only makes sense for 'OR')
                 is_feasible = exR.execute_in_R("%s(%s, '%s')" % (is_feas_f, data_obj_name, metric))[0]
-                if mode==FUNNEL_MODE:
+                if funnel_mode:
                     is_feas_4_funnel_f = "%s.is.feasible.for.funnel" % method
                     is_feasible_for_funnel = exR.execute_in_R("%s()" % (is_feas_4_funnel_f))[0]
                     is_feasible = is_feasible and is_feasible_for_funnel

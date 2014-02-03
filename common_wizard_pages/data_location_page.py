@@ -14,15 +14,17 @@ from ome_globals import *
 
 class DataLocationPage(QWizardPage):
     def __init__(self, model, show_raw_data = True, linkage_checkbox=False, 
-                 effect_size = True, parent=None):
+                 effect_size = True, need_full_raw_data = False, parent=None):
         super(DataLocationPage, self).__init__(parent)
 
         
         self.model = model
         self.data_type = None
+        self.metric = None
         self.raw_data = show_raw_data
         self.linkage_checkbox = linkage_checkbox
         self.effect_size = effect_size
+        self.need_full_raw_data = need_full_raw_data
         
         self.setSubTitle("In what columns is the data located?")
         
@@ -54,7 +56,8 @@ class DataLocationPage(QWizardPage):
 
     
     def initializePage(self):
-        self.data_type, self.metric = self.wizard().get_data_type_and_metric()
+        if self.raw_data:
+            self.data_type, self.metric = self.wizard().get_data_type_and_metric()
         
         vlayout = self.layout()
         if vlayout is None:
@@ -323,7 +326,10 @@ class DataLocationPage(QWizardPage):
             
     def _get_default_col_choice_for_box(self,box):
         box_name = self._get_boxname_for_box(box)
-        column = self.model.get_data_location_choice(self.data_type, box_name)
+        if self.data_type is None:
+            column = None
+        else:
+            column = self.model.get_data_location_choice(self.data_type, box_name)
         if column is None:
             return -1 # means no column chosen
         return column
@@ -369,14 +375,16 @@ class DataLocationPage(QWizardPage):
         return current_selections
     
     def _update_current_selections(self):
-        current_selections = self.get_data_locations()
+        #current_selections = self.get_data_locations()
         self.emit(SIGNAL("completeChanged()"))
             
     def isComplete(self):
         current_selections = self.get_data_locations()
         if current_selections is None:
             return False
-        if self.raw_data:
+        if set(current_selections.values()) == set([None]):
+            return False # not complete if everything is None
+        if self.need_full_raw_data:
             if None in current_selections.values():
                 return False
         elif self.effect_size:
@@ -385,5 +393,31 @@ class DataLocationPage(QWizardPage):
             if None in [current_selections['effect_size'], current_selections['variance']]:
                 return False
         return True
-                
+    
+    ################################
+    
+    def _get_data_location_string(self, data_location):
+        ''' helper for summary '''
+        
+        get_column_name_for_key = lambda key: self.model.get_variable_assigned_to_column(data_location[key]).get_label()
+        get_substr_for_key = lambda key: "  " + key.replace('_',' ') + ": " + get_column_name_for_key(key)
+        
+        sorted_keys = sorted(data_location.keys())
+        lines = []
+        for key in sorted_keys:
+            if key in ['effect_size','variance']:
+                continue
+            if data_location[key] == None: # skip if no column assigned
+                continue
+            lines.append(get_substr_for_key(key))
+        if 'effect_size' in sorted_keys:
+            lines.append(get_substr_for_key('effect_size'))
+        if 'variance' in sorted_keys:
+            lines.append(get_substr_for_key('variance'))
+            
+        data_location_str = "\n".join(lines)
+        return data_location_str
+    
+    def __str__(self):
+        return "Data Location: \n%s" % self._get_data_location_string(self.get_data_locations())
                 

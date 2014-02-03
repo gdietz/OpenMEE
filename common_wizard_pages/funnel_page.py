@@ -165,7 +165,9 @@ class FunnelPage(QWizardPage, ui_funnel_page.Ui_WizardPage):
         print("Funnel params: %s" % p)
         return p
     
-
+    ###########################################################################
+    def __str__(self):
+        return ""
         
             
         

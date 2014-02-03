@@ -82,20 +82,24 @@ class MetaRegressionWizard(QtGui.QWizard):
     def nextId(self):
         current_id = self.currentId()
         
-        if current_id not in [Page_ChooseEffectSize, Page_DataLocation,
+        return self.nextId_helper(current_id)
+        
+    def nextId_helper(self, page_id):
+        
+        if page_id not in [Page_ChooseEffectSize, Page_DataLocation,
                               Page_RefineStudies, Page_MetaRegDetails]:
             analysis_type = self.get_analysis_type() # PARAMETRIC or BOOTSTRAP
             output_type = self.get_output_type()     # NORMAL or CONDITIONAL_MEANS
         
-        if current_id == Page_ChooseEffectSize:
+        if page_id == Page_ChooseEffectSize:
             return Page_DataLocation
-        elif current_id == Page_DataLocation:
+        elif page_id == Page_DataLocation:
             return Page_RefineStudies
-        elif current_id == Page_RefineStudies:
+        elif page_id == Page_RefineStudies:
             return Page_MetaRegDetails
-        elif current_id == Page_MetaRegDetails:
+        elif page_id == Page_MetaRegDetails:
             return Page_SelectCovariates
-        elif current_id == Page_SelectCovariates:
+        elif page_id == Page_SelectCovariates:
             if self._categorical_covariates_selected():
                 return Page_ReferenceValues
             else:
@@ -105,21 +109,21 @@ class MetaRegressionWizard(QtGui.QWizard):
                     return Page_CondMeans
                 else:
                     return Page_Summary
-        elif current_id == Page_Bootstrap:
+        elif page_id == Page_Bootstrap:
             if output_type == CONDITIONAL_MEANS:
                 return Page_CondMeans
             else:
                 return Page_Summary 
-        elif current_id == Page_CondMeans:
+        elif page_id == Page_CondMeans:
             return Page_Summary
-        elif current_id == Page_ReferenceValues:
+        elif page_id == Page_ReferenceValues:
             if analysis_type == BOOTSTRAP:
                 return Page_Bootstrap
             elif output_type == CONDITIONAL_MEANS:
                 return Page_CondMeans
             else:
                 return Page_Summary
-        elif current_id == Page_Summary:
+        elif page_id == Page_Summary:
             return -1
         
 
@@ -187,6 +191,8 @@ class MetaRegressionWizard(QtGui.QWizard):
     
     ######################### end of getters #################################
     
+    
+    
     def get_summary(self):
         # TODO: refactor this into a much more light-weight function
         # instead, each wizard age should generate a summary of selections made
@@ -198,115 +204,5 @@ class MetaRegressionWizard(QtGui.QWizard):
         # This code is very similiar to that appearing in the meta_analysis() and meta_regression() functions of main_form
         # so be sure that the two are kept synchronized
         
-        if self.get_analysis_type() == PARAMETRIC:
-            if self.get_output_type == CONDITIONAL_MEANS:
-                mode = META_REG_COND_MEANS
-            else:
-                mode = META_REG_MODE
-        elif self.get_analysis_type() == BOOTSTRAP:
-            if self.get_output_type == CONDITIONAL_MEANS:
-                mode = BOOTSTRAP_META_REG_COND_MEANS
-            else:
-                mode = BOOTSTRAP_META_REG
-        else:
-            raise Exception("Analysis type not recognized")
-        
-        summary = ""
-        summary_fields_in_order = ['Analysis Type',
-                                   'Data Type', 'Metric', 'Data Location',
-                                   'Included Studies','Chosen Method',
-                                   'Subgroup Variable', 'Included Covariates',
-                                   'Fixed Effects or Random Effects',
-                                   'Random Effects Method',
-                                   'Confidence Level', 'Covariate Reference Values',
-                                   'Conditional Means Selections',
-                                   '# Bootstrap Replicates']
-        # initialize dict with values set to None
-        fields_to_values = dict(zip(summary_fields_in_order,[None]*len(summary_fields_in_order)))
-       
-        data_type, metric = self.get_data_type_and_metric()
-        data_location = self.get_data_location()
-        included_studies = self.get_included_studies_in_proper_order()
-        
-        # Convert to strings:
-        fields_to_values['Analysis Type'] = MODE_TITLES[mode]
-        fields_to_values['Data Type']     = DATA_TYPE_TEXT[data_type]
-        fields_to_values['Metric']        = METRIC_TEXT[metric]
-        fields_to_values['Data Location'] = self._get_data_location_string(data_location)
-        fields_to_values['Included Studies'] = self._get_labels_string(included_studies)
-        fields_to_values['Random Effects Method']=self.get_random_effects_method()
-
-        included_covariates = self.get_included_covariates()
-        fixed_effects = self.using_fixed_effects()
-        conf_level = self.get_conf_level()
-        cov_2_ref_values = self.get_covariate_reference_levels() if len(self.get_covariate_reference_levels()) > 0 else None
-        if mode in [META_REG_COND_MEANS, BOOTSTRAP_META_REG_COND_MEANS]:
-            selected_cov, covs_to_values = self.get_meta_reg_cond_means_info()
-        else:
-            selected_cov, covs_to_values = None, None
-        bootstrap_params = self.get_bootstrap_params() if mode in [BOOTSTRAP_META_REG, BOOTSTRAP_META_REG_COND_MEANS] else {}
-        
-
-        if not fixed_effects:
-            fields_to_values['Random Effects Method'] = RANDOM_EFFECTS_METHODS_TO_PRETTY_STRS[self.get_random_effects_method()]
-        fields_to_values['# Bootstrap Replicates'] = str(bootstrap_params['num.bootstrap.replicates']) if mode in [BOOTSTRAP_META_REG, BOOTSTRAP_META_REG_COND_MEANS] else None
-        fields_to_values['Included Covariates'] = self._get_labels_string(included_covariates)
-        fields_to_values['Fixed Effects or Random Effects'] = "Fixed Effects" if fixed_effects else "Random Effects"
-        fields_to_values['Confidence Level'] = str(conf_level) + "%"
-        fields_to_values['Covariate Reference Values'] = self._get_covariate_ref_values_string(cov_2_ref_values) if cov_2_ref_values else None
-        fields_to_values['Conditional Means Selections'] = self._get_conditional_means_selections_str(selected_cov, covs_to_values)
-        
-        lines = []
-        for field_name in summary_fields_in_order:
-            if field_name not in fields_to_values:
-                continue
-            value = fields_to_values[field_name]
-            if value:
-                lines.append("".join([field_name,": ",str(value)]))
-        summary = "\n\n".join(lines)
-        return summary
-            
-            
-    def _get_data_location_string(self, data_location):
-        ''' helper for summary '''
-        
-        get_column_name_for_key = lambda key: self.model.get_variable_assigned_to_column(data_location[key]).get_label()
-        get_substr_for_key = lambda key: "\n  " + key.replace('_',' ') + ": " + get_column_name_for_key(key)
-        
-        sorted_keys = sorted(data_location.keys())
-        data_location_str = ""
-        for key in sorted_keys:
-            if key in ['effect_size','variance']:
-                continue
-            if data_location[key] == None: # skip if no column assigned
-                continue
-            data_location_str += get_substr_for_key(key)
-        if 'effect_size' in sorted_keys:
-            data_location_str += get_substr_for_key('effect_size')
-        if 'variance' in sorted_keys:
-            data_location_str += get_substr_for_key('variance')
-        return data_location_str
-    
-    def _get_labels_string(self, included_studies):
-        ''' helper for summary ''' # using it for covariates too, don't worry that things are called 'study', just using it polymorphically with things that have a get_label() method
-        
-        included_studies_str = "\n"
-        study_lines  = ["  " + study.get_label() for study in included_studies]
-        included_studies_str += "\n".join(study_lines)
-        return included_studies_str
-    
-    def _get_covariate_ref_values_string(self, covariate_ref_values):
-        strings = ["".join(["  ",cov.get_label(),': ',str(covariate_ref_values[cov])]) for cov in sorted(covariate_ref_values.keys())]
-        ref_val_string = "\n" + "\n".join(strings)
-        return ref_val_string
-    
-    def _get_conditional_means_selections_str(self, selected_cov, covs_to_values):
-        if (selected_cov, covs_to_values) == (None, None):
-            return None
-        
-        cond_means_str = "\n  Selected Covariate: %s\n  Values for other covariates:" % selected_cov.get_label()
-        
-        for cov in sorted(covs_to_values.keys(), key=lambda cov: cov.get_label()):
-            cond_means_str += "\n    " + cov.get_label() + ": " + str(covs_to_values[cov])
-        return cond_means_str
+        pass
 

@@ -111,19 +111,33 @@ class FailsafeWizardPage(QWizardPage, ui_failsafe_WizardPage.Ui_WizardPage):
         
         return parameters
     
-    def get_summary(self):
-        params = self.get_parameters()
-        order = ['method', 'alpha', 'target', 'digits']
-        
-        summary = "\n"
-        for key in order:
-            if key in params:
-                summary += "  %s: %s\n" % (key, params[key])
-        return summary
+#     def get_summary(self):
+#         params = self.get_parameters()
+#         order = ['method', 'alpha', 'target', 'digits']
+#         
+#         summary = "\n"
+#         for key in order:
+#             if key in params:
+#                 summary += "  %s: %s\n" % (key, params[key])
+#         return summary
         
     def isComplete(self):
         return self.verify_target()
 
+    def __str__(self):
+        summary = "Failsafe Parameters:\n"
+        params = self.get_parameters()
+        order = ['method', 'alpha', 'target', 'digits']
+        
+        lines = []
+        for key in order:
+            if key in params:
+                lines.append("  %s: %s" % (key, params[key]))
+        summary += "\n".join(lines)
+        return summary
+                
+                
+        
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)

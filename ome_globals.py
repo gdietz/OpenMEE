@@ -530,8 +530,37 @@ def boxify(astr, border="#", margin=1):
     return "\n".join(all_together_now)
 
 def civilized_dict_str(a_dict):
+    # prints out a dictionary in a 'civilized' manner e.g.:
+    #    {
+    #     goodbye: '5'
+    #     hello: '4'
+    #    }
     content = []
     for k in sorted(a_dict.keys()):
         content.append(" %s: '%s'" % (k, a_dict[k]))
     
     return "{\n%s\n}" % "\n".join(content)
+
+################### Helpers for wizards ########################################    
+
+def wizard_summary(wizard, next_id_helper, summary_page_id, analysis_label):
+    # Goes through all the pages that were visited (except summary page)
+    # and collects their sub summary info (via str())
+    # analysis_label is something like "Meta Regression" e.g.
+    
+    analysis_label_str = "Analysis: %s\n" % analysis_label
+    visited_page_ids = wizard.visitedPages()
+    # Remove summary page id
+    try:
+        visited_page_ids.remove(summary_page_id)
+    except ValueError:
+        pass
+    
+    page_strs = (str(wizard.page(id)) for id in visited_page_ids)
+    page_strs = filter(lambda x: x!="", page_strs)
+    summary_text = "\n\n".join(page_strs)
+    summary_text = analysis_label_str + summary_text
+    return summary_text
+    
+    
+###############################################################################

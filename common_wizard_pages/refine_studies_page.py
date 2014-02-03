@@ -263,13 +263,7 @@ class RefineStudiesPage(QWizardPage, ui_refine_studies_page.Ui_WizardPage):
         for study, include_state in self.studies_to_include_status.items():
             print("Study id,label: %d,%s\tInclude State: %s" % (study.get_id(), str(study.get_label()), str(include_state)))
     
-    def get_included_studies(self):
-        ''' main interface to outside '''
-        
-        return [study for study,included in self.studies_to_include_status.items() if included]
-        
-        
-        
+    
     def include_all_studies(self):
         ''' include all the studies that CAN be included '''
         
@@ -466,3 +460,19 @@ class RefineStudiesPage(QWizardPage, ui_refine_studies_page.Ui_WizardPage):
         add_covariates_to_list(count_covariates, suffix="(count)")
         
         self.missing_data_listwidget.blockSignals(False)
+        
+    ############################## getter #####################################
+    
+    def get_included_studies(self):
+        ''' main interface to outside '''
+        
+        return [study for study,included in self.studies_to_include_status.items() if included]
+    
+    ###########################################################################
+    
+    def __str__(self):
+        summary = "Included Studies:\n"
+        
+        studies = self.get_included_studies()
+        summary += "\n".join(["  %s" % study.get_label() for study in studies])
+        return summary

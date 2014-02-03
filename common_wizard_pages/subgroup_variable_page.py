@@ -69,4 +69,6 @@ class SubgroupVariablePage(QWizardPage, ui_subgroup_variable_page.Ui_subgroup_va
             return None
         return selected_column
 
+    def __str__(self):
+        return "Subgroup Variable: %s" % self.get_subgroup_variable().get_label()
 

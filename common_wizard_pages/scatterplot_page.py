@@ -156,3 +156,7 @@ class ScatterPlotPage(QWizardPage, ui_scatterplot_page.Ui_WizardPage):
             
         print("scatterplot params: %s" % p)
         return p
+    
+    def __str__(self):
+        # We don't want this information in the summary
+        return ""

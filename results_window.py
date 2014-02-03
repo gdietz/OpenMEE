@@ -135,7 +135,8 @@ class ResultsWindow(QMainWindow, ui_results_window.Ui_ResultsWindow):
             self.psuedo_console.setVisible(False)
             
         if "results_data" in results and self.show_additional_values:
-            self.add_additional_values_texts(results["results_data"])
+            if results["results_data"]:
+                self.add_additional_values_texts(results["results_data"])
 
 
     def f(self):

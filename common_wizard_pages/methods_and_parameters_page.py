@@ -18,13 +18,14 @@ import python_to_R
 import ui_methods_and_parameters_page
 
 class MethodsAndParametersPage(QWizardPage, ui_methods_and_parameters_page.Ui_WizardPage):
-    def __init__(self, model, meta_f_str=None, external_params=None, disable_forest_plot_tab=False, parent=None):
+    def __init__(self, model, meta_f_str=None, external_params=None, disable_forest_plot_tab=False, funnel_mode=False, parent=None):
         super(MethodsAndParametersPage, self).__init__(parent)
         self.setupUi(self)
         
         self.external_params = external_params
         self.model = model
         self.meta_f_str = meta_f_str
+        self.funnel_mode = funnel_mode
         
         # previous values not restored currently
         self.default_method     = self.model.get_method_selection()
@@ -192,7 +193,7 @@ class MethodsAndParametersPage(QWizardPage, ui_methods_and_parameters_page.Ui_Wi
                                                 for_data_type=OMA_CONVENTION[self.data_type],
                                                 data_obj_name=tmp_obj_name,
                                                 metric=self.metric,
-                                                mode=self.mode)
+                                                funnel_mode=self.funnel_mode)
         print "\n\navailable %s methods: %s" % (self.data_type, ", ".join(self.available_method_d.keys()))
         method_names = self.available_method_d.keys()
         method_names.sort(reverse=True)
@@ -362,6 +363,8 @@ class MethodsAndParametersPage(QWizardPage, ui_methods_and_parameters_page.Ui_Wi
         self.show_4.setChecked(False)
         self.show_4.setEnabled(False)
     
+    ############### Getters ###################################################
+    
     # adapted from 'add_plot_params' in ma_specs in OMA, also returns params for the meta-analysis
     def get_plot_params(self):
         self.current_param_vals["fp_show_col1"] = self.show_1.isChecked()
@@ -399,3 +402,15 @@ class MethodsAndParametersPage(QWizardPage, ui_methods_and_parameters_page.Ui_Wi
     
     def get_current_method_pretty_name(self):
         return str(self.method_cbo_box.currentText())
+    
+    ###########################################################################
+    
+    def __str__(self):
+        chosen_method_str = "Chosen Method: %s" % self.get_current_method_pretty_name()
+        random_effects_method_str = None
+        if "rm.method" in self.current_param_vals:
+            random_effects_method_str = "Random Effects Method: " + python_to_R.get_random_effects_methods_descriptions(self.get_current_method())[self.current_param_vals['rm.method']]
+            summary = "\n".join([chosen_method_str, random_effects_method_str])
+        else:
+            summary = chosen_method_str
+        return summary
