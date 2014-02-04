@@ -42,7 +42,7 @@ class MetaRegressionWizard(QtGui.QWizard):
                                                             metric=last_analysis['metric'])
         self.setPage(Page_ChooseEffectSize, self.choose_effect_size_page)
         
-        self.data_location_page = DataLocationPage(model=model, mode=MA_MODE)
+        self.data_location_page = DataLocationPage(model=model)
         self.setPage(Page_DataLocation, self.data_location_page)
         
         self.refine_studies_page = RefineStudiesPage(model=model)
@@ -190,19 +190,10 @@ class MetaRegressionWizard(QtGui.QWizard):
         return self.summary_page.save_selections()
     
     ######################### end of getters #################################
-    
-    
-    
-    def get_summary(self):
-        # TODO: refactor this into a much more light-weight function
-        # instead, each wizard age should generate a summary of selections made
-        # via the __str__ function and then this(get_summary) function will
-        # just combine the various strings together
-        
-        
-        ''' Make a summary string to show the user at the end of the wizard summarizing most of the user selections '''
-        # This code is very similiar to that appearing in the meta_analysis() and meta_regression() functions of main_form
-        # so be sure that the two are kept synchronized
-        
-        pass
 
+    # Summary Page
+    def get_summary(self):
+        ''' Make a summary string to show the user at the end of the wizard summarizing most of the user selections '''
+        return wizard_summary(wizard=self, next_id_helper=self.nextId_helper,
+                              summary_page_id=Page_Summary,
+                              analysis_label="Meta-Regression")

@@ -125,5 +125,5 @@ class MetaRegDetailsPage(QWizardPage, ui_meta_regression_details_page.Ui_WizardP
         analysis_str = "%s Analysis" % ("Parametric" if self.get_analysis_type() == PARAMETRIC else "Bootstrap")
         output_type_str = "Output type: %s" % ("Conditional Means" if self.get_output_type() == CONDITIONAL_MEANS else "Normal")
         
-        summary = "\n".join([analysis_str, effects_str, conf_level_str, output_type_str])
+        summary = "Meta Regression Details:\n" + "\n".join([analysis_str, effects_str, conf_level_str, output_type_str])
         return summary

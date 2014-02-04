@@ -13,7 +13,9 @@ from PyQt4 import QtCore, QtGui
 from PyQt4.Qt import *
 
 import results_window
-import ma_wizard
+from ma_wizards import RegularMetaAnalysisWizard, CumulativeMetaAnalysisWizard,\
+                       LeaveOneOutMetaAnalysisWizard, \
+                       SubgroupMetaAnalysisWizard, BootstrapMetaAnalysisWizard
 import meta_regression_wizard
 import data_exploration_wizards
 import python_to_R
@@ -21,6 +23,24 @@ from phylo.phylowizard import PhyloWizard
 from ome_globals import *
 from meta_progress import MetaProgress
 from publication_bias_wizards import FunnelWizard, FailsafeWizard
+
+
+# # catches an r exception, displays a message, returns None if there is an exception
+# def CatchRError(function):
+#     def _CatchRError(*args, **kw):
+#         # stuff before
+#         try:
+#             res = function(*args, **kw)
+#         except CrazyRError as e:
+#             if SOUND_EFFECTS:
+#                 silly.play()
+#             QMessageBox.critical(self.main_form, "Oops", str(e))
+#             res = None
+#          
+#         
+#         # stuff after
+#         return res
+#     return _CatchRError
 
 class Analyzer:
     def __init__(self, main_form):
@@ -36,35 +56,170 @@ class Analyzer:
     
     #### META ANALYSIS & META-REGRESSION ####
     def cum_ma(self):
-        self.meta_analysis(meta_f_str="cum.ma", mode=CUM_MODE)
+        model = self._get_model()
+        wizard = CumulativeMetaAnalysisWizard(model=model, parent=self.main_form)
+  
+        if wizard.exec_():
+            meta_f_str = wizard.get_modified_meta_f_str()
+            data_type, metric = wizard.get_data_type_and_metric()
+            data_location = wizard.get_data_location()
+            included_studies = wizard.get_included_studies_in_proper_order()
+            current_param_vals = wizard.get_plot_params()
+            chosen_method = wizard.get_current_method()
+            save_selections = wizard.save_selections() # a bool
+            summary = wizard.get_summary()
+
+            if save_selections:
+                # Save selections made for next analysis
+                model.update_data_type_selection(data_type)    # int
+                model.update_metric_selection(metric)          # int
+                model.update_method_selection(chosen_method)   #int??? str??
+                model.update_ma_param_vals(current_param_vals)
+                model.update_data_location_choices(data_type, data_location)     # save data locations choices for this data type in the model
+                model.update_previously_included_studies(set(included_studies))  # save which studies were included on last meta-regression
+                
+            try:
+                result = self.run_ma(included_studies,
+                            data_type, metric,
+                            data_location,
+                            current_param_vals,
+                            chosen_method,
+                            meta_f_str,
+                            covs_to_include=[])
+            except CrazyRError as e:
+                if SOUND_EFFECTS:
+                    silly.play()
+                QMessageBox.critical(self.main_form, "Oops", str(e))
+            self._display_results(result, summary)
         
     def loo_ma(self):
-        self.meta_analysis(meta_f_str="loo.ma", mode=LOO_MODE)
+        model = self._get_model()
+        wizard = LeaveOneOutMetaAnalysisWizard(model=model, parent=self.main_form)
+ 
+        if wizard.exec_():
+            meta_f_str = wizard.get_modified_meta_f_str()
+            data_type, metric = wizard.get_data_type_and_metric()
+            data_location = wizard.get_data_location()
+            included_studies = wizard.get_included_studies_in_proper_order()
+            current_param_vals = wizard.get_plot_params()
+            chosen_method = wizard.get_current_method()
+            save_selections = wizard.save_selections() # a bool
+            summary = wizard.get_summary()
+
+            if save_selections:
+                # Save selections made for next analysis
+                model.update_data_type_selection(data_type)    # int
+                model.update_metric_selection(metric)          # int
+                model.update_method_selection(chosen_method)   #int??? str??
+                model.update_ma_param_vals(current_param_vals)
+                model.update_data_location_choices(data_type, data_location)     # save data locations choices for this data type in the model
+                model.update_previously_included_studies(set(included_studies))  # save which studies were included on last meta-regression
+                
+            try:
+                result = self.run_ma(included_studies,
+                            data_type, metric,
+                            data_location,
+                            current_param_vals,
+                            chosen_method,
+                            meta_f_str,
+                            covs_to_include=[])
+            except CrazyRError as e:
+                if SOUND_EFFECTS:
+                    silly.play()
+                QMessageBox.critical(self.main_form, "Oops", str(e))
+            self._display_results(result, summary)
         
     def bootstrap_ma(self):
-        self.meta_analysis(meta_f_str="bootstrap", mode=BOOTSTRAP_MA)
+        model = self._get_model()
+        wizard = BootstrapMetaAnalysisWizard(model=model)
+
+        if wizard.exec_():
+            meta_f_str = wizard.get_modified_meta_f_str()
+            data_type, metric = wizard.get_data_type_and_metric()
+            data_location = wizard.get_data_location()
+            included_studies = wizard.get_included_studies_in_proper_order()
+            current_param_vals = wizard.get_plot_params()
+            chosen_method = wizard.get_current_method()
+            save_selections = wizard.save_selections() # a bool
+            summary = wizard.get_summary()
+            # bootstrap specific
+            bootstrap_params = wizard.get_bootstrap_params()
+            bootstrap_params.update({'bootstrap.type':BOOTSTRAP_MODES_TO_STRING[BOOTSTRAP_MA]})
+            current_param_vals.update(bootstrap_params)
+
+            if save_selections:
+                # Save selections made for next analysis
+                model.update_data_type_selection(data_type)    # int
+                model.update_metric_selection(metric)          # int
+                model.update_method_selection(chosen_method)   #int??? str??
+                model.update_ma_param_vals(current_param_vals)
+                model.update_data_location_choices(data_type, data_location)     # save data locations choices for this data type in the model
+                model.update_previously_included_studies(set(included_studies))  # save which studies were included on last meta-regression
+                model.update_bootstrap_params_selection(wizard.get_bootstrap_params()) # bootstrap specific
+
+            try:
+                result = self.run_ma(included_studies,
+                            data_type, metric,
+                            data_location,
+                            current_param_vals,
+                            chosen_method,
+                            meta_f_str,
+                            covs_to_include=[])
+            except CrazyRError as e:
+                if SOUND_EFFECTS:
+                    silly.play()
+                QMessageBox.critical(self.main_form, "Oops", str(e))
+            self._display_results(result, summary)
+        
         
     def subgroup_ma(self):
-        self.meta_analysis(meta_f_str="subgroup.ma", mode=SUBGROUP_MODE)
+        model = self._get_model()
+        
+        wizard = SubgroupMetaAnalysisWizard(model=model, parent=self.main_form)
+            
+        if wizard.exec_():
+            meta_f_str = wizard.get_modified_meta_f_str()
+            data_type, metric = wizard.get_data_type_and_metric()
+            data_location = wizard.get_data_location()
+            included_studies = wizard.get_included_studies_in_proper_order()
+            current_param_vals = wizard.get_plot_params()
+            chosen_method = wizard.get_current_method()
+            save_selections = wizard.save_selections() # a bool
+            summary = wizard.get_summary()
+            # subgroup specific
+            subgroup_variable = wizard.get_subgroup_variable()
+            current_param_vals.update({"cov_name":subgroup_variable.get_label()})
+
+            if save_selections:
+                # Save selections made for next analysis
+                model.update_data_type_selection(data_type)    # int
+                model.update_metric_selection(metric)          # int
+                model.update_method_selection(chosen_method)   #int??? str??
+                model.update_ma_param_vals(current_param_vals)
+                model.update_data_location_choices(data_type, data_location)     # save data locations choices for this data type in the model
+                model.update_previously_included_studies(set(included_studies))  # save which studies were included on last meta-regression
+                model.update_subgroup_var_selection(subgroup_variable)
+
+            covs_to_include = [subgroup_variable,]
+
+            try:
+                result = self.run_ma(included_studies,
+                            data_type, metric,
+                            data_location,
+                            current_param_vals,
+                            chosen_method,
+                            meta_f_str,
+                            covs_to_include=covs_to_include)
+            except CrazyRError as e:
+                if SOUND_EFFECTS:
+                    silly.play()
+                QMessageBox.critical(self.main_form, "Oops", str(e))
+            self._display_results(result, summary)
         
     def meta_analysis(self, meta_f_str=None, mode = MA_MODE):
         model = self._get_model()
-        
-        if mode == BOOTSTRAP_MA:
-            wizard = ma_wizard.MetaAnalysisWizard(model=model,
-                                      meta_f_str=meta_f_str,
-                                      mode=BOOTSTRAP_MA,
-                                      parent=self.main_form)
-        elif mode == SUBGROUP_MODE:
-            wizard = ma_wizard.MetaAnalysisWizard(model=model,
-                                                  meta_f_str=meta_f_str,
-                                                  mode=SUBGROUP_MODE,
-                                                  parent=self.main_form)
-        else:
-            wizard = ma_wizard.MetaAnalysisWizard(model=model,
-                                      meta_f_str=meta_f_str,
-                                      mode=mode,
-                                      parent=self.main_form)
+    
+        wizard = RegularMetaAnalysisWizard(model=model, parent=self.main_form)
             
         unmodified_meta_f_str = meta_f_str    
         if wizard.exec_():
@@ -75,13 +230,7 @@ class Analyzer:
             current_param_vals = wizard.get_plot_params()
             chosen_method = wizard.get_current_method()
             save_selections = wizard.save_selections() # a bool
-            if mode == SUBGROUP_MODE:
-                subgroup_variable = wizard.get_subgroup_variable()
-                current_param_vals.update({"cov_name":subgroup_variable.get_label()})
             summary = wizard.get_summary()
-            if mode == BOOTSTRAP_MA:
-                current_param_vals.update(wizard.get_bootstrap_params())
-                meta_f_str = unmodified_meta_f_str
 
             if save_selections:
                 # Save selections made for next analysis
@@ -91,34 +240,24 @@ class Analyzer:
                 model.update_ma_param_vals(current_param_vals)
                 model.update_data_location_choices(data_type, data_location)     # save data locations choices for this data type in the model
                 model.update_previously_included_studies(set(included_studies))  # save which studies were included on last meta-regression
-                if mode == SUBGROUP_MODE: model.update_subgroup_var_selection(subgroup_variable)
-                if mode == BOOTSTRAP_MA: model.update_bootstrap_params_selection(wizard.get_bootstrap_params())
-
-
-
-            if mode == SUBGROUP_MODE:
-                covs_to_include = [subgroup_variable,]
-            else:
-                covs_to_include = []
                 
             try:
-                self.run_ma(included_studies,
+                result = self.run_ma(included_studies,
                             data_type, metric,
                             data_location,
                             current_param_vals,
                             chosen_method,
                             meta_f_str,
-                            covs_to_include=covs_to_include,
-                            summary=summary)
+                            covs_to_include=[])
             except CrazyRError as e:
                 if SOUND_EFFECTS:
                     silly.play()
                 QMessageBox.critical(self.main_form, "Oops", str(e))
+            self._display_results(result, summary)
                 
-
     def run_ma(self, included_studies, data_type, metric, data_location,
                current_param_vals, chosen_method, meta_f_str,
-               covs_to_include=[], summary=""):
+               covs_to_include=[]):
         
         model = self._get_model()
         
@@ -197,15 +336,13 @@ class Analyzer:
         current_dict[chosen_method] = current_param_vals
         self.main_form.update_user_prefs("method_params", current_dict)
         
-        self._display_results(result, summary)
+        return result
+        
+
         
     def meta_regression(self):
         model = self._get_model()
         
-# DELETE
-#         wizard = ma_wizard.MetaAnalysisWizard(model=model,
-#                                               mode=mode,
-#                                               parent=self.main_form)
         wizard = meta_regression_wizard.MetaRegressionWizard(
                         model=model,
                         parent=self.main_form)
@@ -266,33 +403,7 @@ class Analyzer:
                 model.update_random_effects_method(random_effects_method)    
                 
             try:
-#                 if mode == META_REG_MODE:
-#                     self.grun_meta_regression(metric,
-#                                              data_type,
-#                                              included_studies,
-#                                              data_location,
-#                                              covariates=covariates,
-#                                              interactions = interactions,
-#                                              #covariate_reference_values = cov_2_ref_values,
-#                                              fixed_effects=fixed_effects,
-#                                              conf_level=conf_level,
-#                                              random_effects_method = random_effects_method,
-#                                              summary=summary)
-#                 else:
-#                     self.run_meta_regression(metric,
-#                                              data_type,
-#                                              included_studies,
-#                                              data_location,
-#                                              covs_to_include=covariates,
-#                                              covariate_reference_values = cov_2_ref_values,
-#                                              fixed_effects=fixed_effects,
-#                                              conf_level=conf_level,
-#                                              random_effects_method = random_effects_method,
-#                                              selected_cov=selected_cov, covs_to_values=covs_to_values,
-#                                              mode=mode,
-#                                              bootstrap_params=bootstrap_params, # for bootstrapping
-#                                              summary=summary)
-                self.run_meta_regression(metric,
+                result = self.run_meta_regression(metric,
                              data_type,
                              included_studies,
                              data_location,
@@ -304,11 +415,12 @@ class Analyzer:
                              selected_cov=selected_cov, covs_to_values=covs_to_values,
                              mode=mode,
                              bootstrap_params=bootstrap_params, # for bootstrapping
-                             summary=summary)
+                             )
             except CrazyRError as e:
                 if SOUND_EFFECTS:
                     silly.play()
                 QMessageBox.critical(self.main_form, "Oops", str(e))
+            self._display_results(result, summary)
   
     def run_meta_regression(self, metric, data_type, included_studies,
                             data_location, covs_to_include,
@@ -317,7 +429,7 @@ class Analyzer:
                             covariate_reference_values={},
                             selected_cov = None, covs_to_values = None,
                             mode=META_REG_MODE,
-                            bootstrap_params={}, summary=""):
+                            bootstrap_params={}):
         model = self._get_model()
         
         if mode in [BOOTSTRAP_META_REG, BOOTSTRAP_META_REG_COND_MEANS]:
@@ -377,7 +489,8 @@ class Analyzer:
             
         finally:
             bar.hide()
-        self._display_results(result, summary)
+            
+        return result
         
     def run_gmeta_regression(self,
                              metric, data_type, included_studies,
@@ -424,11 +537,7 @@ class Analyzer:
     
     def failsafe_analysis(self):
         model = self._get_model()
-        
-# DELETE
-#         wizard = ma_wizard.MetaAnalysisWizard(model=model,
-#                                               mode=FAILSAFE_MODE,
-#                                               parent=self.main_form)
+
         wizard = FailsafeWizard(model=model, parent=self.main_form)
     
         if wizard.exec_():
@@ -456,11 +565,6 @@ class Analyzer:
         
     def funnel_plot_analysis(self):
         model = self._get_model()
-
-# DELETE
-#         wizard = ma_wizard.MetaAnalysisWizard(model=model,
-#                                   mode=FUNNEL_MODE,
-#                                   parent=self.main_form)
         wizard = FunnelWizard(model=model, parent=self.main_form)
 
         if wizard.exec_():

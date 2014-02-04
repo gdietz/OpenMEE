@@ -216,7 +216,7 @@ class CondMeansPage(QWizardPage, ui_meta_reg_cond_means_page.Ui_WizardPage):
         for cov in sorted(cov_value_settings.keys()):
             cov_vals_strs.append("    %s: %s\n" % (cov.get_label(), str(cov_value_settings[cov])))
         cov_vals_str = "\n".join(cov_vals_strs)
-        summary = "Conditional Means:\n" + "  Selected Covariate: %s\n" % selected_cov.get_label() + "  Values for other covariates: %s" % cov_vals_str
+        summary = "Conditional Means:\n" + "  Selected Covariate: %s\n" % selected_cov.get_label() + "  Values for other covariates:\n%s" % cov_vals_str
         return summary
     
 
