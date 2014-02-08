@@ -19,5 +19,17 @@ class Interaction:
     
     def __contains__(self, var):
         return var in self.combination
-        
-    #def output # how to send this to R?
+    
+    def get_vars(self):
+        # sorted list of the interaction covariates (alphabetically)
+        return sorted(list(self.combination), key=lambda x: x.get_label())
+    
+    def r_colon_name(self):
+        # name of the interaction with colon separtion (for putting in to a model formula in R)
+        # e.g. A:B
+        return ":".join([cov.get_label() for cov in self.get_vars()])
+    def r_vector_of_covs(self):
+        # R code for string vector of covs
+        # e.g. c("A","B")
+        quoted_names = ["\"%s\"" % cov for cov in self.get_vars()]
+        return "c(%s)" % ", ".join(quoted_names)

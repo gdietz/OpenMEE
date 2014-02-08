@@ -289,7 +289,8 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
         
         self.actionTransform_Effect_Size.triggered.connect(self.transform_effect_size_bulk)
         
-        self.actionMeta_Regression.triggered.connect(self.analyst.meta_regression)
+        #self.actionMeta_Regression.triggered.connect(self.analyst.meta_regression)
+        self.actionMeta_Regression.triggered.connect(self.analyst.gmeta_regression)
         self.actionBootstrapped_Meta_Analysis.triggered.connect(self.analyst.bootstrap_ma)
 
         QObject.connect(self.actionPhyloAnalysis, SIGNAL("triggered()"), self.analyst.phylo_analysis)

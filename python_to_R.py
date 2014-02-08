@@ -14,6 +14,11 @@ import rpy2
 import rpy2.robjects
 from rpy2 import robjects as ro
 
+from rpy2.robjects.packages import importr
+base = importr('base')
+
+
+
 # def exR.execute_in_R(r_str):
 #     try:
 #         print("Executing in R: %s" % r_str)
@@ -515,6 +520,90 @@ def dataset_to_simple_continuous_robj(model, included_studies, data_location,
     exR.execute_in_R(r_str)
     print "ok."
     return r_str
+
+def sort_covariates_by_type(covs):
+    ''' Sorts covariates in to two categories: numerical and categorical, then
+    within those categories, sort the covariates alphabetically why not '''
+    
+    type_cov_num = [COUNT, CONTINUOUS] # Numerical covariate types
+    type_cov_cat = [CATEGORICAL,]      # Categorical covariate type
+    
+    cov_num = [cov for cov in covs if cov.get_type() in type_cov_num]
+    cov_cat = [cov for cov in covs if cov.get_type() in type_cov_cat]
+    
+    if len(cov_num) + len(cov_cat) != len(covs):
+        raise Exception("Something is wrong with the covariate types")
+    
+    label_of_cov = lambda x: x.get_label()
+    
+    # sort the covariates alphabetically in each section
+    cov_num.sort(key = label_of_cov)
+    cov_cat.sort(key = label_of_cov)
+    
+    return {'numeric':cov_num,
+            'categorical':cov_cat}
+
+def dataset_to_dataframe(model, included_studies, data_location, covariates,
+                         cov_ref_values, var_name="tmp_obj"):
+    # Creates an R dataframe with the portion of the dataset of interest as
+    # specified by included_studies and covariates. Categorical variables in the
+    # dataframe are converted to factors with referenece values set as specified
+    # in cov_ref_values
+    
+    yi_var = model.get_variable_assigned_to_column(data_location['effect_size'])
+    vi_var = model.get_variable_assigned_to_column(data_location['variance'])
+    
+    # Gathers values of the variable from amongst the included studies
+    var_values = lambda x: [study.get_var(x) for study in included_studies]
+    
+    # Gather data
+    yi = var_values(yi_var)
+    vi = var_values(vi_var)
+    slab = [study.get_label() for study in included_studies] # study labels
+    
+    # Covariates sorted into 'numeric' and 'categorical' categories
+    sorted_covariates = sort_covariates_by_type(covariates)
+    
+    # Convert covariates to R representation
+    def cov_to_FloatVector(cov):
+        return ro.FloatVector(var_values(cov))
+    def cov_to_Factor(cov):
+        ref_value = cov_ref_values[cov] if cov in cov_ref_values else None
+        values = var_values(cov)
+        levels = list(set(values))
+        levels.sort()
+        if ref_value:
+            # stick ref_value at the beginning
+            levels.remove(ref_value)
+            levels = [ref_value,]+levels
+            
+        rfactor = ro.FactorVector(values,levels=ro.StrVector(levels))
+        return rfactor
+    
+    
+    numeric_covs = dict([(cov.get_label(),cov_to_FloatVector(cov)) for cov in sorted_covariates['numeric']])
+    cat_covs = dict([(cov.get_label(),cov_to_Factor(cov)) for cov in sorted_covariates['categorical']])
+
+    # Inhibit transformation of vectors upon insertion into dataframe
+    for name, rvector in numeric_covs.iteritems():
+        numeric_covs[name] = base.I(rvector)
+    for name, rvector in cat_covs.iteritems():
+        cat_covs[name] = base.I(rvector)
+    
+    
+    cov_labels = numeric_covs.keys()+cat_covs.keys()
+    if ('yi' in cov_labels) or ('vi' in cov_labels):
+        raise Exception("Forbidden covariate label present")
+    
+    init_dict = {'slab': base.I(ro.StrVector(slab)),
+                 'yi'  : base.I(ro.FloatVector(yi)),
+                 'vi'  : base.I(ro.FloatVector(vi))}
+    init_dict.update(numeric_covs)
+    init_dict.update(cat_covs)
+    
+    dataf = ro.DataFrame(init_dict)
+    exR.execute_in_R("%s<-%s" % (var_name,dataf.r_repr())) # create dataframe in r workspace
+    return dataf
 
 def dataset_to_simple_fsn_data_robj(model, included_studies, data_location,
                                     var_name="tmp_obj"):
@@ -1275,6 +1364,71 @@ def run_meta_method(meta_function_name, function_name, params, \
     # a special field which is assumed to contain the plot variable names
     # in R (for graphics manipulation).
     return parse_out_results(result, function_name=function_name, meta_function_name=meta_function_name)
+
+def run_gmeta_regression(covariates=[],
+                         interactions=[],
+                         data_name="tmp_obj",
+                         fixed_effects = False,
+                         random_effects_method="DL",
+                         digits=3,
+                         conf_level=DEFAULT_CONFIDENCE_LEVEL,
+                         results_name="results_obj"):
+
+    # Set fixed-effects vs. random effects        
+    method_str = "FE" if fixed_effects else random_effects_method   
+    
+    #### Create mods list (model moderators) as specified in g.meta.regression
+    ####     on the R side like so:
+    # mods: list(numeric=c(...numeric moderators...),
+    #            categorical=c(...categorical moderators...),
+    #            interactions=list("A:B"=c("A","B"),"B:C"=c("B",C"),...)
+    #            )
+    # Build numeric moderators string
+    sorted_covariates = sort_covariates_by_type(covariates)
+    
+    def make_mod_vector(covlist):
+        r_str =  "c(%s)" % ", ".join(["\"%s\"" % cov.get_label() for cov in covlist])
+        return exR.execute_in_R(r_str)
+    def make_interactions_listVector(interactions):
+        # e.g. list("A:B"=c("A","B"),"B:C"=c("B",C"),...)
+        
+        string_fragments = []
+        for interaction in interactions:
+            interaction_str = '"%s"=%s' % (interaction.r_colon_name(), interaction.r_vector_of_covs())
+            string_fragments.append(interaction_str)
+        r_str = "list(%s)" % ", ".join(string_fragments)
+        interaction_listVector = exR.execute_in_R(r_str)
+        return interaction_listVector
+    
+    numeric_mods_str = make_mod_vector(sorted_covariates['numeric'])
+    cat_mods_str = make_mod_vector(sorted_covariates['categorical'])
+    interactions_listVector = make_interactions_listVector(interactions)
+
+    mods = ro.ListVector({'numeric':numeric_mods_str,
+                          'categorical':cat_mods_str,
+                          'interactions':interactions_listVector})
+    #### end of building mods listVector #####
+    
+    
+    r_str = "{results} <- g.meta.regression(data={data}, mods={mods}, method=\"{method}\", level={level}, digits={digits})".format(
+                results=results_name, data=data_name, mods=mods.r_repr(),
+                method=random_effects_method, level=conf_level, digits=digits)
+    
+    #print "\n\n(run_meta_regression): executing:\n %s\n" % r_str
+    ### TODO -- this is hacky
+    exR.execute_in_R(r_str)
+    result = exR.execute_in_R("%s" % results_name)
+
+    if "try-error" in str(result):
+        # uh-oh, there was an error (but the weird
+        # RRunTimeError alluded to above; this is a 
+        # legit error returned from an R routine)
+        return str([msg for msg in result][0])
+ 
+
+    parsed_results = parse_out_results(result)
+
+    return parsed_results
 
 def run_meta_regression(metric, fixed_effects=False, data_name="tmp_obj",
                         results_name="results_obj", 
