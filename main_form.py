@@ -909,7 +909,12 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
         # Dialog exited by hitting 'ok'
         proposed_name = str(rename_column_dlg.get_text())
 
+        # Verify name is ok
         if initial_name == proposed_name:
+            return False
+        current_var_names = [x.get_label() for x in self.model.get_variables()]
+        if proposed_name in current_var_names:
+            QMessageBox.warning(self,"Bad name", "That variable name is already present in the dataset, duplicates not allowed.")
             return False
 
         # We will proceed with the renaming
