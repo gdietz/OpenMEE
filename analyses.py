@@ -555,15 +555,28 @@ class Analyzer:
                 model.update_random_effects_method(random_effects_method)    
                 
             try:
-                result = self.run_gmeta_regression(
-                                   included_studies=included_studies,
-                                   data_location=data_location,
-                                   covariates=covariates,
-                                   cov_ref_values=cov_2_ref_values,
-                                   interactions=interactions,
-                                   fixed_effects=fixed_effects,
-                                   conf_level=conf_level,
-                                   random_effects_method=random_effects_method)
+                if mode == META_REG_MODE:
+                    result = self.run_gmeta_regression(
+                                       included_studies=included_studies,
+                                       data_location=data_location,
+                                       covariates=covariates,
+                                       cov_ref_values=cov_2_ref_values,
+                                       interactions=interactions,
+                                       fixed_effects=fixed_effects,
+                                       conf_level=conf_level,
+                                       random_effects_method=random_effects_method)
+                elif mode == META_REG_COND_MEANS:
+                    result = self.run_gmeta_regression_cond_means(
+                                       selected_cov=selected_cov,
+                                       covs_to_values=covs_to_values,
+                                       included_studies=included_studies,
+                                       data_location=data_location,
+                                       covariates=covariates,
+                                       cov_ref_values=cov_2_ref_values,
+                                       interactions=interactions,
+                                       fixed_effects=fixed_effects,
+                                       conf_level=conf_level,
+                                       random_effects_method=random_effects_method)
             except CrazyRError as e:
                 if SOUND_EFFECTS:
                     silly.play()
@@ -590,7 +603,6 @@ class Analyzer:
                                          covariates=covariates,
                                          cov_ref_values=cov_ref_values,
                                          var_name="tmp_obj")
-        
                 
         result = python_to_R.run_gmeta_regression(
                                   covariates=covariates,
@@ -603,8 +615,43 @@ class Analyzer:
         
         bar.hide()
         bar.deleteLater()
-            
-        return result     
+        return result
+    
+    def run_gmeta_regression_cond_means(self,
+                             included_studies,
+                             data_location, covariates, cov_ref_values,
+                             interactions,
+                             fixed_effects, conf_level, random_effects_method,
+                             selected_cov, covs_to_values,
+                             digits = 3):
+
+        model = self._get_model()
+        
+        bar = MetaProgress()
+        bar.show()
+        
+        # Make dataframe of data with associated covariates + interactions
+        python_to_R.dataset_to_dataframe(model=model,
+                                         included_studies=included_studies,
+                                         data_location=data_location,
+                                         covariates=covariates,
+                                         cov_ref_values=cov_ref_values,
+                                         var_name="tmp_obj")
+                
+        result = python_to_R.run_gmeta_regression_cond_means(
+                                  selected_cov=selected_cov,
+                                  covs_to_values=covs_to_values,
+                                  covariates=covariates,
+                                  interactions=interactions,
+                                  fixed_effects=fixed_effects,
+                                  random_effects_method=random_effects_method,
+                                  digits=digits,
+                                  conf_level=conf_level,
+                                  data_name="tmp_obj")
+        
+        bar.hide()
+        bar.deleteLater()
+        return result   
 
 
         

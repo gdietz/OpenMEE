@@ -1245,6 +1245,8 @@ def parse_out_results(result, function_name=None, meta_function_name=None):
             pass # these are the input parameters that were passed to the analysis function
         elif text_n =="res.info":
             pass
+        elif text_n =="res.cond.means":
+            pass
         elif "gui.ignore" in text_n: # 'gui.ignore' is a directive to the gui to ignore the data
             pass
         elif text_n == "weights":
@@ -1377,6 +1379,20 @@ def run_gmeta_regression(covariates=[],
     # Set fixed-effects vs. random effects        
     method_str = "FE" if fixed_effects else random_effects_method   
     
+    # Mods is a Listvector (see description in _make_mods_str)
+    mods = _make_mods_str(covariates, interactions)
+    
+    r_str = "{results} <- g.meta.regression(data={data}, mods={mods}, method=\"{method}\", level={level}, digits={digits})".format(
+                results=results_name, data=data_name, mods=mods.r_repr(),
+                method=random_effects_method, level=conf_level, digits=digits)
+    
+    exR.execute_in_R(r_str)
+    result = exR.execute_in_R("%s" % results_name)
+    
+    parsed_results = parse_out_results(result)
+    return parsed_results
+
+def _make_mods_str(covariates, interactions):
     #### Create mods list (model moderators) as specified in g.meta.regression
     ####     on the R side like so:
     # mods: list(numeric=c(...numeric moderators...),
@@ -1408,27 +1424,47 @@ def run_gmeta_regression(covariates=[],
                           'categorical':cat_mods_str,
                           'interactions':interactions_listVector})
     #### end of building mods listVector #####
+    return mods
+
+def run_gmeta_regression_cond_means(selected_cov, covs_to_values,
+                         covariates=[],
+                         interactions=[],
+                         data_name="tmp_obj",
+                         fixed_effects = False,
+                         random_effects_method="DL",
+                         digits=3,
+                         conf_level=DEFAULT_CONFIDENCE_LEVEL,
+                         results_name="results_obj"):
+
+    # Set fixed-effects vs. random effects        
+    method_str = "FE" if fixed_effects else random_effects_method   
     
+    # Mods is a Listvector (see description in _make_mods_str)
+    mods = _make_mods_str(covariates, interactions)
+    cond_data = _make_conditional_data_listVector(covs_to_values)
     
-    r_str = "{results} <- g.meta.regression(data={data}, mods={mods}, method=\"{method}\", level={level}, digits={digits})".format(
+    r_str = "{results} <- g.meta.regression.cond.means(data={data},   \
+    mods={mods}, method=\"{method}\", level={level}, digits={digits}, \
+    strat.cov=\"{strat_cov}\", cond.means.data={cond_means_data})".format(
                 results=results_name, data=data_name, mods=mods.r_repr(),
-                method=random_effects_method, level=conf_level, digits=digits)
+                method=random_effects_method, level=conf_level, digits=digits,
+                strat_cov=selected_cov.get_label(),
+                cond_means_data=cond_data.r_repr())
     
-    #print "\n\n(run_meta_regression): executing:\n %s\n" % r_str
-    ### TODO -- this is hacky
     exR.execute_in_R(r_str)
     result = exR.execute_in_R("%s" % results_name)
-
-    if "try-error" in str(result):
-        # uh-oh, there was an error (but the weird
-        # RRunTimeError alluded to above; this is a 
-        # legit error returned from an R routine)
-        return str([msg for msg in result][0])
- 
-
+    
     parsed_results = parse_out_results(result)
-
     return parsed_results
+
+def _make_conditional_data_listVector(covs_to_values):
+    cov_names_to_values = {}
+    for cov, value in covs_to_values.iteritems():
+        cov_names_to_values[cov.get_label()] = value
+    
+    cdata = ro.ListVector(cov_names_to_values)
+    return cdata
+    
 
 def run_meta_regression(metric, fixed_effects=False, data_name="tmp_obj",
                         results_name="results_obj", 
