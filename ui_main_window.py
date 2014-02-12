@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'main_window.ui'
 #
-# Created: Fri Jan 31 12:17:23 2014
+# Created: Wed Feb 12 17:21:56 2014
 #      by: PyQt4 UI code generator 4.10.3
 #
 # WARNING! All changes made in this file will be lost!
@@ -186,6 +186,8 @@ class Ui_MainWindow(object):
         self.actionModel_Building.setObjectName(_fromUtf8("actionModel_Building"))
         self.actionR_log = QtGui.QAction(MainWindow)
         self.actionR_log.setObjectName(_fromUtf8("actionR_log"))
+        self.actionContingency_Table = QtGui.QAction(MainWindow)
+        self.actionContingency_Table.setObjectName(_fromUtf8("actionContingency_Table"))
         self.menuFile.addAction(self.actionNew)
         self.menuFile.addAction(self.actionOpen)
         self.menuFile.addAction(self.actionSave)
@@ -227,6 +229,7 @@ class Ui_MainWindow(object):
         self.menuData_Exploration.addAction(self.actionScatterplot)
         self.menuData_Exploration.addAction(self.actionHistogram)
         self.menuData_Exploration.addAction(self.menuPublication_Bias_2.menuAction())
+        self.menuData_Exploration.addAction(self.actionContingency_Table)
         self.menuThrough_the_looking_glass.addAction(self.actionR_log)
         self.menuEffect_Size.addAction(self.actionCalculate_Effect_Size)
         self.menuEffect_Size.addAction(self.actionTransform_Effect_Size)
@@ -312,5 +315,6 @@ class Ui_MainWindow(object):
         self.actionPhyloAnalysis.setText(_translate("MainWindow", "PhyloAnalysis", None))
         self.actionModel_Building.setText(_translate("MainWindow", "Model Building", None))
         self.actionR_log.setText(_translate("MainWindow", "R output viewer", None))
+        self.actionContingency_Table.setText(_translate("MainWindow", "Contingency Table", None))
 
 import icons_rc

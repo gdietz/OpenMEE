@@ -27,6 +27,7 @@ from python_to_R import exR
 import csv_import_dlg
 import csv_export_dlg
 import preferences_dlg
+from contingency_table_dlg import ContingencyTableDlg
 
 from variable_group_graphic import VariableGroupGraphic
 from analyses import Analyzer
@@ -302,6 +303,7 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
         #### Data Exploration Menu ###
         self.actionHistogram.triggered.connect(self.analyst.histogram)
         self.actionScatterplot.triggered.connect(self.analyst.scatterplot)
+        self.actionContingency_Table.triggered.connect(self.contingency_table)
         
         # Help Menu
         self.action_about.triggered.connect(self.show_about_dlg)
@@ -311,6 +313,10 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
         
         # Toolbar
         self.actionResetAnalysisChoices.triggered.connect(self.reset_analysis_selection)
+        
+    def contingency_table(self):
+        dlg = ContingencyTableDlg(model=self.model, parent=self)
+        dlg.exec_()
     
     def show_about_dlg(self):
         dlg = about.About()
