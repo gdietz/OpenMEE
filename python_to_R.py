@@ -1237,8 +1237,9 @@ def parse_out_results(result, function_name=None, meta_function_name=None):
             text_d[text_n] = references_str
         elif text_n == "res":
             # Construct text file with output values
-            res_info = result['res.info']
-            results_data = extract_values_for_results_data(function_name, text, res_info)
+            if 'res.info' in result:
+                res_info = result['res.info']
+                results_data = extract_values_for_results_data(function_name, text, res_info)
         elif text_n == "input_data":
             pass # This is the data that was passed to the analysis function
         elif text_n == "input_params":
@@ -1372,7 +1373,7 @@ def run_gmeta_regression(covariates=[],
                          data_name="tmp_obj",
                          fixed_effects = False,
                          random_effects_method="DL",
-                         digits=3,
+                         digits=4,
                          conf_level=DEFAULT_CONFIDENCE_LEVEL,
                          results_name="results_obj"):
 
@@ -1403,8 +1404,9 @@ def _make_mods_str(covariates, interactions):
     sorted_covariates = sort_covariates_by_type(covariates)
     
     def make_mod_vector(covlist):
-        r_str =  "c(%s)" % ", ".join(["\"%s\"" % cov.get_label() for cov in covlist])
-        return exR.execute_in_R(r_str)
+        #r_str =  "c(%s)" % ", ".join(["\"%s\"" % cov.get_label() for cov in covlist])
+        return ro.StrVector(["%s" % cov.get_label() for cov in covlist])
+        #return exR.execute_in_R(r_str)
     def make_interactions_listVector(interactions):
         # e.g. list("A:B"=c("A","B"),"B:C"=c("B",C"),...)
         
@@ -1416,12 +1418,12 @@ def _make_mods_str(covariates, interactions):
         interaction_listVector = exR.execute_in_R(r_str)
         return interaction_listVector
     
-    numeric_mods_str = make_mod_vector(sorted_covariates['numeric'])
-    cat_mods_str = make_mod_vector(sorted_covariates['categorical'])
+    numeric_mods_vector = make_mod_vector(sorted_covariates['numeric'])
+    cat_mods_vector = make_mod_vector(sorted_covariates['categorical'])
     interactions_listVector = make_interactions_listVector(interactions)
 
-    mods = ro.ListVector({'numeric':numeric_mods_str,
-                          'categorical':cat_mods_str,
+    mods = ro.ListVector({'numeric':numeric_mods_vector,
+                          'categorical':cat_mods_vector,
                           'interactions':interactions_listVector})
     #### end of building mods listVector #####
     return mods
@@ -1432,7 +1434,7 @@ def run_gmeta_regression_cond_means(selected_cov, covs_to_values,
                          data_name="tmp_obj",
                          fixed_effects = False,
                          random_effects_method="DL",
-                         digits=3,
+                         digits=4,
                          conf_level=DEFAULT_CONFIDENCE_LEVEL,
                          results_name="results_obj"):
 
@@ -1464,6 +1466,84 @@ def _make_conditional_data_listVector(covs_to_values):
     
     cdata = ro.ListVector(cov_names_to_values)
     return cdata
+
+def run_gmeta_regression_bootstrapped(
+                         num_replicates,
+                         covariates=[],
+                         interactions=[],
+                         data_name="tmp_obj",
+                         fixed_effects = False,
+                         random_effects_method="DL",
+                         digits=4,
+                         histogram_title="",
+                         conf_level=DEFAULT_CONFIDENCE_LEVEL,
+                         results_name="results_obj"):
+    
+    # TODO: Set this to be some timestamped file path later?
+    # save bootstrap outout data on R side for 'save-as png + pdf functions'
+    bootstrap_plot_path = "./r_tmp/bootstrap.png"
+    
+    # Set fixed-effects vs. random effects        
+    method_str = "FE" if fixed_effects else random_effects_method   
+    
+    # Mods is a Listvector (see description in _make_mods_str)
+    mods = _make_mods_str(covariates, interactions)
+    
+    r_str = "{results} <- g.bootstrap.meta.regression(data={data}, mods={mods}, \
+method=\"{method}\", level={level}, digits={digits}, \
+n.replicates={num_replicates}, histogram.title=\"{histogram_title}\", \
+bootstrap.plot.path=\"{bootstrap_plot_path}\")".format(
+                results=results_name, data=data_name, mods=mods.r_repr(),
+                method=random_effects_method, level=conf_level, digits=digits,
+                num_replicates=num_replicates, histogram_title=histogram_title,
+                bootstrap_plot_path=bootstrap_plot_path)
+    
+    exR.execute_in_R(r_str)
+    result = exR.execute_in_R("%s" % results_name)
+    
+    parsed_results = parse_out_results(result)
+    return parsed_results
+
+def run_gmeta_regression_bootstrapped_cond_means(selected_cov, covs_to_values,
+                         num_replicates,
+                         covariates=[],
+                         interactions=[],
+                         data_name="tmp_obj",
+                         fixed_effects = False,
+                         random_effects_method="DL",
+                         digits=4,
+                         histogram_title="",
+                         conf_level=DEFAULT_CONFIDENCE_LEVEL,
+                         results_name="results_obj"):
+    
+    # TODO: Set this to be some timestamped file path later?
+    # save bootstrap outout data on R side for 'save-as png + pdf functions'
+    bootstrap_plot_path = "./r_tmp/bootstrap.png"
+    
+    # Set fixed-effects vs. random effects        
+    method_str = "FE" if fixed_effects else random_effects_method   
+    
+    # Mods is a Listvector (see description in _make_mods_str)
+    mods = _make_mods_str(covariates, interactions)
+    cond_data = _make_conditional_data_listVector(covs_to_values)
+    
+    r_str = "{results} <- g.bootstrap.meta.regression.cond.means(data={data}, mods={mods}, \
+method=\"{method}\", level={level}, digits={digits}, \
+n.replicates={num_replicates}, histogram.title=\"{histogram_title}\", \
+bootstrap.plot.path=\"{bootstrap_plot_path}\", strat.cov=\"{strat_cov}\", \
+cond.means.data={cond_means_data})".format(
+                results=results_name, data=data_name, mods=mods.r_repr(),
+                method=random_effects_method, level=conf_level, digits=digits,
+                num_replicates=num_replicates, histogram_title=histogram_title,
+                bootstrap_plot_path=bootstrap_plot_path,
+                strat_cov=selected_cov.get_label(),
+                cond_means_data=cond_data.r_repr())
+    
+    exR.execute_in_R(r_str)
+    result = exR.execute_in_R("%s" % results_name)
+    
+    parsed_results = parse_out_results(result)
+    return parsed_results
     
 
 def run_meta_regression(metric, fixed_effects=False, data_name="tmp_obj",

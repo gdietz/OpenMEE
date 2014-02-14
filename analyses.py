@@ -340,157 +340,157 @@ class Analyzer:
         
 
         
-    def meta_regression(self):
-        model = self._get_model()
-        
-        wizard = meta_regression_wizard.MetaRegressionWizard(
-                        model=model,
-                        parent=self.main_form)
-    
-        if wizard.exec_():
-            # Selections to store
-            data_type, metric = wizard.get_data_type_and_metric()
-            data_location     = wizard.get_data_location()
-            included_studies  = wizard.get_included_studies_in_proper_order()
-            covariates        = wizard.get_included_covariates()
-            interactions      = wizard.get_included_interactions()
-            fixed_effects     = wizard.using_fixed_effects()
-            conf_level        = wizard.get_conf_level()
-            random_effects_method = wizard.get_random_effects_method()
-            cov_2_ref_values  = wizard.get_covariate_reference_levels()
-            
-            # Unstored selections
-            phylogen        = wizard.get_phylogen()
-            analysis_type   = wizard.get_analysis_type()
-            output_type     = wizard.get_output_type()
-            summary         = wizard.get_summary()
-            save_selections = wizard.save_selections() # a bool
-            
-            if analysis_type == PARAMETRIC and output_type == NORMAL:
-                mode = META_REG_MODE
-            elif analysis_type == PARAMETRIC and output_type == CONDITIONAL_MEANS:
-                mode = META_REG_COND_MEANS
-            elif analysis_type == BOOTSTRAP and output_type == NORMAL:
-                mode = BOOTSTRAP_META_REG
-            elif analysis_type == BOOTSTRAP and output_type == CONDITIONAL_MEANS:
-                mode = BOOTSTRAP_META_REG_COND_MEANS
-            if mode in [META_REG_COND_MEANS, BOOTSTRAP_META_REG_COND_MEANS]:
-                selected_cov, covs_to_values = wizard.get_meta_reg_cond_means_info()
-            else:
-                selected_cov, covs_to_values = None, None
-            
-            if mode in [BOOTSTRAP_META_REG, BOOTSTRAP_META_REG_COND_MEANS]:
-                bootstrap_params = wizard.get_bootstrap_params()
-                bootstrap_params.update({'bootstrap.type':BOOTSTRAP_MODES_TO_STRING[mode]})
-            else:
-                bootstrap_params = {}
-            
-            
-            print("Covariates to reference values: %s" % str(cov_2_ref_values))
-            
-            if save_selections:
-                # Save analysis analysis info that we just gathered
-                model.update_data_type_selection(data_type) # int
-                model.update_metric_selection(metric) # int
-                model.update_fixed_vs_random_effects_selection(fixed_effects) #bool
-                model.update_conf_level_selection(conf_level) #double
-                model.update_cov_2_ref_values_selection(cov_2_ref_values) # dict
-                model.update_bootstrap_params_selection(bootstrap_params)
-                model.update_data_location_choices(data_type, data_location)  # save data locations choices for this data type in the model
-                model.update_previously_included_studies(set(included_studies)) # save which studies were included on last meta-regression
-                model.update_previously_included_covariates(set(covariates)) # save which covariates were included on last meta-regression
-                model.update_selected_cov_and_covs_to_values(selected_cov, covs_to_values)
-                model.update_random_effects_method(random_effects_method)    
-                
-            try:
-                result = self.run_meta_regression(metric,
-                             data_type,
-                             included_studies,
-                             data_location,
-                             covs_to_include=covariates,
-                             covariate_reference_values = cov_2_ref_values,
-                             fixed_effects=fixed_effects,
-                             conf_level=conf_level,
-                             random_effects_method = random_effects_method,
-                             selected_cov=selected_cov, covs_to_values=covs_to_values,
-                             mode=mode,
-                             bootstrap_params=bootstrap_params, # for bootstrapping
-                             )
-            except CrazyRError as e:
-                if SOUND_EFFECTS:
-                    silly.play()
-                QMessageBox.critical(self.main_form, "Oops", str(e))
-            self._display_results(result, summary)
+#     def meta_regression(self):
+#         model = self._get_model()
+#         
+#         wizard = meta_regression_wizard.MetaRegressionWizard(
+#                         model=model,
+#                         parent=self.main_form)
+#     
+#         if wizard.exec_():
+#             # Selections to store
+#             data_type, metric = wizard.get_data_type_and_metric()
+#             data_location     = wizard.get_data_location()
+#             included_studies  = wizard.get_included_studies_in_proper_order()
+#             covariates        = wizard.get_included_covariates()
+#             interactions      = wizard.get_included_interactions()
+#             fixed_effects     = wizard.using_fixed_effects()
+#             conf_level        = wizard.get_conf_level()
+#             random_effects_method = wizard.get_random_effects_method()
+#             cov_2_ref_values  = wizard.get_covariate_reference_levels()
+#             
+#             # Unstored selections
+#             phylogen        = wizard.get_phylogen()
+#             analysis_type   = wizard.get_analysis_type()
+#             output_type     = wizard.get_output_type()
+#             summary         = wizard.get_summary()
+#             save_selections = wizard.save_selections() # a bool
+#             
+#             if analysis_type == PARAMETRIC and output_type == NORMAL:
+#                 mode = META_REG_MODE
+#             elif analysis_type == PARAMETRIC and output_type == CONDITIONAL_MEANS:
+#                 mode = META_REG_COND_MEANS
+#             elif analysis_type == BOOTSTRAP and output_type == NORMAL:
+#                 mode = BOOTSTRAP_META_REG
+#             elif analysis_type == BOOTSTRAP and output_type == CONDITIONAL_MEANS:
+#                 mode = BOOTSTRAP_META_REG_COND_MEANS
+#             if mode in [META_REG_COND_MEANS, BOOTSTRAP_META_REG_COND_MEANS]:
+#                 selected_cov, covs_to_values = wizard.get_meta_reg_cond_means_info()
+#             else:
+#                 selected_cov, covs_to_values = None, None
+#             
+#             if mode in [BOOTSTRAP_META_REG, BOOTSTRAP_META_REG_COND_MEANS]:
+#                 bootstrap_params = wizard.get_bootstrap_params()
+#                 bootstrap_params.update({'bootstrap.type':BOOTSTRAP_MODES_TO_STRING[mode]})
+#             else:
+#                 bootstrap_params = {}
+#             
+#             
+#             print("Covariates to reference values: %s" % str(cov_2_ref_values))
+#             
+#             if save_selections:
+#                 # Save analysis analysis info that we just gathered
+#                 model.update_data_type_selection(data_type) # int
+#                 model.update_metric_selection(metric) # int
+#                 model.update_fixed_vs_random_effects_selection(fixed_effects) #bool
+#                 model.update_conf_level_selection(conf_level) #double
+#                 model.update_cov_2_ref_values_selection(cov_2_ref_values) # dict
+#                 model.update_bootstrap_params_selection(bootstrap_params)
+#                 model.update_data_location_choices(data_type, data_location)  # save data locations choices for this data type in the model
+#                 model.update_previously_included_studies(set(included_studies)) # save which studies were included on last meta-regression
+#                 model.update_previously_included_covariates(set(covariates)) # save which covariates were included on last meta-regression
+#                 model.update_selected_cov_and_covs_to_values(selected_cov, covs_to_values)
+#                 model.update_random_effects_method(random_effects_method)    
+#                 
+#             try:
+#                 result = self.run_meta_regression(metric,
+#                              data_type,
+#                              included_studies,
+#                              data_location,
+#                              covs_to_include=covariates,
+#                              covariate_reference_values = cov_2_ref_values,
+#                              fixed_effects=fixed_effects,
+#                              conf_level=conf_level,
+#                              random_effects_method = random_effects_method,
+#                              selected_cov=selected_cov, covs_to_values=covs_to_values,
+#                              mode=mode,
+#                              bootstrap_params=bootstrap_params, # for bootstrapping
+#                              )
+#             except CrazyRError as e:
+#                 if SOUND_EFFECTS:
+#                     silly.play()
+#                 QMessageBox.critical(self.main_form, "Oops", str(e))
+#             self._display_results(result, summary)
   
-    def run_meta_regression(self, metric, data_type, included_studies,
-                            data_location, covs_to_include,
-                            fixed_effects, conf_level,
-                            random_effects_method,
-                            covariate_reference_values={},
-                            selected_cov = None, covs_to_values = None,
-                            mode=META_REG_MODE,
-                            bootstrap_params={}):
-        model = self._get_model()
-        
-        if mode in [BOOTSTRAP_META_REG, BOOTSTRAP_META_REG_COND_MEANS]:
-            bar = MetaProgress("Running Bootstrapped Meta regression. It can take some time. Patience...")
-        else:
-            bar = MetaProgress()
-        bar.show()
-        
-        if OMA_CONVENTION[data_type] == "binary":
-            make_dataset_r_str = python_to_R.dataset_to_simple_binary_robj(model=model,
-                                                      included_studies=included_studies,
-                                                      data_location=data_location,
-                                                      covs_to_include=covs_to_include,
-                                                      covariate_reference_values=covariate_reference_values,
-                                                      include_raw_data=False)
-        elif OMA_CONVENTION[data_type] == "continuous":
-            make_r_object = partial(python_to_R.dataset_to_simple_continuous_robj, model=model,
-                                              included_studies=included_studies,
-                                              data_location=data_location,
-                                              data_type=data_type, 
-                                              covs_to_include=covs_to_include,
-                                              covariate_reference_values=covariate_reference_values)
-            if metric != GENERIC_EFFECT:
-                make_dataset_r_str = make_r_object()
-            else:
-                make_dataset_r_str = make_r_object(generic_effect=True)
-                
-        try:
-            if mode in [BOOTSTRAP_META_REG, BOOTSTRAP_META_REG_COND_MEANS]:
-                result = python_to_R.run_bootstrap_meta_regression(metric=metric,
-                                                                   fixed_effects=fixed_effects,
-                                                                   conf_level=conf_level,
-                                                                   selected_cov=selected_cov, covs_to_values = covs_to_values,
-                                                                   data_type=OMA_CONVENTION[data_type],
-                                                                   bootstrap_params = bootstrap_params)
-                if MAKE_TESTS:
-                    self._writeout_test_parameters("python_to_R.run_bootstrap_meta_regression", make_dataset_r_str, result,
-                                                    metric=metric,
-                                                    fixed_effects=fixed_effects,
-                                                    conf_level=conf_level,
-                                                    selected_cov=self._selected_cov_to_select_col(selected_cov), covs_to_values = self._covs_to_values_to_cols_to_values(covs_to_values),
-                                                    data_type=OMA_CONVENTION[data_type],
-                                                    bootstrap_params = bootstrap_params)
-
-            else:
-                result = python_to_R.run_meta_regression(metric=metric,
-                                                         fixed_effects=fixed_effects,
-                                                         conf_level=conf_level,
-                                                         random_effects_method = random_effects_method,
-                                                         selected_cov=selected_cov, covs_to_values = covs_to_values)
-                if MAKE_TESTS:
-                    self._writeout_test_parameters("python_to_R.run_meta_regression", make_dataset_r_str, result,
-                                                    metric=metric,
-                                                    fixed_effects=fixed_effects,
-                                                    conf_level=conf_level,
-                                                    selected_cov=self._selected_cov_to_select_col(selected_cov), covs_to_values = self._covs_to_values_to_cols_to_values(covs_to_values),)
-            
-        finally:
-            bar.hide()
-            
-        return result
+#     def run_meta_regression(self, metric, data_type, included_studies,
+#                             data_location, covs_to_include,
+#                             fixed_effects, conf_level,
+#                             random_effects_method,
+#                             covariate_reference_values={},
+#                             selected_cov = None, covs_to_values = None,
+#                             mode=META_REG_MODE,
+#                             bootstrap_params={}):
+#         model = self._get_model()
+#         
+#         if mode in [BOOTSTRAP_META_REG, BOOTSTRAP_META_REG_COND_MEANS]:
+#             bar = MetaProgress("Running Bootstrapped Meta regression. It can take some time. Patience...")
+#         else:
+#             bar = MetaProgress()
+#         bar.show()
+#         
+#         if OMA_CONVENTION[data_type] == "binary":
+#             make_dataset_r_str = python_to_R.dataset_to_simple_binary_robj(model=model,
+#                                                       included_studies=included_studies,
+#                                                       data_location=data_location,
+#                                                       covs_to_include=covs_to_include,
+#                                                       covariate_reference_values=covariate_reference_values,
+#                                                       include_raw_data=False)
+#         elif OMA_CONVENTION[data_type] == "continuous":
+#             make_r_object = partial(python_to_R.dataset_to_simple_continuous_robj, model=model,
+#                                               included_studies=included_studies,
+#                                               data_location=data_location,
+#                                               data_type=data_type, 
+#                                               covs_to_include=covs_to_include,
+#                                               covariate_reference_values=covariate_reference_values)
+#             if metric != GENERIC_EFFECT:
+#                 make_dataset_r_str = make_r_object()
+#             else:
+#                 make_dataset_r_str = make_r_object(generic_effect=True)
+#                 
+#         try:
+#             if mode in [BOOTSTRAP_META_REG, BOOTSTRAP_META_REG_COND_MEANS]:
+#                 result = python_to_R.run_bootstrap_meta_regression(metric=metric,
+#                                                                    fixed_effects=fixed_effects,
+#                                                                    conf_level=conf_level,
+#                                                                    selected_cov=selected_cov, covs_to_values = covs_to_values,
+#                                                                    data_type=OMA_CONVENTION[data_type],
+#                                                                    bootstrap_params = bootstrap_params)
+#                 if MAKE_TESTS:
+#                     self._writeout_test_parameters("python_to_R.run_bootstrap_meta_regression", make_dataset_r_str, result,
+#                                                     metric=metric,
+#                                                     fixed_effects=fixed_effects,
+#                                                     conf_level=conf_level,
+#                                                     selected_cov=self._selected_cov_to_select_col(selected_cov), covs_to_values = self._covs_to_values_to_cols_to_values(covs_to_values),
+#                                                     data_type=OMA_CONVENTION[data_type],
+#                                                     bootstrap_params = bootstrap_params)
+# 
+#             else:
+#                 result = python_to_R.run_meta_regression(metric=metric,
+#                                                          fixed_effects=fixed_effects,
+#                                                          conf_level=conf_level,
+#                                                          random_effects_method = random_effects_method,
+#                                                          selected_cov=selected_cov, covs_to_values = covs_to_values)
+#                 if MAKE_TESTS:
+#                     self._writeout_test_parameters("python_to_R.run_meta_regression", make_dataset_r_str, result,
+#                                                     metric=metric,
+#                                                     fixed_effects=fixed_effects,
+#                                                     conf_level=conf_level,
+#                                                     selected_cov=self._selected_cov_to_select_col(selected_cov), covs_to_values = self._covs_to_values_to_cols_to_values(covs_to_values),)
+#             
+#         finally:
+#             bar.hide()
+#             
+#         return result
     
     def gmeta_regression(self):
         model = self._get_model()
@@ -577,6 +577,33 @@ class Analyzer:
                                        fixed_effects=fixed_effects,
                                        conf_level=conf_level,
                                        random_effects_method=random_effects_method)
+                elif mode == BOOTSTRAP_META_REG:
+                    result = self.run_gmeta_regression_bootstrapped(
+                                       num_replicates=bootstrap_params['num.bootstrap.replicates'],
+                                       histogram_title=bootstrap_params['histogram.title'],
+                                       included_studies=included_studies,
+                                       data_location=data_location,
+                                       covariates=covariates,
+                                       cov_ref_values=cov_2_ref_values,
+                                       interactions=interactions,
+                                       fixed_effects=fixed_effects,
+                                       conf_level=conf_level,
+                                       random_effects_method=random_effects_method)
+                elif mode == BOOTSTRAP_META_REG_COND_MEANS:
+                    result = self.run_gmeta_regression_bootstrapped_cond_means(
+                                       num_replicates=bootstrap_params['num.bootstrap.replicates'], # bootstrap
+                                       histogram_title=bootstrap_params['histogram.title'],         # bootstrap
+                                       selected_cov=selected_cov,     # cond means
+                                       covs_to_values=covs_to_values, # cond means
+                                       included_studies=included_studies,
+                                       data_location=data_location,
+                                       covariates=covariates,
+                                       cov_ref_values=cov_2_ref_values,
+                                       interactions=interactions,
+                                       fixed_effects=fixed_effects,
+                                       conf_level=conf_level,
+                                       random_effects_method=random_effects_method)
+                    
             except CrazyRError as e:
                 if SOUND_EFFECTS:
                     silly.play()
@@ -623,7 +650,7 @@ class Analyzer:
                              interactions,
                              fixed_effects, conf_level, random_effects_method,
                              selected_cov, covs_to_values,
-                             digits = 3):
+                             digits = 4):
 
         model = self._get_model()
         
@@ -651,7 +678,82 @@ class Analyzer:
         
         bar.hide()
         bar.deleteLater()
-        return result   
+        return result
+    
+    def run_gmeta_regression_bootstrapped(self,
+                             num_replicates, histogram_title, # for bootstrap
+                             included_studies,
+                             data_location, covariates, cov_ref_values,
+                             interactions,
+                             fixed_effects, conf_level, random_effects_method,
+                             digits = 4):
+
+        model = self._get_model()
+        
+        bar = MetaProgress()
+        bar.show()
+        
+        # Make dataframe of data with associated covariates + interactions
+        python_to_R.dataset_to_dataframe(model=model,
+                                         included_studies=included_studies,
+                                         data_location=data_location,
+                                         covariates=covariates,
+                                         cov_ref_values=cov_ref_values,
+                                         var_name="tmp_obj")
+        
+        result = python_to_R.run_gmeta_regression_bootstrapped(
+                                  num_replicates=num_replicates,
+                                  histogram_title=histogram_title,
+                                  covariates=covariates,
+                                  interactions=interactions,
+                                  fixed_effects=fixed_effects,
+                                  random_effects_method=random_effects_method,
+                                  digits=digits,
+                                  conf_level=conf_level,
+                                  data_name="tmp_obj")
+        
+        bar.hide()
+        bar.deleteLater()
+        return result
+
+    def run_gmeta_regression_bootstrapped_cond_means(self,
+                             num_replicates, histogram_title, # for bootstrap
+                             included_studies,
+                             data_location, covariates, cov_ref_values,
+                             interactions,
+                             fixed_effects, conf_level, random_effects_method,
+                             selected_cov, covs_to_values,
+                             digits = 4):
+
+        model = self._get_model()
+        
+        bar = MetaProgress()
+        bar.show()
+        
+        # Make dataframe of data with associated covariates + interactions
+        python_to_R.dataset_to_dataframe(model=model,
+                                         included_studies=included_studies,
+                                         data_location=data_location,
+                                         covariates=covariates,
+                                         cov_ref_values=cov_ref_values,
+                                         var_name="tmp_obj")
+                
+        result = python_to_R.run_gmeta_regression_bootstrapped_cond_means(
+                                  num_replicates=num_replicates,
+                                  histogram_title=histogram_title, # for bootstrap
+                                  selected_cov=selected_cov,
+                                  covs_to_values=covs_to_values,
+                                  covariates=covariates,
+                                  interactions=interactions,
+                                  fixed_effects=fixed_effects,
+                                  random_effects_method=random_effects_method,
+                                  digits=digits,
+                                  conf_level=conf_level,
+                                  data_name="tmp_obj")
+        
+        bar.hide()
+        bar.deleteLater()
+        return result
 
 
         
