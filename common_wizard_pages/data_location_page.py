@@ -112,9 +112,11 @@ class DataLocationPage(QWizardPage):
                                             'variance'   : self.variance_combo_box})
             
             self._populate_combo_boxes([self.effect_size_combo_box,],
-                                       self.effect_columns)
+                                       self.effect_columns,
+                                       preselect_only_one=True)
             self._populate_combo_boxes([self.variance_combo_box,],
-                                       self.variance_columns)
+                                       self.variance_columns,
+                                       preselect_only_one=True)
             
             # connect boxes to update of selections
             for box in [self.effect_size_combo_box, self.variance_combo_box]:
@@ -282,9 +284,11 @@ class DataLocationPage(QWizardPage):
                   
 
             
-    def _populate_combo_boxes(self, combo_boxes, columns):
+    def _populate_combo_boxes(self, combo_boxes, columns, preselect_only_one=False):
         ''' Populates combo boxes that are 'continuous' with list of continuous
         -type columns'''
+        
+        combo_boxes_in_need_of_default_choice = []
         
         for box in combo_boxes:
             box.blockSignals(True)
@@ -294,10 +298,16 @@ class DataLocationPage(QWizardPage):
             for col in sorted(columns, key=key_fn):
                 var = self.model.get_variable_assigned_to_column(col)
                 box.addItem(var.get_label(), col) # store the chosen col
-            box.setCurrentIndex(0)
+            # if there is only one choice for in columns, select it
+            if preselect_only_one and len(columns)==1:
+                box.setCurrentIndex(1) # select first and only column
+            else:
+                box.setCurrentIndex(0)
+                combo_boxes_in_need_of_default_choice.append(box)
             box.blockSignals(False)
             
-        self._set_default_choices_for_combo_boxes(combo_boxes, columns)
+        self._set_default_choices_for_combo_boxes(combo_boxes_in_need_of_default_choice,
+                                                  columns)
             
     def _set_default_choices_for_combo_boxes(self, combo_boxes, columns):
         ''' Sets the default choice for the combo boxes from the last time the
