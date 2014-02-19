@@ -133,12 +133,16 @@ class SelectCovariatesPage(QWizardPage, ui_select_covariates_page.Ui_WizardPage)
         self.selected_covs_listWidget.itemDoubleClicked.connect(self.remove_one_cov)
         
         #### interaction buttons
-        # add interaction button
+        # Connect buttons to handlers
+        self.add_interaction_pushButton.clicked.connect(self.add_interaction_clicked)
+        self.remove_interaction_pushButton.clicked.connect(self.remove_interaction_clicked)
+        
+        # add interaction button enable signals
         self.covariateAdded.connect(self.chg_add_interaction_btn_enabled_status)
         self.covariateRemoved.connect(self.chg_add_interaction_btn_enabled_status)
         self.interactionAdded.connect(self.chg_add_interaction_btn_enabled_status)
         self.interactionRemoved.connect(self.chg_add_interaction_btn_enabled_status)
-        # remove interaction button
+        # remove interaction button enable signals
         self.interactionAdded.connect(self.chg_remove_interaction_btn_enabled_status)
         self.interactionRemoved.connect(self.chg_remove_interaction_btn_enabled_status)
     

@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>218</width>
-    <height>218</height>
+    <width>176</width>
+    <height>190</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -15,92 +15,38 @@
   </property>
   <layout class="QVBoxLayout" name="verticalLayout">
    <item>
-    <layout class="QGridLayout" name="gridLayout">
-     <item row="0" column="0">
-      <layout class="QVBoxLayout" name="verticalLayout_2">
+    <layout class="QVBoxLayout" name="verticalLayout_2">
+     <item>
+      <widget class="QListWidget" name="listWidget">
+       <property name="selectionMode">
+        <enum>QAbstractItemView::ExtendedSelection</enum>
+       </property>
        <item>
-        <widget class="QListWidget" name="listWidget">
-         <property name="selectionMode">
-          <enum>QAbstractItemView::ExtendedSelection</enum>
-         </property>
-         <item>
-          <property name="text">
-           <string>covariate1</string>
-          </property>
-         </item>
-         <item>
-          <property name="text">
-           <string>covariate2</string>
-          </property>
-         </item>
-         <item>
-          <property name="text">
-           <string>covariate3</string>
-          </property>
-         </item>
-        </widget>
+        <property name="text">
+         <string>covariate1</string>
+        </property>
        </item>
        <item>
-        <widget class="QLabel" name="label">
-         <property name="text">
-          <string>Covariates</string>
-         </property>
-         <property name="alignment">
-          <set>Qt::AlignCenter</set>
-         </property>
-        </widget>
+        <property name="text">
+         <string>covariate2</string>
+        </property>
        </item>
-      </layout>
+       <item>
+        <property name="text">
+         <string>covariate3</string>
+        </property>
+       </item>
+      </widget>
      </item>
-     <item row="0" column="2">
-      <widget class="QLabel" name="interaction_label">
+     <item>
+      <widget class="QLabel" name="label">
        <property name="text">
-        <string>Interaction:</string>
+        <string>Covariates</string>
        </property>
        <property name="alignment">
-        <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
+        <set>Qt::AlignCenter</set>
        </property>
       </widget>
-     </item>
-     <item row="0" column="1">
-      <spacer name="horizontalSpacer_2">
-       <property name="orientation">
-        <enum>Qt::Horizontal</enum>
-       </property>
-       <property name="sizeType">
-        <enum>QSizePolicy::Fixed</enum>
-       </property>
-       <property name="sizeHint" stdset="0">
-        <size>
-         <width>5</width>
-         <height>20</height>
-        </size>
-       </property>
-      </spacer>
-     </item>
-    </layout>
-   </item>
-   <item>
-    <layout class="QHBoxLayout" name="horizontalLayout">
-     <item>
-      <widget class="QPushButton" name="make_pushButton">
-       <property name="text">
-        <string>generate interaction</string>
-       </property>
-      </widget>
-     </item>
-     <item>
-      <spacer name="horizontalSpacer">
-       <property name="orientation">
-        <enum>Qt::Horizontal</enum>
-       </property>
-       <property name="sizeHint" stdset="0">
-        <size>
-         <width>40</width>
-         <height>20</height>
-        </size>
-       </property>
-      </spacer>
      </item>
     </layout>
    </item>
