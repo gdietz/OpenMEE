@@ -1404,9 +1404,10 @@ def _make_mods_str(covariates, interactions):
     sorted_covariates = sort_covariates_by_type(covariates)
     
     def make_mod_vector(covlist):
-        #r_str =  "c(%s)" % ", ".join(["\"%s\"" % cov.get_label() for cov in covlist])
-        return ro.StrVector(["%s" % cov.get_label() for cov in covlist])
-        #return exR.execute_in_R(r_str)
+        # Per issue #76, R converts the following characters: {' ','-'} to '.',
+        # i.e. a period so we must do the same
+    
+        return ro.StrVector(["%s" % cov.get_label_R_compatible() for cov in covlist])
     def make_interactions_listVector(interactions):
         # e.g. list("A:B"=c("A","B"),"B:C"=c("B",C"),...)
         

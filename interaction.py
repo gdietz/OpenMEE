@@ -27,7 +27,7 @@ class Interaction:
     def r_colon_name(self):
         # name of the interaction with colon separtion (for putting in to a model formula in R)
         # e.g. A:B
-        return ":".join([cov.get_label() for cov in self.get_vars()])
+        return ":".join([cov.get_label_R_compatible() for cov in self.get_vars()])
     def r_vector_of_covs(self):
         # R code for string vector of covs
         # e.g. c("A","B")
