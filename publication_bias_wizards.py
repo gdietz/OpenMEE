@@ -139,7 +139,8 @@ class FunnelWizard(AbstractPublicationBiasWizard):
         self.choose_effect_size_page = ChooseEffectSizePage(
                                     add_generic_effect=True,
                                     data_type=self.last_analysis['data_type'],
-                                    metric=self.last_analysis['metric'])
+                                    metric=self.last_analysis['metric'],
+                                    var_groups = model.get_variable_groups())
         self.setPage(Page_ChooseEffectSize, self.choose_effect_size_page)
 
         # Methods and parameters apge

@@ -1646,6 +1646,9 @@ class EETableModel(QAbstractTableModel):
         if var_groups == []:
             return None
         return var_groups[0]
+    
+    def get_variable_groups(self):
+        return self.variable_groups
         
         
 class VariableGroup:

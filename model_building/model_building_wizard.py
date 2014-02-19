@@ -66,7 +66,8 @@ class ModelBuildingWizard(QtGui.QWizard):
         self.choose_effect_size_page = ChooseEffectSizePage(
             add_generic_effect=True,
             data_type=last_analysis['data_type'],
-            metric=last_analysis['metric'])
+            metric=last_analysis['metric']
+            var_groups = model.get_variable_groups())
         self.data_location_page = EffectSizeAndVarLocationPage(model=model)
         self.refine_studies_page = RefineStudiesPage(model=model)
         self.summary_page = SummaryPage()

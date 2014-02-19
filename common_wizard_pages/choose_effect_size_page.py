@@ -16,16 +16,23 @@ import ui_choose_effect_size_page
 
 
 class ChooseEffectSizePage(QWizardPage, ui_choose_effect_size_page.Ui_choose_effect_size_page):
-    def __init__(self, parent=None, add_generic_effect=False, data_type=None, metric=None):
+    def __init__(self, parent=None, add_generic_effect=False, data_type=None, metric=None, var_groups=[]):
         # data_type and metric are default values to (will be selected)
         
         super(ChooseEffectSizePage, self).__init__(parent)
         self.setupUi(self)
         
         self.add_generic_effect = add_generic_effect
-        self.selected_data_type = data_type
-        self.selected_metric = metric
         
+        # If there is only one variable group, and data_type and metric are
+        # None, inherit the group's data type and metric
+        if data_type is None and metric is None and len(var_groups)==1:
+            print("Data type and metric defaults are None, inheriting from var_group")
+            metric = var_groups[0].get_metric()
+            data_type = var_groups[0].get_data_type()
+            
+        self.selected_data_type = data_type
+        self.selected_metric = metric    
         
     def initializePage(self):
         # this has to be in initializePage() rather than __init__() because it
