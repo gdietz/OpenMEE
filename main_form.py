@@ -922,6 +922,14 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
         if proposed_name in current_var_names:
             QMessageBox.warning(self,"Bad name", "That variable name is already present in the dataset, duplicates not allowed.")
             return False
+        # Warn about character issue #76 with variable names in R
+        special_chars = [" ","-"]
+        special_char_in_proposed_name = False
+        for char in special_chars:
+            if char in proposed_name:
+                special_char_in_proposed_name = True
+        if special_char_in_proposed_name:
+            QMessageBox.warning(self,"Character Issue","Due to general R-craziness, the characters %s will be changed to '.' on the R side (and in ouput) -- just letting you know." % ", ".join(special_chars))
 
         # We will proceed with the renaming
         if is_label_column:

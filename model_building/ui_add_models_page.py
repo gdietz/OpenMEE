@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'add_models_page.ui'
 #
-# Created: Sun Jan 12 11:36:06 2014
+# Created: Fri Feb 21 15:31:36 2014
 #      by: PyQt4 UI code generator 4.10.3
 #
 # WARNING! All changes made in this file will be lost!
@@ -26,7 +26,7 @@ except AttributeError:
 class Ui_WizardPage(object):
     def setupUi(self, WizardPage):
         WizardPage.setObjectName(_fromUtf8("WizardPage"))
-        WizardPage.resize(355, 209)
+        WizardPage.resize(481, 249)
         self.horizontalLayout_2 = QtGui.QHBoxLayout(WizardPage)
         self.horizontalLayout_2.setObjectName(_fromUtf8("horizontalLayout_2"))
         self.verticalLayout_5 = QtGui.QVBoxLayout()

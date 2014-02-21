@@ -23,7 +23,8 @@ class MetaRegressionWizard(QtGui.QWizard):
         self.model = model
         last_analysis=model.get_last_analysis_selections()
         
-        self.setWindowTitle("Meta Regression")
+        self.analysis_label = "Meta-Regression"
+        self.setWindowTitle(self.analysis_label)
     
         self.setup_pages(model=model, last_analysis=last_analysis)
         
@@ -197,4 +198,4 @@ class MetaRegressionWizard(QtGui.QWizard):
         ''' Make a summary string to show the user at the end of the wizard summarizing most of the user selections '''
         return wizard_summary(wizard=self, next_id_helper=self.nextId_helper,
                               summary_page_id=Page_Summary,
-                              analysis_label="Meta-Regression")
+                              analysis_label=self.analysis_label)
