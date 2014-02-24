@@ -948,7 +948,7 @@ class Analyzer:
             conf_level        = wizard.get_conf_level()
             random_effects_method = wizard.get_random_effects_method()
             cov_2_ref_values  = wizard.get_covariate_reference_levels()
-            models = wizard.get_models_info()
+            models = wizard.get_models_info() # consists of a list of dictionaries
             
             # Unstored selections
             phylogen        = wizard.get_phylogen()

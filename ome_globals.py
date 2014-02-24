@@ -563,3 +563,9 @@ def wizard_summary(wizard, next_id_helper, summary_page_id, analysis_label):
     return summary_text
 
 ###############################################################################
+
+def indent(target_str, spaces=2):
+    # Indents a string the given # of spaces
+    lines = target_str.splitlines()
+    lines_with_indent = [" "*spaces + line for line in lines]
+    return "\n".join(lines_with_indent)

@@ -4,7 +4,12 @@ from PyQt4.Qt import *
 from specify_model_dlg import SpecifyModelDlg
 import ui_add_models_page
 
-MAX_MODELS = 2
+from ome_globals import *
+
+# We are limited to 2 models for now (just Full and Reduced) but the code has
+# been written to allow support for more in the future without too much fuss
+
+MAX_MODELS = 2 
 
 class AddModelsPage(QWizardPage, ui_add_models_page.Ui_WizardPage):
     
@@ -136,6 +141,19 @@ class AddModelsPage(QWizardPage, ui_add_models_page.Ui_WizardPage):
         return infos # where info is a dictionary as specified above
 
     def __str__(self):
-        full_model_str = ""
-        reduced_model_str = ""
-        return ""
+        summary = "Models:\n-----------------\n"
+        model_summaries = []
+        
+        for i, info in enumerate(self.get_models_info()):
+            name_part = "Name: %s" % info['name']
+            if i == 0:
+                name_part += "(Full Model)"
+            covariate_labels = self._covariates_labels(info['covariates'])
+            interaction_labels = self._interactions_labels(info['interactions'])
+            covariates_part = "Covariates:\n%s" % indent("\n".join(interaction_labels))
+            interactions_part = "Interactions\n%s" % indent("\n".join(covariate_labels))
+            model_summary = "\n".join([name_part, covariates_part, interactions_part])
+            model_summaries.append(model_summary)
+            
+        summary += "\n\n".join(model_summaries)
+        return summary
