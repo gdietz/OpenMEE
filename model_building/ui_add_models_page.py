@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'add_models_page.ui'
 #
-# Created: Fri Feb 21 15:31:36 2014
+# Created: Mon Feb 24 09:49:44 2014
 #      by: PyQt4 UI code generator 4.10.3
 #
 # WARNING! All changes made in this file will be lost!
@@ -57,9 +57,9 @@ class Ui_WizardPage(object):
         self.add_model_PushButton = QtGui.QPushButton(self.frame_2)
         self.add_model_PushButton.setObjectName(_fromUtf8("add_model_PushButton"))
         self.horizontalLayout.addWidget(self.add_model_PushButton)
-        self.remove_last_model = QtGui.QPushButton(self.frame_2)
-        self.remove_last_model.setObjectName(_fromUtf8("remove_last_model"))
-        self.horizontalLayout.addWidget(self.remove_last_model)
+        self.remove_last_model_Pushbutton = QtGui.QPushButton(self.frame_2)
+        self.remove_last_model_Pushbutton.setObjectName(_fromUtf8("remove_last_model_Pushbutton"))
+        self.horizontalLayout.addWidget(self.remove_last_model_Pushbutton)
         spacerItem1 = QtGui.QSpacerItem(40, 20, QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Minimum)
         self.horizontalLayout.addItem(spacerItem1)
         self.verticalLayout_2.addLayout(self.horizontalLayout)
@@ -93,6 +93,10 @@ class Ui_WizardPage(object):
         self.label_5.setFont(font)
         self.label_5.setObjectName(_fromUtf8("label_5"))
         self.verticalLayout_3.addWidget(self.label_5)
+        self.cov_horizontalLayout = QtGui.QHBoxLayout()
+        self.cov_horizontalLayout.setObjectName(_fromUtf8("cov_horizontalLayout"))
+        spacerItem3 = QtGui.QSpacerItem(5, 10, QtGui.QSizePolicy.Fixed, QtGui.QSizePolicy.Minimum)
+        self.cov_horizontalLayout.addItem(spacerItem3)
         self.covariates_list_Label = QtGui.QLabel(self.groupBox)
         sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Preferred, QtGui.QSizePolicy.Expanding)
         sizePolicy.setHorizontalStretch(0)
@@ -100,7 +104,8 @@ class Ui_WizardPage(object):
         sizePolicy.setHeightForWidth(self.covariates_list_Label.sizePolicy().hasHeightForWidth())
         self.covariates_list_Label.setSizePolicy(sizePolicy)
         self.covariates_list_Label.setObjectName(_fromUtf8("covariates_list_Label"))
-        self.verticalLayout_3.addWidget(self.covariates_list_Label)
+        self.cov_horizontalLayout.addWidget(self.covariates_list_Label)
+        self.verticalLayout_3.addLayout(self.cov_horizontalLayout)
         self.label_3 = QtGui.QLabel(self.groupBox)
         font = QtGui.QFont()
         font.setBold(True)
@@ -108,12 +113,17 @@ class Ui_WizardPage(object):
         self.label_3.setFont(font)
         self.label_3.setObjectName(_fromUtf8("label_3"))
         self.verticalLayout_3.addWidget(self.label_3)
+        self.cov_horizontalLayout_2 = QtGui.QHBoxLayout()
+        self.cov_horizontalLayout_2.setObjectName(_fromUtf8("cov_horizontalLayout_2"))
+        spacerItem4 = QtGui.QSpacerItem(5, 10, QtGui.QSizePolicy.Fixed, QtGui.QSizePolicy.Minimum)
+        self.cov_horizontalLayout_2.addItem(spacerItem4)
         self.interactions_list_Label = QtGui.QLabel(self.groupBox)
         self.interactions_list_Label.setObjectName(_fromUtf8("interactions_list_Label"))
-        self.verticalLayout_3.addWidget(self.interactions_list_Label)
+        self.cov_horizontalLayout_2.addWidget(self.interactions_list_Label)
+        self.verticalLayout_3.addLayout(self.cov_horizontalLayout_2)
         self.verticalLayout_4.addWidget(self.groupBox)
-        spacerItem3 = QtGui.QSpacerItem(20, 14, QtGui.QSizePolicy.Minimum, QtGui.QSizePolicy.Expanding)
-        self.verticalLayout_4.addItem(spacerItem3)
+        spacerItem5 = QtGui.QSpacerItem(20, 14, QtGui.QSizePolicy.Minimum, QtGui.QSizePolicy.Expanding)
+        self.verticalLayout_4.addItem(spacerItem5)
         self.horizontalLayout_2.addLayout(self.verticalLayout_4)
 
         self.retranslateUi(WizardPage)
@@ -123,16 +133,16 @@ class Ui_WizardPage(object):
         WizardPage.setWindowTitle(_translate("WizardPage", "WizardPage", None))
         self.label.setText(_translate("WizardPage", "Models:", None))
         self.add_model_PushButton.setText(_translate("WizardPage", "add model", None))
-        self.remove_last_model.setText(_translate("WizardPage", "remove last model", None))
+        self.remove_last_model_Pushbutton.setText(_translate("WizardPage", "remove last model", None))
         self.groupBox.setTitle(_translate("WizardPage", "Model Info", None))
         self.label_2.setText(_translate("WizardPage", "Name:", None))
         self.model_name_Label.setText(_translate("WizardPage", "a name", None))
         self.label_5.setText(_translate("WizardPage", "Covariates:", None))
-        self.covariates_list_Label.setText(_translate("WizardPage", "    list of covariates\n"
-"    gfgd\n"
-"    ggdf", None))
+        self.covariates_list_Label.setText(_translate("WizardPage", "list of covariates\n"
+"gfgd\n"
+"ggdf", None))
         self.label_3.setText(_translate("WizardPage", "Interactions:", None))
-        self.interactions_list_Label.setText(_translate("WizardPage", "    list of interactions\n"
-"    inter1\n"
-"    inter2", None))
+        self.interactions_list_Label.setText(_translate("WizardPage", "list of interactions\n"
+"inter1\n"
+"inter2", None))
 

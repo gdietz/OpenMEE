@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'specify_model.ui'
 #
-# Created: Sun Jan 12 11:35:35 2014
+# Created: Mon Feb 24 09:58:54 2014
 #      by: PyQt4 UI code generator 4.10.3
 #
 # WARNING! All changes made in this file will be lost!
@@ -40,11 +40,11 @@ class Ui_Dialog(object):
         self.label = QtGui.QLabel(self.frame_3)
         self.label.setObjectName(_fromUtf8("label"))
         self.horizontalLayout_2.addWidget(self.label)
-        self.lineEdit = QtGui.QLineEdit(self.frame_3)
-        self.lineEdit.setMinimumSize(QtCore.QSize(165, 0))
-        self.lineEdit.setMaximumSize(QtCore.QSize(165, 16777215))
-        self.lineEdit.setObjectName(_fromUtf8("lineEdit"))
-        self.horizontalLayout_2.addWidget(self.lineEdit)
+        self.name_lineEdit = QtGui.QLineEdit(self.frame_3)
+        self.name_lineEdit.setMinimumSize(QtCore.QSize(165, 0))
+        self.name_lineEdit.setMaximumSize(QtCore.QSize(165, 16777215))
+        self.name_lineEdit.setObjectName(_fromUtf8("name_lineEdit"))
+        self.horizontalLayout_2.addWidget(self.name_lineEdit)
         spacerItem = QtGui.QSpacerItem(40, 20, QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Minimum)
         self.horizontalLayout_2.addItem(spacerItem)
         self.verticalLayout_3.addLayout(self.horizontalLayout_2)
@@ -92,7 +92,7 @@ class Ui_Dialog(object):
     def retranslateUi(self, Dialog):
         Dialog.setWindowTitle(_translate("Dialog", "Specify Model", None))
         self.label.setText(_translate("Dialog", "Model Name:", None))
-        self.lineEdit.setText(_translate("Dialog", "modelX", None))
+        self.name_lineEdit.setText(_translate("Dialog", "modelX", None))
         self.label_2.setText(_translate("Dialog", "Covariates:", None))
         self.label_3.setText(_translate("Dialog", "Interactions:", None))
 

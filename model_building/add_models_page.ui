@@ -70,7 +70,7 @@
            </widget>
           </item>
           <item>
-           <widget class="QPushButton" name="remove_last_model">
+           <widget class="QPushButton" name="remove_last_model_Pushbutton">
             <property name="text">
              <string>remove last model</string>
             </property>
@@ -155,19 +155,39 @@
          </widget>
         </item>
         <item>
-         <widget class="QLabel" name="covariates_list_Label">
-          <property name="sizePolicy">
-           <sizepolicy hsizetype="Preferred" vsizetype="Expanding">
-            <horstretch>0</horstretch>
-            <verstretch>0</verstretch>
-           </sizepolicy>
-          </property>
-          <property name="text">
-           <string>    list of covariates
-    gfgd
-    ggdf</string>
-          </property>
-         </widget>
+         <layout class="QHBoxLayout" name="cov_horizontalLayout">
+          <item>
+           <spacer name="horizontalSpacer_3">
+            <property name="orientation">
+             <enum>Qt::Horizontal</enum>
+            </property>
+            <property name="sizeType">
+             <enum>QSizePolicy::Fixed</enum>
+            </property>
+            <property name="sizeHint" stdset="0">
+             <size>
+              <width>5</width>
+              <height>10</height>
+             </size>
+            </property>
+           </spacer>
+          </item>
+          <item>
+           <widget class="QLabel" name="covariates_list_Label">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Preferred" vsizetype="Expanding">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="text">
+             <string>list of covariates
+gfgd
+ggdf</string>
+            </property>
+           </widget>
+          </item>
+         </layout>
         </item>
         <item>
          <widget class="QLabel" name="label_3">
@@ -183,13 +203,33 @@
          </widget>
         </item>
         <item>
-         <widget class="QLabel" name="interactions_list_Label">
-          <property name="text">
-           <string>    list of interactions
-    inter1
-    inter2</string>
-          </property>
-         </widget>
+         <layout class="QHBoxLayout" name="cov_horizontalLayout_2">
+          <item>
+           <spacer name="horizontalSpacer_4">
+            <property name="orientation">
+             <enum>Qt::Horizontal</enum>
+            </property>
+            <property name="sizeType">
+             <enum>QSizePolicy::Fixed</enum>
+            </property>
+            <property name="sizeHint" stdset="0">
+             <size>
+              <width>5</width>
+              <height>10</height>
+             </size>
+            </property>
+           </spacer>
+          </item>
+          <item>
+           <widget class="QLabel" name="interactions_list_Label">
+            <property name="text">
+             <string>list of interactions
+inter1
+inter2</string>
+            </property>
+           </widget>
+          </item>
+         </layout>
         </item>
        </layout>
       </widget>

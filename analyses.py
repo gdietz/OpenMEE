@@ -23,6 +23,7 @@ from phylo.phylowizard import PhyloWizard
 from ome_globals import *
 from meta_progress import MetaProgress
 from publication_bias_wizards import FunnelWizard, FailsafeWizard
+from model_building.model_building_wizard import ModelBuildingWizard
 
 
 # # catches an r exception, displays a message, returns None if there is an exception
@@ -932,6 +933,56 @@ class Analyzer:
                     parent=self.main_form)
             form.show()
 
+    def model_building(self):
+        model = self._get_model()
+        
+        wizard = ModelBuildingWizard(model=model,
+                                     parent=self.main_form)
+    
+        if wizard.exec_():
+            # Selections to store
+            data_type, metric = wizard.get_data_type_and_metric()
+            data_location     = wizard.get_data_location()
+            included_studies  = wizard.get_included_studies_in_proper_order()
+            fixed_effects     = wizard.using_fixed_effects()
+            conf_level        = wizard.get_conf_level()
+            random_effects_method = wizard.get_random_effects_method()
+            cov_2_ref_values  = wizard.get_covariate_reference_levels()
+            models = wizard.get_models_info()
+            
+            # Unstored selections
+            phylogen        = wizard.get_phylogen()
+            summary         = wizard.get_summary()
+            save_selections = wizard.save_selections() # a bool
 
+            if save_selections:
+                # Save analysis analysis info that we just gathered
+                model.update_data_type_selection(data_type) # int
+                model.update_metric_selection(metric) # int
+                model.update_fixed_vs_random_effects_selection(fixed_effects) #bool
+                model.update_conf_level_selection(conf_level) #double
+                model.update_cov_2_ref_values_selection(cov_2_ref_values) # dict
+                model.update_data_location_choices(data_type, data_location)  # save data locations choices for this data type in the model
+                model.update_previously_included_studies(set(included_studies)) # save which studies were included on last meta-regression
+                model.update_random_effects_method(random_effects_method)    
+                
+            try:
+#                 result = self.run_gmeta_regression(
+#                                    included_studies=included_studies,
+#                                    data_location=data_location,
+#                                    covariates=covariates,
+#                                    cov_ref_values=cov_2_ref_values,
+#                                    interactions=interactions,
+#                                    fixed_effects=fixed_effects,
+#                                    conf_level=conf_level,
+#                                    random_effects_method=random_effects_method)
+                result = None
+                print("look at variable selections")
+                    
+            except CrazyRError as e:
+                if SOUND_EFFECTS:
+                    silly.play()
+                QMessageBox.critical(self.main_form, "Oops", str(e))
+            self._display_results(result, summary)
 
 

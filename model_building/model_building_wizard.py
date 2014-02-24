@@ -95,6 +95,7 @@ from PyQt4.Qt import *
 
 from meta_regression_wizard import *
 from model_building.instructions import InstructionsPage
+from model_building.add_models_page import AddModelsPage
 
 (Page_ChooseEffectSize, Page_DataLocation, Page_RefineStudies,
 Page_MetaRegDetails, Page_SelectCovariates, Page_ReferenceValues,
@@ -108,6 +109,14 @@ class ModelBuildingWizard(MetaRegressionWizard):
         self.analysis_label="Model Building"
         self.setWindowTitle(self.analysis_label)
         
+        # Add models page
+        self.add_models_page = AddModelsPage()
+        self.setPage(Page_AddModels, self.add_models_page)
+        
+        # Instructions page
+        self.instructions_page = InstructionsPage()
+        self.setPage(Page_Instructions, self.instructions_page)
+        
         # Reconfigure meta regression details page a  bit
         self.meta_reg_details_page.parametric_radioButton.setChecked(True)
         self.meta_reg_details_page.analysis_type_groupBox.setEnabled(False)
@@ -120,9 +129,6 @@ class ModelBuildingWizard(MetaRegressionWizard):
         return self.nextId_helper(current_id)
         
     def nextId_helper(self, page_id):
-        #analysis_type = PARAMETRIC # PARAMETRIC or BOOTSTRAP
-        #output_type = NORMAL     # NORMAL or CONDITIONAL_MEANS
-        
         if page_id == Page_ChooseEffectSize:
             return Page_DataLocation
         elif page_id == Page_DataLocation:
@@ -144,10 +150,8 @@ class ModelBuildingWizard(MetaRegressionWizard):
             return Page_Summary
         elif page_id == Page_Summary:
             return -1
-        
-    def get_analysis_type(self): # NORMAL or BOOTSTRAP
-        return NORMAL
-    def get_output_type(self): # PARAMETRIC or CONDITIONAL_MEANS
-        return PARAMETRIC
+    
+    def get_models_info(self):
+        return self.add_models_page.get_models_info()
         
         
