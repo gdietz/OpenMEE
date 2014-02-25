@@ -47,6 +47,7 @@ class AddModelsPage(QWizardPage, ui_add_models_page.Ui_WizardPage):
         self.model_listWidget.itemSelectionChanged.connect(self._populate_info_area)
         self.add_model_PushButton.clicked.connect(self.add_model_button_clicked)
         self.remove_last_model_Pushbutton.clicked.connect(self.remove_last_model_button_clicked)
+        self.models_changed.connect(self.completeChanged.emit)
 
     def _populate_info_area(self):
         current_model_info = self._get_current_model_info()
@@ -129,6 +130,10 @@ class AddModelsPage(QWizardPage, ui_add_models_page.Ui_WizardPage):
     def _get_current_model_info(self):
         current_row = self.model_listWidget.currentRow()
         return self.row_2_model_info[current_row]
+    
+    def isComplete(self):
+        n_models = self.model_listWidget.count()
+        return n_models == 2
     
     # Use this to get the model info out
     def get_models_info(self):
