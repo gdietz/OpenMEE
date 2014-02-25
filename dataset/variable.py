@@ -29,11 +29,12 @@ class Variable:
     
     def get_label_R_compatible(self):
         # An R-compatible label (suitable for putting in a dataframe)
-        # Per issue #76, R converts the following characters: {' ','-'} to '.',
+        # Per issue #76, R converts the following characters: {' ','-','#'} to '.',
         # i.e. a period so we must do the same
         
         replacements = {' ':'.',
-                        '-':'.'}
+                        '-':'.',
+                        '#':'.'}
         compatible_label = self.label
         for orig,target in replacements.items():
             compatible_label = compatible_label.replace(orig,target)
