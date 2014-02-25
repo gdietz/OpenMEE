@@ -25,6 +25,7 @@ class SpecifyModelDlg(QDialog, ui_specify_model.Ui_Dialog):
         
         self.selected_covariates = []
         self.selected_interactions = []
+        self._make_sure_interactions_allowed()
         
         # connect signals
         self.covariates_listWidget.itemChanged.connect(self.change_selected_covariates)
@@ -44,6 +45,14 @@ class SpecifyModelDlg(QDialog, ui_specify_model.Ui_Dialog):
         else:
             raise Exception("This item should not be tristate")
         
+        self._make_sure_interactions_allowed()
+        
+        self.selections_changed.emit()
+    
+    def _make_sure_interactions_allowed(self):
+        # Disables(enables) interactions if the covariates comprising them are
+        # not selected
+        
         # Make sure that the interactions are allowed, given the chosen covariates
         for inter_item, interaction in self.item2interaction.items():
             vars = set(interaction.get_vars())
@@ -54,9 +63,6 @@ class SpecifyModelDlg(QDialog, ui_specify_model.Ui_Dialog):
                 inter_item.setCheckState(Qt.Unchecked)
             else:
                 inter_item.setFlags(inter_item.flags()|Qt.ItemIsEnabled)
-                #inter_item.setCheckState(Qt.Checked)
-        
-        self.selections_changed.emit()
         
     def change_selected_interactions(self, item):
         interaction = self.item2interaction[item]

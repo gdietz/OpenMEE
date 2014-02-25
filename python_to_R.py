@@ -1930,5 +1930,32 @@ def get_exploratory_params(params_path, plot_type=None):
     params_pyfmt = R_parse_tools.recursioner(params)
     print("The parameters in python format are: %s" % params_pyfmt)
     return params_pyfmt
+
+
+def run_model_building(model_info,
+                       data_name="tmp_obj",
+                       fixed_effects = False,
+                       random_effects_method="DL",
+                       digits=4,
+                       conf_level=DEFAULT_CONFIDENCE_LEVEL,
+                       results_name="results_obj"):
+
+    # Set fixed-effects vs. random effects        
+    method_str = "FE" if fixed_effects else random_effects_method   
     
+    full_model_info = model_info[0]
+    reduced_model_info = model_info[1]
     
+    # Mods is a Listvector (see description in _make_mods_str)
+    mods_full = _make_mods_str(full_model_info['covariates'], full_model_info['interactions'])
+    mods_reduced = _make_mods_str(reduced_model_info['covariates'], reduced_model_info['interactions'])
+
+    r_str = "{results} <- model.building(data={data}, full.mods={full_mods}, reduced.mods={reduced_mods}, method=\"{method}\", level={level}, digits={digits})".format(
+                results=results_name, data=data_name, full_mods=mods_full.r_repr(), reduced_mods=mods_reduced.r_repr(),
+                method=random_effects_method, level=conf_level, digits=digits)
+    
+    exR.execute_in_R(r_str)
+    result = exR.execute_in_R("%s" % results_name)
+    
+    parsed_results = parse_out_results(result)
+    return parsed_results

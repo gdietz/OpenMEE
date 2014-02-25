@@ -967,17 +967,14 @@ class Analyzer:
                 model.update_random_effects_method(random_effects_method)    
                 
             try:
-#                 result = self.run_gmeta_regression(
-#                                    included_studies=included_studies,
-#                                    data_location=data_location,
-#                                    covariates=covariates,
-#                                    cov_ref_values=cov_2_ref_values,
-#                                    interactions=interactions,
-#                                    fixed_effects=fixed_effects,
-#                                    conf_level=conf_level,
-#                                    random_effects_method=random_effects_method)
-                result = None
-                print("look at variable selections")
+                result = self.run_model_building(
+                                   included_studies=included_studies,
+                                   data_location=data_location,
+                                   cov_ref_values=cov_2_ref_values,
+                                   fixed_effects=fixed_effects,
+                                   conf_level=conf_level,
+                                   model_info = models, # regression model info
+                                   random_effects_method=random_effects_method)
                     
             except CrazyRError as e:
                 if SOUND_EFFECTS:
@@ -985,4 +982,40 @@ class Analyzer:
                 QMessageBox.critical(self.main_form, "Oops", str(e))
             self._display_results(result, summary)
 
+    def run_model_building(self, included_studies, data_location,
+                           cov_ref_values, fixed_effects, conf_level,
+                           random_effects_method, model_info, digits = 4):
 
+        model = self._get_model()
+        
+        bar = MetaProgress()
+        bar.show()
+        
+        # Combine all the covariates together (sort of unnecessary using a loop
+        # since the first info object will have all the necessary covariates
+        # but whatever, this is fast anyway.)
+        covariates = set()
+        for info in model_info:
+            model_covs = info['covariates']
+            covariates.update(set(model_covs))
+        covariates = list(covariates)
+        
+        # Make dataframe of data with associated covariates + interactions
+        python_to_R.dataset_to_dataframe(model=model,
+                                         included_studies=included_studies,
+                                         data_location=data_location,
+                                         covariates=covariates,
+                                         cov_ref_values=cov_ref_values,
+                                         var_name="tmp_obj")
+                
+        result = python_to_R.run_model_building(
+                                  model_info=model_info,
+                                  fixed_effects=fixed_effects,
+                                  random_effects_method=random_effects_method,
+                                  digits=digits,
+                                  conf_level=conf_level,
+                                  data_name="tmp_obj")
+        
+        bar.hide()
+        bar.deleteLater()
+        return result
