@@ -569,3 +569,6 @@ def indent(target_str, spaces=2):
     lines = target_str.splitlines()
     lines_with_indent = [" "*spaces + line for line in lines]
     return "\n".join(lines_with_indent)
+
+class NotUltrametricException(Exception):
+    pass

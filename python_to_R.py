@@ -128,6 +128,10 @@ def load_ape_file(ape_path, tree_format):
         print("I do not know how to parse {0} files!".format(tree_format))
         raise Exception("Unrecognized tree file format")
     phylo_obj = exR.execute_in_R(r_str)
+    
+    # Validate tree
+    exR.execute_in_R("validate.tree(%s)" % phylo_obj.r_repr())
+    
     print("ok! loaded.")
     return phylo_obj
 
