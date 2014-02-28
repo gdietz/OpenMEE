@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'main_window.ui'
 #
-# Created: Wed Feb 12 17:21:56 2014
+# Created: Fri Feb 28 13:31:46 2014
 #      by: PyQt4 UI code generator 4.10.3
 #
 # WARNING! All changes made in this file will be lost!
@@ -180,8 +180,8 @@ class Ui_MainWindow(object):
         self.actionScatterplot.setObjectName(_fromUtf8("actionScatterplot"))
         self.actionHistogram = QtGui.QAction(MainWindow)
         self.actionHistogram.setObjectName(_fromUtf8("actionHistogram"))
-        self.actionPhyloAnalysis = QtGui.QAction(MainWindow)
-        self.actionPhyloAnalysis.setObjectName(_fromUtf8("actionPhyloAnalysis"))
+        self.actionPhyloMA = QtGui.QAction(MainWindow)
+        self.actionPhyloMA.setObjectName(_fromUtf8("actionPhyloMA"))
         self.actionModel_Building = QtGui.QAction(MainWindow)
         self.actionModel_Building.setObjectName(_fromUtf8("actionModel_Building"))
         self.actionR_log = QtGui.QAction(MainWindow)
@@ -221,7 +221,7 @@ class Ui_MainWindow(object):
         self.menuAnalysis.addAction(self.menuMeta_Analysis.menuAction())
         self.menuAnalysis.addAction(self.actionMeta_Regression)
         self.menuAnalysis.addSeparator()
-        self.menuAnalysis.addAction(self.actionPhyloAnalysis)
+        self.menuAnalysis.addAction(self.actionPhyloMA)
         self.menuAnalysis.addAction(self.actionModel_Building)
         self.menuAbout.addAction(self.action_about)
         self.menuPublication_Bias_2.addAction(self.actionFail_Safe_N)
@@ -312,7 +312,7 @@ class Ui_MainWindow(object):
         self.actionResetAnalysisChoices.setToolTip(_translate("MainWindow", "Reset choices made in analysis screens to the defaults", None))
         self.actionScatterplot.setText(_translate("MainWindow", "Scatterplot", None))
         self.actionHistogram.setText(_translate("MainWindow", "Histogram", None))
-        self.actionPhyloAnalysis.setText(_translate("MainWindow", "PhyloAnalysis", None))
+        self.actionPhyloMA.setText(_translate("MainWindow", "Phylogenetic Meta-Analysis", None))
         self.actionModel_Building.setText(_translate("MainWindow", "Model Building", None))
         self.actionR_log.setText(_translate("MainWindow", "R output viewer", None))
         self.actionContingency_Table.setText(_translate("MainWindow", "Contingency Table", None))

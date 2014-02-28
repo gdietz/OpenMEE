@@ -95,7 +95,7 @@
     <addaction name="menuMeta_Analysis"/>
     <addaction name="actionMeta_Regression"/>
     <addaction name="separator"/>
-    <addaction name="actionPhyloAnalysis"/>
+    <addaction name="actionPhyloMA"/>
     <addaction name="actionModel_Building"/>
    </widget>
    <widget class="QMenu" name="menuAbout">
@@ -408,9 +408,9 @@
     <string>Histogram</string>
    </property>
   </action>
-  <action name="actionPhyloAnalysis">
+  <action name="actionPhyloMA">
    <property name="text">
-    <string>PhyloAnalysis</string>
+    <string>Phylogenetic Meta-Analysis</string>
    </property>
   </action>
   <action name="actionModel_Building">
