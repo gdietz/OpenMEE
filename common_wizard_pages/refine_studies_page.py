@@ -90,12 +90,14 @@ class RefineStudiesPage(QWizardPage, ui_refine_studies_page.Ui_WizardPage):
                  model,
                  previously_included_studies=None,
                  study_filter = None, # an object which contains info about which studies are allowed
+                 need_species = False,
                  parent=None):
         super(RefineStudiesPage, self).__init__(parent)
         self.setupUi(self)
         
         self.model = model
         self.previously_included_studies = previously_included_studies
+        self.need_species = need_species
         
         self.studies_to_include_status = {} # map study ---> included?
         self.missing_data_items_to_covs = {}
@@ -177,8 +179,14 @@ class RefineStudiesPage(QWizardPage, ui_refine_studies_page.Ui_WizardPage):
         data_location   = self.wizard().get_data_location()
         effect_size_col = data_location['effect_size']
         variance_col    = data_location['variance']
+
         self.effect_size_var = self.model.get_variable_assigned_to_column(effect_size_col)
         self.variance_var    = self.model.get_variable_assigned_to_column(variance_col)
+        
+        # for issue #15
+        if self.need_species:
+            species_col = data_location['species']
+            self.species_var = self.model.get_variable_assigned_to_column(species_col)
         
         # map studies to boolean storing whether they CAN be included (if they have values for effect size and variance)
         self.studies_includable = dict([(study, self._is_includable(study)[0]) for study in self.studies])
@@ -233,6 +241,17 @@ class RefineStudiesPage(QWizardPage, ui_refine_studies_page.Ui_WizardPage):
             includable = False
             reason = "Effect size or variance missing"
         
+        if not includable:
+            return (includable, reason)
+            
+        if self.need_species:
+            if self._species_present(study):
+                includable = True
+                reason = ""
+            else:
+                includable = False
+                reason = "species is missing"
+        
         return (includable, reason)
 
     def _effect_size_and_var_present(self, study):  
@@ -244,6 +263,13 @@ class RefineStudiesPage(QWizardPage, ui_refine_studies_page.Ui_WizardPage):
             includable=True
             
         return includable
+    
+    def _species_present(self, study):
+        species = study.get_var(self.species_var)
+        
+        if isinstance(species, str) and len(species) > 0:
+            return True
+        return False
 
     
     def print_old_new(self, old, new):

@@ -10,17 +10,28 @@ from PyQt4.Qt import *
 
 from tree_page import TreePage
 from phylo_model_design_page import PhyloModelDesignPage
+from phylo_analysis_details_page import PhyloAnalysisDetailsPage
 from ma_wizards import AbstractMetaAnalysisWizard
+from common_wizard_pages.refine_studies_page import RefineStudiesPage
+
+from ome_globals import wizard_summary
 
 (Page_ChooseEffectSize, Page_DataLocation, Page_RefineStudies,
 Page_MethodsAndParameters, Page_SubgroupVariable, Page_Bootstrap,
 Page_Summary, Page_TreePage, Page_PhyloModelDesignPage, Page_Parameters) = range(10)
 
-class PhyloWizard(AbstractMetaAnalysisWizard):
+class PhyloMAWizard(AbstractMetaAnalysisWizard):
     def __init__(self, model, parent=None):
         AbstractMetaAnalysisWizard.__init__(self, model=model, meta_f_str=None, parent=parent)
         
-        self.setWindowTitle("Phylogenetic Meta Analysis")
+        self.analysis_label = "Phylogenetic Meta Analysis"
+        self.setWindowTitle(self.analysis_label)
+        
+        
+        # Refine studies page
+        self.removePage(Page_RefineStudies)
+        self.refine_studies_page = RefineStudiesPage(model=model, need_species=True)
+        self.setPage(Page_RefineStudies, self.refine_studies_page)
         
         # Tree selection page
         self.tree_page = TreePage()
@@ -30,33 +41,63 @@ class PhyloWizard(AbstractMetaAnalysisWizard):
         self.phylo_model_design_page = PhyloModelDesignPage()
         self.setPage(Page_PhyloModelDesignPage, self.phylo_model_design_page)
         
-        # data location page
-        # TODO: make user choose a column for species (categorical)
-        
-        # Parameters page
-        # TODO: (make page similiar to meta-reg details page (with limited selections for method just FE, ML, and REML)
-
-    def nextID(self):
-        if self.currentId() == Page_TreePage:
-            return Page_PhyloModelDesignPage
-        elif self.currentId() == Page_PhyloModelDesignPage:
-            return -1
+        # data location page and arameters page
+        self.parameters_page = PhyloAnalysisDetailsPage(model=model, default_method="REML")
+        self.setPage(Page_Parameters, self.parameters_page)
         
     def nextId_helper(self, page_id):
+
         if page_id == Page_ChooseEffectSize:
-            return Page_DataLocation
-        elif page_id == Page_DataLocation:
+            return Page_Parameters
+        elif page_id == Page_Parameters:
             return Page_RefineStudies
         elif page_id == Page_RefineStudies:
-            return Page
-        #    return Page_MethodsAndParameters
-        #elif page_id == Page_MethodsAndParameters:
-        #    return Page_Summary
+            return Page_TreePage
+        elif page_id == Page_TreePage:
+            return Page_PhyloModelDesignPage
+        elif page_id == Page_PhyloModelDesignPage:
+            return Page_Summary
         elif page_id == Page_Summary:
             return -1
         
-    #def get_phylo_object(self):
-    #    return self.tree_page.get_phylo_object()
+    # Summary Page
+    def get_summary(self):
+        ''' Make a summary string to show the user at the end of the wizard summarizing most of the user selections '''
+        return wizard_summary(wizard=self, next_id_helper=self.nextId_helper,
+                              summary_page_id=Page_Summary,
+                              analysis_label=self.analysis_label)
     
+    ##### getters #####
+        
     def get_tree_and_filename(self):
         return self.tree_page.get_tree_and_filename()
+    
+    def get_tree(self):
+        tree = self.get_tree_and_filename()['tree']
+        return tree
+    
+    ### Phylo Model Design Page ####
+    def get_phylo_model_type(self): # BM or OU
+        return self.phylo_model_design_page.get_phylo_model_type()
+        
+    def get_lambda(self):
+        return self.phylo_model_design_page.get_lambda()
+    def get_alpha(self):
+        return self.phylo_model_design_page.get_alpha()
+    
+    def get_randomly_resolve_polytomies(self):
+        return self.phylo_model_design_page.get_randomly_resolve_polytomies()
+    
+    ### phylo meta-analysis details page ####
+    def get_data_location(self):
+        return self.parameters_page.get_data_location()
+    
+    def get_random_effects_method(self):
+        return self.parameters_page.get_random_effects_method()
+    
+    def get_conf_level(self):
+        return self.parameters_page.get_conf_level()
+    
+    def get_include_species_as_random_factor(self):
+        return self.parameters_page.get_include_species_as_random_factor()
+    

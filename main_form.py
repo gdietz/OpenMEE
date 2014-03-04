@@ -295,7 +295,7 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
         self.actionMeta_Regression.triggered.connect(self.analyst.gmeta_regression)
         self.actionBootstrapped_Meta_Analysis.triggered.connect(self.analyst.bootstrap_ma)
 
-        QObject.connect(self.actionPhyloAnalysis, SIGNAL("triggered()"), self.analyst.phylo_analysis)
+        QObject.connect(self.actionPhyloMA, SIGNAL("triggered()"), self.analyst.phylo_ma)
         
         #### Publication Bias Menu ###
         self.actionFail_Safe_N.triggered.connect(self.analyst.failsafe_analysis)

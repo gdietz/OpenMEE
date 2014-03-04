@@ -94,7 +94,8 @@ class TreePage(QWizardPage, ui_tree_page.Ui_WizardPage):
         try:
             phylo = python_to_R.load_ape_file(file_path, tree_format)
         except CrazyRError as e:
-            QMessageBox.warning(self, "Error", str(e))
+            #QMessageBox.warning(self, "Error", str(e))
+            self.phylo = None
             return None
         self.phylo = phylo # store created phylo object
         return phylo

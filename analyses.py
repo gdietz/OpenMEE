@@ -19,7 +19,7 @@ from ma_wizards import RegularMetaAnalysisWizard, CumulativeMetaAnalysisWizard,\
 import meta_regression_wizard
 import data_exploration_wizards
 import python_to_R
-from phylo.phylowizard import PhyloWizard
+from phylo.phylowizard import PhyloMAWizard
 from ome_globals import *
 from meta_progress import MetaProgress
 from publication_bias_wizards import FunnelWizard, FailsafeWizard
@@ -755,28 +755,6 @@ class Analyzer:
         bar.hide()
         bar.deleteLater()
         return result
-
-
-        
-    def phylo_analysis(self):
-        wizard = PhyloWizard()
-        if wizard.exec_():
-            # get selections
-            phylo_object = wizard.get_phylo_object()
-            # run analysis and display results window
-            print("Here is the phylo object: %s" % phylo_object)
-            
-#             try:
-#                 result = python_to_R.run_histogram(model=self.model,
-#                                                    var=var,
-#                                                    params=params,
-#                                                    res_name = "result", var_name = "tmp_obj", summary="")
-#             except CrazyRError as e:
-#                 if SOUND_EFFECTS:
-#                     silly.play()
-#                 QMessageBox.critical(self, "Oops", str(e))
-#  
-#             self.analysis(result, summary="")
     
     #### PUBLICATION BIAS ####
     
@@ -1015,6 +993,84 @@ class Analyzer:
                                   digits=digits,
                                   conf_level=conf_level,
                                   data_name="tmp_obj")
+        
+        bar.hide()
+        bar.deleteLater()
+        return result
+
+################### phylogenetic analysis issue #15 ##########################
+    def phylo_ma(self, digits=4):
+        model = self._get_model()
+        
+        wizard = PhyloMAWizard(model=model,
+                               parent=self.main_form)
+    
+        if wizard.exec_():
+            # Selections to store
+            data_type, metric = wizard.get_data_type_and_metric()
+            data_location     = wizard.get_data_location()
+            included_studies  = wizard.get_included_studies_in_proper_order()
+            #fixed_effects     = wizard.using_fixed_effects()
+            fixed_effects = False
+            conf_level        = wizard.get_conf_level()
+            random_effects_method = wizard.get_random_effects_method()
+            #cov_2_ref_values  = wizard.get_covariate_reference_levels() # ref value for species?
+            
+            
+            # Unstored selections
+            summary         = wizard.get_summary()
+            save_selections = wizard.save_selections() # a bool
+            tree = wizard.get_tree()
+            evo_model = wizard.get_phylo_model_type()
+            lambda_, alpha = wizard.get_lambda(), wizard.get_alpha()
+            include_species = wizard.get_include_species_as_random_factor()
+            
+            if save_selections:
+                # Save analysis analysis info that we just gathered
+                model.update_data_type_selection(data_type) # int
+                model.update_metric_selection(metric) # int
+                model.update_fixed_vs_random_effects_selection(fixed_effects) #bool
+                model.update_conf_level_selection(conf_level) #double
+                #model.update_cov_2_ref_values_selection(cov_2_ref_values) # dict
+                model.update_data_location_choices(data_type, data_location)  # save data locations choices for this data type in the model
+                model.update_previously_included_studies(set(included_studies)) # save which studies were included on last meta-regression
+                model.update_random_effects_method(random_effects_method)    
+                
+            try:
+                result = self.run_phylo_ma(tree, evo_model, lambda_, alpha, include_species, included_studies, data_location, conf_level, random_effects_method, digits)
+            except CrazyRError as e:
+                if SOUND_EFFECTS:
+                    silly.play()
+                QMessageBox.critical(self.main_form, "Oops", str(e))
+            self._display_results(result, summary)
+            
+    def run_phylo_ma(self,tree, evo_model, lambda_, alpha, include_species,
+                     included_studies,
+                     data_location, #cov_ref_values,
+                     #fixed_effects,
+                     conf_level, random_effects_method,
+                     digits=4):
+
+        model = self._get_model()
+        
+        bar = MetaProgress()
+        bar.show()
+        
+        # Make dataframe of data with associated covariates + interactions
+        python_to_R.dataset_to_dataframe(model=model,
+                                         included_studies=included_studies,
+                                         data_location=data_location,
+                                         #cov_ref_values=cov_ref_values,
+                                         var_name="tmp_obj")
+                
+        result = python_to_R.run_phylo_ma(tree,
+                                          evo_model,
+                                          random_effects_method,
+                                          lambda_, alpha,
+                                          include_species,
+                                          fixed_effects=False,
+                                          digits=digits,
+                                          conf_level=conf_level)
         
         bar.hide()
         bar.deleteLater()

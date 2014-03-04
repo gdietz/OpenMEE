@@ -547,8 +547,8 @@ def sort_covariates_by_type(covs):
     return {'numeric':cov_num,
             'categorical':cov_cat}
 
-def dataset_to_dataframe(model, included_studies, data_location, covariates,
-                         cov_ref_values, var_name="tmp_obj"):
+def dataset_to_dataframe(model, included_studies, data_location, covariates=[],
+                         cov_ref_values={}, var_name="tmp_obj"):
     # Creates an R dataframe with the portion of the dataset of interest as
     # specified by included_studies and covariates. Categorical variables in the
     # dataframe are converted to factors with referenece values set as specified
@@ -556,6 +556,11 @@ def dataset_to_dataframe(model, included_studies, data_location, covariates,
     
     yi_var = model.get_variable_assigned_to_column(data_location['effect_size'])
     vi_var = model.get_variable_assigned_to_column(data_location['variance'])
+    
+    # For issue #15 (phylogenetics) need a "species" column 
+    include_species = "species" in data_location.keys()
+    if include_species:
+        species_var = model.get_variable_assigned_to_column(data_location['species'])
     
     # Gathers values of the variable from amongst the included studies
     var_values = lambda x: [study.get_var(x) for study in included_studies]
@@ -587,6 +592,9 @@ def dataset_to_dataframe(model, included_studies, data_location, covariates,
     
     numeric_covs = dict([(cov.get_label(),cov_to_FloatVector(cov)) for cov in sorted_covariates['numeric']])
     cat_covs = dict([(cov.get_label(),cov_to_Factor(cov)) for cov in sorted_covariates['categorical']])
+    if include_species:
+        # species covariate as an R-format factor
+        species_rcov = cov_to_Factor(species_var)
 
     # Inhibit transformation of vectors upon insertion into dataframe
     for name, rvector in numeric_covs.iteritems():
@@ -600,8 +608,10 @@ def dataset_to_dataframe(model, included_studies, data_location, covariates,
         raise Exception("Forbidden covariate label present")
     
     init_dict = {'slab': base.I(ro.StrVector(slab)),
-                 'yi'  : base.I(ro.FloatVector(yi)),
-                 'vi'  : base.I(ro.FloatVector(vi))}
+                 'yi'  : ro.FloatVector(yi),
+                 'vi'  : ro.FloatVector(vi)}
+    if include_species:
+        init_dict['species']=species_rcov
     init_dict.update(numeric_covs)
     init_dict.update(cat_covs)
     
@@ -1957,6 +1967,32 @@ def run_model_building(model_info,
     r_str = "{results} <- model.building(data={data}, full.mods={full_mods}, reduced.mods={reduced_mods}, method=\"{method}\", level={level}, digits={digits})".format(
                 results=results_name, data=data_name, full_mods=mods_full.r_repr(), reduced_mods=mods_reduced.r_repr(),
                 method=random_effects_method, level=conf_level, digits=digits)
+    
+    exR.execute_in_R(r_str)
+    result = exR.execute_in_R("%s" % results_name)
+    
+    parsed_results = parse_out_results(result)
+    return parsed_results
+
+def run_phylo_ma(tree, evo_model, random_effects_method, lambda_, alpha,
+                 include_species,
+                 data_name="tmp_obj",
+                 fixed_effects = False,
+                 digits=4,
+                 conf_level=DEFAULT_CONFIDENCE_LEVEL,
+                 results_name="results_obj"):
+
+    # Set fixed-effects vs. random effects        
+    method_str = "FE" if fixed_effects else random_effects_method   
+    
+    r_str = "{results} <- phylo.meta.analysis(tree={tree}, evo.model=\"{evo_model}\", \
+data={data}, method=\"{method}\", level={level}, digits={digits}, btt=NULL, \
+lambda={lambda_}, alpha={alpha}, include.species={include_species})".format(
+        results=results_name,
+        tree=tree.r_repr(), evo_model=evo_model, data=data_name,
+        method=method_str, digits=digits, lambda_=lambda_,
+        alpha=alpha, level=conf_level, include_species="TRUE" if include_species else "FALSE")
+    
     
     exR.execute_in_R(r_str)
     result = exR.execute_in_R("%s" % results_name)

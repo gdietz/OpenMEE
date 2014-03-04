@@ -21,8 +21,8 @@ class PhyloAnalysisDetailsPage(QWizardPage, ui_phylo_analysis_details_page.Ui_Wi
         continuous_columns = self.model.get_continuous_columns()
         # TODO: make a 'species' variable subtype that can be assigned to categorical columns
         categorical_columns = self.model.get_categorical_columns()
-        effect_columns = [col for col in self.continuous_columns if self._col_assigned_to_effect_variable(col)]
-        variance_columns = [col for col in self.continuous_columns if self._col_assigned_to_variance_variable(col)]
+        effect_columns = [col for col in continuous_columns if self._col_assigned_to_effect_variable(col)]
+        variance_columns = [col for col in continuous_columns if self._col_assigned_to_variance_variable(col)]
 
         # populate effect, variance, species combo boxes
         self._populate_data_location_combo_box(self.effect_comboBox, effect_columns)
@@ -34,7 +34,7 @@ class PhyloAnalysisDetailsPage(QWizardPage, ui_phylo_analysis_details_page.Ui_Wi
         
         self.species_comboBox.currentIndexChanged.connect(self.enable_species_checkbox)
         
-        self.completeChanged().emit()
+        self.completeChanged.emit()
         
     def enable_species_checkbox(self):
         
@@ -152,14 +152,14 @@ class PhyloAnalysisDetailsPage(QWizardPage, ui_phylo_analysis_details_page.Ui_Wi
     
     def __str__(self):
         # data locations
-        data_locations_str = self._get_data_location_string(self.get_data_locations())
+        data_locations_str = self._get_data_location_string(self.get_data_location())
         data_locations_output = "Data Location:\n%s" % indent(data_locations_str)
         
         # random_effects_method
         random_method_str = "Random Effects Method: %s" % RMA_MV_RANDOM_EFFECTS_METHODS_TO_PRETTY_STRS[self.get_random_effects_method()]
         
         # confidence level
-        conf_level_str = "Confidence Level: %s%" % self.get_conf_level()
+        conf_level_str = "Confidence Level: %s%%" % self.get_conf_level()
         
         # Species as random factor
         species_as_random_factor_str = "Species " + ("will" if self.get_include_species_as_random_factor() else "will not") + " be included as a random factor"
