@@ -19,6 +19,10 @@ class PhyloModelDesignPage(QWizardPage, ui_phylo_model_design_page.Ui_WizardPage
         super(PhyloModelDesignPage, self).__init__(parent)
         self.setupUi(self)
         
+        # TODO: we don't know about polytomies yet
+        self.groupBox_2.setEnabled(False)
+        self.groupBox_2.setToolTip("Need more info about polytomies")
+        
     def initialize_page(self):
         tree_data = self.wizard().get_tree_and_filepath()
         tree = tree_data['tree']
