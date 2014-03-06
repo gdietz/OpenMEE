@@ -1975,7 +1975,7 @@ def run_model_building(model_info,
     return parsed_results
 
 def run_phylo_ma(tree, evo_model, random_effects_method, lambda_, alpha,
-                 include_species,
+                 include_species, plot_params,
                  data_name="tmp_obj",
                  fixed_effects = False,
                  digits=4,
@@ -1983,15 +1983,26 @@ def run_phylo_ma(tree, evo_model, random_effects_method, lambda_, alpha,
                  results_name="results_obj"):
 
     # Set fixed-effects vs. random effects        
-    method_str = "FE" if fixed_effects else random_effects_method   
+    method_str = "FE" if fixed_effects else random_effects_method
+    
+    plot_params_df = ro.r['data.frame'](**plot_params)
+    
+    
+# phylo.meta.analysis <- function(tree, evo.model, 
+#                                 data, method, level, digits, plot.params, metric,
+#                                 btt=NULL,
+#                                 lambda=1.0, alpha=1.0, include.species=TRUE)
+    
     
     r_str = "{results} <- phylo.meta.analysis(tree={tree}, evo.model=\"{evo_model}\", \
 data={data}, method=\"{method}\", level={level}, digits={digits}, btt=NULL, \
-lambda={lambda_}, alpha={alpha}, include.species={include_species})".format(
+lambda={lambda_}, alpha={alpha}, include.species={include_species}, plot.params={plot_params})".format(
         results=results_name,
         tree=tree.r_repr(), evo_model=evo_model, data=data_name,
         method=method_str, digits=digits, lambda_=lambda_,
-        alpha=alpha, level=conf_level, include_species="TRUE" if include_species else "FALSE")
+        alpha=alpha, level=conf_level,
+        include_species="TRUE" if include_species else "FALSE",
+        plot_params=plot_params_df.r_repr())
     
     
     exR.execute_in_R(r_str)

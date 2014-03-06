@@ -17,6 +17,7 @@ class PhyloAnalysisDetailsPage(QWizardPage, ui_phylo_analysis_details_page.Ui_Wi
         self.setupUi(self)
         
         self.model=model
+        self.current_param_vals = {}
         
         continuous_columns = self.model.get_continuous_columns()
         # TODO: make a 'species' variable subtype that can be assigned to categorical columns
@@ -104,6 +105,38 @@ class PhyloAnalysisDetailsPage(QWizardPage, ui_phylo_analysis_details_page.Ui_Wi
             return False
     
     ############# getters #############
+    
+    def get_plot_params(self):
+        self.current_param_vals["fp_show_col1"] = self.show_1.isChecked()
+        self.current_param_vals["fp_col1_str"]  = unicode(self.col1_str_edit.text().toUtf8(), "utf-8")
+        self.current_param_vals["fp_show_col2"] = self.show_2.isChecked()
+        self.current_param_vals["fp_col2_str"]  = unicode(self.col2_str_edit.text().toUtf8(), "utf-8")
+        self.current_param_vals["fp_show_col3"] = self.show_3.isChecked()
+        self.current_param_vals["fp_col3_str"]  = unicode(self.col3_str_edit.text().toUtf8(), "utf-8")
+        self.current_param_vals["fp_show_col4"] = self.show_4.isChecked()
+        self.current_param_vals["fp_col4_str"]  = unicode(self.col4_str_edit.text().toUtf8(), "utf-8")
+        self.current_param_vals["fp_xlabel"]    = unicode(self.x_lbl_le.text().toUtf8(), "utf-8")
+        self.current_param_vals["fp_outpath"]   = unicode(self.image_path.text().toUtf8(), "utf-8")
+        
+        plot_lb = unicode(self.plot_lb_le.text().toUtf8(), "utf-8")
+        self.current_param_vals["fp_plot_lb"] = "[default]"
+        if plot_lb != "[default]" and check_plot_bound(plot_lb):
+            self.current_param_vals["fp_plot_lb"] = plot_lb
+    
+        plot_ub = unicode(self.plot_ub_le.text().toUtf8(), "utf-8")
+        self.current_param_vals["fp_plot_ub"] = "[default]"
+        if plot_ub != "[default]" and check_plot_bound(plot_ub):
+            self.current_param_vals["fp_plot_ub"] = plot_ub
+    
+        xticks = unicode(self.x_ticks_le.text().toUtf8(), "utf-8")
+        self.current_param_vals["fp_xticks"] = "[default]"
+        if xticks != "[default]" and seems_sane(xticks):
+            self.current_param_vals["fp_xticks"] = xticks
+        
+        self.current_param_vals["fp_show_summary_line"] = self.show_summary_line.isChecked()
+        
+        return self.current_param_vals
+    
     
     def get_data_location(self):
         locations = {'effect_size':self._selected_column(self.effect_comboBox),

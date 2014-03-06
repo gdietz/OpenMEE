@@ -628,9 +628,12 @@ class ResultsWindow(QMainWindow, ui_results_window.Ui_ResultsWindow):
 
     def edit_image(self, params_path, title, png_path, pixmap_item, plot_type="forest"):
         if plot_type == "forest":
-            plot_editor_window = edit_forest_plot_form.EditPlotWindow(\
-                                                params_path, png_path,\
-                                                pixmap_item, title=title, parent=self)
+            plot_editor_window = edit_forest_plot_form.EditPlotWindow(
+                                        params_path,
+                                        png_path,
+                                        pixmap_item,
+                                        title=title,
+                                        parent=self)
             if plot_editor_window is not None:
                 plot_editor_window.show()
             else:

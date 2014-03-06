@@ -101,3 +101,6 @@ class PhyloMAWizard(AbstractMetaAnalysisWizard):
     def get_include_species_as_random_factor(self):
         return self.parameters_page.get_include_species_as_random_factor()
     
+    def get_plot_params(self):
+        return self.parameters_page.get_plot_params()
+    
