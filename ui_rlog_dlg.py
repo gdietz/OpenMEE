@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'rlog_dlg.ui'
 #
-# Created: Thu Mar  6 15:25:31 2014
+# Created: Thu Mar  6 15:32:32 2014
 #      by: PyQt4 UI code generator 4.10.3
 #
 # WARNING! All changes made in this file will be lost!
@@ -46,6 +46,8 @@ class Ui_Dialog(object):
         self.verticalLayout_2.setObjectName(_fromUtf8("verticalLayout_2"))
         self.command_lineEdit = QtGui.QLineEdit(self.groupBox)
         self.command_lineEdit.setMinimumSize(QtCore.QSize(400, 0))
+        self.command_lineEdit.setStyleSheet(_fromUtf8("background-color: rgb(0, 0, 0);\n"
+"color: rgb(0, 255, 0);"))
         self.command_lineEdit.setObjectName(_fromUtf8("command_lineEdit"))
         self.verticalLayout_2.addWidget(self.command_lineEdit)
         self.show_output_checkBox = QtGui.QCheckBox(self.groupBox)
@@ -54,6 +56,9 @@ class Ui_Dialog(object):
         self.verticalLayout_2.addWidget(self.show_output_checkBox)
         self.horizontalLayout_3.addLayout(self.verticalLayout_2)
         self.inject_command_pushButton = QtGui.QPushButton(self.groupBox)
+        icon = QtGui.QIcon()
+        icon.addPixmap(QtGui.QPixmap(_fromUtf8(":/function_icon_set/images/function_icon_set/arrow_right_green_48.png")), QtGui.QIcon.Normal, QtGui.QIcon.Off)
+        self.inject_command_pushButton.setIcon(icon)
         self.inject_command_pushButton.setObjectName(_fromUtf8("inject_command_pushButton"))
         self.horizontalLayout_3.addWidget(self.inject_command_pushButton)
         self.verticalLayout.addWidget(self.groupBox)

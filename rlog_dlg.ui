@@ -53,6 +53,10 @@ color: rgb(0, 255, 0);</string>
             <height>0</height>
            </size>
           </property>
+          <property name="styleSheet">
+           <string notr="true">background-color: rgb(0, 0, 0);
+color: rgb(0, 255, 0);</string>
+          </property>
          </widget>
         </item>
         <item>
@@ -72,6 +76,10 @@ color: rgb(0, 255, 0);</string>
         <property name="text">
          <string>inject command
 into R session</string>
+        </property>
+        <property name="icon">
+         <iconset resource="icons.qrc">
+          <normaloff>:/function_icon_set/images/function_icon_set/arrow_right_green_48.png</normaloff>:/function_icon_set/images/function_icon_set/arrow_right_green_48.png</iconset>
         </property>
        </widget>
       </item>
