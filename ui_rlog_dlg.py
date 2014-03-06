@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'rlog_dlg.ui'
 #
-# Created: Thu Mar  6 14:45:34 2014
+# Created: Thu Mar  6 15:25:31 2014
 #      by: PyQt4 UI code generator 4.10.3
 #
 # WARNING! All changes made in this file will be lost!
@@ -30,6 +30,8 @@ class Ui_Dialog(object):
         self.verticalLayout = QtGui.QVBoxLayout(Dialog)
         self.verticalLayout.setObjectName(_fromUtf8("verticalLayout"))
         self.plainTextEdit = QtGui.QPlainTextEdit(Dialog)
+        self.plainTextEdit.setStyleSheet(_fromUtf8("background-color: rgb(0, 0, 0);\n"
+"color: rgb(0, 255, 0);"))
         self.plainTextEdit.setLineWrapMode(QtGui.QPlainTextEdit.NoWrap)
         self.plainTextEdit.setReadOnly(True)
         self.plainTextEdit.setPlainText(_fromUtf8(""))
