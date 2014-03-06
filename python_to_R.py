@@ -1815,7 +1815,7 @@ def load_vars_for_plot(params_path, return_params_dict=False):
     return True
 
 def regenerate_plot_data(om_data_name="om.data", res_name="res",           
-                            plot_params_name="params", plot_data_name="plot.data"):
+                         plot_params_name="params", plot_data_name="plot.data"):
     
     ####
     # this is crude, but works for now, and easier than making
@@ -1834,10 +1834,11 @@ def regenerate_plot_data(om_data_name="om.data", res_name="res",
         r_str = "plot.data<-create.plot.data.continuous(%s, %s, %s)" % \
                             (om_data_name, plot_params_name, res_name)
         exR.execute_in_R(r_str)
-    else:
+    elif "DiagnosticData" in data_type:
         r_str = "plot.data<-create.plot.data.diagnostic(%s, %s, %s)" % \
                             (om_data_name, plot_params_name, res_name)
         exR.execute_in_R(r_str)
+
     print("executed: %s" % r_str)
         
 def update_plot_params(plot_params, plot_params_name="params", \
@@ -1857,6 +1858,7 @@ def update_plot_params(plot_params, plot_params_name="params", \
 def write_out_plot_data(params_out_path, plot_data_name="plot.data"):
     exR.execute_in_R("save.plot.data(%s, '%s')" % (plot_data_name, params_out_path))
     
+    #save.plot.data.and.params
 
 ######### DEAL WITH COVARIATES #########
 
