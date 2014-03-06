@@ -48,7 +48,7 @@ class RExecutor:
     def unset_R_log_dialog(self):
         self.R_log_dialog = None
     
-    def execute_in_R(self, r_str):
+    def execute_in_R(self, r_str, show_output=False):
         try:
             print("Executing in R: %s" % r_str)
             
@@ -57,6 +57,8 @@ class RExecutor:
                 self.R_log_dialog.append(r_str)
             
             res = ro.r(r_str)
+            if show_output:
+                self.R_log_dialog.append("Output: %s\n" % str(res))
             return res
         except Exception as e:
             print("error in execute in r: %s" % e)
@@ -167,6 +169,9 @@ def generate_forest_plot(file_path, side_by_side=False, params_name="plot.data")
         print "generating a side-by-side forest plot..."
         exR.execute_in_R("two.forest.plots(%s, '%s')" % (params_name, file_path))
     else:
+        conf_level = exR.execute_in_R("get.global.conf.level()")[0]
+        print("Confidence Level before generation: %s" % str(conf_level))
+        
         print("generating a forest plot....")
         exR.execute_in_R("forest.plot(%s, '%s')" % (params_name, file_path))
         

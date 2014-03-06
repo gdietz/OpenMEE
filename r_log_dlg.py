@@ -1,4 +1,5 @@
 import os.path
+from python_to_R import exR
 
 from PyQt4 import QtCore, QtGui
 from PyQt4.Qt import *
@@ -20,7 +21,15 @@ class RLogDialog(QDialog, ui_rlog_dlg.Ui_Dialog):
         self.recording = False
         self.record_pushButton.clicked.connect(self.record_clicked)
         self.save_file_PushButton.clicked.connect(self.get_filename)
-        
+        self.inject_command_pushButton.clicked.connect(self.inject_command)
+    
+    def inject_command(self):
+        command_str = str(self.command_lineEdit.text())
+        if command_str == "":
+            return
+        exR.execute_in_R(command_str, show_output=self.show_output_checkBox.isChecked())
+        self.command_lineEdit.clear()
+    
     def _clear_filepath(self):
         self.file_path = ""
         self.file_path_Label.setText("No path set")

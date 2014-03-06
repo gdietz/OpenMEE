@@ -99,6 +99,7 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
         self.tableView.setModel(self.model)
         self.tableView.resizeColumnsToContents()
         self.conf_level_toolbar_widget.conf_level_spinbox.setValue(self.model.get_conf_level())
+        python_to_R.set_conf_level_in_R(self.model.get_conf_level())
         
         #### Display undo stack (if we want to...)
         self.undo_view_form = useful_dialogs.UndoViewForm(undo_stack=self.undo_stack, model=self.model, parent=self)

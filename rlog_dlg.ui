@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>713</width>
-    <height>403</height>
+    <width>695</width>
+    <height>462</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -24,6 +24,60 @@
      </property>
      <property name="plainText">
       <string notr="true"/>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <widget class="QGroupBox" name="groupBox">
+     <property name="minimumSize">
+      <size>
+       <width>0</width>
+       <height>0</height>
+      </size>
+     </property>
+     <property name="title">
+      <string>Command Injection</string>
+     </property>
+     <layout class="QHBoxLayout" name="horizontalLayout_3">
+      <item>
+       <layout class="QVBoxLayout" name="verticalLayout_2">
+        <item>
+         <widget class="QLineEdit" name="command_lineEdit">
+          <property name="minimumSize">
+           <size>
+            <width>400</width>
+            <height>0</height>
+           </size>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QCheckBox" name="show_output_checkBox">
+          <property name="text">
+           <string>Show output from injected commands</string>
+          </property>
+          <property name="checked">
+           <bool>true</bool>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </item>
+      <item>
+       <widget class="QPushButton" name="inject_command_pushButton">
+        <property name="text">
+         <string>inject command
+into R session</string>
+        </property>
+       </widget>
+      </item>
+     </layout>
+    </widget>
+   </item>
+   <item>
+    <widget class="Line" name="line">
+     <property name="orientation">
+      <enum>Qt::Horizontal</enum>
      </property>
     </widget>
    </item>
@@ -94,5 +148,22 @@
  <resources>
   <include location="icons.qrc"/>
  </resources>
- <connections/>
+ <connections>
+  <connection>
+   <sender>command_lineEdit</sender>
+   <signal>returnPressed()</signal>
+   <receiver>inject_command_pushButton</receiver>
+   <slot>click()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>447</x>
+     <y>308</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>572</x>
+     <y>309</y>
+    </hint>
+   </hints>
+  </connection>
+ </connections>
 </ui>

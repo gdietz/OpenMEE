@@ -140,8 +140,16 @@ class EETableModel(QAbstractTableModel):
             self.do_when_conf_level_changes(old_conf_level, conf_level, use_undo=False)
         else:
             old_conf_level = self.conf_level
-            redo_fn = lambda: setattr(self, 'conf_level', conf_level)
-            undo_fn = lambda: setattr(self, 'conf_level', old_conf_level)
+            ##redo_fn = lambda: setattr(self, 'conf_level', conf_level)
+            ##undo_fn = lambda: setattr(self, 'conf_level', old_conf_level)
+            
+            def redo_fn():
+                setattr(self, 'conf_level', conf_level)
+                python_to_R.set_conf_level_in_R(conf_level)
+            def undo_fn():
+                setattr(self, 'conf_level', old_conf_level)
+                python_to_R.set_conf_level_in_R(old_conf_level)
+            
             self.undo_stack.beginMacro("Setting confidence level and performing associated actions")
             self.undo_stack.push(GenericUndoCommand(redo_fn=redo_fn, undo_fn=undo_fn,
                                                     on_undo_exit=lambda: self.conf_level_changed_during_undo.emit(old_conf_level),
