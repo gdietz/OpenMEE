@@ -28,6 +28,7 @@ import csv_import_dlg
 import csv_export_dlg
 import preferences_dlg
 from contingency_table_dlg import ContingencyTableDlg
+import imputation.imputation_wizard
 
 from variable_group_graphic import VariableGroupGraphic
 from analyses import Analyzer
@@ -306,6 +307,7 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
         self.actionHistogram.triggered.connect(self.analyst.histogram)
         self.actionScatterplot.triggered.connect(self.analyst.scatterplot)
         self.actionContingency_Table.triggered.connect(self.contingency_table)
+        self.actionImpute_Missing_Data.triggered.connect(self.impute_missing_data)
         
         # Help Menu
         self.action_about.triggered.connect(self.show_about_dlg)
@@ -1795,6 +1797,20 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
         self.r_log_dlg = None
         exR.unset_R_log_dialog()
         self.actionR_log.setEnabled(True)
+        
+    def impute_missing_data(self):
+        wizard = imputation.imputation_wizard.ImputationWizard(model=self.model, parent=self)
+        
+        if wizard.exec_():
+            covariates = wizard.get_included_covariates()
+            m = wizard.get_m() # number of multiple imputations
+            maxit = wizard.get_maxit() # number of iterations
+            defaultMethod_rstring = wizard.get_defaultMethod_rstring()
+            
+            result = python_to_R.impute(model=self.model,
+                                        covariates=covariates,
+                                        m=m, maxit=maxit,
+                                        defaultMethod_rstring=defaultMethod_rstring)
 
 
 if __name__ == '__main__':

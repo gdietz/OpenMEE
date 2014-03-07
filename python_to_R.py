@@ -715,7 +715,7 @@ def cols_to_data_frame(model):
     data_r = ro.DataFrame(var_col_d)
     return data_r
 
-def impute(model):
+def impute(model,covariates, m, maxit, defaultMethod_rstring):
     '''
     Here is a start at issue #86
     '''

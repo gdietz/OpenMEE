@@ -119,6 +119,8 @@
     <addaction name="actionHistogram"/>
     <addaction name="menuPublication_Bias_2"/>
     <addaction name="actionContingency_Table"/>
+    <addaction name="separator"/>
+    <addaction name="actionImpute_Missing_Data"/>
    </widget>
    <widget class="QMenu" name="menuThrough_the_looking_glass">
     <property name="title">
@@ -426,6 +428,11 @@
   <action name="actionContingency_Table">
    <property name="text">
     <string>Contingency Table</string>
+   </property>
+  </action>
+  <action name="actionImpute_Missing_Data">
+   <property name="text">
+    <string>Impute Missing Data</string>
    </property>
   </action>
  </widget>
