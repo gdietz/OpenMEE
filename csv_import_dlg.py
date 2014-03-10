@@ -99,7 +99,7 @@ class CSVImportDialog(QDialog, ui_csv_import_dlg.Ui_CSVImportDialog):
         
         
         # set up table
-        self.preview_table.setRowCount(num_rows)
+        self.preview_table.setRowCount(min(num_rows,MAX_PREVIEW_ROWS))
         self.preview_table.setColumnCount(num_cols)
         if self.headers != []:
             self.preview_table.setHorizontalHeaderLabels(self.headers)
@@ -108,14 +108,11 @@ class CSVImportDialog(QDialog, ui_csv_import_dlg.Ui_CSVImportDialog):
             self.preview_table.setHorizontalHeaderLabels(preview_header_labels)
         
         # copy extracted data to table
-        for row in range(num_rows):
+        for row in range(min(num_rows, MAX_PREVIEW_ROWS)):
             for col in range(num_cols):
                 item = QTableWidgetItem(QString(self.imported_data[row][col]))
                 item.setFlags(Qt.NoItemFlags)
                 self.preview_table.setItem(row,col,item)
-                
-            if row >= MAX_PREVIEW_ROWS:
-                break
         self.preview_table.resizeRowsToContents()
         self.preview_table.resizeColumnsToContents()
         
@@ -142,22 +139,22 @@ class CSVImportDialog(QDialog, ui_csv_import_dlg.Ui_CSVImportDialog):
                 
             # handle missing missing data string
             missing_data_string = str(self.missing_data_le.text())
+            print("Missing data String: '%s'" % missing_data_string)
+            
+            def process_cell(cell):
+                convert_missing_data_to_empty_str = lambda x: '' if x==missing_data_string else x
+                normalize_cell_format = lambda cell_content: cell_content.decode('ascii','replace')
+                print("cell content: '%s', Missing: %s" % (cell, cell==missing_data_string))
+                normalized_cell=normalize_cell_format(cell)
+                converted_cell=convert_missing_data_to_empty_str(normalized_cell)
+                #pyqtRemoveInputHook()
+                #import pdb; pdb.set_trace()
+                return converted_cell
+
             for row in reader:
-                def process_cell(cell):
-                    convert_missing_data_to_empty_str = lambda x: '' if x==missing_data_string else x
-                    normalize_cell_format = lambda cell_content: cell_content.decode('ascii','replace')
-                    conv_cell=convert_missing_data_to_empty_str(cell)
-                    conv_cell=normalize_cell_format(cell)
-                    #pyqtRemoveInputHook()
-                    #import pdb; pdb.set_trace()
-                    return conv_cell
                 row = [process_cell(cell) for cell in row]
                 self.imported_data.append(row)
-                
-                
-                #yield row
             
-                
         #self.print_extracted_data() # just for debugging
         
     def print_extracted_data(self):
