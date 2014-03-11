@@ -7,16 +7,17 @@
 ##################
 
 import math
+from collections import OrderedDict
 
 from ome_globals import *
 
 import rpy2
 import rpy2.robjects
 from rpy2 import robjects as ro
+import rpy2.rlike.container as rlc
 
 from rpy2.robjects.packages import importr
 base = importr('base')
-
 
 
 # def exR.execute_in_R(r_str):
@@ -530,27 +531,56 @@ def dataset_to_simple_continuous_robj(model, included_studies, data_location,
     print "ok."
     return r_str
 
-def sort_covariates_by_type(covs):
-    ''' Sorts covariates in to two categories: numerical and categorical, then
-    within those categories, sort the covariates alphabetically why not '''
-    
-    type_cov_num = [COUNT, CONTINUOUS] # Numerical covariate types
-    type_cov_cat = [CATEGORICAL,]      # Categorical covariate type
-    
-    cov_num = [cov for cov in covs if cov.get_type() in type_cov_num]
-    cov_cat = [cov for cov in covs if cov.get_type() in type_cov_cat]
-    
-    if len(cov_num) + len(cov_cat) != len(covs):
-        raise Exception("Something is wrong with the covariate types")
+
+NUMERIC_AND_CATEGORICAL, INT_CONTINUOUS_FACTOR = range(2)
+def sort_covariates_by_type(covs, sort_method=NUMERIC_AND_CATEGORICAL):
+    ''' Sorts covariates in to categories:
+    if sort_method == NUMERIC_AND_CATEGORICAL:
+        'numeric' and 'categorical'
+    elif sort_method == INT_CONTINUOUS_FACTOR:
+        'int', 'continuous', 'factor'
+    Then, within those categories, sort the covariates alphabetically why not '''
     
     label_of_cov = lambda x: x.get_label()
     
-    # sort the covariates alphabetically in each section
-    cov_num.sort(key = label_of_cov)
-    cov_cat.sort(key = label_of_cov)
-    
-    return {'numeric':cov_num,
-            'categorical':cov_cat}
+    if sort_method == NUMERIC_AND_CATEGORICAL:
+        type_cov_num = [COUNT, CONTINUOUS] # Numerical covariate types
+        type_cov_cat = [CATEGORICAL,]      # Categorical covariate type
+        
+        cov_num = [cov for cov in covs if cov.get_type() in type_cov_num]
+        cov_cat = [cov for cov in covs if cov.get_type() in type_cov_cat]
+        
+        if len(cov_num) + len(cov_cat) != len(covs):
+            raise Exception("Something is wrong with the covariate types")
+        
+        # sort the covariates alphabetically in each section
+        cov_num.sort(key = label_of_cov)
+        cov_cat.sort(key = label_of_cov)
+        
+        return {'numeric':cov_num,
+                'categorical':cov_cat}
+    elif sort_method == INT_CONTINUOUS_FACTOR:
+        type_int = [COUNT,]
+        type_cont = [CONTINUOUS,] # continuous
+        type_factor = [CATEGORICAL,]
+        
+        cov_int    = [cov for cov in covs if cov.get_type() in type_int]
+        cov_cont   = [cov for cov in covs if cov.get_type() in type_cont]
+        cov_factor = [cov for cov in covs if cov.get_type() in type_factor]
+        
+        if len(cov_int) + len(cov_cont) + len(cov_factor) != len(covs):
+            raise Exception("Something is wrong with the covariate types")
+        
+        # sort the covariates alphabetically in each section
+        cov_int.sort(key = label_of_cov)
+        cov_cont.sort(key = label_of_cov)
+        cov_factor.sort(key = label_of_cov)
+        
+        return {'int':cov_int, 
+                'continuous':cov_cont,
+                'factor':cov_factor}
+    else:
+        raise Exception("Unrecognized sorting method")
 
 def dataset_to_dataframe(model, included_studies, data_location, covariates=[],
                          cov_ref_values={}, var_name="tmp_obj"):
@@ -715,7 +745,7 @@ def cols_to_data_frame(model):
     data_r = ro.DataFrame(var_col_d)
     return data_r
 
-def impute(model,covariates, m, maxit, defaultMethod_rstring):
+def impute(model, studies, covariates, m, maxit, defaultMethod_rstring, input_df_name="mice.source.df"):
     '''
     Here is a start at issue #86
     '''
@@ -734,14 +764,26 @@ def impute(model,covariates, m, maxit, defaultMethod_rstring):
     ####
 
     # convert to a data frame 
-    data_f = cols_to_data_frame(model)
-    imputed_data_f = exR.execute_in_R("mice(%s)" % data_f.r_repr())
-    # @TODO TODO TODO
-    # in theory, all that needs to happen here is we need
-    # to overwrite the current variable columns with 
-    # imputed variable columns (in imputed_data_f).
-    # probably this should be an undoable action
+    data_f = covariates_to_dataframe(model, studies, covariates)
+    # put dataframe in to R workspace
+    exR.execute_in_R("%s<-%s" % (input_df_name, data_f.r_repr()))
+    
+    mice_r_str = rstr_for_rfn("impute", data=input_df_name, m=m, maxit=maxit, defaultMethod=defaultMethod_rstring)
+    mice_result = exR.execute_in_R(mice_r_str)
+    
+    # parse out result
+    toReturn = dict(summary = mice_result.rx2('Summary')[0],
+                    imputations = mice_result.rx2('imputations'))
+    return toReturn
 
+
+
+def rstr_for_rfn(fname, **kargs):
+    # Takes an R function name and keyword arguments and builds the function
+    # call string suitable for then calling with exR.execute_in_R()
+    keyword_argument_substrs = ["{k}={v}".format(k=key,v=val) for key,val in kargs.iteritems()]
+    r_str = fname + "(" + ", ".join(keyword_argument_substrs) + ")"
+    return r_str
 
 def run_scatterplot(model, xvar, yvar, params, 
                         res_name="result", var_name="tmp_obj"):    
@@ -2017,3 +2059,69 @@ lambda={lambda_}, alpha={alpha}, include.species={include_species}, plot.params=
     
     parsed_results = parse_out_results(result)
     return parsed_results
+
+
+
+
+def covariates_to_dataframe(model, studies, covariates):
+    # This is for imputation using mice. We create an R dataframe of the portion
+    # of the dataset of interest suitable for sending on to mice.
+    # Categorical variables in the dataframe are converted to factors. Missing
+    # data will be left out of the factor levels
+    #
+    # Creates the dataframe with covariates in the same order that they were
+    # provided
+    
+    # Gathers values of the variable from amongst the included studies
+    #var_values = lambda x: [study.get_var(x) for study in studies]
+    
+    def var_values(cov, NA_type):
+        values = [study.get_var(cov) for study in studies]
+        values = [None_to_NA(x, NA_type) for x in values] # convert None to R NA of the appropriate variety
+        return values
+        
+    
+    # Covariates sorted into 'int', 'continuous', and 'factor' categories
+    sorted_covariates = sort_covariates_by_type(covariates, sort_method=INT_CONTINUOUS_FACTOR)
+    
+    # Convert covariates to R representation
+    cov_to_FloatVector = lambda cov: ro.FloatVector(var_values(cov, float))
+    cov_to_FactorVector= lambda cov: ro.FactorVector(var_values(cov, str))
+    cov_to_IntVector   = lambda cov: ro.IntVector(var_values(cov, int))
+
+    int_covs  = dict([(cov,cov_to_IntVector(cov))    for cov in sorted_covariates['int']])
+    cont_covs = dict([(cov,cov_to_FloatVector(cov))  for cov in sorted_covariates['continuous']])
+    cat_covs  = dict([(cov,cov_to_FactorVector(cov)) for cov in sorted_covariates['factor']])
+    
+    # mapping covs --> R vectors
+    covs_to_Rvectors = {}
+    covs_to_Rvectors.update(int_covs)
+    covs_to_Rvectors.update(cont_covs)
+    covs_to_Rvectors.update(cat_covs)
+    
+    # maintain order of covariates
+    ordered_init_dict = rlc.OrdDict([(cov.get_label(), covs_to_Rvectors[cov]) for cov in covariates])
+        
+    dataf = ro.DataFrame(ordered_init_dict)
+    return dataf
+
+def imputation_dataframes_to_pylist_of_ordered_dicts(imputations_list, covariates):
+    # 'imputations_list' is an R-list of imputations(data frames) with the order
+    # of covariates given in by the order of 'covariates'
+    # Converts the R list of dataframes to a python list of ordered dicts
+    #   with the order given by the order of covs in 'covariates'
+    
+    imputation_choices = []
+    
+    def vector_to_values(vector):
+        # determine class of vector
+        
+        # convert it back to a suitable python representation
+    
+    for df in imputations_list:
+        choice = OrderedDict()
+        for i,cov in enumerate(covariates):
+            choice[cov.get_label()] = vector_to_values(df[i])
+        
+        
+        imputation_choices.append(choice)

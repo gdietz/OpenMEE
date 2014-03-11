@@ -616,19 +616,6 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
         #print("Computed these effect sizes: %s" % str(results))
         
         self.undo_stack.endMacro()
-    
-    def impute_data(self):
-        '''
-        This method handles (basic?) data imputation via MICE.
-        I think the idea here will be to replace the current
-        data set with the imputed values. 
-
-        @TODO this needs to be made undoable
-        @TODO probably we are going to need to write a wizard
-        to walk the user through this.
-        '''
-        # get the current dataset
-        python_to_R.impute()
         
     #@profile_this
     def change_index_after_data_edited(self, index_top_left, index_bottom_right):        
@@ -1799,18 +1786,18 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
         self.actionR_log.setEnabled(True)
         
     def impute_missing_data(self):
+        '''
+        This method handles (basic?) data imputation via MICE.
+        I think the idea here will be to replace the current
+        data set with the imputed values. 
+
+        @TODO this needs to be made undoable
+        '''
+        
         wizard = imputation.imputation_wizard.ImputationWizard(model=self.model, parent=self)
         
         if wizard.exec_():
-            covariates = wizard.get_included_covariates()
-            m = wizard.get_m() # number of multiple imputations
-            maxit = wizard.get_maxit() # number of iterations
-            defaultMethod_rstring = wizard.get_defaultMethod_rstring()
-            
-            result = python_to_R.impute(model=self.model,
-                                        covariates=covariates,
-                                        m=m, maxit=maxit,
-                                        defaultMethod_rstring=defaultMethod_rstring)
+            return True
 
 
 if __name__ == '__main__':

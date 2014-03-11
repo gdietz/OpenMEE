@@ -16,14 +16,14 @@ import ui_mice_parameters_page
 ANY_IMP_METHODS = ['pmm','2lonly.pmm','rf','cart','sample','fastpmm']
 
 # numeric
-NUMERIC_IMP_METHODS = any + ['norm', 'norm.nob','norm.boot','norm.predict',
+NUMERIC_IMP_METHODS = ANY_IMP_METHODS + ['norm', 'norm.nob','norm.boot','norm.predict',
                              'mean','2l.norm','2l.pan','2lonly.mean',
                              '2lonly.norm','quadratic','ri']
 # factor with 2 levels
-FACTOR_2LEVEL_IMP_METHODS = any + ['logreg Logistic','logreg.boot']
+FACTOR_2LEVEL_IMP_METHODS = ANY_IMP_METHODS + ['logreg','logreg.boot']
 
 # factor w/ more than 2 levels
-FACTOR_MANY_IMP_METHODS = any + ['polyreg', 'lda']
+FACTOR_MANY_IMP_METHODS = ANY_IMP_METHODS + ['polyreg', 'lda']
 
 # These descriptions were taken from the mice documentation at:
 # http://cran.r-project.org/web/packages/mice/mice.pdf
@@ -31,7 +31,7 @@ IMP_METHOD_TO_PRETY_NAME = {
 'pmm'       : 'Predictive mean matching',                              # (any)
 '2lonly.pmm': 'Imputation at level-2 by Predictive mean matching',     # (any)
 'rf'        : 'Random forest imputations',                             # (any)
-'cart'      : 'Classiﬁcation and regression trees',                    # (any)
+'cart'      : 'Classification and regression trees',                    # (any)
 'sample'    : 'Random sample from the observed values',                # (any)
 'fastpmm'   : 'Experimental: Fast predictive mean matching using C++', # (any)
 ##############################################################################
@@ -76,11 +76,11 @@ class MiceParametersPage(QWizardPage, ui_mice_parameters_page.Ui_WizardPage):
         for x in methods:
             name = x
             pretty_name = IMP_METHOD_TO_PRETY_NAME[x]
-            self.box.addItem(pretty_name, userData=QVariant(name))
-        default_idx = self.box.findData(QVariant(default_method))
+            box.addItem(pretty_name, userData=QVariant(name))
+        default_idx = box.findData(QVariant(default_method))
         if default_idx == -1:
             raise("Default method '%s' not found" % default_method)
-        self.box.setCurrentIndex(default_idx)
+        box.setCurrentIndex(default_idx)
     
     ################################# Getters #################################
     def get_m(self): # number of multiple imputations

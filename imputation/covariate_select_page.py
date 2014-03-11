@@ -24,7 +24,7 @@ class CovariateSelectPage(QWizardPage, ui_covariate_select_page.Ui_WizardPage):
         self.model = model
         self.setup_connections()
         
-        self.studies = self.model.get_studies_in_current_order()
+        
         
     def setup_connections(self):
         # adding and removing covariates
@@ -38,6 +38,8 @@ class CovariateSelectPage(QWizardPage, ui_covariate_select_page.Ui_WizardPage):
     
     
     def initializePage(self):
+        self.studies = self.wizard().studies
+        
         self.init_covariates_lists()
  
         # make mapping of covariates to list_items and visa-versa
@@ -80,7 +82,7 @@ class CovariateSelectPage(QWizardPage, ui_covariate_select_page.Ui_WizardPage):
             
             #entries_str = entries_str="entry" if n_missing==1 else "entries"
             
-            label = "{cov_name} ({n_missing} missing".format(
+            label = "{cov_name} ({n_missing} missing)".format(
                             cov_name=name, n_missing=n_missing)
             return label
         
