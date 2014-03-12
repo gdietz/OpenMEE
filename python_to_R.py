@@ -745,46 +745,6 @@ def cols_to_data_frame(model):
     data_r = ro.DataFrame(var_col_d)
     return data_r
 
-def impute(model, studies, covariates, m, maxit, defaultMethod_rstring, input_df_name="mice.source.df"):
-    '''
-    Here is a start at issue #86
-    '''
-    # @TODO
-    # add pop-up, and possibly (probably?) a small wizard
-    # that tells the user what we're doing here and assumptions
-    # that are being made. the thinking is that we'll just use
-    # mice 'out of the box'. it seems like it's relatively
-    # straight forward to select different imputation methods
-    # for each variable column, so we may want to allow the user
-    # to do this eventually
-    #
-    # See MICE: Multivariate Imputation by Chained Equations in R
-    # http://www.stefvanbuuren.nl/publications/MICE%20in%20R%20-%20Draft.pdf
-    # Also: http://cran.r-project.org/web/packages/mice/index.html 
-    ####
-
-    # convert to a data frame 
-    data_f = covariates_to_dataframe(model, studies, covariates)
-    # put dataframe in to R workspace
-    exR.execute_in_R("%s<-%s" % (input_df_name, data_f.r_repr()))
-    
-    mice_r_str = rstr_for_rfn("impute", data=input_df_name, m=m, maxit=maxit, defaultMethod=defaultMethod_rstring)
-    mice_result = exR.execute_in_R(mice_r_str)
-    
-    # parse out result
-    toReturn = dict(summary = mice_result.rx2('Summary')[0],
-                    imputations = mice_result.rx2('imputations'))
-    return toReturn
-
-
-
-def rstr_for_rfn(fname, **kargs):
-    # Takes an R function name and keyword arguments and builds the function
-    # call string suitable for then calling with exR.execute_in_R()
-    keyword_argument_substrs = ["{k}={v}".format(k=key,v=val) for key,val in kargs.iteritems()]
-    r_str = fname + "(" + ", ".join(keyword_argument_substrs) + ")"
-    return r_str
-
 def run_scatterplot(model, xvar, yvar, params, 
                         res_name="result", var_name="tmp_obj"):    
     xvar_type = xvar.get_type()
@@ -982,8 +942,7 @@ def NA_to_None(value):
                 type(ro.NA_Logical),
                 type(ro.NA_Real),
                 type(ro.NA_Complex)]
-    NA_types = [type(ro.NA_Character), type(ro.NA_Integer), type(ro.NA_Logical), type(ro.NA_Real), type(ro.NA_Complex)]
-    
+
     if type(value) in NA_types:
         return None
     return value
@@ -2105,23 +2064,87 @@ def covariates_to_dataframe(model, studies, covariates):
     dataf = ro.DataFrame(ordered_init_dict)
     return dataf
 
+
+def dataframe_to_ordered_dict(dataframe, covariates):
+    # converts a dataframe with .names attribute corresponding to 'covariates'
+    # to an Ordered dict mapping covariates --> values
+    
+    def vector_to_values(vector):
+        # determine class of vector
+        # convert it back to a suitable python representation
+        # NAs converted to None
+    
+        if type(vector) in [ro.IntVector, ro.FloatVector, ro.StrVector]:
+            values = list(vector)
+            values = NA_to_None(values)
+            return values
+        elif isinstance(vector, ro.FactorVector):
+            values = list(list(base.as_character(vector)))
+            values = NA_to_None(values)
+            return values
+        else:
+            raise Exception("This type is unrecognizes: %s" % str(type(vector)))
+        
+    print("Covariates: %s" % [cov.get_label() for cov in covariates])
+    # pyish_df is an OrderedDict mapping the covariates to their imputed
+    # values.
+    pyish_df = OrderedDict()
+    # Build up the choice
+    print("Names in imputed df: %s" % list(dataframe.names))
+    for i,cov in enumerate(covariates):
+        pyish_df[cov] = vector_to_values(dataframe[i])  
+    return pyish_df
+
 def imputation_dataframes_to_pylist_of_ordered_dicts(imputations_list, covariates):
     # 'imputations_list' is an R-list of imputations(data frames) with the order
     # of covariates given in by the order of 'covariates'
     # Converts the R list of dataframes to a python list of ordered dicts
     #   with the order given by the order of covs in 'covariates'
     
-    imputation_choices = []
+    imputation_choices = [dataframe_to_ordered_dict(df, covariates) for df in imputations_list]
+    return imputation_choices
+
+def impute(model, studies, covariates, m, maxit, defaultMethod_rstring, input_df_name="mice.source.df"):
+    '''
+    Here is a start at issue #86
+    '''
+    # @TODO
+    # add pop-up, and possibly (probably?) a small wizard
+    # that tells the user what we're doing here and assumptions
+    # that are being made. the thinking is that we'll just use
+    # mice 'out of the box'. it seems like it's relatively
+    # straight forward to select different imputation methods
+    # for each variable column, so we may want to allow the user
+    # to do this eventually
+    #
+    # See MICE: Multivariate Imputation by Chained Equations in R
+    # http://www.stefvanbuuren.nl/publications/MICE%20in%20R%20-%20Draft.pdf
+    # Also: http://cran.r-project.org/web/packages/mice/index.html 
+    ####
+
+    # convert to a data frame 
+    data_f = covariates_to_dataframe(model, studies, covariates)
     
-    def vector_to_values(vector):
-        # determine class of vector
-        
-        # convert it back to a suitable python representation
+    # Also store the df as a python ordered dictionary for the purposes of seeing
+    # which values were None
+    source_data = dataframe_to_ordered_dict(data_f, covariates)
     
-    for df in imputations_list:
-        choice = OrderedDict()
-        for i,cov in enumerate(covariates):
-            choice[cov.get_label()] = vector_to_values(df[i])
-        
-        
-        imputation_choices.append(choice)
+    # put dataframe in to R workspace
+    exR.execute_in_R("%s<-%s" % (input_df_name, data_f.r_repr()))
+    
+    mice_r_str = rstr_for_rfn("impute", data=input_df_name, m=m, maxit=maxit, defaultMethod=defaultMethod_rstring)
+    mice_result = exR.execute_in_R(mice_r_str)
+    
+    # parse out result
+    toReturn = dict(summary = mice_result.rx2('Summary')[0],
+                    imputations = mice_result.rx2('imputations'),
+                    source_data = source_data
+                    )
+    return toReturn
+
+def rstr_for_rfn(fname, **kargs):
+    # Takes an R function name and keyword arguments and builds the function
+    # call string suitable for then calling with exR.execute_in_R()
+    keyword_argument_substrs = ["{k}={v}".format(k=key,v=val) for key,val in kargs.iteritems()]
+    r_str = fname + "(" + ", ".join(keyword_argument_substrs) + ")"
+    return r_str
