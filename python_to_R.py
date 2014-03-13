@@ -1292,30 +1292,24 @@ def parse_out_results(result, function_name=None, meta_function_name=None):
     return to_return
 
 def extract_values_for_results_data(function_name, rdata, res_info):
-    # get info about all the values
-    #value_info_tmp = exR.execute_in_R(function_name+".value.info()")
     
-    value_info = {}
-    for key in list(res_info.names):
-#         try:
+    # Get info about all the values
+    value_info = OrderedDict()
+    value_names = list(res_info.names)
+    for key in value_names:
         value_info[key]= {'type':res_info.rx2(key).rx2('type')[0],
                           'description':res_info.rx2(key).rx2('description')[0]}
-#         except:
-#             print("There be dragons here")
-    values_for_csv = dict([(key, rdata.rx2(key)) for key in value_info.keys()])
+    values_for_csv = OrderedDict([(key, rdata.rx2(key)) for key in value_names])
     
-    
-    
+    # Convert values to something suitable for printing on the python side
     for k,v in values_for_csv.iteritems():
-        
         if value_info[k]['type'] != 'vector':
-            # set width large to avoid wrapping; rapping, however, is acceptable
+            ### Set width large to avoid wrapping
             old_width = ro.r('getOption("width")')[0]
             ro.r('options(width=10000)')
-            
+            # get string representtion of object
             values_for_csv[k]=str(v)
-            
-            # set width back
+            ### Set width back
             ro.r('options(width=%d)' % old_width)
         else:
             try:
@@ -1325,8 +1319,7 @@ def extract_values_for_results_data(function_name, rdata, res_info):
                     values_for_csv[k]="NULL"
                 else:
                     raise e
-    return {'keys_in_order':list(res_info.names),
-            'value_info':value_info,
+    return {'value_info':value_info,
             'values':values_for_csv}
     
 def make_weights_str(results):
