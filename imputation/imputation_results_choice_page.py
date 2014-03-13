@@ -62,6 +62,7 @@ class ImputationResultsChoicePage(QWizardPage, ui_imputation_results_choice_page
                     # build output
                     self.output[cov][studies[row]] = x
                 self.tableWidget.setItem(row, col, item)
+        self.tableWidget.resizeColumnsToContents()
     
     def initialize_output(self):
         self.output = {}
