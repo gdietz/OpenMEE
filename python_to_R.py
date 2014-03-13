@@ -1259,7 +1259,7 @@ def parse_out_results(result, function_name=None, meta_function_name=None):
             # Construct text file with output values
             if 'res.info' in result:
                 res_info = result['res.info']
-                results_data = extract_values_for_results_data(function_name, text, res_info)
+                results_data = extract_values_for_results_data_single_result(text, res_info)
         elif text_n == "input_data":
             pass # This is the data that was passed to the analysis function
         elif text_n == "input_params":
@@ -1291,7 +1291,50 @@ def parse_out_results(result, function_name=None, meta_function_name=None):
     
     return to_return
 
-def extract_values_for_results_data(function_name, rdata, res_info):
+def extract_additional_values(res, res_info):
+    # grouped values and value info is an ordered dictionary:
+    # {'Subgroup +': {'values': {'b':5 ....},
+    #                 'value_info': {'b':{'type':fdfffd, 'description':fdfffd}}
+    
+    if _is_grouped_result(res_info):
+        subgroup_header_names = list(res_info.names)
+        grouped_values_and_value_info = OrderedDict()
+        for i,subgroup_name in enumerate(subgroup_header_names):
+            sub_res = res.rx2(i)
+            sub_res_info = res_info.rx2(i)
+            grouped_values_and_value_info[subgroup_name] = extract_values_for_results_data_single_result(sub_res, sub_res_info)
+        return grouped_values_and_value_info
+    else:
+        return extract_values_for_results_data_single_result(res, res_info)
+
+def _is_grouped_result(res_info):
+    res_info_keys = list(res_info.names)
+    
+    # Is this a grouped result? If so, all the sublists must have 'type' and
+    # 'description' keys
+    def type_and_description_keys_in_sublist(r_sublist):
+        sublist_keys = list(r_sublist.names)
+        return 'type' in sublist_keys and 'description' in sublist_keys
+    
+    # list of booleans
+    type_and_description_present_list = []
+    for key in res_info_keys:
+        sublist = res_info.rx2(key)
+        type_and_description_present = type_and_description_keys_in_sublist(sublist)
+        type_and_description_present_list.append(type_and_description_present)
+    if all(type_and_description_present_list): # all the sublists have 'type' and 'description'
+        grouped_result = False
+    else:
+        grouped_result = True
+    return grouped_result
+    
+    
+
+def extract_values_for_results_data_single_result(res, res_info):
+    # Extracts results for a single result (as opposed to result groups as in
+    # subgroup analysis)
+    # notes: res info is an R list:
+    #     res.info <- list('b'=list('type'="vector", description="blahblah"),...)
     
     # Get info about all the values
     value_info = OrderedDict()
@@ -1299,7 +1342,7 @@ def extract_values_for_results_data(function_name, rdata, res_info):
     for key in value_names:
         value_info[key]= {'type':res_info.rx2(key).rx2('type')[0],
                           'description':res_info.rx2(key).rx2('description')[0]}
-    values_for_csv = OrderedDict([(key, rdata.rx2(key)) for key in value_names])
+    values_for_csv = OrderedDict([(key, res.rx2(key)) for key in value_names])
     
     # Convert values to something suitable for printing on the python side
     for k,v in values_for_csv.iteritems():
@@ -1319,8 +1362,17 @@ def extract_values_for_results_data(function_name, rdata, res_info):
                     values_for_csv[k]="NULL"
                 else:
                     raise e
-    return {'value_info':value_info,
-            'values':values_for_csv}
+                
+    # Condense value_info and values in to one dictionary to simply the structures and logic
+    # e.g. toReturn = {'b':{'type':'vector','description':"pretty vector",'value': 5}
+    toReturn = OrderedDict()
+    for key in value_names:
+        value = values_for_csv[key]
+        val_type = value_info[key]['type']
+        val_description = value_info[key]['description']
+        toReturn[key] = {'value':value, 'type':val_type,'description':val_description}
+        
+    return toReturn
     
 def make_weights_str(results):
     ''' Make a string representing the weights due to each study in the meta analysis '''

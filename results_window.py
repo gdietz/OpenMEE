@@ -162,7 +162,7 @@ class ResultsWindow(QMainWindow, ui_results_window.Ui_ResultsWindow):
         print("Filepath: %s" % fpath)
         
         # This is an OrderedDict so key order is consistent
-        additional_values = data['values'] # a dictionary mapping keys--> values
+        #additional_values = data['values'] # a dictionary mapping keys--> values
         
         
         # write the file
@@ -183,9 +183,9 @@ class ResultsWindow(QMainWindow, ui_results_window.Ui_ResultsWindow):
             # Additional Values    
             if self.show_additional_values:
                 f.write("%s\n" % boxify("Additional Values"))
-                for key, value in additional_values.iteritems():
-                    f.write("%s: %s\n" % (key, data['value_info'][key]['description'])) # write out key and description
-                    val_str = self._value_to_string(value)
+                for key, value_data in data.iteritems():
+                    f.write("%s: %s\n" % (key, value_data['description'])) # write out key and description
+                    val_str = self._value_to_string(value_data['value'])
                     f.write(val_str)
                     # add space between values
                     f.write("\n")
@@ -312,15 +312,13 @@ class ResultsWindow(QMainWindow, ui_results_window.Ui_ResultsWindow):
     
             
     def add_additional_values_texts(self, data):
-        values = data['values'] # an ordered dictionary mapping keys--> values
-
         spacer_item = self._add_text_item("", "\n\n--------------------------------------------------")
         additional_values_item = QTreeWidgetItem(self.nav_tree, ["Additional Values"])
         self.items_to_ignore.extend([spacer_item, additional_values_item])
 
-        for key,value in values.iteritems():
-            val_str = self._value_to_string(value)
-            self._add_text_item(key+": %s" % data['value_info'][key]['description'], val_str, parent_item=additional_values_item)
+        for key,value_data in data.iteritems():
+            val_str = self._value_to_string(value_data['value'])
+            self._add_text_item(key+": %s" % value_data['description'], val_str, parent_item=additional_values_item)
             
     def _add_text_item(self, title, text, parent_item=None):
         # parent_item is the parent item in the nav tree
