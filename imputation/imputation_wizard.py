@@ -97,5 +97,6 @@ class ImputationWizard(QtGui.QWizard):
     def get_defaultMethod_rstring(self):
         return self.mice_params_page.get_defaultMethod_rstring()
     
-    # Mice Output page (holds the imputation choices)  
-    
+    # Imputation Results Choice Page
+    def get_imputed_values(self):
+        return self.imputation_results_choice_page.get_imputed_values()

@@ -14,7 +14,7 @@ class ImputationResultsChoicePage(QWizardPage, ui_imputation_results_choice_page
         super(ImputationResultsChoicePage, self).__init__(parent)
         self.setupUi(self)
         
-        self.imp_results_comboBox.currentIndexChanged[int].connect(self.populate_tablewidget)
+        self.imp_results_comboBox.currentIndexChanged[int].connect(self.populate_tablewidget_and_build_output)
         
     def initializePage(self):
         self.imputation_choices = self.wizard().get_imputation_choices()
@@ -35,15 +35,18 @@ class ImputationResultsChoicePage(QWizardPage, ui_imputation_results_choice_page
         first_cov = self.source_data.keys()[0]
         self.table_col_count = len(self.source_data.keys())
         self.table_row_count = len(self.source_data[first_cov])
-        self.populate_tablewidget(0)
+        self.output = {}
+        self.populate_tablewidget_and_build_output(0)
 
         self.imp_results_comboBox.blockSignals(False)
         self.tableWidget.blockSignals(False)
         
-    def populate_tablewidget(self, choice_idx):
+    def populate_tablewidget_and_build_output(self, choice_idx):
         choice = self.imputation_choices[choice_idx]
+        studies = self.wizard().studies
         
         self.tableWidget.clear()
+        self.initialize_output()
         self.tableWidget.setColumnCount(self.table_col_count)
         self.tableWidget.setRowCount(self.table_row_count)
 
@@ -53,6 +56,21 @@ class ImputationResultsChoicePage(QWizardPage, ui_imputation_results_choice_page
             cov, values = cov_values_tuple
             for row,x in enumerate(values):
                 item = QTableWidgetItem(str(x))
-                if self.source_data[cov][row] is None:
+                is_imputed = self.source_data[cov][row] is None
+                if is_imputed:
                     item.setBackground(Qt.yellow)
+                    # build output
+                    self.output[cov][studies[row]] = x
                 self.tableWidget.setItem(row, col, item)
+    
+    def initialize_output(self):
+        self.output = {}
+        covariates = self.source_data.keys()
+        for cov in covariates:
+            self.output[cov] = {}
+    
+    def get_imputed_values(self):
+        # Returns a dictionary with the following structure:
+        # imputed = {cov1:{study3:new_value3, study2: new_value2, ...} ...}
+        
+        return self.output

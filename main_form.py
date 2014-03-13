@@ -1797,7 +1797,20 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
         wizard = imputation.imputation_wizard.ImputationWizard(model=self.model, parent=self)
         
         if wizard.exec_():
-            return True
+            # dict mapping covs --> {study --> values}
+            imputed_values = wizard.get_imputed_values()
+            
+            ### Put imputed values into dataset undoably
+            self.undo_stack.beginMacro("Impute Missing Data")
+            ################################################################
+            for cov, studies_to_values in imputed_values.iteritems():
+                column = self.model.get_column_assigned_to_variable(cov)
+                for study,value in studies_to_values.iteritems():
+                    row = self.model.get_row_assigned_to_study(study)
+                    index = self.model.createIndex(row, column)
+                    self.model.setData(index, QVariant(value))
+            #####################################################################
+            self.undo_stack.endMacro()
 
 
 if __name__ == '__main__':

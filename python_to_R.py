@@ -2076,11 +2076,11 @@ def dataframe_to_ordered_dict(dataframe, covariates):
     
         if type(vector) in [ro.IntVector, ro.FloatVector, ro.StrVector]:
             values = list(vector)
-            values = NA_to_None(values)
+            values = [NA_to_None(val) for val in values]
             return values
         elif isinstance(vector, ro.FactorVector):
             values = list(list(base.as_character(vector)))
-            values = NA_to_None(values)
+            values = [NA_to_None(val) for val in values]
             return values
         else:
             raise Exception("This type is unrecognizes: %s" % str(type(vector)))
