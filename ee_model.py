@@ -957,7 +957,7 @@ class EETableModel(QAbstractTableModel):
                     return QVariant(PLACEHOLDER_FOR_DISPLAY)
                 else:
                     return QVariant()
-            
+                
             # Get the study this to which this row refers
             study = self.rows_2_studies[row]
             
@@ -991,6 +991,10 @@ class EETableModel(QAbstractTableModel):
             elif is_variable_col:
                 var = self.cols_2_vars[col]
                 color = self._get_variable_color(var, role)
+                # Missing entry backgrounds are colored
+                if role == Qt.BackgroundRole:
+                    if self._is_empty(var, study=self.rows_2_studies[row] if is_study_row else None):
+                        color = Qt.yellow # missing entry bg color
                 return QVariant(QBrush(color))        
                       
             return QVariant(QBrush(self.user_prefs["color_scheme"]['DEFAULT_BACKGROUND_COLOR']))
@@ -1004,6 +1008,15 @@ class EETableModel(QAbstractTableModel):
                 return QVariant()
             
         return QVariant()
+    
+    def _is_empty(self, var, study):
+        # Determine if the value is empty (None in a study row)
+
+        if study:
+            value = study.get_var(var)
+            return value is None
+        return False
+    
     
     def _get_label_color(self, role=Qt.ForegroundRole):
         if role == Qt.ForegroundRole:
