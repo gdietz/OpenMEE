@@ -1259,7 +1259,7 @@ def parse_out_results(result, function_name=None, meta_function_name=None):
             # Construct text file with output values
             if 'res.info' in result:
                 res_info = result['res.info']
-                results_data = extract_values_for_results_data_single_result(text, res_info)
+                results_data = extract_additional_values(text, res_info)
         elif text_n == "input_data":
             pass # This is the data that was passed to the analysis function
         elif text_n == "input_params":
@@ -1291,21 +1291,35 @@ def parse_out_results(result, function_name=None, meta_function_name=None):
     
     return to_return
 
-def extract_additional_values(res, res_info):
-    # grouped values and value info is an ordered dictionary:
-    # {'Subgroup +': {'values': {'b':5 ....},
-    #                 'value_info': {'b':{'type':fdfffd, 'description':fdfffd}}
-    
+def extract_additional_values(res, res_info, sublist_prefix = "__"):
+    # returns a list of tuples:
+    #     [('b',{'type':fdfffd, 'description':fdfffd, 'value':%}),
+    #       .... ]    
+    # If the first element of a tuple begins with the sublist_prefix it will be
+    # treated as the beginning of a sublist in the results_window (a tree element
+    # will be made)
+
     if _is_grouped_result(res_info):
         subgroup_header_names = list(res_info.names)
         grouped_values_and_value_info = OrderedDict()
         for i,subgroup_name in enumerate(subgroup_header_names):
-            sub_res = res.rx2(i)
-            sub_res_info = res_info.rx2(i)
+            j = i+1# R indexes from 1 not 0
+            sub_res = res.rx2(j)
+            sub_res_info = res_info.rx2(j)
             grouped_values_and_value_info[subgroup_name] = extract_values_for_results_data_single_result(sub_res, sub_res_info)
-        return grouped_values_and_value_info
+        #return grouped_values_and_value_info
+        flattened_group_output = []
+        for subgroup_name, values in grouped_values_and_value_info.items():
+            title_tuple = (sublist_prefix+subgroup_name,
+                           {'value':'######################################',
+                            'type':"label",
+                            'description':""})
+            flattened_group_output.extend([title_tuple,] + values.items())
+        print("extracted grouped values")
+        return flattened_group_output
     else:
-        return extract_values_for_results_data_single_result(res, res_info)
+        additional_values_dict = extract_values_for_results_data_single_result(res, res_info)
+        return additional_values_dict.items()   
 
 def _is_grouped_result(res_info):
     res_info_keys = list(res_info.names)

@@ -161,10 +161,6 @@ class ResultsWindow(QMainWindow, ui_results_window.Ui_ResultsWindow):
             
         print("Filepath: %s" % fpath)
         
-        # This is an OrderedDict so key order is consistent
-        #additional_values = data['values'] # a dictionary mapping keys--> values
-        
-        
         # write the file
         with open(fpath,'w') as f:
             # Add input summary
@@ -183,7 +179,7 @@ class ResultsWindow(QMainWindow, ui_results_window.Ui_ResultsWindow):
             # Additional Values    
             if self.show_additional_values:
                 f.write("%s\n" % boxify("Additional Values"))
-                for key, value_data in data.iteritems():
+                for key, value_data in data:
                     f.write("%s: %s\n" % (key, value_data['description'])) # write out key and description
                     val_str = self._value_to_string(value_data['value'])
                     f.write(val_str)
@@ -311,14 +307,22 @@ class ResultsWindow(QMainWindow, ui_results_window.Ui_ResultsWindow):
             self.texts_for_export.append((title,text))
     
             
-    def add_additional_values_texts(self, data):
+    def add_additional_values_texts(self, data, sublist_prefix="__"):
         spacer_item = self._add_text_item("", "\n\n--------------------------------------------------")
         additional_values_item = QTreeWidgetItem(self.nav_tree, ["Additional Values"])
         self.items_to_ignore.extend([spacer_item, additional_values_item])
 
-        for key,value_data in data.iteritems():
+        len_sublist_prefix = len(sublist_prefix)
+        current_parent = additional_values_item
+        for key,value_data in data:
             val_str = self._value_to_string(value_data['value'])
-            self._add_text_item(key+": %s" % value_data['description'], val_str, parent_item=additional_values_item)
+            if key[0:len_sublist_prefix] == sublist_prefix:
+                print("Sublist detectected")
+                #current_parent = QTreeWidgetItem(additional_values_item,[key[len_sublist_prefix:]])
+                current_parent = self._add_text_item(key[len_sublist_prefix:], val_str, parent_item=additional_values_item)
+                #self.items_to_ignore.append(current_parent)
+            else:
+                self._add_text_item(key+": %s" % value_data['description'], val_str, parent_item=current_parent)
             
     def _add_text_item(self, title, text, parent_item=None):
         # parent_item is the parent item in the nav tree
