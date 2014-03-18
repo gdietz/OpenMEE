@@ -17,3 +17,10 @@ import py2exe
 ##path_to_launch_file = os.path.join("src","launch.py")
 
 setup(windows=[{"script": 'launch.py'}])
+
+# Change executable name
+import os
+old_name = os.path.join("dist","launch.exe")
+new_name = os.path.join("dist","OpenMEE.exe")
+print("Renaming from %s to %s" % (old_name, new_name))
+os.rename(old_name, new_name)
