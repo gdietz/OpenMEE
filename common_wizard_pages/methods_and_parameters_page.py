@@ -408,7 +408,8 @@ class MethodsAndParametersPage(QWizardPage, ui_methods_and_parameters_page.Ui_Wi
     def __str__(self):
         chosen_method_str = "Chosen Method: %s" % self.get_current_method_pretty_name()
         random_effects_method_str = None
-        if "rm.method" in self.current_param_vals:
+        # stupid fix....
+        if "fixed" not in self.get_current_method() and "rm.method" in self.current_param_vals:
             random_effects_method_str = "Random Effects Method: " + python_to_R.get_random_effects_methods_descriptions(self.get_current_method())[self.current_param_vals['rm.method']]
             summary = "\n".join([chosen_method_str, random_effects_method_str])
         else:
