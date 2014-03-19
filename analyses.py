@@ -518,6 +518,7 @@ class Analyzer:
             output_type     = wizard.get_output_type()
             summary         = wizard.get_summary()
             save_selections = wizard.save_selections() # a bool
+            btt             = wizard.get_btt()
             
             if analysis_type == PARAMETRIC and output_type == NORMAL:
                 mode = META_REG_MODE
@@ -565,7 +566,8 @@ class Analyzer:
                                        interactions=interactions,
                                        fixed_effects=fixed_effects,
                                        conf_level=conf_level,
-                                       random_effects_method=random_effects_method)
+                                       random_effects_method=random_effects_method,
+                                       btt=btt)
                 elif mode == META_REG_COND_MEANS:
                     result = self.run_gmeta_regression_cond_means(
                                        selected_cov=selected_cov,
@@ -577,7 +579,8 @@ class Analyzer:
                                        interactions=interactions,
                                        fixed_effects=fixed_effects,
                                        conf_level=conf_level,
-                                       random_effects_method=random_effects_method)
+                                       random_effects_method=random_effects_method,
+                                       btt=btt)
                 elif mode == BOOTSTRAP_META_REG:
                     result = self.run_gmeta_regression_bootstrapped(
                                        num_replicates=bootstrap_params['num.bootstrap.replicates'],
@@ -589,7 +592,8 @@ class Analyzer:
                                        interactions=interactions,
                                        fixed_effects=fixed_effects,
                                        conf_level=conf_level,
-                                       random_effects_method=random_effects_method)
+                                       random_effects_method=random_effects_method,
+                                       btt=btt)
                 elif mode == BOOTSTRAP_META_REG_COND_MEANS:
                     result = self.run_gmeta_regression_bootstrapped_cond_means(
                                        num_replicates=bootstrap_params['num.bootstrap.replicates'], # bootstrap
@@ -603,7 +607,7 @@ class Analyzer:
                                        interactions=interactions,
                                        fixed_effects=fixed_effects,
                                        conf_level=conf_level,
-                                       random_effects_method=random_effects_method)
+                                       random_effects_method=random_effects_method,btt=btt)
                     
             except CrazyRError as e:
                 if SOUND_EFFECTS:
@@ -617,7 +621,7 @@ class Analyzer:
                              data_location, covariates, cov_ref_values,
                              interactions,
                              fixed_effects, conf_level, random_effects_method,
-                             digits = 3):
+                             digits = 3,btt=None):
 
         model = self._get_model()
         
@@ -639,6 +643,7 @@ class Analyzer:
                                   random_effects_method=random_effects_method,
                                   digits=digits,
                                   conf_level=conf_level,
+                                  btt=btt,
                                   data_name="tmp_obj")
         
         bar.hide()
@@ -651,7 +656,7 @@ class Analyzer:
                              interactions,
                              fixed_effects, conf_level, random_effects_method,
                              selected_cov, covs_to_values,
-                             digits = 4):
+                             digits=4, btt=None):
 
         model = self._get_model()
         
@@ -674,7 +679,7 @@ class Analyzer:
                                   fixed_effects=fixed_effects,
                                   random_effects_method=random_effects_method,
                                   digits=digits,
-                                  conf_level=conf_level,
+                                  conf_level=conf_level,btt=btt,
                                   data_name="tmp_obj")
         
         bar.hide()
@@ -687,7 +692,7 @@ class Analyzer:
                              data_location, covariates, cov_ref_values,
                              interactions,
                              fixed_effects, conf_level, random_effects_method,
-                             digits = 4):
+                             digits=4, btt=None):
 
         model = self._get_model()
         
@@ -710,7 +715,7 @@ class Analyzer:
                                   fixed_effects=fixed_effects,
                                   random_effects_method=random_effects_method,
                                   digits=digits,
-                                  conf_level=conf_level,
+                                  conf_level=conf_level,btt=btt,
                                   data_name="tmp_obj")
         
         bar.hide()
@@ -724,7 +729,7 @@ class Analyzer:
                              interactions,
                              fixed_effects, conf_level, random_effects_method,
                              selected_cov, covs_to_values,
-                             digits = 4):
+                             digits=4, btt=None):
 
         model = self._get_model()
         
@@ -749,7 +754,7 @@ class Analyzer:
                                   fixed_effects=fixed_effects,
                                   random_effects_method=random_effects_method,
                                   digits=digits,
-                                  conf_level=conf_level,
+                                  conf_level=conf_level,btt=btt,
                                   data_name="tmp_obj")
         
         bar.hide()

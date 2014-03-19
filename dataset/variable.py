@@ -63,3 +63,6 @@ class Variable:
 
     def get_type_as_str(self):
         return VARIABLE_TYPE_STRING_REPS[self.var_type]
+
+    def __str__(self):
+        return self.get_label()

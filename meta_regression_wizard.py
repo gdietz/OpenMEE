@@ -98,10 +98,10 @@ class MetaRegressionWizard(QtGui.QWizard):
         elif page_id == Page_DataLocation:
             return Page_RefineStudies
         elif page_id == Page_RefineStudies:
-            return Page_MetaRegDetails
-        elif page_id == Page_MetaRegDetails:
             return Page_SelectCovariates
         elif page_id == Page_SelectCovariates:
+            return Page_MetaRegDetails
+        elif page_id == Page_MetaRegDetails:
             if self._categorical_covariates_selected():
                 return Page_ReferenceValues
             else:
@@ -173,6 +173,8 @@ class MetaRegressionWizard(QtGui.QWizard):
         return self.meta_reg_details_page.get_analysis_type()
     def get_output_type(self): # PARAMETRIC or CONDITIONAL_MEANS
         return self.meta_reg_details_page.get_output_type()
+    def get_btt(self): # (a var or interaction, None, 'covariate', 'interaction' i.e. the type)
+        return self.meta_reg_details_page.get_btt()
         
     # Reference Values page
     def get_covariate_reference_levels(self):

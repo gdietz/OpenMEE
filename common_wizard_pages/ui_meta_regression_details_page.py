@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'meta_regression_details_page.ui'
 #
-# Created: Fri Feb 21 13:23:15 2014
+# Created: Wed Mar 19 15:05:14 2014
 #      by: PyQt4 UI code generator 4.10.3
 #
 # WARNING! All changes made in this file will be lost!
@@ -26,9 +26,9 @@ except AttributeError:
 class Ui_WizardPage(object):
     def setupUi(self, WizardPage):
         WizardPage.setObjectName(_fromUtf8("WizardPage"))
-        WizardPage.resize(477, 217)
-        self.verticalLayout_3 = QtGui.QVBoxLayout(WizardPage)
-        self.verticalLayout_3.setObjectName(_fromUtf8("verticalLayout_3"))
+        WizardPage.resize(529, 430)
+        self.verticalLayout_5 = QtGui.QVBoxLayout(WizardPage)
+        self.verticalLayout_5.setObjectName(_fromUtf8("verticalLayout_5"))
         self.horizontalLayout_2 = QtGui.QHBoxLayout()
         self.horizontalLayout_2.setObjectName(_fromUtf8("horizontalLayout_2"))
         self.model_type_groupBox = QtGui.QGroupBox(WizardPage)
@@ -54,7 +54,7 @@ class Ui_WizardPage(object):
         self.horizontalLayout_2.addWidget(self.random_effects_method_GroupBox)
         spacerItem = QtGui.QSpacerItem(40, 20, QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Minimum)
         self.horizontalLayout_2.addItem(spacerItem)
-        self.verticalLayout_3.addLayout(self.horizontalLayout_2)
+        self.verticalLayout_5.addLayout(self.horizontalLayout_2)
         self.horizontalLayout_4 = QtGui.QHBoxLayout()
         self.horizontalLayout_4.setObjectName(_fromUtf8("horizontalLayout_4"))
         self.analysis_type_groupBox = QtGui.QGroupBox(WizardPage)
@@ -94,12 +94,35 @@ class Ui_WizardPage(object):
         self.horizontalLayout_4.addWidget(self.conf_level_groupBox)
         spacerItem2 = QtGui.QSpacerItem(40, 20, QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Minimum)
         self.horizontalLayout_4.addItem(spacerItem2)
-        self.verticalLayout_3.addLayout(self.horizontalLayout_4)
+        self.verticalLayout_5.addLayout(self.horizontalLayout_4)
+        self.horizontalLayout_5 = QtGui.QHBoxLayout()
+        self.horizontalLayout_5.setObjectName(_fromUtf8("horizontalLayout_5"))
+        self.groupBox = QtGui.QGroupBox(WizardPage)
+        self.groupBox.setMinimumSize(QtCore.QSize(320, 0))
+        self.groupBox.setObjectName(_fromUtf8("groupBox"))
+        self.verticalLayout_3 = QtGui.QVBoxLayout(self.groupBox)
+        self.verticalLayout_3.setObjectName(_fromUtf8("verticalLayout_3"))
+        self.label = QtGui.QLabel(self.groupBox)
+        self.label.setWordWrap(True)
+        self.label.setObjectName(_fromUtf8("label"))
+        self.verticalLayout_3.addWidget(self.label)
+        self.horizontalLayout_6 = QtGui.QHBoxLayout()
+        self.horizontalLayout_6.setObjectName(_fromUtf8("horizontalLayout_6"))
+        self.btt_comboBox = QtGui.QComboBox(self.groupBox)
+        self.btt_comboBox.setObjectName(_fromUtf8("btt_comboBox"))
+        self.horizontalLayout_6.addWidget(self.btt_comboBox)
+        spacerItem3 = QtGui.QSpacerItem(40, 20, QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Minimum)
+        self.horizontalLayout_6.addItem(spacerItem3)
+        self.verticalLayout_3.addLayout(self.horizontalLayout_6)
+        self.horizontalLayout_5.addWidget(self.groupBox)
+        spacerItem4 = QtGui.QSpacerItem(40, 20, QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Minimum)
+        self.horizontalLayout_5.addItem(spacerItem4)
+        self.verticalLayout_5.addLayout(self.horizontalLayout_5)
         self.phylogen_checkBox = QtGui.QCheckBox(WizardPage)
         self.phylogen_checkBox.setObjectName(_fromUtf8("phylogen_checkBox"))
-        self.verticalLayout_3.addWidget(self.phylogen_checkBox)
-        spacerItem3 = QtGui.QSpacerItem(20, 1, QtGui.QSizePolicy.Minimum, QtGui.QSizePolicy.Expanding)
-        self.verticalLayout_3.addItem(spacerItem3)
+        self.verticalLayout_5.addWidget(self.phylogen_checkBox)
+        spacerItem5 = QtGui.QSpacerItem(20, 1, QtGui.QSizePolicy.Minimum, QtGui.QSizePolicy.Expanding)
+        self.verticalLayout_5.addItem(spacerItem5)
 
         self.retranslateUi(WizardPage)
         QtCore.QMetaObject.connectSlotsByName(WizardPage)
@@ -118,6 +141,8 @@ class Ui_WizardPage(object):
         self.conditional_means_checkBox.setText(_translate("WizardPage", "Conditional Means", None))
         self.conf_level_groupBox.setTitle(_translate("WizardPage", "Confidence Level", None))
         self.conf_level_spinbox.setSuffix(_translate("WizardPage", " %", None))
+        self.groupBox.setTitle(_translate("WizardPage", "Covariate or Interaction for Omnibus Test of Moderators", None))
+        self.label.setText(_translate("WizardPage", "The regression coefficients corresponding to the chosen covariate or interaction will be included in the omnibus test of moderators.  ", None))
         self.phylogen_checkBox.setToolTip(_translate("WizardPage", "if checked, you will be asked to provide a phylogenetic tree", None))
         self.phylogen_checkBox.setText(_translate("WizardPage", "Use phylogenetic correlations?", None))
 

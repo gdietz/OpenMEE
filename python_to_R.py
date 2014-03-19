@@ -1454,17 +1454,29 @@ def run_gmeta_regression(covariates=[],
                          random_effects_method="DL",
                          digits=4,
                          conf_level=DEFAULT_CONFIDENCE_LEVEL,
+                         btt=None, 
                          results_name="results_obj"):
 
     # Set fixed-effects vs. random effects        
     method_str = "FE" if fixed_effects else random_effects_method   
     
-    # Mods is a Listvector (see description in _make_mods_str)
-    mods = _make_mods_str(covariates, interactions)
+    # Mods is a Listvector (see description in _make_mods_listVector)
+    mods = _make_mods_listVector(covariates, interactions)
     
-    r_str = "{results} <- g.meta.regression(data={data}, mods={mods}, method=\"{method}\", level={level}, digits={digits})".format(
+    # get btt indices for omnibus test of moderators
+    choice, choice_type = btt
+    btt_indices = get_btt_indices(data=ro.r(data_name),
+                                  mods=mods,
+                                  choice=choice, choice_type=choice_type)
+    if len(btt_indices) > 0:
+        btt_indices_vector_str = ro.IntVector(btt_indices).r_repr()
+    else:
+        btt_indices_vector_str = str(ro.NULL)
+    
+    r_str = "{results} <- g.meta.regression(data={data}, mods={mods}, method=\"{method}\", level={level}, digits={digits}, btt={btt})".format(
                 results=results_name, data=data_name, mods=mods.r_repr(),
-                method=random_effects_method, level=conf_level, digits=digits)
+                method=random_effects_method, level=conf_level, digits=digits,
+                btt=btt_indices_vector_str)
     
     exR.execute_in_R(r_str)
     result = exR.execute_in_R("%s" % results_name)
@@ -1472,7 +1484,7 @@ def run_gmeta_regression(covariates=[],
     parsed_results = parse_out_results(result)
     return parsed_results
 
-def _make_mods_str(covariates, interactions):
+def _make_mods_listVector(covariates, interactions):
     #### Create mods list (model moderators) as specified in g.meta.regression
     ####     on the R side like so:
     # mods: list(numeric=c(...numeric moderators...),
@@ -1508,6 +1520,68 @@ def _make_mods_str(covariates, interactions):
     #### end of building mods listVector #####
     return mods
 
+def get_btt_indices(data, mods, choice, choice_type):
+    # mods is the output of _make_mods_listVector() above
+    # choice is a covariate or interaction inside one of the lists of inside of mods
+    if choice is None:
+        return []
+    # Choice as it exists in mods
+    choice_R = choice.get_label_R_compatible() if choice_type == "covariate" else choice.r_colon_name()
+    
+    #########
+    # Take mods and for each element (numeric, categorical, interactions) build
+    # an ordered dictionary mapping each cov/interacton to # of generated coefficients
+    n_coeffs_odict = OrderedDict([('numeric',     OrderedDict()),
+                                  ('categorical', OrderedDict()),
+                                  ('interactions',OrderedDict())])
+    # count numeric mods
+    numeric_mods = list(mods.rx2("numeric"))
+    n_coeffs_odict["numeric"]=OrderedDict([(x, 1) for x in numeric_mods])
+    # count categorical mods
+    categorical_mods = list(mods.rx2("categorical"))
+    for cat_mod in categorical_mods:
+        levels = data.rx2(cat_mod).levels
+        n_coeffs_odict["categorical"][cat_mod] = len(levels) - 1 # minus 1 for the intercept term
+    # count interaction mods
+    def n_coeffs(cov_name):
+        # count number of coeffs that cov_name generates
+        if cov_name in n_coeffs_odict['numeric']:
+            return n_coeffs_odict['numeric'][cov_name]
+        elif cov_name in n_coeffs_odict['categorical']:
+            return n_coeffs_odict['categorical'][cov_name]
+        else:
+            raise Exception("Covariate %s not found" % cov_name)
+    interactions_listVector = mods.rx2("interactions")
+    if len(interactions_listVector) == 0:
+        interaction_names = []
+    else:
+        interaction_names = interactions_listVector.names
+    for inter_name in interaction_names:
+        cov1, cov2 = list(interactions_listVector.rx2(inter_name))
+        n_coeffs_odict["interactions"][inter_name] = n_coeffs(cov1) * n_coeffs(cov2)
+    # counting complete
+    ############
+    
+    # Find choice_R in n_coeffs_odict, summing along the way to find the indices
+    # of interest
+    start_less_one = 1 # intercept at index 1
+    for main_category in ["numeric", "categorical","interactions"]:
+        for coeff_name, num_coefficients in n_coeffs_odict[main_category].items():
+            if coeff_name == choice_R:
+                start_idx = start_less_one+1
+                last_idx = start_idx + num_coefficients-1
+                return range(start_idx, last_idx+1)
+            else:
+                start_less_one += num_coefficients
+    
+    raise Exception("Should've finished before now")
+                
+            
+        
+    
+    
+
+
 def run_gmeta_regression_cond_means(selected_cov, covs_to_values,
                          covariates=[],
                          interactions=[],
@@ -1516,22 +1590,36 @@ def run_gmeta_regression_cond_means(selected_cov, covs_to_values,
                          random_effects_method="DL",
                          digits=4,
                          conf_level=DEFAULT_CONFIDENCE_LEVEL,
+                         btt=None,
                          results_name="results_obj"):
 
     # Set fixed-effects vs. random effects        
     method_str = "FE" if fixed_effects else random_effects_method   
     
-    # Mods is a Listvector (see description in _make_mods_str)
-    mods = _make_mods_str(covariates, interactions)
+    # Mods is a Listvector (see description in _make_mods_listVector)
+    mods = _make_mods_listVector(covariates, interactions)
+    
+    # get btt indices for omnibus test of moderators
+    choice, choice_type = btt
+    btt_indices = get_btt_indices(data=ro.r(data_name),
+                                  mods=mods,
+                                  choice=choice, choice_type=choice_type)
+    if len(btt_indices) > 0:
+        btt_indices_vector_str = ro.IntVector(btt_indices).r_repr()
+    else:
+        btt_indices_vector_str = str(ro.NULL)
+    
+    
+    
     cond_data = _make_conditional_data_listVector(covs_to_values)
     
     r_str = "{results} <- g.meta.regression.cond.means(data={data},   \
     mods={mods}, method=\"{method}\", level={level}, digits={digits}, \
-    strat.cov=\"{strat_cov}\", cond.means.data={cond_means_data})".format(
+    strat.cov=\"{strat_cov}\", cond.means.data={cond_means_data}, btt={btt})".format(
                 results=results_name, data=data_name, mods=mods.r_repr(),
                 method=random_effects_method, level=conf_level, digits=digits,
                 strat_cov=selected_cov.get_label(),
-                cond_means_data=cond_data.r_repr())
+                cond_means_data=cond_data.r_repr(), btt=btt_indices_vector_str)
     
     exR.execute_in_R(r_str)
     result = exR.execute_in_R("%s" % results_name)
@@ -1557,6 +1645,7 @@ def run_gmeta_regression_bootstrapped(
                          digits=4,
                          histogram_title="",
                          conf_level=DEFAULT_CONFIDENCE_LEVEL,
+                         btt=None,
                          results_name="results_obj"):
     
     # TODO: Set this to be some timestamped file path later?
@@ -1566,8 +1655,8 @@ def run_gmeta_regression_bootstrapped(
     # Set fixed-effects vs. random effects        
     method_str = "FE" if fixed_effects else random_effects_method   
     
-    # Mods is a Listvector (see description in _make_mods_str)
-    mods = _make_mods_str(covariates, interactions)
+    # Mods is a Listvector (see description in _make_mods_listVector)
+    mods = _make_mods_listVector(covariates, interactions)
     
     r_str = "{results} <- g.bootstrap.meta.regression(data={data}, mods={mods}, \
 method=\"{method}\", level={level}, digits={digits}, \
@@ -1594,6 +1683,7 @@ def run_gmeta_regression_bootstrapped_cond_means(selected_cov, covs_to_values,
                          digits=4,
                          histogram_title="",
                          conf_level=DEFAULT_CONFIDENCE_LEVEL,
+                         btt=None,
                          results_name="results_obj"):
     
     # TODO: Set this to be some timestamped file path later?
@@ -1603,8 +1693,8 @@ def run_gmeta_regression_bootstrapped_cond_means(selected_cov, covs_to_values,
     # Set fixed-effects vs. random effects        
     method_str = "FE" if fixed_effects else random_effects_method   
     
-    # Mods is a Listvector (see description in _make_mods_str)
-    mods = _make_mods_str(covariates, interactions)
+    # Mods is a Listvector (see description in _make_mods_listVector)
+    mods = _make_mods_listVector(covariates, interactions)
     cond_data = _make_conditional_data_listVector(covs_to_values)
     
     r_str = "{results} <- g.bootstrap.meta.regression.cond.means(data={data}, mods={mods}, \
@@ -2027,9 +2117,9 @@ def run_model_building(model_info,
     full_model_info = model_info[0]
     reduced_model_info = model_info[1]
     
-    # Mods is a Listvector (see description in _make_mods_str)
-    mods_full = _make_mods_str(full_model_info['covariates'], full_model_info['interactions'])
-    mods_reduced = _make_mods_str(reduced_model_info['covariates'], reduced_model_info['interactions'])
+    # Mods is a Listvector (see description in _make_mods_listVector)
+    mods_full = _make_mods_listVector(full_model_info['covariates'], full_model_info['interactions'])
+    mods_reduced = _make_mods_listVector(reduced_model_info['covariates'], reduced_model_info['interactions'])
 
     r_str = "{results} <- model.building(data={data}, full.mods={full_mods}, reduced.mods={reduced_mods}, method=\"{method}\", level={level}, digits={digits})".format(
                 results=results_name, data=data_name, full_mods=mods_full.r_repr(), reduced_mods=mods_reduced.r_repr(),
