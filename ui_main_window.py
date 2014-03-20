@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'main_window.ui'
 #
-# Created: Fri Mar  7 16:25:04 2014
+# Created: Thu Mar 20 10:37:03 2014
 #      by: PyQt4 UI code generator 4.10.3
 #
 # WARNING! All changes made in this file will be lost!
@@ -190,6 +190,8 @@ class Ui_MainWindow(object):
         self.actionContingency_Table.setObjectName(_fromUtf8("actionContingency_Table"))
         self.actionImpute_Missing_Data = QtGui.QAction(MainWindow)
         self.actionImpute_Missing_Data.setObjectName(_fromUtf8("actionImpute_Missing_Data"))
+        self.actionMultiple_Imputation_Meta_Analysis = QtGui.QAction(MainWindow)
+        self.actionMultiple_Imputation_Meta_Analysis.setObjectName(_fromUtf8("actionMultiple_Imputation_Meta_Analysis"))
         self.menuFile.addAction(self.actionNew)
         self.menuFile.addAction(self.actionOpen)
         self.menuFile.addAction(self.actionSave)
@@ -225,6 +227,7 @@ class Ui_MainWindow(object):
         self.menuAnalysis.addSeparator()
         self.menuAnalysis.addAction(self.actionPhyloMA)
         self.menuAnalysis.addAction(self.actionModel_Building)
+        self.menuAnalysis.addAction(self.actionMultiple_Imputation_Meta_Analysis)
         self.menuAbout.addAction(self.action_about)
         self.menuPublication_Bias_2.addAction(self.actionFail_Safe_N)
         self.menuPublication_Bias_2.addAction(self.actionFunnel_Plot)
@@ -321,5 +324,6 @@ class Ui_MainWindow(object):
         self.actionR_log.setText(_translate("MainWindow", "R output viewer", None))
         self.actionContingency_Table.setText(_translate("MainWindow", "Contingency Table", None))
         self.actionImpute_Missing_Data.setText(_translate("MainWindow", "Impute Missing Data", None))
+        self.actionMultiple_Imputation_Meta_Analysis.setText(_translate("MainWindow", "Multiple Imputation Meta-Analysis", None))
 
 import icons_rc

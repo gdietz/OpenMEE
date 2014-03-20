@@ -97,6 +97,7 @@
     <addaction name="separator"/>
     <addaction name="actionPhyloMA"/>
     <addaction name="actionModel_Building"/>
+    <addaction name="actionMultiple_Imputation_Meta_Analysis"/>
    </widget>
    <widget class="QMenu" name="menuAbout">
     <property name="title">
@@ -433,6 +434,11 @@
   <action name="actionImpute_Missing_Data">
    <property name="text">
     <string>Impute Missing Data</string>
+   </property>
+  </action>
+  <action name="actionMultiple_Imputation_Meta_Analysis">
+   <property name="text">
+    <string>Multiple Imputation Meta-Analysis</string>
    </property>
   </action>
  </widget>
