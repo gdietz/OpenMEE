@@ -24,6 +24,7 @@ from ome_globals import *
 from meta_progress import MetaProgress
 from publication_bias_wizards import FunnelWizard, FailsafeWizard
 from model_building.model_building_wizard import ModelBuildingWizard
+from multiple_imputation_meta_analysis_wizard import MiMaWizard
 
 
 # # catches an r exception, displays a message, returns None if there is an exception
@@ -1093,4 +1094,124 @@ class Analyzer:
         
         bar.hide()
         bar.deleteLater()
+        return result
+    
+    ############# Multiply imputed meta analysis ####################
+    
+    def mi_meta_analysis(self, meta_f_str=None, mode = MA_MODE):
+        model = self._get_model()
+        
+        wizard = MiMaWizard(model=model, parent=self.main_form)
+        if wizard.exec_():
+            data_type, metric = wizard.get_data_type_and_metric()
+            data_location = wizard.get_data_location()
+            included_studies = wizard.get_included_studies_in_proper_order()
+            chosen_method = wizard.get_current_method()
+            save_selections = wizard.save_selections() # a bool
+            summary = wizard.get_summary()
+
+            if save_selections:
+                # Save selections made for next analysis
+                model.update_data_type_selection(data_type)    # int
+                model.update_metric_selection(metric)          # int
+                model.update_method_selection(chosen_method)   #int??? str??
+                model.update_data_location_choices(data_type, data_location)     # save data locations choices for this data type in the model
+                model.update_previously_included_studies(set(included_studies))  # save which studies were included on last meta-regression
+                
+            try:
+                result = self.run_mi_ma(included_studies,
+                            data_type, metric,
+                            data_location,
+                            chosen_method,
+                            covs_to_include=[])
+            except CrazyRError as e:
+                if SOUND_EFFECTS:
+                    silly.play()
+                QMessageBox.critical(self.main_form, "Oops", str(e))
+            self._display_results(result, summary)
+            
+    # run multiply imputed meta analysis
+    def run_mi_ma(self, included_studies, data_type, metric, data_location,
+               current_param_vals, chosen_method, meta_f_str,
+               covs_to_include=[]):
+        
+        model = self._get_model()
+        
+        # First, let's fire up a progress bar
+        bar = MetaProgress()
+        bar.show()
+        result = None
+        
+        # TODO: This all needs to be changed from here on down
+        
+
+        # also add the metric to the parameters
+        # -- this is for scaling
+        current_param_vals["measure"] = METRIC_TO_ESCALC_MEASURE[metric]
+    
+        try:
+            # dispatch on type; build an R object, then run the analysis
+            if OMA_CONVENTION[data_type] == "binary":
+                # note that this call creates a tmp object in R called
+                # tmp_obj (though you can pass in whatever var name
+                # you'd like)
+                make_dataset_r_str = python_to_R.dataset_to_simple_binary_robj(model=model,
+                                                          included_studies=included_studies,
+                                                          data_location=data_location,
+                                                          covs_to_include=covs_to_include)
+                if meta_f_str is None:
+                    result = python_to_R.run_binary_ma(function_name=chosen_method,
+                                                       params=current_param_vals)
+                    # for making tests
+                    if MAKE_TESTS:
+                        self._writeout_test_parameters("python_to_R.run_binary_ma", make_dataset_r_str, result,
+                                                        function_name=chosen_method,
+                                                        params=current_param_vals)
+                else:
+                    result = python_to_R.run_meta_method(meta_function_name = meta_f_str,
+                                                         function_name = chosen_method,
+                                                         params = current_param_vals)
+                    if MAKE_TESTS:
+                        self._writeout_test_parameters("python_to_R.run_meta_method", make_dataset_r_str, result,
+                                                    meta_function_name = meta_f_str,
+                                                    function_name = chosen_method,
+                                                    params = current_param_vals)
+                    
+            elif OMA_CONVENTION[data_type] == "continuous":
+                make_dataset_r_str = python_to_R.dataset_to_simple_continuous_robj(model=model,
+                                                              included_studies=included_studies,
+                                                              data_location=data_location,
+                                                              data_type=data_type, 
+                                                              covs_to_include=covs_to_include)
+                if meta_f_str is None:
+                    # run standard meta-analysis
+                    result = python_to_R.run_continuous_ma(function_name = chosen_method,
+                                                           params = current_param_vals)
+                    if MAKE_TESTS:
+                        self._writeout_test_parameters("python_to_R.run_continuous_ma", make_dataset_r_str, result,
+                                                    function_name = chosen_method,
+                                                    params = current_param_vals)
+                else:
+                    # get meta!
+                    result = python_to_R.run_meta_method(meta_function_name = meta_f_str,
+                                                         function_name = chosen_method,
+                                                         params = current_param_vals)
+                    if MAKE_TESTS:
+                        self._writeout_test_parameters("python_to_R.run_meta_method", make_dataset_r_str, result,
+                                                    meta_function_name = meta_f_str,
+                                                         function_name = chosen_method,
+                                                         params = current_param_vals)
+                
+                #_writeout_test_data(meta_f_str, self.current_method, current_param_vals, result) # FOR MAKING TESTS
+        finally:
+            bar.hide()
+
+        # update the user_preferences object for the selected method
+        # with the values selected for this run
+        # TODO: refactor this so that all preferences just get stored/loaded
+        # in the model
+        current_dict = self.main_form.get_user_method_params_d()
+        current_dict[chosen_method] = current_param_vals
+        self.main_form.update_user_prefs("method_params", current_dict)
+        
         return result

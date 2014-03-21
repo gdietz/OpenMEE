@@ -99,14 +99,10 @@ class AbstractMetaAnalysisWizard(QtGui.QWizard):
         ''' returns tuple (data_type, metric) '''
         return self.choose_effect_size_page.get_data_type_and_metric()
 
-    
     def nextId(self):
         next_id = self.nextId_helper(self.currentId())
         return next_id
-            
-
-
-            
+     
     def get_summary(self):
         ''' Make a summary string to show the user at the end of the wizard summarizing most of the user selections '''
         return wizard_summary(wizard=self, next_id_helper=self.nextId_helper,
@@ -223,6 +219,8 @@ class BootstrapMetaAnalysisWizard(RegularMetaAnalysisWizard):
         
     def get_bootstrap_params(self):
         return self.bootstrap_page.get_bootstrap_params()
+
+
 
 
 # if __name__ == '__main__':
