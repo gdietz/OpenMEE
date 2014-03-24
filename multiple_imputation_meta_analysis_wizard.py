@@ -151,18 +151,21 @@ class MiMaWizard(QtGui.QWizard):
     def get_imputation_summary(self):
         return self.imp_results['summary']
          
-    def get_imputation_choices(self):
-        covariates = self.get_included_covariates() # covariates in original order
-         
-        imputation_choices = python_to_R.imputation_dataframes_to_pylist_of_ordered_dicts(
-                                        self.imp_results['imputations'],
-                                        covariates)
-        return imputation_choices
+#     def get_imputation_choices(self):
+#         covariates = self.get_included_covariates() # covariates in original order
+#          
+#         imputation_choices = python_to_R.imputation_dataframes_to_pylist_of_ordered_dicts(
+#                                         self.imp_results['imputations'],
+#                                         covariates)
+#         return imputation_choices
      
     def get_source_data(self):
         # an ordered dict mapping covariates --> values to see which ones are
         # none
         return self.imp_results['source_data']
+    
+    def get_imputations(self):
+        return self.imp_results['imputations'] # R list of imputations
  
     ######## getters ###########
      
@@ -178,6 +181,6 @@ class MiMaWizard(QtGui.QWizard):
     def get_defaultMethod_rstring(self):
         return self.mice_params_page.get_defaultMethod_rstring()
      
-    # Imputation Results Choice Page
-    def get_imputed_values(self):
-        return self.imputation_results_choice_page.get_imputed_values()
+#     # Imputation Results Choice Page
+#     def get_imputed_values(self):
+#         return self.imputation_results_choice_page.get_imputed_values()

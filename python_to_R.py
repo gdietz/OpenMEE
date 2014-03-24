@@ -651,7 +651,8 @@ def dataset_to_dataframe(model, included_studies, data_location, covariates=[],
     init_dict.update(cat_covs)
     
     dataf = ro.DataFrame(init_dict)
-    exR.execute_in_R("%s<-%s" % (var_name,dataf.r_repr())) # create dataframe in r workspace
+    if var_name: # don't put the dataframe into the workspace if var_name is None
+        exR.execute_in_R("%s<-%s" % (var_name,dataf.r_repr())) # create dataframe in r workspace
     return dataf
 
 def dataset_to_simple_fsn_data_robj(model, included_studies, data_location,
@@ -2297,3 +2298,42 @@ def rstr_for_rfn(fname, **kargs):
     keyword_argument_substrs = ["{k}={v}".format(k=key,v=val) for key,val in kargs.iteritems()]
     r_str = fname + "(" + ", ".join(keyword_argument_substrs) + ")"
     return r_str
+
+def make_imputed_datasets(source_dataset, imputations, imputed_datasets_name):
+    # source_dataset is a complete (well, missing NAs and such) R dataframe (with yi, vi, slab, etc)
+    # imputations is an R list of dataframes containing imputed covariate values
+        # Make R list of datasets with imputed data
+        imputed_datasets = ro.ListVector()
+        for i,imp in enumerate(imputations):
+            imputed_datasets.rx2[i]=source_dataset
+            # copy imputed covariates into this sub-dataset
+            for cov_name in list(imp.names):
+                imputed_datasets.rx2[i].rx2[cov_name] = imp.rx2(cov_name)
+                
+        # put object into R environment
+        "%s <- %s" % (imputed_datasets_name, imputed_datasets.r_repr())
+        
+        return imputed_datasets
+
+# Runs a meta analysis/regression depending on whether covariates are chosen
+# or not
+def run_multiple_imputation_meta_analysis(ma_params,
+                                          covariates=[],
+                                          interactions=[],
+                                          imputed_datasets_name="tmp_obj",
+                                          results_name="results_obj"):
+
+    # Mods is a Listvector (see description in _make_mods_listVector)
+    mods = _make_mods_listVector(covariates, interactions)
+    
+    r_str = "{results} <- multiply.imputed.meta.analysis(imputed.datasets={data}, mods={mods}, rma.args={params})".format(
+                results=results_name,
+                data=imputed_datasets_name,
+                mods=mods.r_repr(),
+                params = ma_params.r_repr())
+    
+    exR.execute_in_R(r_str)
+    result = exR.execute_in_R("%s" % results_name)
+    
+    parsed_results = parse_out_results(result)
+    return parsed_results
