@@ -110,7 +110,7 @@
        </widget>
       </item>
       <item row="3" column="1">
-       <widget class="QSpinBox" name="spinBox">
+       <widget class="QSpinBox" name="digits_spinBox">
         <property name="minimum">
          <number>1</number>
         </property>
@@ -123,7 +123,7 @@
        </widget>
       </item>
       <item row="4" column="1">
-       <widget class="QCheckBox" name="checkBox">
+       <widget class="QCheckBox" name="knha_checkBox">
         <property name="toolTip">
          <string>Should the method by Knapp and Hartung (2003) be used for adjusting test statistics and confidence intervals?</string>
         </property>
@@ -136,7 +136,7 @@
     </widget>
    </item>
   </layout>
-  <zorder>checkBox</zorder>
+  <zorder>knha_checkBox</zorder>
   <zorder>groupBox_3</zorder>
   <zorder></zorder>
   <zorder>label_2</zorder>

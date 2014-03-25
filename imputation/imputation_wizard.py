@@ -45,6 +45,9 @@ class ImputationWizard(QtGui.QWizard):
         self.imputation_results_choice_page = ImputationResultsChoicePage()
         self.setPage(Page_ImpResChoices, self.imputation_results_choice_page)
         
+    def get_included_studies_in_proper_order(self):
+        return self.studies
+        
     def nextId(self):
         current_id = self.currentId()
         

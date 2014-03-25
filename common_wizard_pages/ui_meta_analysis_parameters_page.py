@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'meta_analysis_parameters_page.ui'
 #
-# Created: Mon Mar 24 16:19:53 2014
+# Created: Tue Mar 25 08:41:27 2014
 #      by: PyQt4 UI code generator 4.10.3
 #
 # WARNING! All changes made in this file will be lost!
@@ -68,15 +68,15 @@ class Ui_WizardPage(object):
         self.label_5 = QtGui.QLabel(self.groupBox_3)
         self.label_5.setObjectName(_fromUtf8("label_5"))
         self.formLayout.setWidget(3, QtGui.QFormLayout.LabelRole, self.label_5)
-        self.spinBox = QtGui.QSpinBox(self.groupBox_3)
-        self.spinBox.setMinimum(1)
-        self.spinBox.setMaximum(10)
-        self.spinBox.setProperty("value", 3)
-        self.spinBox.setObjectName(_fromUtf8("spinBox"))
-        self.formLayout.setWidget(3, QtGui.QFormLayout.FieldRole, self.spinBox)
-        self.checkBox = QtGui.QCheckBox(self.groupBox_3)
-        self.checkBox.setObjectName(_fromUtf8("checkBox"))
-        self.formLayout.setWidget(4, QtGui.QFormLayout.FieldRole, self.checkBox)
+        self.digits_spinBox = QtGui.QSpinBox(self.groupBox_3)
+        self.digits_spinBox.setMinimum(1)
+        self.digits_spinBox.setMaximum(10)
+        self.digits_spinBox.setProperty("value", 3)
+        self.digits_spinBox.setObjectName(_fromUtf8("digits_spinBox"))
+        self.formLayout.setWidget(3, QtGui.QFormLayout.FieldRole, self.digits_spinBox)
+        self.knha_checkBox = QtGui.QCheckBox(self.groupBox_3)
+        self.knha_checkBox.setObjectName(_fromUtf8("knha_checkBox"))
+        self.formLayout.setWidget(4, QtGui.QFormLayout.FieldRole, self.knha_checkBox)
         self.verticalLayout.addWidget(self.groupBox_3)
 
         self.retranslateUi(WizardPage)
@@ -95,6 +95,6 @@ class Ui_WizardPage(object):
         self.conf_level_spinbox.setToolTip(_translate("WizardPage", "Global confidence level set on main toolbar", None))
         self.conf_level_spinbox.setSuffix(_translate("WizardPage", " %", None))
         self.label_5.setText(_translate("WizardPage", "digits:", None))
-        self.checkBox.setToolTip(_translate("WizardPage", "Should the method by Knapp and Hartung (2003) be used for adjusting test statistics and confidence intervals?", None))
-        self.checkBox.setText(_translate("WizardPage", "Knapp and Hartung adjustment", None))
+        self.knha_checkBox.setToolTip(_translate("WizardPage", "Should the method by Knapp and Hartung (2003) be used for adjusting test statistics and confidence intervals?", None))
+        self.knha_checkBox.setText(_translate("WizardPage", "Knapp and Hartung adjustment", None))
 

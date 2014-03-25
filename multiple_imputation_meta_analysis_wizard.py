@@ -16,7 +16,7 @@ Created on Mar 21, 2014
 from PyQt4 import QtCore, QtGui
 from PyQt4.Qt import *
 
-from ome_globals import wizard_summary
+from ome_globals import wizard_summary, CATEGORICAL
 import python_to_R
 
 # meta analysis pages
@@ -24,6 +24,9 @@ from common_wizard_pages.choose_effect_size_page import ChooseEffectSizePage
 from common_wizard_pages.data_location_page import DataLocationPage
 from common_wizard_pages.refine_studies_page import RefineStudiesPage
 from common_wizard_pages.summary_page import SummaryPage
+from common_wizard_pages.meta_analysis_parameters_page import MetaAnalysisParametersPage
+from common_wizard_pages.reference_value_page import ReferenceValuePage
+from common_wizard_pages.select_covariates_page import SelectCovariatesPage
 
 # mice pages
 from imputation.covariate_select_page import CovariateSelectPage
@@ -31,18 +34,25 @@ from imputation.mice_parameters_page import MiceParametersPage
 from imputation.mice_output_page import MiceOutputPage
 
 (Page_ChooseEffectSize, Page_DataLocation, Page_RefineStudies, Page_Summary,
- Page_MiceParameters, Page_CovariateSelect, Page_MiceOutput) = range(7)
+ Page_Parameters, Page_SelectCovariates, Page_ReferenceValues,
+ Page_MiceParameters, Page_CovariateSelect, Page_MiceOutput) = range(10)
 
 class MiMaWizard(QtGui.QWizard):
     def __init__(self, model, parent=None):
         super(MiMaWizard, self).__init__(parent)
         
+        self.analysis_label = "Multiply-Imputed Meta Analysis/Regression"
         self.model = model
         self.imp_results = None
+        
         last_analysis = model.get_last_analysis_selections() # selections from last analysis of whatever type
         
         # Initialize pages that we will need to access later
-        # TODO: make my own meta analysis details page to replace the methods and parameters page
+        self.parameters_page = MetaAnalysisParametersPage(method="FE" if last_analysis['fixed_effects'] else last_analysis['random_effects_method'],
+                                                          level=model.get_conf_level(),
+                                                          digits=model.get_precision(),
+                                                          knha=last_analysis['knha'])
+        self.setPage(Page_Parameters, self.parameters_page)
         
         # choose effect size
         self.choose_effect_size_page = ChooseEffectSizePage(add_generic_effect=True,
@@ -67,11 +77,26 @@ class MiMaWizard(QtGui.QWizard):
         self.mice_params_page = MiceParametersPage()
         self.setPage(Page_MiceParameters, self.mice_params_page)
          
-        # Covariate Select Page
+        # Covariate Select Page (for choosing covariates to impute with)
         self.cov_select_page = CovariateSelectPage(model = self.model)
         self.setPage(Page_CovariateSelect, self.cov_select_page)
+        
+        # Select Covariates page (for choosing covariates to do with regression with)
+        self.select_covariates_page = SelectCovariatesPage(
+                model=model,
+                previously_included_covs=last_analysis['included_covariates'],
+                min_covariates=0,
+                allow_covs_with_missing_data=True)
+        self.setPage(Page_SelectCovariates, self.select_covariates_page)
+        
+        
+        # Reference Value Page
+        self.reference_value_page = ReferenceValuePage(
+                    model=model,
+                    prev_cov_to_ref_level=last_analysis['cov_2_ref_values'])
+        self.setPage(Page_ReferenceValues, self.reference_value_page)
          
-        # Output page
+        # Mice Output page
         self.mice_output_page = MiceOutputPage()
         self.setPage(Page_MiceOutput, self.mice_output_page)
             
@@ -89,15 +114,22 @@ class MiMaWizard(QtGui.QWizard):
         elif page_id == Page_DataLocation:
             return Page_RefineStudies
         elif page_id == Page_RefineStudies:
-            return Page_MethodsAndParameters   # replace with my new details page
-        elif page_id == Page_MethodsAndParameters:
-            return Page_Summary
-        elif page_id == Page_MiceParameters:
+            return Page_Parameters
+        elif page_id == Page_Parameters: # meta analysis parameters
+            return Page_MiceParameters
+        elif page_id == Page_MiceParameters: # mice parameters
             return Page_CovariateSelect
         elif page_id == Page_CovariateSelect:
             return Page_MiceOutput
         elif page_id == Page_MiceOutput:
-            return -1
+            return Page_SelectCovariates
+        elif page_id == Page_SelectCovariates:
+            if self._categorical_covariates_selected():
+                return Page_ReferenceValues
+            else:
+                return Page_Summary
+        elif page_id == Page_ReferenceValues:
+            return Page_Summary
         elif page_id == Page_Summary:
             return -1
         
@@ -108,9 +140,20 @@ class MiMaWizard(QtGui.QWizard):
     def _change_size(self, pageid):
         print("changing size")
         self.adjustSize()
+        
+    def _require_categorical(self): # just to make select covariates page happy
+        return False
+    
+    def _categorical_covariates_selected(self):
+        '''are categorical variables selected?'''
+        
+        included_covariates = self.get_included_covariates()
+        categorical_covariates = [cov for cov in included_covariates if cov.get_type()==CATEGORICAL]
+        return len(categorical_covariates) > 0
 
     # My details page
-    # TODO: this
+    def get_analysis_parameters(self):
+        return self.parameters_page.get_parameters()
     
     # refine studies page
     def get_included_studies_in_proper_order(self):
@@ -128,20 +171,10 @@ class MiMaWizard(QtGui.QWizard):
         ''' returns tuple (data_type, metric) '''
         return self.choose_effect_size_page.get_data_type_and_metric()
     
-    def get_summary(self):
-        ''' Make a summary string to show the user at the end of the wizard summarizing most of the user selections '''
-        return wizard_summary(wizard=self, next_id_helper=self.nextId_helper,
-                              summary_page_id=Page_Summary,
-                              analysis_label="Meta-Analysis")
-    
-    def save_selections(self): # returns a bool
-        # Should the selections be saved? 
-        return self.summary_page.save_selections()
-    
     def _run_imputation(self):
         imp_results = python_to_R.impute(model=self.model,
-                                         studies=self.studies,
-                                         covariates=self.get_included_covariates(),
+                                         studies=self.get_included_studies_in_proper_order(),
+                                         covariates=self.get_covariates_for_imputation(),
                                          m=self.get_m(),
                                          maxit=self.get_maxit(),
                                          defaultMethod_rstring=self.get_defaultMethod_rstring())
@@ -170,7 +203,7 @@ class MiMaWizard(QtGui.QWizard):
     ######## getters ###########
      
     ### Covariate Select Page
-    def get_included_covariates(self):
+    def get_covariates_for_imputation(self):
         return self.cov_select_page.get_included_covariates()
      
     ### Mice Parameters Page
@@ -180,7 +213,24 @@ class MiMaWizard(QtGui.QWizard):
         return self.mice_params_page.get_maxit()
     def get_defaultMethod_rstring(self):
         return self.mice_params_page.get_defaultMethod_rstring()
-     
-#     # Imputation Results Choice Page
-#     def get_imputed_values(self):
-#         return self.imputation_results_choice_page.get_imputed_values()
+
+    ### Reference values page
+    def get_covariate_reference_levels(self):
+        return self.reference_value_page.get_covariate_reference_levels()
+    
+    # Select covariates Page
+    def get_included_covariates(self): # covariates for regression (not imputation)
+        return self.select_covariates_page.get_included_covariates()
+    def get_included_interactions(self):
+        return self.select_covariates_page.get_interactions()
+
+    # Summary page
+    def save_selections(self):
+        return self.summary_page.save_selections()
+    
+    # Summary Page
+    def get_summary(self):
+        ''' Make a summary string to show the user at the end of the wizard summarizing most of the user selections '''
+        return wizard_summary(wizard=self, next_id_helper=self.nextId_helper,
+                              summary_page_id=Page_Summary,
+                              analysis_label=self.analysis_label)

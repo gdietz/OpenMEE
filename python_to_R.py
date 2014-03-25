@@ -610,10 +610,14 @@ def dataset_to_dataframe(model, included_studies, data_location, covariates=[],
     
     # Convert covariates to R representation
     def cov_to_FloatVector(cov):
-        return ro.FloatVector(var_values(cov))
+        values = var_values(cov)
+        # convert Nones to NA
+        values = [None_to_NA(x, float) for x in values]
+        return ro.FloatVector(values)
     def cov_to_Factor(cov):
         ref_value = cov_ref_values[cov] if cov in cov_ref_values else None
         values = var_values(cov)
+        values = [None_to_NA(x, str) for x in values]
         levels = list(set(values))
         levels.sort()
         if ref_value:
@@ -2303,17 +2307,25 @@ def make_imputed_datasets(source_dataset, imputations, imputed_datasets_name):
     # source_dataset is a complete (well, missing NAs and such) R dataframe (with yi, vi, slab, etc)
     # imputations is an R list of dataframes containing imputed covariate values
         # Make R list of datasets with imputed data
-        imputed_datasets = ro.ListVector()
+        imputed_datasets = ro.ListVector([])
         for i,imp in enumerate(imputations):
-            imputed_datasets.rx2[i]=source_dataset
+            j = i+1 # r indexes from 1, not 0
+            imputed_datasets[j]=source_dataset
             # copy imputed covariates into this sub-dataset
             for cov_name in list(imp.names):
-                imputed_datasets.rx2[i].rx2[cov_name] = imp.rx2(cov_name)
+                # this looks hairy but all that's happening is on the left side
+                # i'm getting the index of cov name in the imputed_dataset
+                imputed_datasets[j][get_idx(cov_name, imputed_datasets[j])] = imp.rx2(cov_name)
                 
         # put object into R environment
         "%s <- %s" % (imputed_datasets_name, imputed_datasets.r_repr())
         
         return imputed_datasets
+
+def get_idx(name, rthing):
+    # gets the index of name in rthing (a list or dataframe)
+    return rthing.names.index(name)
+    
 
 # Runs a meta analysis/regression depending on whether covariates are chosen
 # or not
@@ -2323,6 +2335,9 @@ def run_multiple_imputation_meta_analysis(ma_params,
                                           imputed_datasets_name="tmp_obj",
                                           results_name="results_obj"):
 
+    # build ma_params
+    params = params_dict_to_Robject(ma_params, "list"),
+
     # Mods is a Listvector (see description in _make_mods_listVector)
     mods = _make_mods_listVector(covariates, interactions)
     
@@ -2330,10 +2345,23 @@ def run_multiple_imputation_meta_analysis(ma_params,
                 results=results_name,
                 data=imputed_datasets_name,
                 mods=mods.r_repr(),
-                params = ma_params.r_repr())
+                params = params.r_repr())
     
     exR.execute_in_R(r_str)
     result = exR.execute_in_R("%s" % results_name)
     
     parsed_results = parse_out_results(result)
     return parsed_results
+
+def params_dict_to_Robject(params, robject_type ="list"):
+    # Builds an R object (either a "list" or "dataframe") corresponding to the
+    # params dict.
+    # each param should be a scalar value
+    
+    if robject_type == "list":
+        return ro.ListVector(params)
+    elif robject_type == "dataframe":
+        return ro.DataFrame(params)
+    else:
+        raise Exception("robject type is incorrect ")
+        

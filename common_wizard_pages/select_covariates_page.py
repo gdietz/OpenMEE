@@ -25,11 +25,18 @@ class SelectCovariatesPage(QWizardPage, ui_select_covariates_page.Ui_WizardPage)
     
     def __init__(self, model,
                  previously_included_covs = [],
+                 min_covariates=1, # minimum # of covariates requires
+                 allow_covs_with_missing_data=False,
                  parent=None): # todo: set defaults of previous parameters to None
         super(SelectCovariatesPage, self).__init__(parent)
         self.setupUi(self)
         
         self.model = model
+        self.min_covariates = min_covariates
+        self.allow_covs_with_missing_data = allow_covs_with_missing_data
+        
+        if allow_covs_with_missing_data:
+            self.unavailable_covs_groupbox.hide()
         
         self.interactions = []
         self.item_to_interaction = {}
@@ -174,12 +181,16 @@ class SelectCovariatesPage(QWizardPage, ui_select_covariates_page.Ui_WizardPage)
     def init_covariates_lists(self):
         self.available_covariates = []
         self.selected_covariates = []
-        self.unavailable_covariates = {} # cov --> reason why unavailable
+        self.unavailable_covariates = []
         
         included_studies = self.wizard().get_included_studies_in_proper_order()
-        valid_and_invalid_covariates = self.model.get_variables_with_data(studies=included_studies)
-        self.available_covariates = valid_and_invalid_covariates['valid']
-        self.unavailable_covariates = valid_and_invalid_covariates['invalid']
+        
+        if self.allow_covs_with_missing_data:
+            self.available_covariates = self.model.get_variables()
+        else:
+            valid_and_invalid_covariates = self.model.get_variables_with_data(studies=included_studies)
+            self.available_covariates = valid_and_invalid_covariates['valid']
+            self.unavailable_covariates = valid_and_invalid_covariates['invalid']
         
         # move previously included covariates to the selected_covariates list
         # if they still exist in the model and are valid given the study selections
@@ -198,9 +209,29 @@ class SelectCovariatesPage(QWizardPage, ui_select_covariates_page.Ui_WizardPage)
         mapping cov --> item '''
         
         for cov in cov_list:
-            item = QListWidgetItem(cov.get_label())
+            label = cov.get_label()
+            if self.allow_covs_with_missing_data:
+                missing_entries = self.count_missing_entries(cov)
+                if missing_entries > 0:
+                    label += " (%d missing entries)" % missing_entries
+
+            item = QListWidgetItem(label)
             self.cov_to_item[cov] = item
             self.item_to_cov[item]=cov
+            
+    def count_missing_entries(self, cov):
+        # count the number of missing entries for the cov in the included
+        # studies
+        
+        included_studies = self.wizard().get_included_studies_in_proper_order()
+        
+        # count missing data points
+        n_missing = 0
+        for study in included_studies:
+            val = study.get_var(cov)
+            if val is None or val == "":
+                n_missing += 1
+        return n_missing
     
                 
     def move_cov(self, cov, source_list, target_list):
@@ -308,8 +339,8 @@ class SelectCovariatesPage(QWizardPage, ui_select_covariates_page.Ui_WizardPage)
             select_cov_types = (cov.get_type()==CATEGORICAL for cov in self.selected_covariates)
             return any(select_cov_types)
         else:
-            # is at least one covariate selected?
-            return len(self.selected_covariates) > 0
+            # are at least the minimum # of covariates selected?
+            return len(self.selected_covariates) >= self.min_covariates
                 
         
     ############ getters ################################################   

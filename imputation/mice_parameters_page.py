@@ -89,6 +89,11 @@ class MiceParametersPage(QWizardPage, ui_mice_parameters_page.Ui_WizardPage):
         return self.maxit_spinBox.value()
     
     def get_defaultMethod_rstring(self):
+        
+        # We don't deal with ordered factors with >2 levels (4th argument)
+        return 'c("%s","%s","%s","polr")' % tuple(self._get_default_methods())
+    
+    def _get_default_methods(self):
         # from mice doc: defaultMethod = c("pmm","logreg", "polyreg", "polr")
         # 1st is numeric, 2nd is factor 2 level, 3rd is factor >2 levels, 3rd is ordered factor >2 levels
         
@@ -100,6 +105,15 @@ class MiceParametersPage(QWizardPage, ui_mice_parameters_page.Ui_WizardPage):
         factor2_method    = str(factor2_data.toString())
         factor_gt2_method = str(factor_gt2_data.toString())
         
-        # We don't deal with ordered factors with >2 levels (4th argument)
-        return 'c("%s","%s","%s","polr")' % (numeric_method, factor2_method, factor_gt2_method)
-        
+        return [numeric_method, factor2_method, factor_gt2_method]
+    
+    ###########################################################################
+    def __str__(self):
+        imputation_info_str = "Imputation Details:\n  # multiple imputations: {m}\n  # iterations: {maxit}\n".format(m=self.get_m(), maxit=self.get_maxit())
+        default_methods = self._get_default_methods()
+        methods_str = "  Methods for data:\n    numeric data: {numeric}\n    2-level factors: {factor2}\n    >2-level factor: {gt2factor}".format(
+                            numeric=IMP_METHOD_TO_PRETY_NAME[default_methods[0]],
+                            factor2=IMP_METHOD_TO_PRETY_NAME[default_methods[1]],
+                            gt2factor=IMP_METHOD_TO_PRETY_NAME[default_methods[2]])
+        imputation_info_str += methods_str
+        return imputation_info_str

@@ -63,9 +63,10 @@ DEFAULT_LAST_ANALYSIS_SELECTIONS = {'data_locations': {MEANS_AND_STD_DEVS:{},
                                     'covs_to_values'     : None,
                                     'failsafe_parameters': None,
                                     'funnel_params'      : None,
-                                    'random_effects_method' : None,
+                                    'random_effects_method' : "REML",
                                     'analysis_type'      : PARAMETRIC,
                                     'phylogen'           : False,
+                                    'knha'               : False,
                                     }
         
 

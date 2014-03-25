@@ -944,7 +944,7 @@ class Analyzer:
     
     ############# Multiply imputed meta analysis ####################
     
-    def mi_meta_analysis(self, meta_f_str=None, mode = MA_MODE):
+    def mi_meta_analysis(self):
         model = self._get_model()
         
         wizard = MiMaWizard(model=model, parent=self.main_form)
@@ -953,7 +953,11 @@ class Analyzer:
             data_location = wizard.get_data_location()
             included_studies = wizard.get_included_studies_in_proper_order()
             imputations = wizard.get_imputations() # R list of imputation results
-            ma_details = wizard.get_ma_details() # like method, digits, etc
+            ma_details = wizard.get_analysis_parameters() # like method, digits, etc
+            covariates_for_regression = wizard.get_included_covariates()
+            covariates_for_imputation = wizard.get_covariates_for_imputation()
+            cov_ref_values = wizard.get_covariate_reference_levels()
+            interactions = wizard.get_included_interactions()
             
             save_selections = wizard.save_selections() # a bool
             summary = wizard.get_summary()
@@ -973,7 +977,11 @@ class Analyzer:
                             metric=metric,
                             data_location=data_location,
                             ma_params=ma_details,
-                            covs_to_include=[])
+                            imputations=imputations,
+                            cov_ref_values=cov_ref_values,
+                            reg_covariates=covariates_for_regression,
+                            imp_covariates=covariates_for_imputation,
+                            interactions=interactions)
             except CrazyRError as e:
                 if SOUND_EFFECTS:
                     silly.play()
@@ -989,7 +997,8 @@ class Analyzer:
                   ma_params, # regression details includes: method, confidence level, digits, zero cell correction factor, etc.
                   imputations, # R list of imputed covariates
                   cov_ref_values={},
-                  covariates=[],
+                  reg_covariates=[], # regression covariates
+                  imp_covariates=[], # imputation covariates
                   interactions=[]):
         
 
@@ -997,12 +1006,15 @@ class Analyzer:
         
         bar = MetaProgress()
         bar.show()
+    
+        # regression and imputation covaraites
+        all_covs = set(reg_covariates+imp_covariates)
         
-        # Make dataframe of data with associated covariates
+        # Make dataframe of data with associated covariates (both those for imputation and for regression)
         original_dataset = python_to_R.dataset_to_dataframe(model=model,
                                          included_studies=included_studies,
                                          data_location=data_location,
-                                         covariates=covariates,
+                                         covariates=all_covs,
                                          cov_ref_values=cov_ref_values)
         
         
@@ -1012,7 +1024,7 @@ class Analyzer:
         
         result = python_to_R.run_multiple_imputation_meta_analysis(
                     ma_params,
-                    covariates=covariates, interactions=interactions,
+                    covariates=reg_covariates, interactions=interactions,
                     imputed_datasets_name=imputed_datasets_name,
                     results_name="results_obj")
         

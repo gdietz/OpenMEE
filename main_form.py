@@ -292,6 +292,7 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
         
         self.actionTransform_Effect_Size.triggered.connect(self.transform_effect_size_bulk)
         self.actionModel_Building.triggered.connect(self.analyst.model_building)
+        self.actionMultiple_Imputation_Meta_Analysis.triggered.connect(self.analyst.mi_meta_analysis)
         
         #self.actionMeta_Regression.triggered.connect(self.analyst.meta_regression)
         self.actionMeta_Regression.triggered.connect(self.analyst.gmeta_regression)

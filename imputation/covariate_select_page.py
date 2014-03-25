@@ -1,16 +1,18 @@
-##################
-#                #
-# George Dietz   #
-# CEBM@Brown     #
-#                #
-# Date: 3/7/14   #
-#                #
-##################
+#######################################################################
+#                                                                     #
+# George Dietz                                                        #
+# CEBM@Brown                                                          #
+# Date: 3/7/14                                                        #
+#                                                                     #
+# Description: This is to select the covariates to use for imputation #
+#                                                                     #
+#######################################################################
 
 from PyQt4 import QtCore, QtGui
 from PyQt4.Qt import *
 
 import ui_covariate_select_page
+
 
 class CovariateSelectPage(QWizardPage, ui_covariate_select_page.Ui_WizardPage):
     
@@ -24,7 +26,7 @@ class CovariateSelectPage(QWizardPage, ui_covariate_select_page.Ui_WizardPage):
         self.model = model
         self.setup_connections()
         
-        
+        self.setSubTitle("Choose the covariates you'd like to impute with")
         
     def setup_connections(self):
         # adding and removing covariates
@@ -38,7 +40,7 @@ class CovariateSelectPage(QWizardPage, ui_covariate_select_page.Ui_WizardPage):
     
     
     def initializePage(self):
-        self.studies = self.wizard().studies
+        self.studies = self.wizard().get_included_studies_in_proper_order()
         
         self.init_covariates_lists()
  
@@ -51,6 +53,7 @@ class CovariateSelectPage(QWizardPage, ui_covariate_select_page.Ui_WizardPage):
         # populate the 3 list widgets with items
         self.populate_listWidget(self.available_covs_listWidget, self.available_covariates)
         self.populate_listWidget(self.selected_covs_listWidget, self.selected_covariates)
+        print("Initialize Page (Covariate Select Page) called")
         
     def init_covariates_lists(self):
         self.available_covariates = []
@@ -72,13 +75,8 @@ class CovariateSelectPage(QWizardPage, ui_covariate_select_page.Ui_WizardPage):
             by the number of missing data points e.g. "Habitat (4 missing entries) '''
             name = cov.get_label()
             #n_studies = len(self.studies)
-            
-            # count missing data points
-            n_missing = 0
-            for study in self.studies:
-                val = study.get_var(cov)
-                if val is None or val == "":
-                    n_missing += 1
+
+            n_missing = self.count_missing_entries(cov)
             
             #entries_str = entries_str="entry" if n_missing==1 else "entries"
             
@@ -91,7 +89,18 @@ class CovariateSelectPage(QWizardPage, ui_covariate_select_page.Ui_WizardPage):
             self.cov_to_item[cov] = item
             self.item_to_cov[item]=cov
     
-                
+    def count_missing_entries(self, cov):
+        # count the number of missing entries for the cov in the included
+        # studies
+        
+        # count missing data points
+        n_missing = 0
+        for study in self.studies:
+            val = study.get_var(cov)
+            if val is None or val == "":
+                n_missing += 1
+        return n_missing
+            
     def move_cov(self, cov, source_list, target_list):
         ''' moves cov from source_list to target_list '''
         
@@ -188,8 +197,14 @@ class CovariateSelectPage(QWizardPage, ui_covariate_select_page.Ui_WizardPage):
                   
     def isComplete(self):
         # are at least 2 covariates selected?
-        return len(self.selected_covariates) >= 2
-                
+        at_least_2_covs_selected = len(self.selected_covariates) >= 2
+        
+        # Is a missing entry present?
+        missing_entries = [self.count_missing_entries(cov) > 0 for cov in self.selected_covariates]
+        missing_entry_present = any(missing_entries)
+        
+        return at_least_2_covs_selected  and missing_entry_present
+    
         
     ############ getters ################################################   
     def get_included_covariates(self):

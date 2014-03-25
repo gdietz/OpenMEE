@@ -22,3 +22,5 @@ class MiceOutputPage(QWizardPage, ui_mice_output_page.Ui_WizardPage):
         self.plainTextEdit.clear()
         self.plainTextEdit.appendPlainText(summary)
         
+    def __str__(self):
+        return ""
