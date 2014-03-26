@@ -36,6 +36,10 @@ class MetaAnalysisParametersPage(QWizardPage, ui_meta_analysis_parameters_page.U
         # Setup connections
         self.setup_connections()
         
+        # Disable knha for now since its not implemented on the R side
+        self.knha_checkBox.setEnabled(False)
+        self.knha_checkBox.setToolTip("disabled for now since its not implemented on the R side yet")
+        
     
     def setup_connections(self):
         # radio buttons

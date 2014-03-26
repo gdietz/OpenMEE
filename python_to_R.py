@@ -2301,30 +2301,21 @@ def rstr_for_rfn(fname, **kargs):
     # call string suitable for then calling with exR.execute_in_R()
     keyword_argument_substrs = ["{k}={v}".format(k=key,v=val) for key,val in kargs.iteritems()]
     r_str = fname + "(" + ", ".join(keyword_argument_substrs) + ")"
-    return r_str
+    return r_str   
 
-def make_imputed_datasets(source_dataset, imputations, imputed_datasets_name):
-    # source_dataset is a complete (well, missing NAs and such) R dataframe (with yi, vi, slab, etc)
-    # imputations is an R list of dataframes containing imputed covariate values
-        # Make R list of datasets with imputed data
-        imputed_datasets = ro.ListVector([])
-        for i,imp in enumerate(imputations):
-            j = i+1 # r indexes from 1, not 0
-            imputed_datasets[j]=source_dataset
-            # copy imputed covariates into this sub-dataset
-            for cov_name in list(imp.names):
-                # this looks hairy but all that's happening is on the left side
-                # i'm getting the index of cov name in the imputed_dataset
-                imputed_datasets[j][get_idx(cov_name, imputed_datasets[j])] = imp.rx2(cov_name)
-                
-        # put object into R environment
-        "%s <- %s" % (imputed_datasets_name, imputed_datasets.r_repr())
-        
-        return imputed_datasets
 
-def get_idx(name, rthing):
-    # gets the index of name in rthing (a list or dataframe)
-    return rthing.names.index(name)
+def make_imputed_datasets(original_dataset,
+                          imputations,
+                          imputed_datasets_name="imputed.datasets"):
+    # Makes R list of datasets with imputated values and put it in the R
+    # workspace as imputed_datasets_name
+    # original dataset is a dataframe
+    # imputations is a list of dataframes containing imputed values
+    r_str = "combine.imputations.with.dataset(%s, %s)" % (original_dataset.r_repr(), imputations.r_repr())
+    imputed_datasets = exR.execute_in_R(r_str)
+    r_str = "%s <- %s" % (imputed_datasets_name, imputed_datasets.r_repr())
+    exR.execute_in_R(r_str)
+    return imputed_datasets
     
 
 # Runs a meta analysis/regression depending on whether covariates are chosen
@@ -2336,7 +2327,7 @@ def run_multiple_imputation_meta_analysis(ma_params,
                                           results_name="results_obj"):
 
     # build ma_params
-    params = params_dict_to_Robject(ma_params, "list"),
+    params = params_dict_to_Robject(ma_params, "list")
 
     # Mods is a Listvector (see description in _make_mods_listVector)
     mods = _make_mods_listVector(covariates, interactions)
@@ -2359,9 +2350,11 @@ def params_dict_to_Robject(params, robject_type ="list"):
     # each param should be a scalar value
     
     if robject_type == "list":
-        return ro.ListVector(params)
+        robj = ro.ListVector(params)
     elif robject_type == "dataframe":
-        return ro.DataFrame(params)
+        robj = ro.DataFrame(params)
     else:
         raise Exception("robject type is incorrect ")
+    
+    return robj
         

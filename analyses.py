@@ -1019,7 +1019,7 @@ class Analyzer:
         
         
         # Make R list of datasets with imputed data and insert into workspace
-        imputed_datasets_name = "tmp_obj"
+        imputed_datasets_name = "imputed.datasets"
         python_to_R.make_imputed_datasets(original_dataset, imputations, imputed_datasets_name=imputed_datasets_name)
         
         result = python_to_R.run_multiple_imputation_meta_analysis(
