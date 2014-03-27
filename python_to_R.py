@@ -1293,7 +1293,7 @@ def parse_out_results(result, function_name=None, meta_function_name=None):
         to_return["results_data"]=results_data
     except NameError:
         pass
-    
+
     return to_return
 
 def extract_additional_values(res, res_info, sublist_prefix = "__"):
