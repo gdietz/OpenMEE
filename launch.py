@@ -11,7 +11,6 @@ import time
 
 from PyQt4 import QtCore, QtGui
 from PyQt4.Qt import *
-from PyQt4.QtGui import QPixmap, QSplashScreen
 
 import python_to_R
 import main_form

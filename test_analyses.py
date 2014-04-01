@@ -15,9 +15,9 @@ import ome_globals
 #print("Importing meta_form")
 import launch
 import main_form
-print("Importing meta_py_r")
+#print("Importing meta_py_r")
 import python_to_R
-from python_to_R import exR
+#from python_to_R import exR
 from meta_progress import MetaProgress
 
 app,form = None, None
@@ -102,7 +102,7 @@ def check_analysis(test_data, check_images=False):
             function_params_dict[key] = value
     
     analysis_function = eval(fnc_to_evaluate)
-    exR.execute_in_R(make_dataset_r_str)
+    python_to_R.exR.execute_in_R(make_dataset_r_str)
     test_results = analysis_function(**function_params_dict)
     
     if not check_images:

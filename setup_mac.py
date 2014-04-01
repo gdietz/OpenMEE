@@ -11,6 +11,8 @@ setup(
     {"argv_emulation": True,
      "resources": ["/opt/local/Library/Frameworks/R.framework/Versions/3.0/Resources",],
      "iconfile": "images/mac_icon.icns",
+     "no_strip": True,
+     "includes":"rpy2",
      }
      
   },
