@@ -224,7 +224,8 @@ class RefineStudiesPage(QWizardPage, ui_refine_studies_page.Ui_WizardPage):
         
         if len(included_studies_dict) > 0:
             first_el_is_study = [isinstance(x,Study) for x in included_studies_dict.iterkeys()]
-            assert(all(first_el_is_study),"The first element of each tuple should be a study!")
+            if not all(first_el_is_study):
+                raise Exception("The first element of each tuple should be a study!")
         return included_studies_dict
         
     def _is_includable(self, study):
