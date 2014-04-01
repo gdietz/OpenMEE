@@ -55,9 +55,9 @@ class SpecifyModelDlg(QDialog, ui_specify_model.Ui_Dialog):
         
         # Make sure that the interactions are allowed, given the chosen covariates
         for inter_item, interaction in self.item2interaction.items():
-            vars = set(interaction.get_vars())
-            if not all([var in self.selected_covariates for var in vars]):
-                # vars in interaction is not a subset of the selected covariates
+            variables = set(interaction.get_vars())
+            if not all([var in self.selected_covariates for var in variables]):
+                # variables in interaction is not a subset of the selected covariates
                 # so uncheck and disable the interaction
                 inter_item.setFlags(inter_item.flags()&~Qt.ItemIsEnabled)
                 inter_item.setCheckState(Qt.Unchecked)

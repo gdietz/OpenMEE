@@ -5,7 +5,7 @@
 #                #
 ##################
 
-from functools import partial
+#from functools import partial
 
 from PyQt4 import QtCore, QtGui
 from PyQt4.Qt import *

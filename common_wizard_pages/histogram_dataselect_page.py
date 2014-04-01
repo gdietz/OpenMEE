@@ -1,5 +1,5 @@
 import sys
-from functools import partial
+#from functools import partial
 
 from PyQt4 import QtCore, QtGui
 from PyQt4.Qt import *
@@ -21,11 +21,11 @@ class HistogramDataSelectPage(QWizardPage, ui_histogram_dataselect_page.Ui_Wizar
     def _populate_combo_box(self):
         ''' populates combo box with numerical variables '''
         
-        vars= self.model.get_variables()
-        vars.sort(key=lambda var: var.get_label())
+        variables= self.model.get_variables()
+        variables.sort(key=lambda var: var.get_label())
         
         default_index = 0
-        for var in vars:
+        for var in variables:
             # store column of var in user data
             col = self.model.get_column_assigned_to_variable(var)
             self.comboBox.addItem(var.get_label(), userData=QVariant(col))

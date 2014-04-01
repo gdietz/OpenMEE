@@ -9,7 +9,7 @@ from PyQt4 import QtCore, QtGui
 from PyQt4.Qt import *
 
 
-import pdb
+#import pdb
 import string
 from sets import Set
 from functools import partial

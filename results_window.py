@@ -13,8 +13,8 @@
 from PyQt4 import QtCore, QtGui
 from PyQt4.Qt import *
 
-import pdb
-import os
+#import pdb
+#import os
 import sys
 import ui_results_window
 import edit_forest_plot_form
@@ -59,14 +59,6 @@ class ResultsWindow(QMainWindow, ui_results_window.Ui_ResultsWindow):
 
         QObject.connect(self.nav_tree, SIGNAL("itemClicked(QTreeWidgetItem*, int)"),
                                        self.item_clicked)
-                       
-        self.psuedo_console.blockSignals(False)              
-        QObject.connect(self.psuedo_console, SIGNAL("returnPressed(void)"),
-                                       self.process_console_input)
-        QObject.connect(self.psuedo_console, SIGNAL("upArrowPressed()"),
-                                       self.f)
-        QObject.connect(self.psuedo_console, SIGNAL("downArrowPressed()"),
-                                       self.f)
         
         if "results_data" not in results:
             results["results_data"] = None
@@ -97,7 +89,7 @@ class ResultsWindow(QMainWindow, ui_results_window.Ui_ResultsWindow):
             self.params_paths = results["image_params_paths"]
     
         self.image_var_names = results["image_var_names"]
-        self.set_psuedo_console_text()
+        
         self.items_to_coords = {}
         self.texts = results["texts"]
 
@@ -130,9 +122,6 @@ class ResultsWindow(QMainWindow, ui_results_window.Ui_ResultsWindow):
         # reset the scene
         self.graphics_view.setScene(self.scene)
         self.graphics_view.ensureVisible(QRectF(0,0,0,0))
-
-        if not SHOW_PSEUDO_CONSOLE_IN_RESULTS_WINDOW:
-            self.psuedo_console.setVisible(False)
             
         if "results_data" in results and self.show_additional_values:
             if results["results_data"]:
@@ -200,17 +189,6 @@ class ResultsWindow(QMainWindow, ui_results_window.Ui_ResultsWindow):
             raise TypeError("Unrecognized type in data")
         
         return val_str
-        
-
-    def set_psuedo_console_text(self):
-        text = ["\t\tOpenMeta(analyst)",
-               "This is a pipe to the R console. The image names are as follows:"]
-        if self.image_var_names is not None:
-            for image_var_name in self.image_var_names.values():
-                text.append(image_var_name)
-        self.psuedo_console.setPlainText(QString("\n".join(text)))
-        self.psuedo_console.append(">> ")
-
 
     def add_images(self):
         # temporary fix!
@@ -432,21 +410,7 @@ class ResultsWindow(QMainWindow, ui_results_window.Ui_ResultsWindow):
         txt_item.setPos(position)
         
         return (txt_item.boundingRect(), position)
-
-    def process_console_input(self):
-        
-        #res = str(python_to_R.execute_in_R(self.current_line()))
-        from python_to_R import exR
-        res = str(exR.execute_in_R(self.current_line()))
-
-        # echo the result
-        self.psuedo_console.append(QString(res))
-        self.psuedo_console.append(">> ")
-
-    def current_line(self):
-        last_line = self.psuedo_console.toPlainText().split("\n")[-1]
-        return str(last_line.replace(">>", "")).strip()
-
+    
     def _get_plot_type(self, title):
         # at present we use the *title* as the type --
         # this is currently _not_ set by the user, so it's

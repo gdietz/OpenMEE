@@ -556,7 +556,7 @@ def wizard_summary(wizard, next_id_helper, summary_page_id, analysis_label):
     except ValueError:
         pass
     
-    page_strs = (str(wizard.page(id)) for id in visited_page_ids)
+    page_strs = (str(wizard.page(page_id)) for page_id in visited_page_ids)
     page_strs = filter(lambda x: x!="", page_strs)
     summary_text = "\n\n".join(page_strs)
     summary_text = analysis_label_str + summary_text

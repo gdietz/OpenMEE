@@ -16,7 +16,7 @@ from PyQt4.Qt import *
 
 from ome_globals import *
 
-import python_to_R
+#import python_to_R
 from common_wizard_pages.choose_effect_size_page import ChooseEffectSizePage
 from common_wizard_pages.data_location_page import DataLocationPage
 from common_wizard_pages.refine_studies_page import RefineStudiesPage

@@ -5,8 +5,8 @@
 #                #
 ##################
 
-from functools import partial
-import gc
+#from functools import partial
+#import gc
 
 from PyQt4 import QtCore, QtGui
 from PyQt4.Qt import *
@@ -141,8 +141,8 @@ class RefineStudiesPage(QWizardPage, ui_refine_studies_page.Ui_WizardPage):
             self.included_cat_stats = Var_Categories_Nstudies(
                                             studies=self.get_included_studies(),
                                             categorical_variables=self.categorical_variables)
-            print("collecting the garbage")
-            gc.collect() # a test to see if collecting the garbage generates the C++ Runtime error about the deleted object, it does not.
+            #print("collecting the garbage")
+            #gc.collect() # a test to see if collecting the garbage generates the C++ Runtime error about the deleted object, it does not.
             self._recheck_category_tree_widget()
             print("any problems?")
             
