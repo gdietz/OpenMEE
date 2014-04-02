@@ -16,11 +16,10 @@ import subprocess
 from cx_Freeze import Executable, Freezer, setup
 
 # Define app name and such
-name = "OpenMetaAnalyst"
-baseDir = '../' #baseDir = './'
+name = "OpenMEE"
+baseDir = './' #baseDir = './'
 srcDir = './'
 distDir = baseDir+'../frozen/'
-#scriptFiles = [srcDir + 'meta_form.py']#, srcDir + 'iep_.pyw']
 scriptFiles = [srcDir + 'launch.py']
 #iconFile = srcDir + 'icons/iep.ico' # TODO
 
@@ -93,7 +92,7 @@ f = Freezer(    executables,
                 includes = includes,
                 excludes = [],#excludes,
                 targetDir = distDir,
-                initScript="/Users/george/git/OpenMeta-analyst-/src/open_meta_mac.py",
+                initScript="/Users/george/git/OpenMEE/open_meta_mac.py",
                 copyDependentFiles = True,
 #                 appendScriptToExe=True,
 #                 optimizeFlag=1,
