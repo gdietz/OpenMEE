@@ -9,12 +9,14 @@ import os
 import sys
 import time
 
-from PyQt4 import QtCore, QtGui
-from PyQt4.Qt import *
+#from PyQt4 import QtCore, QtGui
+#from PyQt4.Qt import *
+from PyQt4 import QtGui
+from PyQt4.Qt import QPixmap, QSplashScreen, QThread
 
 import python_to_R
 import main_form
-import icons_rc
+#import icons_rc
 import ome_globals
 
 SPLASH_DISPLAY_TIME = 0
@@ -51,7 +53,7 @@ def load_R_libraries(app, splash=None):
 
 def start(open_file_path=None):
     # clear r_tmp:
-    clear_r_tmp()
+    #clear_r_tmp()
     
     app = QtGui.QApplication(sys.argv)
     app.setApplicationName("OpenMEE")
@@ -60,9 +62,9 @@ def start(open_file_path=None):
     splash = QSplashScreen(splash_pixmap)
     #splash = QSplashScreen( QPixmap(300, 200) )
     splash.show()
-    app.processEvents()
+    #app.processEvents()
     
-    time.sleep(1)
+    #time.sleep(1)
     
     splash_starttime = time.time()
     load_R_libraries(app, splash)
@@ -78,7 +80,7 @@ def start(open_file_path=None):
     # create and show the main window
     form = main_form.MainForm()
     form.show()
-    form.raise_()
+    #form.raise_()
     if open_file_path:
         form.open(open_file_path)
         
