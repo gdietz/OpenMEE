@@ -2,8 +2,8 @@
 
 # Form implementation generated from reading ui file 'results_window.ui'
 #
-# Created: Tue Nov 19 09:59:06 2013
-#      by: PyQt4 UI code generator 4.10.3
+# Created: Mon Apr  7 13:02:35 2014
+#      by: PyQt4 UI code generator 4.10.4
 #
 # WARNING! All changes made in this file will be lost!
 
@@ -75,24 +75,6 @@ class Ui_ResultsWindow(object):
         self.graphics_view.setAlignment(QtCore.Qt.AlignLeading|QtCore.Qt.AlignLeft|QtCore.Qt.AlignTop)
         self.graphics_view.setObjectName(_fromUtf8("graphics_view"))
         self.horizontalLayout.addWidget(self.results_nav_splitter)
-        self.psuedo_console = QtGui.QTextEdit(self.splitter)
-        sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Expanding)
-        sizePolicy.setHorizontalStretch(0)
-        sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(self.psuedo_console.sizePolicy().hasHeightForWidth())
-        self.psuedo_console.setSizePolicy(sizePolicy)
-        self.psuedo_console.setMinimumSize(QtCore.QSize(733, 0))
-        self.psuedo_console.setMaximumSize(QtCore.QSize(16777215, 16777215))
-        self.psuedo_console.setBaseSize(QtCore.QSize(0, 0))
-        font = QtGui.QFont()
-        font.setFamily(_fromUtf8("Terminal"))
-        self.psuedo_console.setFont(font)
-        self.psuedo_console.setAutoFillBackground(False)
-        self.psuedo_console.setStyleSheet(_fromUtf8("background-color: rgb(0, 0, 0);\n"
-"color: rgb(0, 255, 0);"))
-        self.psuedo_console.setLineWrapMode(QtGui.QTextEdit.NoWrap)
-        self.psuedo_console.setAcceptRichText(False)
-        self.psuedo_console.setObjectName(_fromUtf8("psuedo_console"))
         self.verticalLayout.addWidget(self.splitter)
         ResultsWindow.setCentralWidget(self.centralwidget)
         self.statusbar = QtGui.QStatusBar(ResultsWindow)
@@ -105,10 +87,5 @@ class Ui_ResultsWindow(object):
     def retranslateUi(self, ResultsWindow):
         ResultsWindow.setWindowTitle(_translate("ResultsWindow", "results / analysis", None))
         self.export_btn.setText(_translate("ResultsWindow", "Export Results as Text", None))
-        self.psuedo_console.setHtml(_translate("ResultsWindow", "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.0//EN\" \"http://www.w3.org/TR/REC-html40/strict.dtd\">\n"
-"<html><head><meta name=\"qrichtext\" content=\"1\" /><style type=\"text/css\">\n"
-"p, li { white-space: pre-wrap; }\n"
-"</style></head><body style=\" font-family:\'Terminal\'; font-size:10pt; font-weight:400; font-style:normal;\">\n"
-"<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><span style=\" font-size:8pt;\">&gt;&gt; </span></p></body></html>", None))
 
 import icons_rc
