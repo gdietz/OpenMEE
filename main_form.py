@@ -448,7 +448,7 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
     def adjust_preferences(self):
         form = preferences_dlg.PreferencesDialog(
                         current_preferences=self.user_prefs,
-                        default_preferences=self._default_user_prefs())
+                        default_preferences=default_user_prefs())
         
         if form.exec_():
             self.update_user_prefs('color_scheme', form.get_color_scheme())
@@ -1233,37 +1233,6 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
             print "failed to write preferences data!"
             raise e
 
-    def _default_user_prefs(self):
-        default_user_prefs = {"splash":True,
-                              "digits":DEFAULT_PRECISION,
-                              'recent_files': RecentFilesManager(),
-                              "method_params":{},
-                              "color_scheme": copy.deepcopy(DEFAULT_COLOR_SCHEME),
-                              "model_data_font_str":None,
-                              "model_header_font_str":None,
-                              'show_additional_values':True,
-                              'show_analysis_selections':True,
-                              }
-        print("default user prefs:\n%s" % civilized_dict_str(default_user_prefs))
-        
-        return default_user_prefs
-
-#     def reset_user_prefs_to_default(self):
-#         print("Resetting user prefs to default")
-#         
-#         if os.path.exists(PREFS_PATH):
-#             print("Deleting %s" % PREFS_PATH)
-#             os.unlink(PREFS_PATH)
-#         else:
-#             print("user prefs file doesn't exists")
-#             
-#         self.user_prefs = self._default_user_prefs()
-#         
-#         # reset everything 
-#         self.model.beginResetModel()
-#         self.tableView.resizeColumnsToContents()
-#         self.model.endResetModel()
-
     def load_user_prefs(self):
         '''
         Attempts to read a local dictionary of preferences
@@ -1278,9 +1247,9 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
                     self.user_prefs = pickle.load(f)
             except:
                 print "preferences dictionary is corrupt! using defaults"
-                self.user_prefs = self._default_user_prefs()
+                self.user_prefs = self.default_user_prefs()
         else:
-            self.user_prefs = self._default_user_prefs()
+            self.user_prefs = self.default_user_prefs()
 
         # for backwards-compatibility
         if not "method_params" in self.user_prefs:
@@ -1812,6 +1781,22 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
                     self.model.setData(index, QVariant(value))
             #####################################################################
             self.undo_stack.endMacro()
+            
+#################### not part of main_form ##########
+def default_user_prefs():
+    default_user_prefs = {"splash":True,
+                          "digits":DEFAULT_PRECISION,
+                          'recent_files': RecentFilesManager(),
+                          "method_params":{},
+                          "color_scheme": copy.deepcopy(DEFAULT_COLOR_SCHEME),
+                          "model_data_font_str":None,
+                          "model_header_font_str":None,
+                          'show_additional_values':True,
+                          'show_analysis_selections':True,
+                          }
+    print("default user prefs:\n%s" % civilized_dict_str(default_user_prefs))
+    
+    return default_user_prefs
 
 
 if __name__ == '__main__':
