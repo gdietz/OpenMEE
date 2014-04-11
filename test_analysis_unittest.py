@@ -254,7 +254,7 @@ class TestMetaRegressionMethods(unittest.TestCase):
          
     def test_metaReg_omnibus(self):
         btt_wName = ("Age" , 'covariate')
-        btt = (get_variable_by_label(btt_wName[0]), 'covariate')
+        btt = (get_variable_by_label(btt_wName[0], model=self.model), 'covariate')
         
         python_to_R.dataset_to_dataframe(model=self.model,
                                  included_studies=self.studies,
