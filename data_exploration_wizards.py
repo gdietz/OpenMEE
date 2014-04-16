@@ -67,3 +67,6 @@ class ScatterPlotWizard(QtGui.QWizard):
 
     def get_scatterplot_params(self):
         return self.scatterplot_page.get_parameters()
+    
+    def get_annotate_plot_with_study_labels(self):
+        return self.scatterplot_page.get_annotate_plot_with_study_labels()

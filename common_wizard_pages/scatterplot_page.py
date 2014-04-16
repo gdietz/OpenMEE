@@ -157,6 +157,9 @@ class ScatterPlotPage(QWizardPage, ui_scatterplot_page.Ui_WizardPage):
         print("scatterplot params: %s" % p)
         return p
     
+    def get_annotate_plot_with_study_labels(self):
+        return self.study_labels_checkBox.isChecked()
+    
     def __str__(self):
         # We don't want this information in the summary
         return ""

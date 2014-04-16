@@ -750,7 +750,7 @@ def cols_to_data_frame(model):
     data_r = ro.DataFrame(var_col_d)
     return data_r
 
-def run_scatterplot(model, xvar, yvar, params, 
+def run_scatterplot(model, xvar, yvar, params, label_points_with_study_names,
                         res_name="result", var_name="tmp_obj"):    
     xvar_type = xvar.get_type()
     yvar_type = yvar.get_type()
@@ -759,15 +759,19 @@ def run_scatterplot(model, xvar, yvar, params,
     studies = model.get_studies_in_current_order()
     x_data = [study.get_var(xvar) for study in studies]
     y_data = [study.get_var(yvar) for study in studies]
+    labels = [study.get_label() for study in studies]
     
     # get rid of entries where either x or y is None
-    data = [(x,y) for (x,y) in zip(x_data,y_data) 
+    data = [(x,y,label) for (x,y,label) in zip(x_data,y_data,labels) 
                 if x is not None and y is not None]
-    x_data,y_data = zip(*data)
+    x_data,y_data,labels = zip(*data)
 
     x_data = col_data_to_R_fmt(x_data, xvar_type)
     y_data = col_data_to_R_fmt(y_data, yvar_type)
+    labels = ro.StrVector(labels)
     data = {'x':x_data, 'y':y_data}
+    if label_points_with_study_names:
+        data['slab']=labels
     data_r = ro.DataFrame(data)
     
     # params in R format

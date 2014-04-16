@@ -730,6 +730,7 @@ class Analyzer:
             xvar = wizard.get_selected_vars()['x']
             yvar = wizard.get_selected_vars()['y']
             params = wizard.get_scatterplot_params()
+            label_points_with_study_names = wizard.get_annotate_plot_with_study_labels()
 
             # TODO: store selections for next analysis
             
@@ -737,10 +738,12 @@ class Analyzer:
             print("xvar is: %s, yvar is: %s" % (xvar.get_label(), yvar.get_label()))
             print("params are: %s" % params)
             try:
-                result = python_to_R.run_scatterplot(model=model,
-                                                     xvar=xvar,
-                                                     yvar=yvar,
-                                                     params=params)
+                result = python_to_R.run_scatterplot(
+                             model=model,
+                             xvar=xvar,
+                             yvar=yvar,
+                             params=params,
+                             label_points_with_study_names=label_points_with_study_names)
             except CrazyRError as e:
                 if SOUND_EFFECTS:
                     silly.play()
