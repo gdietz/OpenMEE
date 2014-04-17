@@ -8,9 +8,9 @@ phylogenetic                  [ ] G
 exploratory plots             [X] G
 Publication bias              [ ] B + (stern warning)
 export button in results      [ ] B
-Through the looking glass     [ ] G
+Through the looking glass     [X] G
 contingency table             [X] G
 import/export                 [ ] B
 Multiple Impution analysis    [ ] B
-Model Buildings               [ ] G
-Troubleshooting               [ ] G
+Model Buildings               [X] G
+Troubleshooting               [X] G

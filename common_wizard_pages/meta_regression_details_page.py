@@ -16,6 +16,7 @@ class MetaRegDetailsPage(QWizardPage, ui_meta_regression_details_page.Ui_WizardP
         super(MetaRegDetailsPage, self).__init__(parent)
         self.setupUi(self)
         
+        self.disable_btt = False
         if analysis_type not in [PARAMETRIC, BOOTSTRAP]:
             raise Exception("Unrecognized analysis type")
 
@@ -36,6 +37,10 @@ class MetaRegDetailsPage(QWizardPage, ui_meta_regression_details_page.Ui_WizardP
         
     def analysis_type_or_output_type_changed(self):
         self.completeChanged.emit()
+
+    def disable_omnibus(self):
+        self.disable_btt = True
+        self.omnibus_test_groupBox.setEnabled(False)
 
     def setup_connections(self):
         # radio buttons
@@ -76,13 +81,17 @@ class MetaRegDetailsPage(QWizardPage, ui_meta_regression_details_page.Ui_WizardP
         self.phylogen_checkBox.setChecked(phylogen)
         
     def initializePage(self):
-        self.covariates = self.wizard().get_included_covariates()
-        self.interactions = self.wizard().get_included_interactions()
         
-        # list corresponding to the order of items in the combobox
-        self.btt_comboBox_contents = [None,] + self.covariates + self.interactions
-        
-        self._populate_btt_combobox()
+        if self.disable_btt:
+            pass
+        else:
+            self.covariates = self.wizard().get_included_covariates()
+            self.interactions = self.wizard().get_included_interactions()
+            
+            # list corresponding to the order of items in the combobox
+            self.btt_comboBox_contents = [None,] + self.covariates + self.interactions
+            
+            self._populate_btt_combobox()
         
     def choose_fixed_effects(self):
         self.random_effects_method_GroupBox.setEnabled(False)
@@ -174,10 +183,12 @@ class MetaRegDetailsPage(QWizardPage, ui_meta_regression_details_page.Ui_WizardP
         analysis_str = "%s Analysis" % ("Parametric" if self.get_analysis_type() == PARAMETRIC else "Bootstrap")
         output_type_str = "Output type: %s" % ("Conditional Means" if self.get_output_type() == CONDITIONAL_MEANS else "Normal")
         # omnibus test of moderators
-        btt_var = self.get_btt()[0]
-        omnibus_str = "Omnibus test of moderators variable: %s" % str(btt_var)
-        
-        summary = "Meta Regression Details:\n" + "\n".join([analysis_str, effects_str, conf_level_str, output_type_str, omnibus_str])
+        if not self.disable_btt:
+            btt_var = self.get_btt()[0]
+            omnibus_str = "Omnibus test of moderators variable: %s" % str(btt_var)
+            summary = "Meta Regression Details:\n" + "\n".join([analysis_str, effects_str, conf_level_str, output_type_str, omnibus_str])
+        else:
+            summary = "Meta Regression Details:\n" + "\n".join([analysis_str, effects_str, conf_level_str, output_type_str])
         return summary
     
     
