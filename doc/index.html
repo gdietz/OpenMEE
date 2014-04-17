@@ -27,18 +27,19 @@
 
 TODO
 
+<a id="getting-started"><h1>Getting Started</h1></a>
 
-<a id="installing"><h3>Downloading and Installing OpenMEE</h3></a>
+<a id="installing"><h2>Downloading and Installing OpenMEE</h2></a>
 <ol>
     <li>To install OpenMEE, download the program from:<br/> <a href="http://www.cebm.brown.edu/open_mee/download">http://www.cebm.brown.edu/open_mee/download</a></li>
     <li>Save the zip file somewhere convenient and extract it (just double-clicking should do on most systems).</li>
 </ol>
 
-<h3> Starting OpenMEE </h3>
+<h2> Starting OpenMEE </h2>
 
 <p>Launch the program by clicking on LaunchOpenMEE.exe in the case of Windows or, on Mac, the OpenMEE app. This will open the main spreadsheet. </p>
 
-<h3> The OpenMEE Spreadsheet </h3>
+<a id="spreadsheet"><h2>The OpenMEE Spreadsheet </h2></a>
 
 <figure>
   <img src="img/opening_screen.png" width="50%" height="50%">
@@ -161,11 +162,24 @@ We will consider each option in turn </p>
 <p>In Figure 13, we see the result of transforming the effect size. Three new columns have been added containing the 'raw scale' effect size and upper and lower confidence bounds given the current confidence level shown in the toolbar. Changing the confidence level in the toolbar will cause the confidence interval to be recalculated.
 </p>
 
-<h2> Running Analyses </h2>
+<a id="importing"><h2>Importing and Exporting Comma-Separated Value (CSV) Files</h2></a>
 
-<p> All analyses are performed similiarly. You can choose to perform an analysis by clicking its icon in the toolbar or by selecting it from the <i>Analysis</i> menu. More exotic analyses (such as 'bootstrapped' meta regression, meta-regression-based conditional means and boostrapped meta regression-based conditional means) are only accessible from the menu bar. </p>
+<p>In some cases, one may already have data that one would like to import for analysis. OpenMEE supports importing comma (and otherwise) delimited data. To achieve this, select <i>Import CSV</i> from the <i>File</i> menu. You will be prompted with a screen asking for details about your file format and its location, like so:</p>
 
-<p>Here we describe the pages you see on the wizards for each analysis (this is similar for all analyses).</p>
+<figure>
+  <img src="img/importing.png" width="50%" height="50%">
+</figure>
+
+<p>Once a file to be imported has been selected, a preview of how it will be read is shown in the small window. Note the field for special strings that denote missing data (you may want to use "NA" here, if importing from R).</p>
+
+<p>Exporting data follows the reverse of the above (select <i>Export CSV</i> rather than <i>Import CSV</i>). Note that all calculated effects and variances will also be exported. Most programs, including Excel (for example), can read CSV's.</p>
+
+
+<a id="running-analyses"><h2> Running Analyses</h2></a>
+
+<p>All analyses are performed similiarly. You can choose to perform an analysis by clicking its icon in the toolbar or by selecting it from the <i>Analysis</i> menu. More exotic analyses (such as 'bootstrapped' meta regression, meta-regression-based conditional means and boostrapped meta regression-based conditional means) are only accessible from the menu bar. </p>
+
+<p>Here we describe the pages one sees on the wizards for each analysis (this is similar for all analyses).</p>
 
 <a id="standard-MA"><h3>Standard Meta Analysis</h3></a>
 
@@ -191,6 +205,8 @@ We will consider each option in turn </p>
   <li>Analysis Method and Parameters</li>
   <li>Summary Page</li>
 </ol>
+
+
 
 <a id="cumulative-MA"><h3>Cumulative Meta Analysis </h3></a>
   <p><a href="http://www.nceas.ucsb.edu/meta/Lau/Lau_et_al_1992_NEJM.pdf">Cumulative meta-analysis</a> is a meta-analytic approach in which studies are added one at a time, and the change in the cumulative effect size is observed. To perform a cumulative meta-analysis in OpenMEE, simply select <i>Cumulative Meta-Analysis</i> from the <i>Analysis</i> menu. We show a sample forest plot generated from a cumulative meta-analysis below. The left-hand side displays the usual study estimates and confidence intervals; the right hand side shows the effect on the overall (summary) estimate as studies are included in the meta-analysis.</p>
@@ -251,8 +267,17 @@ We will consider each option in turn </p>
 <img src="img/bootstrap_histogram_MA.png" width="40%" height="40%">
 </figure>
 
+<h3>Multiple Imputation</h3>
 
-<a id="publication-bias"><h3>Publication Bias</h3></a>
+<p>Sometimes data elements are missing from studies. OpenMEE supports basic imputation of covariates for meta-regression. To use this, select <i>Multiple Imputations Meta-Regression</i> form the <i>Analysis</i> drop-down menu. You will be prompted with the following screen</p> 
+
+<figure>
+  <img src="img/imputation.png" width="50%" height="50%">
+</figure>
+
+<p>These parameters specify the imputation method to use and the number of multiple imputations to perform. Providing the methodological details of the imputation is beyond the scope of this document, but we refer the interested reader to the R <a href="http://cran.r-project.org/web/packages/mice/index.html">MICE</a> documentation for more details: we use this package 'under the hood' to perform the imputation.</p>
+
+<a id="publication-bias"><h2>Publication Bias</h2></a>
 
 <p>OpenMEE includes the standard tools for publication bias diagnostics, including funnel plots. These can be generated by selecting the <i>Funnel Plot</i> option under the <i>Publication Bias</i> sub-menu of <i>Data Exploration</i>. Example output is shown below. <b>We caution users to interpret these with care, and to read <a href="http://www.ncbi.nlm.nih.gov/pmc/articles/PMC1570006/">this criticism</a> of funnel plots</b>.</p>
 
