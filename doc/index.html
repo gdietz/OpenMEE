@@ -41,7 +41,7 @@ TODO
 <h3> The OpenMEE Spreadsheet </h3>
 
 <figure>
-  <img src="img/opening_screen.png">
+  <img src="img/opening_screen.png" width="50%" height="50%">
   <figcaption>Figure 1. The main spreadsheet interface</figcaption>
 </figure>
 
@@ -56,14 +56,14 @@ TODO
 <p>The latter two are accessible via the <i>File</i> menu.</p>
 
 <figure>
-  <img src="img/file_menu.png">
+  <img src="img/file_menu.png" width="60%" height="60%">
   <figcaption>Figure 2. The <i>File</i> menu </figcaption>
 </figure>
 
 <p>The OpenMEE spreadsheet is very flexible. It has an unlimited number of rows and columns. The spreadsheets starts off with a fixed (large) size. As your data approaches the limits, the spreadsheet automatically resizes itself to accomodate more data. You also don't have to worry about formatting your data beforehand. Simply enter your data in whatever format you have it. For example, After typing in some two-by-two contingency table data we see the screen below.</p>
 
 <figure>
-  <img src="img/screen_after_entering_data.png">
+  <img src="img/screen_after_entering_data.png" width="50%" height="50%">
   <figcaption>Figure 3. Main screen after typing in data </figcaption>
 </figure>
 
@@ -72,28 +72,28 @@ TODO
 <p>In addition to telling OpenMEE the types of each column, you may also assign your own custom labels (names) to each column. All this is done by right-clicking on column headers and choosing the desired option as shown below:</p>
 
 <figure>
-  <img src="img/context_menu.png">
+  <img src="img/context_menu.png" width="50%" height="50%">
   <figcaption>Figure 4. <i>Context</i> menu, accessible by right-click.</figcaption>
 </figure>
 
 You can rename columns by clicking on the 'rename variable' option of the <i>context</i> menu. 
 
 <figure>
-  <img src="img/after_renaming_columns.png">
+  <img src="img/after_renaming_columns.png" width="50%" height="50%">
   <figcaption>Figure 5. After renaming columns.</figcaption>
 </figure>
 
 <p>We now have to tell OpenMEE what type of data these columns contain. Again, this is done by right-clicking and selecting a target format from the <i>Change format</i> submenu as shown in Figure 4. Since this is two-by-two data, the four numerical columns are 'counts' while 'Country' and 'Year' are categorical variables, and 'study_name' is the variable we will mark as containing study labels (by selecting 'Mark as label column' from the <i>context</i> menu). Finally out of pedagogical necesssity, let's add a continuous column after country called 'Avg. Rainfall (cm)'. After assigning all these formats, we see </p>
 
 <figure>
-  <img src="img/after_setting_types.png">
+  <img src="img/after_setting_types.png" width="50%" height="50%">
   <figcaption>Figure 6. After Setting Variable Formats</figcaption>
 </figure>
 
 <p>Note that for each variable format has its own color scheme as reminder when you're working with the spreadsheet. If you can't stand the default color scheme you can change it by clicking on the <i>Table</i> menu and then <i>Table Preferences</i>:
 
 <figure>
-  <img src="img/preferences_dlg.png">
+  <img src="img/preferences_dlg.png" width="50%" height="50%">
   <figcaption>Figure 7. Preferences</figcaption>
 </figure>
 
@@ -115,7 +115,7 @@ We will consider each option in turn </p>
 <p>To do this, simply create two new continuous variables using the method described above. Let's call them "my effect size" and "my variance". Now we need to tell OpenMEE that these are effects. Right-click on the header for "my effect size" and choose <i>Change format</i> &#8594; <i>Trans. Effect</i>. Likewise, choose 'Change Format &#8594; Trans. Var' for "my variance" as shown in the Figure below.</p>
 
 <figure>
-  <img src="img/change_continuous_var_to_trans_effect.png">
+  <img src="img/change_continuous_var_to_trans_effect.png" width="50%" height="50%">
   <figcaption>Figure 8. Changing continuous variance to transformed-scale effect</figcaption>
 </figure>
 
@@ -123,7 +123,7 @@ We will consider each option in turn </p>
 
 
 <figure>
-  <img src="img/set_effect_size_format.png">
+  <img src="img/set_effect_size_format.png" width="50%" height="50%">
   <figcaption>Figure 9. After setting effect size format.</figcaption>
 </figure>
 
@@ -133,28 +133,28 @@ We will consider each option in turn </p>
 <h4>Calculating an effect size from raw data</h4>
 
 <figure>
-  <img src="img/calc_effect_size/1_calculate_effect_size_wizard.png">
+  <img src="img/calc_effect_size/1_calculate_effect_size_wizard.png" width="60%" height="60%">
   <figcaption>Figure 10. Calculate Effect Size Wizard</figcaption>
 </figure>
 
 <p>To calculate an effect size from raw data, click the 'Calculate Effect Size' button on the toolbar, or select 'Calculate Effect Size' from the <i>analysis</i> menu. This will show the wizard in Figure 10. First, you have to select a data type and a metric.</p>
 
 <figure>
-  <img src="img/calc_effect_size/2_data_location_selection.png">
+  <img src="img/calc_effect_size/2_data_location_selection.png" width="40%" height="40%">
   <figcaption>Figure 11. Data location selection</figcaption>
 </figure>
-
+<br/>
 <p>Next tell OpenMEE the locations of the necessary variables as show in Figure 11. You will be given the option to link the raw data columns to the resulting effect size columns (selected by default). This makes it so that when you change a value in the raw data, the effect column will update automagically.</p>
 
 <figure>
-  <img src="img/calc_effect_size/3_effects_calculated.png">
+  <img src="img/calc_effect_size/3_effects_calculated.png" width="50%" height="50%">
   <figcaption>Figure 12. Calculated effect size.</figcaption>
 </figure>
 
 <p>In Figure 12, we see the calculated effect size and variance in the 'transformed' (natural log) scale. Also, note that on the bottom of the window we see a red bar. This provides a visual cue that the four raw data columns cont. #events, #cont #noevents, etc are 'linked' to the effect and variance columns.</p>
 
 <figure>
-  <img src="img/calc_effect_size/6_transformed_effect_result.png">
+  <img src="img/calc_effect_size/6_transformed_effect_result.png" width="50%" height="50%">
   <figcaption>Figure 13. Transformed Effect Size Result </figcaption>
 </figure>
 
@@ -172,13 +172,18 @@ We will consider each option in turn </p>
 <p>Here we refer to analyses that look to estimate a 'grand mean', i.e., with no covariates. The pages you will see are as follows.</p>
 
 <ol>
-  <li><b>Data Type and Metric</b> <br/><br/>
-    <img src="img/data_type_effect_size.png" width="25%" height="25%"/> <br/><br/>
+  <li><b>Data Type and Metric</b> <br/>
+    <figure>
+    <img src="img/data_type_effect_size.png" width="25%" height="25%"/> 
+  </figure>
     Here you will need to select the data type and effect size. Note that for the latter, you can elect a 'generic effect' if you need.
+
   </li><br/>
 
   <li><b>Data Location</b> <br/><br/>
-    <img src="img/choose_outcome.png" width="25%" height="25%"/> <br/><br/>
+    <figure>
+    <img src="img/choose_outcome.png" width="25%" height="25%"/> 
+  </figure>
     Now you will need to select your effect size and variance columns. Here, for example, we have selected ln OR and the variance thereof. In general, the effect size and variance combo boxes will allow you to select any columns that you have designated as effect sizes and variances, respectively.
   </li>
 
@@ -190,36 +195,61 @@ We will consider each option in turn </p>
 <a id="cumulative-MA"><h3>Cumulative Meta Analysis </h3></a>
   <p><a href="http://www.nceas.ucsb.edu/meta/Lau/Lau_et_al_1992_NEJM.pdf">Cumulative meta-analysis</a> is a meta-analytic approach in which studies are added one at a time, and the change in the cumulative effect size is observed. To perform a cumulative meta-analysis in OpenMEE, simply select <i>Cumulative Meta-Analysis</i> from the <i>Analysis</i> menu. We show a sample forest plot generated from a cumulative meta-analysis below. The left-hand side displays the usual study estimates and confidence intervals; the right hand side shows the effect on the overall (summary) estimate as studies are included in the meta-analysis.</p>
   <br/>
-  <img src="img/cumulative_MA_forest_plot.png" width="90%" height="90%"><br/><br/>
+  <figure>
+  <img src="img/cumulative_MA_forest_plot.png" width="90%" height="90%">
+</figure>
 
 
 <a id="loo-MA"><h3>Leave One Out Meta Analysis </h3></a>
  <p>Leave-one-out meta-analysis is conceptually similar to <a href="#cumulative-MA">cumulative meta-analysis</a>, except that instead of adding studies one at a time, one holds each study out in turn. This is an exploratory exercise that may highlight influential studies (summary estimates that leave influential studies out will differ substantially than those that include them). An example of output from a leave-one-out analysis is shown below.</p>
 
+ <figure>
   <img src="img/loo_forest_plot.png" width="60%" height="60%"><br/>
+</figure 
 
 <p>Note that the options for Cumulative Meta Analaysis and Leave-One-Out meta analysis are the same as for standard meta-analysis (as described <a href="#standard-MA">above</a>).</p>
 
 <a id="subgroup-MA"><h3> Subgroup Meta Analysis </h3></a>
 <p>In subgroup meta-analysis, one partitions studies into disjoint groups (e.g., studies conducted in China versus all others) and runs separate meta-analyses over these groups of studies. This is an exploratory exercise that may highlight differences between groups. The options for subgroup meta analysis are the same as for standard meta analysis except for a categorical variable must be selected. For example, if the selected variable is <i>state</i>, then subgroup analyses will be run on studies from each observed state. In the example shown below, this includes Massachusetts (MA) and Rhode Island (RI). </p>
 
+<figure>
 <img src="img/subgroup_ma.png" width="60%" height="60%"><br/>
+</figure>
 
-<h3> Meta Regression </h3>
-<p> The wizard for subgroup meta analysis are the same as for standard meta analysis aside two additional pages.
-<ol>
-  <li>
-  On the 'Select covariates for regression page', you select the covariates for regression(big surprise). On this same page you choose whether you want to use a random or fixed effects model and the confidence level to use in the analysis.
-  </li>
-  <li> Reference Values - If you select categorical covariate(s) you can opt to choose which value will serve as the reference value (for the intercept)
-  </li>
-</ol>
+<a id="meta-reg"><h3> Meta Regression </h3></a>
+<p>Meta-regression allows one to explore the relationship between covariates and study outcomes. OpenMEE supports mulitple regression and both continuous and categorical predictors (covariates).</p>
 
-<h3> Boostrapped Meta Analysis </h3>
-<p> The options for boostrapped meta-analysis are the same as those for standard meta analysis aside from the fact that on the boostrap parameters page you can choose choose various parameters for the bootstrap including the # of bootstrap replictes to perform. When running bootstrap operations in OpenMEE, the program tries to generate results using the selected # of bootstrap replicates. So, if one particular replicate attempt fails, another is tried, and so on until 5 times the selecte # of bootstrap replicates have been attempted, at which point an error message is returned </p>
+<p>On the 'Select covariates for regression page', select the covariates for regression. On this same page, one can choose whether you want to use a random or fixed effects model and the confidence level to use in the analysis. An example of this is shown below; here we have selected "Avg. Rainfall" to be included in the regression. </p>
 
+<figure>
+<img src="img/regression_cov_select.png" width="40%" height="40%"><br/>
+</figure>
 
+<p>For any categorical covariates that have been selected to be included in the meta-regression, one needs to specify the value that will serve as its reference value (i.e., the intercept). We show an example below where the covariate is Country and the reference value has been specified as USA.</p>
 
+<figure>
+<img src="img/reference_value_reg.png" width="40%" height="40%"><br/>
+</figure>
+
+<p>We note that one can also assess the variance of regression coefficient estimates via <i>bootstrapping</i> (see <a href="#boostrap">below</a>). To do so, simply select 'bootstrap' rather 'parametric' under 'Type of Analysis' when specifying meta-regression options. We show an example of bootstrap output for the rainfall predictor below.</p>
+
+<figure>
+<img src="img/bootstrap_histogram.png" width="40%" height="40%"><br/>
+</figure>
+
+<a id="boostrap"><h3> Boostrapped Meta Analysis </h3></a>
+<p><a href="http://www.stat.cmu.edu/~cshalizi/uADA/12/lectures/ch05.pdf">Bootstrapping</a> is a non-parametric approach for assessing the variance of a parameter estimate. OpenMEE allows for bootstrapped estimates both for meta-regressions and standard meta-analysis.</p>
+<p>In general, the options for boostrapped meta-analysis are the same as those for standard meta-analysis, with the addition that one needs to provide bootstrap-specific parameter values. These include the number of bootstrap replicates to perform, for example. We show sample output from a boostrapped meta-analysis below. </p>
+
+<figure>
+<img src="img/reference_value_reg.png" width="40%" height="40%"><br/>
+</figure>
+
+<p>When running bootstrap operations in OpenMEE, the program tries to generate results using the selected number of bootstrap replicates. We note that depending on the dataset and the meta-anaytic (pooling) model being used, a meta-analysis of a specific sample of the dataset may fail. OpenMEE hands this in a straight-forward way: if one particular replicate attempt fails, another is tried, and so on until 5 times the selected of bootstrap replicates have been attempted, at which point an error message is returned.  </p>
+
+<figure>
+<img src="img/bootstrap_histogram_MA.png" width="40%" height="40%">
+</figure>
 
         <script src="//ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
         <script>window.jQuery || document.write('<script src="js/vendor/jquery-1.10.2.min.js"><\/script>')</script>

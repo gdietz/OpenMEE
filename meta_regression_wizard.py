@@ -86,8 +86,7 @@ class MetaRegressionWizard(QtGui.QWizard):
         
         return self.nextId_helper(current_id)
         
-    def nextId_helper(self, page_id):
-        
+    def nextId_helper(self, page_id):        
         if page_id in [Page_MetaRegDetails, Page_Bootstrap, Page_ReferenceValues]:
             analysis_type = self.get_analysis_type() # PARAMETRIC or BOOTSTRAP
             output_type = self.get_output_type()     # NORMAL or CONDITIONAL_MEANS
