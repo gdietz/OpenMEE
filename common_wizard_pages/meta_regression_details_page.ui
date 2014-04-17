@@ -181,7 +181,7 @@
    <item>
     <layout class="QHBoxLayout" name="horizontalLayout_5">
      <item>
-      <widget class="QGroupBox" name="groupBox">
+      <widget class="QGroupBox" name="omnibus_test_groupBox">
        <property name="minimumSize">
         <size>
          <width>320</width>

@@ -39,6 +39,7 @@ class ModelBuildingWizard(MetaRegressionWizard):
         self.meta_reg_details_page.analysis_type_groupBox.setEnabled(False)
         self.meta_reg_details_page.conditional_means_checkBox.setChecked(False)
         self.meta_reg_details_page.output_type_groupBox.setEnabled(False)
+        self.meta_reg_details_page.disable_omnibus()
         
     def nextId(self):
         current_id = self.currentId()

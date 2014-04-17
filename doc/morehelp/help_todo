@@ -1,16 +1,16 @@
 Installing/Running on windows [X] G
 Installing on Mac             [X] G
-Basic Data entry              [X]
-standard meta analysis        [X] 
+Basic Data entry              [X] G
+standard meta analysis        [X] G
 cumulative, loo, etc,         [X] B
 meta-regression		      [X] B
-phylogenetic                  [ ] G
-exploratory plots             [ ] G
+phylogenetic                  [X] G
+exploratory plots             [X] G
 Publication bias              [X] B + (stern warning)
 export button in results      [X] B
-Through the looking glass     [ ] G
-contingency table             [ ] G
+Through the looking glass     [X] G
+contingency table             [X] G
 import/export                 [ ] B
 Multiple Impution analysis    [ ] B
-Model Buildings               [ ] G
-Troubleshooting               [ ] G
+Model Buildings               [X] G
+Troubleshooting               [X] G

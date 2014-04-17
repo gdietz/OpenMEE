@@ -41,7 +41,7 @@ class PhyloMAWizard(AbstractMetaAnalysisWizard):
         self.phylo_model_design_page = PhyloModelDesignPage()
         self.setPage(Page_PhyloModelDesignPage, self.phylo_model_design_page)
         
-        # data location page and arameters page
+        # data location page and parameters page
         self.parameters_page = PhyloAnalysisDetailsPage(model=model, default_method="REML")
         self.setPage(Page_Parameters, self.parameters_page)
         
