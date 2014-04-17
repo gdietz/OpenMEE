@@ -6,8 +6,8 @@ cumulative, loo, etc,         [X] B
 meta-regression		      [X] B
 phylogenetic                  [ ] G
 exploratory plots             [ ] G
-Publication bias              [ ] B + (stern warning)
-export button in results      [ ] B
+Publication bias              [X] B + (stern warning)
+export button in results      [X] B
 Through the looking glass     [ ] G
 contingency table             [ ] G
 import/export                 [ ] B
