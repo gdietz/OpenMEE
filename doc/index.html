@@ -19,12 +19,16 @@
     </head>
     <body>
 
-
 <h1>Introducing OpenMEE</h1>
 
 <p>OpenMEE is open-source software for performing meta-analysis suited to the need of ecologist and evolutionary biologists. This program is made possible by the National Science Foundation (NSF), award numbers: DBI-1262402 (J. Gurevitch), DBI-1262442 (B. Wallace), DBI-1262545 (M.J. Lajeunesse).</p>
 
-<h3>Installing OpenMEE</h3>
+<h1>Table of Contents</h1>
+
+TODO
+
+
+<a id="installing"><h3>Downloading and Installing OpenMEE</h3></a>
 <ol>
     <li>To install OpenMEE, download the program from:<br/> <a href="http://www.cebm.brown.edu/open_mee/download">http://www.cebm.brown.edu/open_mee/download</a></li>
     <li>Save the zip file somewhere convenient and extract it (just double-clicking should do on most systems).</li>
@@ -163,7 +167,7 @@ We will consider each option in turn </p>
 
 <p>Here we describe the pages you see on the wizards for each analysis (this is similar for all analyses).</p>
 
-<h3>Standard Meta Analysis</h3>
+<a id="standard-MA"><h3>Standard Meta Analysis</h3></a>
 
 <p>Here we refer to analyses that look to estimate a 'grand mean', i.e., with no covariates. The pages you will see are as follows.</p>
 
@@ -183,12 +187,23 @@ We will consider each option in turn </p>
   <li>Summary Page</li>
 </ol>
 
-<h3>Cumulative Meta Analysis </h3>
-<h3>Leave One Out Meta Analysis </h3>
-<p> The options for Cumulative Meta Analaysis and Leave-One-Out meta analysis are the same as for Standard Meta Analysis </p>
+<a id="cumulative-MA"><h3>Cumulative Meta Analysis </h3></a>
+  <p><a href="http://www.nceas.ucsb.edu/meta/Lau/Lau_et_al_1992_NEJM.pdf">Cumulative meta-analysis</a> is a meta-analytic approach in which studies are added one at a time, and the change in the cumulative effect size is observed. To perform a cumulative meta-analysis in OpenMEE, simply select <i>Cumulative Meta-Analysis</i> from the <i>Analysis</i> menu. We show a sample forest plot generated from a cumulative meta-analysis below. The left-hand side displays the usual study estimates and confidence intervals; the right hand side shows the effect on the overall (summary) estimate as studies are included in the meta-analysis.</p>
+  <br/>
+  <img src="img/cumulative_MA_forest_plot.png" width="90%" height="90%"><br/><br/>
 
-<h3> Subgroup Meta Analysis </h3>
-<p> The options for subgroup meta analysis are the same as for standard meta analysis except for a categorical variable must be selected (SHOW PICTURE). For example, if the selected variable is Gender, the subgroup analyses will be run on the Male and Female subgroups.
+
+<a id="loo-MA"><h3>Leave One Out Meta Analysis </h3></a>
+ <p>Leave-one-out meta-analysis is conceptually similar to <a href="#cumulative-MA">cumulative meta-analysis</a>, except that instead of adding studies one at a time, one holds each study out in turn. This is an exploratory exercise that may highlight influential studies (summary estimates that leave influential studies out will differ substantially than those that include them). An example of output from a leave-one-out analysis is shown below.</p>
+
+  <img src="img/loo_forest_plot.png" width="60%" height="60%"><br/>
+
+<p>Note that the options for Cumulative Meta Analaysis and Leave-One-Out meta analysis are the same as for standard meta-analysis (as described <a href="#standard-MA">above</a>).</p>
+
+<a id="subgroup-MA"><h3> Subgroup Meta Analysis </h3></a>
+<p>In subgroup meta-analysis, one partitions studies into disjoint groups (e.g., studies conducted in China versus all others) and runs separate meta-analyses over these groups of studies. This is an exploratory exercise that may highlight differences between groups. The options for subgroup meta analysis are the same as for standard meta analysis except for a categorical variable must be selected. For example, if the selected variable is <i>state</i>, then subgroup analyses will be run on studies from each observed state. In the example shown below, this includes Massachusetts (MA) and Rhode Island (RI). </p>
+
+<img src="img/subgroup_ma.png" width="60%" height="60%"><br/>
 
 <h3> Meta Regression </h3>
 <p> The wizard for subgroup meta analysis are the same as for standard meta analysis aside two additional pages.
