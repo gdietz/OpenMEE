@@ -271,6 +271,13 @@
     </layout>
    </item>
    <item>
+    <widget class="QCheckBox" name="study_labels_checkBox">
+     <property name="text">
+      <string>Annotate data points with study labels?</string>
+     </property>
+    </widget>
+   </item>
+   <item>
     <layout class="QHBoxLayout" name="horizontalLayout_10">
      <item>
       <widget class="QLabel" name="label25">

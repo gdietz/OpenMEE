@@ -50,6 +50,7 @@ class ScatterPlotWizard(QtGui.QWizard):
         
         self.model=model
         self.setWindowTitle("Scatterplot Wizard")
+        self.setWizardStyle(QWizard.ClassicStyle)
 
         self.data_select_page = ScatterplotDataSelectPage(model=model, prev_scatterplot_data=prev_scatterplot_data)
         self.scatterplot_page = ScatterPlotPage(old_scatterplot_params=old_scatterplot_params)
