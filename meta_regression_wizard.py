@@ -87,7 +87,8 @@ class MetaRegressionWizard(QtGui.QWizard):
         return self.nextId_helper(current_id)
         
     def nextId_helper(self, page_id):
-        
+        print page_id 
+
         if page_id not in [Page_ChooseEffectSize, Page_DataLocation,
                               Page_RefineStudies, Page_MetaRegDetails]:
             analysis_type = self.get_analysis_type() # PARAMETRIC or BOOTSTRAP
