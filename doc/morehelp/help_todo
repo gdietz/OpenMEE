@@ -1,8 +1,9 @@
 Installing/Running on windows [X] G
 Installing on Mac             [X] G
 Basic Data entry              [X]
-standard meta analysis        [X]
-cumulative, loo, reg, etc,    [ ] B
+standard meta analysis        [X] 
+cumulative, loo, etc,         [X] B
+meta-regression		      [ ] B
 phylogenetic                  [ ] G
 exploratory plots             [ ] G
 Publication bias              [ ] B + (stern warning)
