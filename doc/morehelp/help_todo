@@ -3,13 +3,13 @@ Installing on Mac             [X] G
 Basic Data entry              [X]
 standard meta analysis        [X] 
 cumulative, loo, etc,         [X] B
-meta-regression		      [ ] B
+meta-regression		          [ ] B
 phylogenetic                  [ ] G
-exploratory plots             [ ] G
+exploratory plots             [X] G
 Publication bias              [ ] B + (stern warning)
 export button in results      [ ] B
 Through the looking glass     [ ] G
-contingency table             [ ] G
+contingency table             [X] G
 import/export                 [ ] B
 Multiple Impution analysis    [ ] B
 Model Buildings               [ ] G

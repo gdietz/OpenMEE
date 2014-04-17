@@ -24,6 +24,7 @@ class HistogramWizard(QtGui.QWizard):
         
         self.model=model
         self.setWindowTitle("Histogram Wizard")
+        self.setWizardStyle(QWizard.ClassicStyle)
         
         self.data_select_page = HistogramDataSelectPage(model=model, prev_hist_var=prev_hist_var)
         self.histogram_page = HistogramPage(old_histogram_params=old_histogram_params)
