@@ -2,8 +2,8 @@
 
 # Form implementation generated from reading ui file 'main_window.ui'
 #
-# Created: Thu Mar 20 10:37:03 2014
-#      by: PyQt4 UI code generator 4.10.3
+# Created: Thu Apr 17 09:59:21 2014
+#      by: PyQt4 UI code generator 4.10.4
 #
 # WARNING! All changes made in this file will be lost!
 
@@ -47,8 +47,6 @@ class Ui_MainWindow(object):
         self.menuRecent_Data.setObjectName(_fromUtf8("menuRecent_Data"))
         self.menuEdit = QtGui.QMenu(self.menubar)
         self.menuEdit.setObjectName(_fromUtf8("menuEdit"))
-        self.menuTable = QtGui.QMenu(self.menubar)
-        self.menuTable.setObjectName(_fromUtf8("menuTable"))
         self.menuAnalysis = QtGui.QMenu(self.menubar)
         self.menuAnalysis.setObjectName(_fromUtf8("menuAnalysis"))
         self.menuMeta_Analysis = QtGui.QMenu(self.menuAnalysis)
@@ -212,11 +210,6 @@ class Ui_MainWindow(object):
         self.menuEdit.addSeparator()
         self.menuEdit.addAction(self.actionShow_toolbar)
         self.menuEdit.addAction(self.actionTable_Preferences)
-        self.menuTable.addAction(self.actionChange_Column_Format)
-        self.menuTable.addAction(self.actionRename_Column)
-        self.menuTable.addAction(self.actionMark_Column_as_Label)
-        self.menuTable.addAction(self.actionUnmark_Column_as_Label)
-        self.menuTable.addSeparator()
         self.menuMeta_Analysis.addAction(self.actionStandard_Meta_Analysis)
         self.menuMeta_Analysis.addAction(self.actionCumulative)
         self.menuMeta_Analysis.addAction(self.actionLeave_one_out)
@@ -242,7 +235,6 @@ class Ui_MainWindow(object):
         self.menuEffect_Size.addAction(self.actionTransform_Effect_Size)
         self.menubar.addAction(self.menuFile.menuAction())
         self.menubar.addAction(self.menuEdit.menuAction())
-        self.menubar.addAction(self.menuTable.menuAction())
         self.menubar.addAction(self.menuEffect_Size.menuAction())
         self.menubar.addAction(self.menuAnalysis.menuAction())
         self.menubar.addAction(self.menuData_Exploration.menuAction())
@@ -272,7 +264,6 @@ class Ui_MainWindow(object):
         self.menuFile.setTitle(_translate("MainWindow", "File", None))
         self.menuRecent_Data.setTitle(_translate("MainWindow", "Recent Data...", None))
         self.menuEdit.setTitle(_translate("MainWindow", "Edit", None))
-        self.menuTable.setTitle(_translate("MainWindow", "Table", None))
         self.menuAnalysis.setTitle(_translate("MainWindow", "Analysis", None))
         self.menuMeta_Analysis.setTitle(_translate("MainWindow", "Meta-Analysis", None))
         self.menuAbout.setTitle(_translate("MainWindow", "Help", None))
