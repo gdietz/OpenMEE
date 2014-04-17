@@ -5,7 +5,7 @@ standard meta analysis        [X]
 cumulative, loo, etc,         [X] B
 meta-regression		      [ ] B
 phylogenetic                  [ ] G
-exploratory plots             [ ] G
+exploratory plots             [X] G
 Publication bias              [ ] B + (stern warning)
 export button in results      [ ] B
 Through the looking glass     [ ] G

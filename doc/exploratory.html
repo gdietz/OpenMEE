@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<!--[if lt IE 7]>      <html class="no-js lt-ie9 lt-ie8 lt-ie7"> <![endif]-->
+<!--[if IE 7]>         <html class="no-js lt-ie9 lt-ie8"> <![endif]-->
+<!--[if IE 8]>         <html class="no-js lt-ie9"> <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js"> <!--<![endif]-->
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <title></title>
+        <meta name="description" content="">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+
+        <!-- Place favicon.ico and apple-touch-icon.png in the root directory -->
+
+        <link rel="stylesheet" href="css/normalize.css">
+        <link rel="stylesheet" href="css/main.css">
+        <link rel="stylesheet" href="css/custom.css">
+        <script src="js/vendor/modernizr-2.6.2.min.js"></script>
+    </head>
+    <body>
+
+<h3>Data Exploration</h3>
+
+<p> OpenMEE offers various tools to help you visually explore your data including scatterplots and histograms.
+    <ol>
+        <li><b>Scatterplots</b><br />
+            Scatterplots are useful for seeing relationships between two quantitative variables. You can make a scatter plot in OpenMEE by choosing 'Scatterplot' from the 'Data Exploration' menu.
+            <figure>
+  <img src="img/exploratory/scatterplot_data.png">
+  <figcaption>Figure 1. Choosing Scatterplot Data </figcaption>
+</figure>
+
+            <figure>
+  <img src="img/exploratory/scatterplot_params.png">
+  <figcaption>Figure 2. Scatterplot parameters </figcaption>
+</figure>
+
+            You are presented with a wizard which will allow to choose the source of your data for each axis, then choose custom axis labels and limits. You can also choose to annotate each data point with the study that the point comes from.
+
+            Here is a scatterplot obtained by comparing Age with Correlation:
+                        <figure>
+  <img src="img/exploratory/scatterplot.png">
+  <figcaption>Figure 3. Example Scatterplot </figcaption>
+</figure>
+        </li>
+        <li><b>Histograms</b><br />
+            Histograms are a way to look at data, one variable at a time. For quantitative data, the values are 'binned' and then counted. For categorical variables, the count of each level corresponds to the height of each bar. In the figures below, we see the histogram details screen and also an example of a historgram of quantitative data (rainfall) and categorical data (planet),
+                                    <figure>
+  <img src="img/exploratory/histogram_params.png">
+  <figcaption>Figure 4. Histogram details </figcaption>
+</figure>
+                        <figure>
+  <img src="img/exploratory/histogram_planets.png">
+  <figcaption>Figure 5. Histrogram of planets (categorical variable) </figcaption>
+</figure>
+                        <figure>
+  <img src="img/exploratory/rainfall_histogram.png">
+  <figcaption>Figure 6. Histogram of rainfall (quantitative variable) </figcaption>
+</figure>
+        </li>
+    </ol>
+
+
+
+
+
+        <script src="//ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
+        <script>window.jQuery || document.write('<script src="js/vendor/jquery-1.10.2.min.js"><\/script>')</script>
+        <script src="js/plugins.js"></script>
+        <script src="js/main.js"></script>
+
+        <!-- Google Analytics: change UA-XXXXX-X to be your site's ID. -->
+        <script>
+            (function(b,o,i,l,e,r){b.GoogleAnalyticsObject=l;b[l]||(b[l]=
+            function(){(b[l].q=b[l].q||[]).push(arguments)});b[l].l=+new Date;
+            e=o.createElement(i);r=o.getElementsByTagName(i)[0];
+            e.src='//www.google-analytics.com/analytics.js';
+            r.parentNode.insertBefore(e,r)}(window,document,'script','ga'));
+            ga('create','UA-XXXXX-X');ga('send','pageview');
+        </script>
+</body>
+</html>
