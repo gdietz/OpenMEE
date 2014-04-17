@@ -25,21 +25,57 @@
 
 <h1>Table of Contents</h1>
 
-TODO
+<ol>
+  <li><a href="#getting-started">Getting started</a></li>
+  <ol>
+    <li><a href="#installing">Downloading and Installing OpenMEE</a></li>
+    <li><a href="#starting">Starting the Program</a></li>
+  </ol>
+  <li><a href="#spreadsheet">Working With Data: the OpenMEE Spreadsheet</a></li>
+  <ol>
+    <li><a href="#calc-effect-size">Calculating Effect Sizes</a></li>
+    <li><a href="#importing">Importing and Exporting Data</a></li>
+  </ol>
+  <li><a href="#running-analyses">Performing Analyses</a></li>
+    <ol>
+      <li><a href="#standard-MA">Standard Meta-Analysis</a></li>
+      <li><a href="#cumulative-MA">Cumulative Meta-Analysis</a></li>
+      <li><a href="#loo-MA">Leave-one-out Meta-Analysis</a></li>
+      <li><a href="#subgroup-MA">Subgroup Meta-Analysis</a></li>
+      <li><a href="#phylo">Phylogenetic Meta-Analysis</a></li>
+      <li><a href="#meta-reg">Meta-Regression</a></li>
+      <li><a href="#modelbuilding">Model Building (Likelihood Ratio Testing for Nested Regressions)</a></li>
+      <li><a href="#bootstrap">Bootstrapped Meta-Analysis</a></li>
+      <li><a href="#imputation">Multiple Imputation for Missing Data</a></li>
+      <li><a href="#publication-bias">Publication Bias</a></li>
+      <li><a href="#exporting-results">Exporting Analysis Results</a></li>
+      <li><a href="#rconsole">The Embedded R Console</a></li>
+    </ol>
+  </li>
+  <li><a href="#trouble">Troubleshooting and FAQ</a></li>
+</ol>
 
 <a id="getting-started"><h1>Getting Started</h1></a>
 
 <a id="installing"><h2>Downloading and Installing OpenMEE</h2></a>
+
+To install OpenMEE, follow these steps. 
+
 <ol>
-    <li>To install OpenMEE, download the program from:<br/> <a href="http://www.cebm.brown.edu/open_mee/download">http://www.cebm.brown.edu/open_mee/download</a></li>
+    <li>First download the program from:<br/> <a href="http://www.cebm.brown.edu/open_mee/download">http://www.cebm.brown.edu/open_mee/download</a></li>
+    <br /> Make sure to download the correct version of the program for your system. As of this writing, we currently support Mac OS X Mountain Lion and Windows 7 and 8 (64-bit versions). 
     <li>Save the zip file somewhere convenient and extract it (just double-clicking should do on most systems).</li>
+    <li>Make sure that the location from which you run the program is somewhere where you have write privileges (somewhere in your user path i.e. Somewhere after
+      <br /><code>/Users/yourname/ on Mac or<br />C:\Users\yourname\ on windows). </code><br />
+      <br />The program needs to be able to write to its own directory.</li> <b>Do not put the program in the Program Files folder on a PC or Applications folder on a Mac</b>!
 </ol>
 
-<h2> Starting OpenMEE </h2>
+<a id="starting"><h2>Starting OpenMEE </h2></a>
 
-<p>Launch the program by clicking on LaunchOpenMEE.exe in the case of Windows or, on Mac, the OpenMEE app. This will open the main spreadsheet. </p>
+<p>Launch the program by clicking on LaunchOpenMEE.exe in the case of Windows or, on Mac, the OpenMEE app. This will open the main spreadsheet. Sometimes this can take a few seconds.</p>
 
-<a id="spreadsheet"><h2>The OpenMEE Spreadsheet </h2></a>
+
+<a id="spreadsheet"><h1>The OpenMEE Spreadsheet</h1></a>
 
 <figure>
   <img src="img/opening_screen.png" width="50%" height="50%">
@@ -100,7 +136,7 @@ You can rename columns by clicking on the 'rename variable' option of the <i>con
 
 <p>Here, you can change the color schemes of the variables as well as the font used on the spreadsheet as well as the number of digits displayed for continuous variables. </p>
 
-<h3>Calculating an Effect Size </h3>
+<a id="calc-effect-size"><h2>Calculating an Effect Size </h2></a>
 
 <p>Before we can run an analysis, we need effect sizes and associated variances. These can be input in one of two ways:
 
@@ -131,7 +167,7 @@ We will consider each option in turn </p>
 
 <p>Here we need to discuss the issue of 'transformed' scale vs. 'raw' scale. To perform a meta-analysis, we need an effect size and a measure of dispersion for each study. For example, if our metric is the odds ratio, we need the effect size on the transformed (log) scale because confidence intervals for odds ratios are generally not symmetric in the raw (untransformed) scale. Fortunately, OpenMEE can transform an effect size and confidence interval (or effect size and variance) from one scale another.</p>
 
-<h4>Calculating an effect size from raw data</h4>
+<h3>Calculating an effect size from raw data</h3>
 
 <figure>
   <img src="img/calc_effect_size/1_calculate_effect_size_wizard.png" width="60%" height="60%">
@@ -175,13 +211,13 @@ We will consider each option in turn </p>
 <p>Exporting data follows the reverse of the above (select <i>Export CSV</i> rather than <i>Import CSV</i>). Note that all calculated effects and variances will also be exported. Most programs, including Excel (for example), can read CSV's.</p>
 
 
-<a id="running-analyses"><h2> Running Analyses</h2></a>
+<a id="running-analyses"><h1> Running Analyses</h1></a>
 
 <p>All analyses are performed similiarly. You can choose to perform an analysis by clicking its icon in the toolbar or by selecting it from the <i>Analysis</i> menu. More exotic analyses (such as 'bootstrapped' meta regression, meta-regression-based conditional means and boostrapped meta regression-based conditional means) are only accessible from the menu bar. </p>
 
 <p>Here we describe the pages one sees on the wizards for each analysis (this is similar for all analyses).</p>
 
-<a id="standard-MA"><h3>Standard Meta Analysis</h3></a>
+<a id="standard-MA"><h2>Standard Meta Analysis</h2></a>
 
 <p>Here we refer to analyses that look to estimate a 'grand mean', i.e., with no covariates. The pages you will see are as follows.</p>
 
@@ -208,7 +244,7 @@ We will consider each option in turn </p>
 
 
 
-<a id="cumulative-MA"><h3>Cumulative Meta Analysis </h3></a>
+<a id="cumulative-MA"><h2>Cumulative Meta Analysis </h2></a>
   <p><a href="http://www.nceas.ucsb.edu/meta/Lau/Lau_et_al_1992_NEJM.pdf">Cumulative meta-analysis</a> is a meta-analytic approach in which studies are added one at a time, and the change in the cumulative effect size is observed. To perform a cumulative meta-analysis in OpenMEE, simply select <i>Cumulative Meta-Analysis</i> from the <i>Analysis</i> menu. We show a sample forest plot generated from a cumulative meta-analysis below. The left-hand side displays the usual study estimates and confidence intervals; the right hand side shows the effect on the overall (summary) estimate as studies are included in the meta-analysis.</p>
   <br/>
   <figure>
@@ -216,7 +252,7 @@ We will consider each option in turn </p>
 </figure>
 
 
-<a id="loo-MA"><h3>Leave One Out Meta Analysis </h3></a>
+<a id="loo-MA"><h2>Leave-one-out Meta Analysis </h2></a>
  <p>Leave-one-out meta-analysis is conceptually similar to <a href="#cumulative-MA">cumulative meta-analysis</a>, except that instead of adding studies one at a time, one holds each study out in turn. This is an exploratory exercise that may highlight influential studies (summary estimates that leave influential studies out will differ substantially than those that include them). An example of output from a leave-one-out analysis is shown below.</p>
 
  <figure>
@@ -225,14 +261,37 @@ We will consider each option in turn </p>
 
 <p>Note that the options for Cumulative Meta Analaysis and Leave-One-Out meta analysis are the same as for standard meta-analysis (as described <a href="#standard-MA">above</a>).</p>
 
-<a id="subgroup-MA"><h3> Subgroup Meta Analysis </h3></a>
+<a id="subgroup-MA"><h2> Subgroup Meta Analysis </h2></a>
 <p>In subgroup meta-analysis, one partitions studies into disjoint groups (e.g., studies conducted in China versus all others) and runs separate meta-analyses over these groups of studies. This is an exploratory exercise that may highlight differences between groups. The options for subgroup meta analysis are the same as for standard meta analysis except for a categorical variable must be selected. For example, if the selected variable is <i>state</i>, then subgroup analyses will be run on studies from each observed state. In the example shown below, this includes Massachusetts (MA) and Rhode Island (RI). </p>
 
 <figure>
 <img src="img/subgroup_ma.png" width="60%" height="60%"><br/>
 </figure>
 
-<a id="meta-reg"><h3> Meta Regression </h3></a>
+<h2><a id="phylo">Phylogenetic Meta Analysis</a></h2>
+
+OpenMEE can also do <a href="http://www.ncbi.nlm.nih.gov/pubmed/22487445">phylogenetic meta-analysis</a>. What this means in practice is that OpenMEE can use a phylogenetic tree to augment the variance for each study based on a SPECIES covariate. <!-- more detail needed --> As shown below, the phylogenetics meta-analysis wizard requires you to select a column representing the species.<br/><br/>
+
+<figure>
+  <img src="img/phylo/phylo_data_location.png" width="50%" height="50%">
+  <figcaption>Choose effect size and variance and also a species column</figcaption>
+</figure>
+
+You then have to select a phylogenetic tree file. The file must contain species that match those in the previously selected SPECIES column exactly. The file can be in Nexus, Newick, New Hampshire, or CAIC format.
+
+<figure>
+  <img src="img/phylo/phylo_tree.png" width="50%" height="50%">
+  <figcaption>Choose a phylogenetic tree file</figcaption>
+</figure> <br />
+
+Finally, you can give details about the phylogenetic model type, specifying a Brownian-Motion or Ornstein-Uhlenbeck model. <br /><br />
+
+<figure>
+  <img src="img/phylo/phylo_params.png" width="50%" height="50%">
+  <figcaption>Specify phylogenetic model type</figcaption>
+</figure>
+
+<a id="meta-reg"><h2>Meta Regression </h2></a>
 <p>Meta-regression allows one to explore the relationship between covariates and study outcomes. OpenMEE supports mulitple regression and both continuous and categorical predictors (covariates).</p>
 
 <p>On the 'Select covariates for regression page', select the covariates for regression. On this same page, one can choose whether you want to use a random or fixed effects model and the confidence level to use in the analysis. An example of this is shown below; here we have selected "Avg. Rainfall" to be included in the regression. </p>
@@ -253,21 +312,29 @@ We will consider each option in turn </p>
 <img src="img/bootstrap_histogram.png" width="40%" height="40%"><br/>
 </figure>
 
-<a id="boostrap"><h3> Boostrapped Meta Analysis </h3></a>
-<p><a href="http://www.stat.cmu.edu/~cshalizi/uADA/12/lectures/ch05.pdf">Bootstrapping</a> is a non-parametric approach for assessing the variance of a parameter estimate. OpenMEE allows for bootstrapped estimates both for meta-regressions and standard meta-analysis.</p>
-<p>In general, the options for boostrapped meta-analysis are the same as those for standard meta-analysis, with the addition that one needs to provide bootstrap-specific parameter values. These include the number of bootstrap replicates to perform, for example. We show sample output from a boostrapped meta-analysis below. </p>
+<h3><a id="modelbuilding">Model Building</a></h3>
+
+<p>OpenMEE can compare two regression-models in terms of model-fit statistics and a likelihood ratio test. This is a strategy to assess the informativeness of a given (set of) predictors.</p>
+
+<p>The process to do this model building comparison is very similiar to that of meta-regression. The only differences are that the covariates you select on the covariate select screen will be the covariates used to construct the Full model. You then select a subset of these covariates/interactions to use for the reduced model as shown in the figure.</p>
 
 <figure>
-<img src="img/reference_value_reg.png" width="40%" height="40%"><br/>
+  <img src="img/reduced_model.png" width="50%" height="50%">
+  <figcaption>Specifying the 'reduced' model</figcaption>
 </figure>
 
-<p>When running bootstrap operations in OpenMEE, the program tries to generate results using the selected number of bootstrap replicates. We note that depending on the dataset and the meta-anaytic (pooling) model being used, a meta-analysis of a specific sample of the dataset may fail. OpenMEE hands this in a straight-forward way: if one particular replicate attempt fails, another is tried, and so on until 5 times the selected of bootstrap replicates have been attempted, at which point an error message is returned.  </p>
+<a id="bootstrap"><h2> Boostrapped Meta Analysis </h2></a>
+<p><a href="http://www.stat.cmu.edu/~cshalizi/uADA/12/lectures/ch05.pdf">Bootstrapping</a> is a non-parametric approach for assessing the variance of a parameter estimate. OpenMEE allows for bootstrapped estimates both for meta-regressions and standard meta-analysis.</p>
+<p>In general, the options for boostrapped meta-analysis are the same as those for standard meta-analysis, with the addition that one needs to provide bootstrap-specific parameter values. These include the number of bootstrap replicates to perform, for example. We show sample output from a boostrapped meta-analysis below. </p>
 
 <figure>
 <img src="img/bootstrap_histogram_MA.png" width="40%" height="40%">
 </figure>
 
-<h3>Multiple Imputation</h3>
+<p>When running bootstrap operations in OpenMEE, the program tries to generate results using the selected number of bootstrap replicates. We note that depending on the dataset and the meta-anaytic (pooling) model being used, a meta-analysis of a specific sample of the dataset may fail. OpenMEE hands this in a straight-forward way: if one particular replicate attempt fails, another is tried, and so on until 5 times the selected of bootstrap replicates have been attempted, at which point an error message is returned.  </p>
+
+
+<a id="imputation"><h2>Multiple Imputation</h2></a>
 
 <p>Sometimes data elements are missing from studies. OpenMEE supports basic imputation of covariates for meta-regression. To use this, select <i>Multiple Imputations Meta-Regression</i> form the <i>Analysis</i> drop-down menu. You will be prompted with the following screen</p> 
 
@@ -276,6 +343,8 @@ We will consider each option in turn </p>
 </figure>
 
 <p>These parameters specify the imputation method to use and the number of multiple imputations to perform. Providing the methodological details of the imputation is beyond the scope of this document, but we refer the interested reader to the R <a href="http://cran.r-project.org/web/packages/mice/index.html">MICE</a> documentation for more details: we use this package 'under the hood' to perform the imputation.</p>
+
+
 
 <a id="publication-bias"><h2>Publication Bias</h2></a>
 
@@ -288,7 +357,7 @@ We will consider each option in turn </p>
 <p>Under the same <i>Publication Bias</i> sub-menu, one can find an option to calculate <a href="http://handbook.cochrane.org/chapter_10/10_4_4_3_fail_safe_n.htm">fail-safe N</a></p>. 
 
 
-<a id="exporting-results"><h3>Exporting Results</h3></a>
+<a id="exporting-results"><h2>Exporting Analysis Results</h2></a>
 
 <p>One may wish to export the results from analyses for input into different programs (e.g., Microsoft Word). OpenMEE facilitates this in a few different ways. For images (e.g., forest plots), perhaps the easiest thing to do is to right-click and select "save png image as..." from the context menu, as shown below.</p>
 
@@ -307,6 +376,32 @@ We will consider each option in turn </p>
 </figure>
 
 <p>This will save all displayed textual output to a file of the user's choice.</p>
+
+<h2><a id="rconsole">R console</a></h2>
+
+<p>OpenMEE relies on <a href="http://www.r-project.org/">R</a> to perform its analyses. The casual user need not ever be aware of this in the course of his analyses. However, If desired you can see the commands being sent to R in real-time and even interact with the R console. You can also log the R commands to a text file. All this can be done by selecting 'R output viewer' in from the 'Through the looking glass menu'. Then, as you interact with program, the commands being sent to R will appear in the window. This can be useful to automate reproduction of results. </p>
+
+<figure>
+  <img src="img/rconsole.png">
+  <figcaption>Figure 1. R console</figcaption>
+</figure>
+
+<p>You can interact with objects in the R workspace by typing commands in to the 'Command Injection' area of the 'R output viewer' window and then pressing enter or pushing the 'Inject Command' button.</p>
+
+<a id="trouble"><h1>Troubleshooting / FAQ</h1></a>
+
+<dl>
+  <dt><b>The program doesn't start! Or, no analyses work!</b></dt>
+  <dd>First of all, did you extract the program to somewhere where you have write privileges as described in the <a href="#getting-started">'Getting Started'</a> section of this document? If you insist on putting the program in a strange place where you don't have write privileges, you can run it if you right-click it, and choose "Run as administrator" under windows or launch it from the command line in Mac via sudo. <b>Don't</b> do this though. Just run the program from where we say to! The desktop is a fine place.</dd>
+  <dt><b>I opened my dataset that I made in a previous build of OpenMEE and 'weird' things are happening when I try to run an analysis.</b></dt>
+  <dd>This can happen if we updated the underlying format of the files we use to store data about datasets. If this happens, you can fix it most of the time by clicking the swirly blue arrow on the upper right of the toolbar and then saving. This should update your dataset to be fully compatible with your new version of OpenMEE.</dd>
+  <dt><b>I'm getting 'Crazy R Errors' when I try to run a meta-analysis or meta-regression</b></dt>
+  <dd>First of all, are your effect sizes reasonable? Not infinity? Make sure you're not dividing by zero somewhere. For meta-regression, are you trying to run it with too many covariates/interactions? This can cause problems with rank of matrices when the number of studies is not large compared to the number of covariates / levels in a categorical covariate.</dd>
+  <dt><b>I don't like the colors in the spreadsheet</b></dt>
+  <dd>Sorry you don't like our taste in colors, you can change them if you like from the Preferences menu.</dd>
+
+</dl>
+
 
 
 
