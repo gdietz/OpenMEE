@@ -68,16 +68,6 @@
     <addaction name="actionShow_toolbar"/>
     <addaction name="actionTable_Preferences"/>
    </widget>
-   <widget class="QMenu" name="menuTable">
-    <property name="title">
-     <string>Table</string>
-    </property>
-    <addaction name="actionChange_Column_Format"/>
-    <addaction name="actionRename_Column"/>
-    <addaction name="actionMark_Column_as_Label"/>
-    <addaction name="actionUnmark_Column_as_Label"/>
-    <addaction name="separator"/>
-   </widget>
    <widget class="QMenu" name="menuAnalysis">
     <property name="title">
      <string>Analysis</string>
@@ -138,7 +128,6 @@
    </widget>
    <addaction name="menuFile"/>
    <addaction name="menuEdit"/>
-   <addaction name="menuTable"/>
    <addaction name="menuEffect_Size"/>
    <addaction name="menuAnalysis"/>
    <addaction name="menuData_Exploration"/>
