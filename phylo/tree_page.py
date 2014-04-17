@@ -13,8 +13,8 @@ import python_to_R
 import os.path
 from ome_globals import *
 
-FILE_VALID_MSG = "Selected file does matches selected tree format"
-FILE_INVALID_MSG = "Selected file does match selected tree format"
+FILE_VALID_MSG = "Selected file matches selected tree format"
+FILE_INVALID_MSG = "Selected file does not match selected tree format"
 
 class TreePage(QWizardPage, ui_tree_page.Ui_WizardPage):
     def __init__(self, parent=None):
