@@ -2,8 +2,8 @@
 
 # Form implementation generated from reading ui file 'scatterplot_page.ui'
 #
-# Created: Mon Jan  6 15:44:47 2014
-#      by: PyQt4 UI code generator 4.10.3
+# Created: Thu Apr 17 10:16:19 2014
+#      by: PyQt4 UI code generator 4.10.4
 #
 # WARNING! All changes made in this file will be lost!
 
@@ -129,6 +129,9 @@ class Ui_WizardPage(object):
         spacerItem3 = QtGui.QSpacerItem(38, 20, QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Minimum)
         self.ylim_layout_2.addItem(spacerItem3)
         self.verticalLayout.addLayout(self.ylim_layout_2)
+        self.study_labels_checkBox = QtGui.QCheckBox(WizardPage)
+        self.study_labels_checkBox.setObjectName(_fromUtf8("study_labels_checkBox"))
+        self.verticalLayout.addWidget(self.study_labels_checkBox)
         self.horizontalLayout_10 = QtGui.QHBoxLayout()
         self.horizontalLayout_10.setObjectName(_fromUtf8("horizontalLayout_10"))
         self.label25 = QtGui.QLabel(WizardPage)
@@ -160,6 +163,7 @@ class Ui_WizardPage(object):
         self.label_8.setText(_translate("WizardPage", "[", None))
         self.label_12.setText(_translate("WizardPage", ",", None))
         self.label_10.setText(_translate("WizardPage", "]", None))
+        self.study_labels_checkBox.setText(_translate("WizardPage", "Annotate data points with study labels?", None))
         self.label25.setText(_translate("WizardPage", "status: ", None))
         self.status_lbl.setText(_translate("WizardPage", "actualstatus", None))
 

@@ -34,11 +34,17 @@ class MetaRegDetailsPage(QWizardPage, ui_meta_regression_details_page.Ui_WizardP
         self.phylogen_checkBox.setEnabled(False)
         self.phylogen_checkBox.setToolTip("Disabled until phylogenetic component included")
         
-    
+    def analysis_type_or_output_type_changed(self):
+        self.completeChanged.emit()
+
     def setup_connections(self):
         # radio buttons
         self.fixed_effects_radio_btn.clicked.connect(self.choose_fixed_effects)
         self.random_effects_radio_btn.clicked.connect(self.choose_random_effects)
+        
+        self.parametric_radioButton.toggled.connect(self.analysis_type_or_output_type_changed)
+        self.bootstrapped_radioButton.toggled.connect(self.analysis_type_or_output_type_changed)
+        self.conditional_means_checkBox.toggled.connect(self.analysis_type_or_output_type_changed)
         
     def setup_values_from_previous_analysis(self, conf_level,
 											random_effects_method,
