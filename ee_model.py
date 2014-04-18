@@ -129,7 +129,14 @@ class EETableModel(QAbstractTableModel):
         self.change_row_count_if_needed()
         
         self.big_paste_mode = False # state to set/reset while pasting/importing
-        
+    
+    def get_occupied_columns(self):
+        cols = self.cols_2_vars.keys()
+        if self.label_column:
+            cols.append(self.label_column)
+        return cols
+    
+    
     def set_user_prefs(self, user_prefs):
         self.user_prefs = user_prefs
         

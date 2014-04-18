@@ -14,6 +14,8 @@ from PyQt4.Qt import *
 ######
 HELP_URL = "http://www.cebm.brown.edu/open_mee/help"
 
+VARIABLE_LABEL_DISALLOWED_CHARS = ['(',')']
+
 ###### SWITCHES #######
 # Enables additional elements of the program useful in debugging
 DEBUG_MODE = True           # mostly for printing debugging message to terminal

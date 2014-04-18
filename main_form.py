@@ -919,6 +919,15 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
         if proposed_name in current_var_names:
             QMessageBox.warning(self,"Bad name", "That variable name is already present in the dataset, duplicates not allowed.")
             return False
+       
+        # check for disallowed chars that will cause problems on the R side
+        disallowed_chars_with_quotes = ["'%s'" % char for char in VARIABLE_LABEL_DISALLOWED_CHARS]
+        for char in VARIABLE_LABEL_DISALLOWED_CHARS:
+            if char in proposed_name:
+                msg = "The following characters are not allowed in column labels: %s" % ", ".join(disallowed_chars_with_quotes)
+                QMessageBox.warning(self,"Forbidden characters", msg)
+                return False
+        
         # Warn about character issue #76 with variable names in R
         special_chars = [" ","-"]
         special_char_in_proposed_name = False
@@ -927,6 +936,7 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
                 special_char_in_proposed_name = True
         if special_char_in_proposed_name:
             QMessageBox.warning(self,"Character Issue","Due to general R-craziness, the characters %s will be changed to '.' on the R side (and in ouput) -- just letting you know." % ", ".join(special_chars))
+
 
         # We will proceed with the renaming
         if is_label_column:
@@ -1042,8 +1052,47 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
 
         # reset menu/toolbar
         self.initialize_display()
+        
+        # check for forbidden chars in variable names
+        self.check_for_forbidden_chars_in_variable_names()
 
         return True
+    
+    def check_for_forbidden_chars_in_variable_names(self):
+        vars = self.vars_with_forbidden_chars()
+        labels_with_forbidden_chars = [v.get_label() for v in vars]
+        if len(labels_with_forbidden_chars) > 0:
+            disallowed_chars_quoted = ["'%s'" % char for char in VARIABLE_LABEL_DISALLOWED_CHARS]
+            charlist = ", ".join(disallowed_chars_quoted)
+            msg = "The characters: %s are not allowed in variable names. The following variables names have these disallowed characters:\n%s\n\nIf it's ok to just remove the bad characters, click 'Ok' otherwise, click cancel and remove the characters manually. This action is not undoable." % (charlist, "\n".join(labels_with_forbidden_chars)) 
+            choice = QMessageBox.warning(self, "Forbidden characters in variable names", msg, buttons=QMessageBox.Ok|QMessageBox.Cancel)
+            if choice == QMessageBox.Ok:
+                self.remove_disallowed_chars_from_var_labels(vars)
+                occupied_cols = self.model.get_occupied_columns()
+                self.model.headerDataChanged.emit(Qt.Horizontal,min(occupied_cols), max(occupied_cols))
+    
+                
+    def remove_disallowed_chars_from_var_labels(self, variables):
+        for v in variables:
+            label = v.get_label()
+            new_label = label
+            for char in VARIABLE_LABEL_DISALLOWED_CHARS:
+                new_label = new_label.replace(char, "")
+            v.set_label(new_label)
+    
+    def vars_with_forbidden_chars(self):
+        ''' returns list of variables with disallowed characters in label'''
+        
+        variables = self.model.get_variables()
+        vars_with_disallowed_chars = []
+        
+        for v in variables:
+            label = v.get_label()
+            bad_chars_present = any([char in label for char in VARIABLE_LABEL_DISALLOWED_CHARS])
+            if bad_chars_present:
+                vars_with_disallowed_chars.append(v)
+        return vars_with_disallowed_chars
+        
 
     def new_dataset(self):
         # What to do if current dataset is unsaved
@@ -1645,14 +1694,11 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
                 self.model.set_dirty_bit(False)
                 pass # ok to disregard current data
         
-        
-        
-        
         form = csv_import_dlg.CSVImportDialog(self)
         if form.exec_():
             data = form.get_csv_data()
             if data is None:
-                QMessageBox.warning(self, "problem", "Coudln't import csv data for some reason")
+                QMessageBox.warning(self, "problem", "Couldn't import csv data for some reason")
                 return
             matrix = data['data']
             headers = data['headers']
@@ -1685,7 +1731,8 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
                 self.tableView_selection_model.blockSignals(False)
             self.paste_wrapper(start_index, matrix)
             
-            
+            # check for forbidden characters in variable names
+            self.check_for_forbidden_chars_in_variable_names()
             self.undo_stack.clear()
 
     def export_csv(self):
