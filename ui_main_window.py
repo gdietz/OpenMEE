@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'main_window.ui'
 #
-# Created: Thu Apr 17 09:59:21 2014
+# Created: Fri Apr 18 14:14:05 2014
 #      by: PyQt4 UI code generator 4.10.4
 #
 # WARNING! All changes made in this file will be lost!
@@ -190,6 +190,8 @@ class Ui_MainWindow(object):
         self.actionImpute_Missing_Data.setObjectName(_fromUtf8("actionImpute_Missing_Data"))
         self.actionMultiple_Imputation_Meta_Analysis = QtGui.QAction(MainWindow)
         self.actionMultiple_Imputation_Meta_Analysis.setObjectName(_fromUtf8("actionMultiple_Imputation_Meta_Analysis"))
+        self.actionGet_help_online = QtGui.QAction(MainWindow)
+        self.actionGet_help_online.setObjectName(_fromUtf8("actionGet_help_online"))
         self.menuFile.addAction(self.actionNew)
         self.menuFile.addAction(self.actionOpen)
         self.menuFile.addAction(self.actionSave)
@@ -222,6 +224,7 @@ class Ui_MainWindow(object):
         self.menuAnalysis.addAction(self.actionModel_Building)
         self.menuAnalysis.addAction(self.actionMultiple_Imputation_Meta_Analysis)
         self.menuAbout.addAction(self.action_about)
+        self.menuAbout.addAction(self.actionGet_help_online)
         self.menuPublication_Bias_2.addAction(self.actionFail_Safe_N)
         self.menuPublication_Bias_2.addAction(self.actionFunnel_Plot)
         self.menuData_Exploration.addAction(self.actionScatterplot)
@@ -316,5 +319,6 @@ class Ui_MainWindow(object):
         self.actionContingency_Table.setText(_translate("MainWindow", "Contingency Table", None))
         self.actionImpute_Missing_Data.setText(_translate("MainWindow", "Impute Missing Data", None))
         self.actionMultiple_Imputation_Meta_Analysis.setText(_translate("MainWindow", "Multiple Imputation Meta-Analysis", None))
+        self.actionGet_help_online.setText(_translate("MainWindow", "Get help online", None))
 
 import icons_rc

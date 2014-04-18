@@ -11,6 +11,9 @@ import cProfile
 from PyQt4 import QtCore, QtGui
 from PyQt4.Qt import *
 
+######
+HELP_URL = "http://www.cebm.brown.edu/open_mee/help"
+
 ###### SWITCHES #######
 # Enables additional elements of the program useful in debugging
 DEBUG_MODE = True           # mostly for printing debugging message to terminal

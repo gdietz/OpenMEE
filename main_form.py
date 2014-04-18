@@ -312,12 +312,17 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
         
         # Help Menu
         self.action_about.triggered.connect(self.show_about_dlg)
+        self.actionGet_help_online.triggered.connect(self.open_help_online)
         
         # Through the looking glass .... Menu
         self.actionR_log.triggered.connect(self.show_R_log_dlg)
         
         # Toolbar
         self.actionResetAnalysisChoices.triggered.connect(self.reset_analysis_selection)
+        
+        
+    def open_help_online(self):
+        QDesktopServices.openUrl(QUrl(HELP_URL))
         
     def contingency_table(self):
         dlg = ContingencyTableDlg(model=self.model, parent=self)
