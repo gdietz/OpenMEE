@@ -1083,7 +1083,9 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
     def vars_with_forbidden_chars(self):
         ''' returns list of variables with disallowed characters in label'''
         
-        variables = self.model.get_variables()
+        all_variables = self.model.get_variables()
+        # exclude effects since these arn't covariates
+        variables = filter(lambda v: v.get_subtype() not in EFFECT_TYPES, all_variables)
         vars_with_disallowed_chars = []
         
         for v in variables:

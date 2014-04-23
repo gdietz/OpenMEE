@@ -414,7 +414,9 @@ class Analyzer:
                                        fixed_effects=fixed_effects,
                                        conf_level=conf_level,
                                        random_effects_method=random_effects_method,
-                                       btt=btt)
+                                       metric=metric,
+                                       btt=btt,
+                                       )
                 elif mode == META_REG_COND_MEANS:
                     result = self.run_gmeta_regression_cond_means(
                                        selected_cov=selected_cov,
@@ -468,7 +470,8 @@ class Analyzer:
                              data_location, covariates, cov_ref_values,
                              interactions,
                              fixed_effects, conf_level, random_effects_method,
-                             digits = 3,btt=None):
+                             metric,
+                             digits = 3, btt=None):
 
         model = self._get_model()
         
@@ -490,6 +493,7 @@ class Analyzer:
                                   random_effects_method=random_effects_method,
                                   digits=digits,
                                   conf_level=conf_level,
+                                  metric=metric,
                                   btt=btt,
                                   data_name="tmp_obj")
         

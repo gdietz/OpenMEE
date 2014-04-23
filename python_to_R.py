@@ -1456,7 +1456,8 @@ def run_meta_method(meta_function_name, function_name, params, \
     # in R (for graphics manipulation).
     return parse_out_results(result, function_name=function_name, meta_function_name=meta_function_name)
 
-def run_gmeta_regression(covariates=[],
+def run_gmeta_regression(metric,
+                         covariates=[],
                          interactions=[],
                          data_name="tmp_obj",
                          fixed_effects = False,
@@ -1468,6 +1469,8 @@ def run_gmeta_regression(covariates=[],
 
     # Set fixed-effects vs. random effects        
     method_str = "FE" if fixed_effects else random_effects_method   
+    # Get measure i.e. OR etc.
+    measure_str = METRIC_TO_ESCALC_MEASURE[metric]
     
     # Mods is a Listvector (see description in _make_mods_listVector)
     mods = _make_mods_listVector(covariates, interactions)
@@ -1481,10 +1484,15 @@ def run_gmeta_regression(covariates=[],
         btt_indices_vector_str = ro.IntVector(btt_indices).r_repr()
     else:
         btt_indices_vector_str = str(ro.NULL)
-    
-    r_str = "{results} <- g.meta.regression(data={data}, mods={mods}, method=\"{method}\", level={level}, digits={digits}, btt={btt})".format(
-                results=results_name, data=data_name, mods=mods.r_repr(),
-                method=random_effects_method, level=conf_level, digits=digits,
+    #g.meta.regression <- function(data, mods, method, level, digits, measure, btt=NULL)
+    r_str = "{results} <- g.meta.regression(data={data}, mods={mods}, method=\"{method}\", level={level}, digits={digits}, measure=\"{measure}\", btt={btt})".format(
+                results=results_name,
+                data=data_name,
+                mods=mods.r_repr(),
+                method=random_effects_method,
+                level=conf_level,
+                digits=digits,
+                measure=measure_str,
                 btt=btt_indices_vector_str)
     
     exR.execute_in_R(r_str)
