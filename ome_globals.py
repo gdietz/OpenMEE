@@ -129,26 +129,37 @@ DEFAULT_VAR_TYPE = CATEGORICAL
 
 DEFAULT_BACKGROUND_COLOR = QColor("white") #QColor(29,30,25)
 FOREGROUND, BACKGROUND = range(2)
+
 DEFAULT_COLOR_SCHEME = {'DEFAULT_BACKGROUND_COLOR': QColor("white"),
-                        'label': {FOREGROUND: QColor(255,204,102),
-                                  BACKGROUND: DEFAULT_BACKGROUND_COLOR},
+                        'label': {'FOREGROUND': QColor(255,204,102),
+                                  'BACKGROUND': DEFAULT_BACKGROUND_COLOR},
                         'variable' : {
-                                      CATEGORICAL:
-                                            {FOREGROUND: QColor(0,0,0),
-                                             BACKGROUND: DEFAULT_BACKGROUND_COLOR},
-                                      COUNT:
-                                            {FOREGROUND: QColor(242,38,111),
-                                             BACKGROUND: DEFAULT_BACKGROUND_COLOR},
-                                      CONTINUOUS:
-                                            {FOREGROUND: QColor(157,102,253),
-                                             BACKGROUND: DEFAULT_BACKGROUND_COLOR},
+                                      'CATEGORICAL':
+                                            {'FOREGROUND': QColor(0,0,0),
+                                             'BACKGROUND': DEFAULT_BACKGROUND_COLOR},
+                                      'COUNT':
+                                            {'FOREGROUND': QColor(242,38,111),
+                                             'BACKGROUND': DEFAULT_BACKGROUND_COLOR},
+                                      'CONTINUOUS':
+                                            {'FOREGROUND': QColor(157,102,253),
+                                             'BACKGROUND': DEFAULT_BACKGROUND_COLOR},
                                       },
                         'variable_subtype' : {
                                               'DEFAULT_EFFECT':
-                                                    {FOREGROUND: QColor(0,0,0),
-                                                     BACKGROUND: QColor(222,211,96)},
+                                                    {'FOREGROUND': QColor(0,0,0),
+                                                     'BACKGROUND': QColor(222,211,96)},
                                               },
                         }
+
+DEFAULT_SETTINGS = {"splash"       : True,
+                    "digits"       : DEFAULT_PRECISION,
+                    "recent_files" : [],
+                    "colors"       : DEFAULT_COLOR_SCHEME,
+                    "model_data_font_str"     : "",
+                    "model_header_font_str"   : "",
+                    "show_additional_values"  : True,
+                    "show_analysis_selections": True,
+                    }
 
 
 # Meta Analysis data type enumerations
@@ -240,19 +251,15 @@ def get_data_type_for_metric(metric):
     raise Exception("Metric matches no known data type")
 
 EFFECT_SIZE_KEYS = ('yi','vi')
-
-MAX_RECENT_FILES = 10
-USER_PREFERENCES_FILENAME = "user_prefs.dict"
 DEFAULT_FILENAME = "untited_dataset.ome"
-
 PROGRAM_NAME = "OpenMEE"
-
 BASE_PATH = str(os.path.abspath(os.getcwd()))
-
 METHODS_WITH_NO_FOREST_PLOT = [] # leftover from OMA
-
 DEFAULT_CONFIDENCE_LEVEL = 95
 
+# Dealing with settings
+MAX_RECENT_FILES = 10
+USER_PREFERENCES_FILENAME = "user_prefs.dict"
 # this is the (local) path to a (pickled) dictionary containing
 # user preferences
 PREFS_PATH = "user_prefs.dict"
@@ -577,3 +584,86 @@ def indent(target_str, spaces=2):
 
 class NotUltrametricException(Exception):
     pass
+
+
+##################### HANDLE USER PREFERENCES #####################
+def update_setting(field, value):
+    settings = QSettings()
+    
+    # see if we need to store the value in a special way
+    value_type = type(DEFAULT_SETTINGS[field])
+    if value_type == list:
+        # TODO: do stuff
+        pass
+    elif value_type == dict:
+        # TODO: do stuff:
+        pass
+    else:
+        # nothing special needs to be done
+        settings.setValue(field, value)
+        
+def get_setting(field):
+    settings = QSettings()
+    
+    # see if we need to store the value in a special way
+    value_type = type(DEFAULT_SETTINGS[field])
+    if value_type == list:
+        # TODO: do stuff
+        # convert to a python list
+        pass
+    elif value_type == dict:
+        # TODO: do stuff:
+        # convert to a python dict
+        pass
+    else:
+        # nothing special needs to be done
+        settings.value(field)
+
+#     def get_color_setting(self, various params):
+#         # Todo: convert thing in qsetting to a qcolor
+#         pass
+    
+
+def save_settings():
+    settings = QSettings()
+    settings.sync() # writes to permanent storage
+    
+def load_settings(self):
+    ''' loads settings from QSettings object, setting suitable defaults if
+    there are missing fields '''
+
+    settings = QSettings()
+    
+    # Check if a field is missing, if so, the settings are from an older version
+    # of OpenMEE and will be replaced
+    fields = DEFAULT_SETTINGS.keys()
+    # are all fields present?
+    if all([settings.contains(field) for field in fields]):
+        pass
+    else:
+        reset_settings()
+    return settings
+    
+    
+
+def reset_settings(self):
+    settings = QSettings()
+    settings.clear()
+    
+    for field, value in DEFAULT_SETTINGS.items():
+        update_setting(field, value)
+
+def add_file_to_recent_files(self, fpath):
+    # add a new file to the front of the deque
+    # move existing file to the front of the deque
+    
+    
+    
+    if fpath in [None, ""]:
+        return False
+    
+    if fpath in self.recent_files: #file already in deque so move to front
+        self.recent_files.remove(fpath)
+    self.recent_files.appendleft(fpath)
+        
+################ END HANDLE USER PREFS ######################

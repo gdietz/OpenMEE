@@ -334,9 +334,9 @@ class Analyzer:
         # with the values selected for this run
         # TODO: refactor this so that all preferences just get stored/loaded
         # in the model
-        current_dict = self.main_form.get_user_method_params_d()
-        current_dict[chosen_method] = current_param_vals
-        self.main_form.update_user_prefs("method_params", current_dict)
+        #current_dict = self.main_form.get_user_method_params_d()
+        #current_dict[chosen_method] = current_param_vals
+        #self.main_form.update_user_prefs("method_params", current_dict)
         
         return result
     
