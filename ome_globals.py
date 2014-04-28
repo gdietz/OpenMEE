@@ -606,11 +606,18 @@ def update_setting(field, value):
         # Make sure that the written elements are strings (for now...., maybe extend it to scalars (i.e. number or string) in the future)
         # for now, this is just for reading the most recent files list
         
-        settings.beginWriteArray(field, size=len(value))
+#         settings.beginWriteArray(field, size=len(value))
+#         for i,x in enumerate(value): # value is a list
+#             settings.setArrayIndex(i)
+#             settings.setValue("dummy", x)
+#         settings.endArray()
+
+        if settings.contains(field):
+            settings.remove(field)
+        settings.beginGroup(field)
         for i,x in enumerate(value): # value is a list
-            settings.setArrayIndex(i)
-            settings.setValue("dummy", x)
-        settings.endArray()
+            settings.setValue(str(i),x)
+        settings.endGroup()
     elif value_type == dict:
         # TODO: do stuff:
         pass
@@ -630,12 +637,20 @@ def get_setting(field):
     value_type = get_setting_type(field)
     #print("Setting type: %s for %s" % (str(value_type), field))
     if value_type == list:
-        size = settings.beginReadArray(field)
+#         size = settings.beginReadArray(field)
+#         foo_list = []
+#         for i in range(size):
+#             settings.setArrayIndex(i)
+#             foo_list.append(settings.value("dummy").toString()) # just for recent files list for now
+#         settings.endArray()
+#         setting_value = foo_list
+        settings.beginGroup(field)
+        indexes = list(settings.childKeys())
         foo_list = []
-        for i in range(size):
-            settings.setArrayIndex(i)
-            foo_list.append(settings.value("dummy").toString()) # just for recent files list for now
-        settings.endArray()
+        for i in indexes:
+            value = str(settings.value(i).toString())
+            foo_list.append(value)
+        settings.endGroup()
         setting_value = foo_list
     elif value_type == dict:
         # TODO: do stuff:
@@ -664,7 +679,8 @@ def save_settings():
     print("saved settings")
     settings = QSettings()
     settings.sync() # writes to permanent storage
-    
+
+
 def load_settings():
     ''' loads settings from QSettings object, setting suitable defaults if
     there are missing fields '''
@@ -673,12 +689,23 @@ def load_settings():
     
     # Check if a field is missing, if so, the settings are from an older version
     # of OpenMEE and will be replaced
-    fields = DEFAULT_SETTINGS.keys()
-    # are all fields present?
-    if all([settings.contains(field) for field in fields]):
-        pass
-    else:
-        reset_settings()
+#    #fields = DEFAULT_SETTINGS.keys()
+#    # are all fields present?
+#     if all([settings.contains(field) for field in fields]):
+#         pass
+#     else:
+#         reset_settings()
+
+    def field_is_toplevel_child_group_keys(field_name):
+        childgroups = list(settings.childGroups())
+        toplevel_group_keys = [str(x) for x in childgroups]
+        return field_name in toplevel_group_keys
+
+    for field, value in DEFAULT_SETTINGS.items():
+        setting_present = settings.contains(field) or field_is_toplevel_child_group_keys(field)
+        if not setting_present:
+            print("Filling in setting for %s" % field)
+            update_setting(field, value)
     
     save_settings()
     print("loaded settings")
@@ -713,5 +740,6 @@ def add_file_to_recent_files(fpath):
         recent_files = recent_files[start_index:]
     
     update_setting("recent_files", recent_files)
+    save_settings()
         
 ################ END HANDLE SETTINGS ######################

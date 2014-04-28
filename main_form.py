@@ -100,6 +100,7 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
         ##QCoreApplication::setApplicationName("Star Runner");
         QCoreApplication.setOrganizationName("CEBM")
         QCoreApplication.setApplicationName(PROGRAM_NAME)
+        ##reset_settings()
         load_settings()
         self.populate_recent_datasets()
         
