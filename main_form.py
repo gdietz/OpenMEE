@@ -100,10 +100,10 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
         ##QCoreApplication::setApplicationName("Star Runner");
         QCoreApplication.setOrganizationName("CEBM")
         QCoreApplication.setApplicationName(PROGRAM_NAME)
-        self.load_user_prefs() # initializes self.user_prefs, self.settings
+        load_settings()
         self.populate_recent_datasets()
         
-        self.model = ee_model.EETableModel(undo_stack=self.undo_stack, user_prefs=self.user_prefs)
+        self.model = ee_model.EETableModel(undo_stack=self.undo_stack)
         self.tableView.setModel(self.model)
         self.tableView.resizeColumnsToContents()
         self.conf_level_toolbar_widget.conf_level_spinbox.setValue(self.model.get_conf_level())
@@ -233,7 +233,6 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
         
         self.undo_stack.clear()
         self.model = ee_model.EETableModel(undo_stack=self.undo_stack,
-                                           user_prefs=self.user_prefs,
                                            model_state=state)
         self.model.dirty = False
         self.model.change_row_count_if_needed()
@@ -458,9 +457,7 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
 #                 'show_analysis_selections':self.user_prefs['show_analysis_selections']}
     
     def adjust_preferences(self):
-        form = preferences_dlg.PreferencesDialog(
-                        current_preferences=self.user_prefs,
-                        default_preferences=DEFAULT_SETTINGS)
+        form = preferences_dlg.PreferencesDialog(default_preferences=DEFAULT_SETTINGS)
         
         if form.exec_():
             update_setting('color_scheme',           form.get_color_scheme())
@@ -1036,8 +1033,7 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
             return False
 
         # add to collection of recent files
-        self.user_prefs['recent_files'].add_file(file_path)
-        self._save_user_prefs()
+        add_file_to_recent_files(file_path)
         self.populate_recent_datasets()
 
         # Rebuilds model from state,
@@ -1156,8 +1152,7 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
             return False
 
         # add to collection of recent files
-        self.user_prefs['recent_files'].add_file(self.outpath)
-        self._save_user_prefs()
+        add_file_to_recent_files(self.outpath)
         self.populate_recent_datasets()
 
         print("Saved %s" % self.outpath)
@@ -1274,8 +1269,8 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
                     event.ignore()
                 pass # ok to disregard current data
 
-        # save user prefs
-        self._save_user_prefs()
+        # save settings
+        save_settings()
         
         QApplication.quit()
 

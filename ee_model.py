@@ -81,15 +81,15 @@ class EETableModel(QAbstractTableModel):
     conf_level_changed_during_undo = pyqtSignal(float)
     error_msg_signal       = pyqtSignal(str, str)
     
-    def __init__(self, undo_stack, user_prefs, model_state=None):
+    def __init__(self, undo_stack, model_state=None):
         super(EETableModel, self).__init__()
         
         # Give model access to undo_stack
         self.undo_stack = undo_stack
         
-        self.user_prefs = user_prefs
-        if "color_scheme" not in self.user_prefs:
-            self.user_prefs["color_scheme"]=DEFAULT_COLOR_SCHEME
+#         self.user_prefs = user_prefs
+#         if "color_scheme" not in self.user_prefs:
+#             self.user_prefs["color_scheme"]=DEFAULT_COLOR_SCHEME
         
         self.max_occupied_row = None
         self.max_occupied_col = None
@@ -137,8 +137,8 @@ class EETableModel(QAbstractTableModel):
         return cols
     
     
-    def set_user_prefs(self, user_prefs):
-        self.user_prefs = user_prefs
+#     def set_user_prefs(self, user_prefs):
+#         self.user_prefs = user_prefs
         
     def set_conf_level(self, conf_level, ignore_undo=False):  # i.e. 95
         if ignore_undo:
@@ -928,11 +928,10 @@ class EETableModel(QAbstractTableModel):
         ''' Sets precision (# of decimals after the decimal point for continuous)
         variable values '''
         
-        self.user_prefs['digits']
-        
+        update_setting('digits', new_precision)
         
     def get_precision(self):
-        return self.user_prefs['digits']
+        return get_setting('digits')
         
         
     def _var_value_for_display(self, value, var_type):
@@ -993,21 +992,22 @@ class EETableModel(QAbstractTableModel):
                     else:
                         return QVariant()
                 return QVariant(QString(self._var_value_for_display(var_value, var.get_type())))
-        elif role == Qt.BackgroundRole or role == Qt.ForegroundRole:
-            if is_label_col:
-                return QVariant(QBrush(self._get_label_color(role)))
-            elif is_variable_col:
-                var = self.cols_2_vars[col]
-                color = self._get_variable_color(var, role)
-                # Missing entry backgrounds are colored
-                if role == Qt.BackgroundRole:
-                    if self._is_empty(var, study=self.rows_2_studies[row] if is_study_row else None):
-                        color = Qt.yellow # missing entry bg color
-                return QVariant(QBrush(color))        
-                      
-            return QVariant(QBrush(self.user_prefs["color_scheme"]['DEFAULT_BACKGROUND_COLOR']))
+# TODO: add this back in later, once the reset of the QSettings stuff works
+#         elif role == Qt.BackgroundRole or role == Qt.ForegroundRole:
+#             if is_label_col:
+#                 return QVariant(QBrush(self._get_label_color(role)))
+#             elif is_variable_col:
+#                 var = self.cols_2_vars[col]
+#                 color = self._get_variable_color(var, role)
+#                 # Missing entry backgrounds are colored
+#                 if role == Qt.BackgroundRole:
+#                     if self._is_empty(var, study=self.rows_2_studies[row] if is_study_row else None):
+#                         color = Qt.yellow # missing entry bg color
+#                 return QVariant(QBrush(color))        
+#                       
+#             return QVariant(QBrush(self.user_prefs["color_scheme"]['DEFAULT_BACKGROUND_COLOR']))
         elif role == Qt.FontRole:
-            font_str = self.user_prefs['model_data_font_str']
+            font_str = get_setting('model_data_font_str')
             if font_str:
                 font = QFont()
                 font.fromString(font_str)
@@ -1071,7 +1071,7 @@ class EETableModel(QAbstractTableModel):
 
         
         if role==Qt.FontRole:
-            font_str = self.user_prefs['model_header_font_str']
+            font_str = get_setting('model_header_font_str')
             if font_str:
                 font = QFont()
                 font.fromString(font_str)

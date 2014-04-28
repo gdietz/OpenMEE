@@ -154,12 +154,20 @@ DEFAULT_COLOR_SCHEME = {'DEFAULT_BACKGROUND_COLOR': QColor("white"),
 DEFAULT_SETTINGS = {"splash"       : True,
                     "digits"       : DEFAULT_PRECISION,
                     "recent_files" : [],
-                    "colors"       : DEFAULT_COLOR_SCHEME,
+                    #"colors"       : DEFAULT_COLOR_SCHEME,
                     "model_data_font_str"     : "",
                     "model_header_font_str"   : "",
                     "show_additional_values"  : True,
                     "show_analysis_selections": True,
                     }
+DEFAULT_SETTINGS_TYPES = {"splash": bool,
+                          "digits": int,
+                          "recent_files": list,
+                          #"colors: " TODO,
+                          "model_data_font_str": str,
+                          "model_header_font_str": str,
+                          "show_additional_values": bool,
+                          "show_analysis_selections": bool}
 
 
 # Meta Analysis data type enumerations
@@ -357,7 +365,6 @@ class GenericUndoCommand(QUndoCommand):
         self.on_undo_exit = on_undo_exit
         self.on_redo_entry = on_redo_entry
         self.on_redo_exit = on_redo_exit
-        
         
         self.setText(QString(description))
         
@@ -586,49 +593,79 @@ class NotUltrametricException(Exception):
     pass
 
 
-##################### HANDLE USER PREFERENCES #####################
+##################### HANDLE SETTINGS #####################
 def update_setting(field, value):
     settings = QSettings()
     
+    # TODO: make sure that if the field is color, that it is converted
+    # appropriately.
+    
     # see if we need to store the value in a special way
-    value_type = type(DEFAULT_SETTINGS[field])
+    value_type = get_setting_type(field)
     if value_type == list:
-        # TODO: do stuff
-        pass
+        # Make sure that the written elements are strings (for now...., maybe extend it to scalars (i.e. number or string) in the future)
+        # for now, this is just for reading the most recent files list
+        
+        settings.beginWriteArray(field, size=len(value))
+        for i,x in enumerate(value): # value is a list
+            settings.setArrayIndex(i)
+            settings.setValue("dummy", x)
+        settings.endArray()
     elif value_type == dict:
         # TODO: do stuff:
         pass
+    elif value_type == bool:
+        settings.setValue(field, QVariant(value))
     else:
         # nothing special needs to be done
         settings.setValue(field, value)
+
+def get_setting_type(field):
+    return DEFAULT_SETTINGS_TYPES[field]
         
 def get_setting(field):
     settings = QSettings()
     
     # see if we need to store the value in a special way
-    value_type = type(DEFAULT_SETTINGS[field])
+    value_type = get_setting_type(field)
+    #print("Setting type: %s for %s" % (str(value_type), field))
     if value_type == list:
-        # TODO: do stuff
-        # convert to a python list
-        pass
+        size = settings.beginReadArray(field)
+        foo_list = []
+        for i in range(size):
+            settings.setArrayIndex(i)
+            foo_list.append(settings.value("dummy").toString()) # just for recent files list for now
+        settings.endArray()
+        setting_value = foo_list
     elif value_type == dict:
         # TODO: do stuff:
         # convert to a python dict
         pass
+    elif value_type == bool:
+        print("Converted %s to a boolean" % field)
+        setting_value = settings.value(field).toBool()
+    elif value_type == str:
+        setting_value = settings.value(field).toString()
+    elif value_type == int:
+        setting_value = settings.value(field).toInt()[0]
     else:
         # nothing special needs to be done
-        settings.value(field)
+        raise Exception("Are you SURE that NOTHING special needs to be done?")
+        setting_value = settings.value(field)
+        
+    return setting_value
 
 #     def get_color_setting(self, various params):
-#         # Todo: convert thing in qsetting to a qcolor
+#         # Todo: convert thing in qsetting to a qcolor (see QSettings doc page for info about this)
 #         pass
     
 
 def save_settings():
+    print("saved settings")
     settings = QSettings()
     settings.sync() # writes to permanent storage
     
-def load_settings(self):
+def load_settings():
     ''' loads settings from QSettings object, setting suitable defaults if
     there are missing fields '''
 
@@ -642,28 +679,39 @@ def load_settings(self):
         pass
     else:
         reset_settings()
+    
+    save_settings()
+    print("loaded settings")
     return settings
     
     
 
-def reset_settings(self):
+def reset_settings():
+    print("Resetting settings to default")
     settings = QSettings()
     settings.clear()
     
     for field, value in DEFAULT_SETTINGS.items():
         update_setting(field, value)
 
-def add_file_to_recent_files(self, fpath):
+def add_file_to_recent_files(fpath):
     # add a new file to the front of the deque
     # move existing file to the front of the deque
-    
-    
     
     if fpath in [None, ""]:
         return False
     
-    if fpath in self.recent_files: #file already in deque so move to front
-        self.recent_files.remove(fpath)
-    self.recent_files.appendleft(fpath)
+    recent_files = get_setting("recent_files")
+    
+    if fpath in recent_files: #file already in deque so move to front
+        recent_files.remove(fpath)
+    recent_files.append(fpath)
+    
+    # only want up to MAX_RECENT_FILES
+    start_index = len(recent_files) - MAX_RECENT_FILES
+    if start_index > 0:
+        recent_files = recent_files[start_index:]
+    
+    update_setting("recent_files", recent_files)
         
-################ END HANDLE USER PREFS ######################
+################ END HANDLE SETTINGS ######################
