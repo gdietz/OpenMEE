@@ -51,12 +51,16 @@ def load_R_libraries(app, splash=None):
     rloader.load_mice()
 
 
-def start(open_file_path=None):
+def start(open_file_path=None, reset_settings=False):
     # clear r_tmp:
     #clear_r_tmp()
     
     app = QtGui.QApplication(sys.argv)
     app.setApplicationName("OpenMEE")
+    app.setOrganizationName("CEBM")
+    
+    if reset_settings:
+        ome_globals.reset_settings()
     
     splash_pixmap = QPixmap(":/splash/splash.png")
     splash = QSplashScreen(splash_pixmap)
@@ -103,8 +107,10 @@ def clear_r_tmp():
 
 if __name__ == "__main__":
     try:
-        if sys.argv[1][-3:len(sys.argv[1])]=="ome":
-            start(open_file_path=sys.argv[1])
+#         if sys.argv[1][-3:len(sys.argv[1])]=="ome":
+#             start(open_file_path=sys.argv[1])
+        if sys.argv[1] == "-reset":
+            start(reset_settings=True)
     except IndexError:
         pass
-    start()
+        start()

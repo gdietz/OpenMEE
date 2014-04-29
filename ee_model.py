@@ -992,20 +992,23 @@ class EETableModel(QAbstractTableModel):
                     else:
                         return QVariant()
                 return QVariant(QString(self._var_value_for_display(var_value, var.get_type())))
-# TODO: add this back in later, once the reset of the QSettings stuff works
-#         elif role == Qt.BackgroundRole or role == Qt.ForegroundRole:
-#             if is_label_col:
-#                 return QVariant(QBrush(self._get_label_color(role)))
-#             elif is_variable_col:
-#                 var = self.cols_2_vars[col]
-#                 color = self._get_variable_color(var, role)
-#                 # Missing entry backgrounds are colored
-#                 if role == Qt.BackgroundRole:
-#                     if self._is_empty(var, study=self.rows_2_studies[row] if is_study_row else None):
-#                         color = Qt.yellow # missing entry bg color
-#                 return QVariant(QBrush(color))        
-#                       
-#             return QVariant(QBrush(self.user_prefs["color_scheme"]['DEFAULT_BACKGROUND_COLOR']))
+            
+            
+        elif role == Qt.BackgroundRole or role == Qt.ForegroundRole:
+            if is_label_col:
+                return QVariant(QBrush(self._get_label_color(role)))
+            elif is_variable_col:
+                var = self.cols_2_vars[col]
+                color = self._get_variable_color(var, role)
+                # Missing entry backgrounds are colored
+                if role == Qt.BackgroundRole:
+                    if self._is_empty(var, study=self.rows_2_studies[row] if is_study_row else None):
+                        color = Qt.yellow # missing entry bg color
+                return QVariant(QBrush(color))        
+                       
+            return QVariant(QBrush(get_setting("colors/default_bg")))
+
+
         elif role == Qt.FontRole:
             font_str = get_setting('model_data_font_str')
             if font_str:
@@ -1028,34 +1031,41 @@ class EETableModel(QAbstractTableModel):
     
     def _get_label_color(self, role=Qt.ForegroundRole):
         if role == Qt.ForegroundRole:
-            return self.user_prefs["color_scheme"]['label'][FOREGROUND]
+            return get_setting("colors/label/fg")
         else:
-            return self.user_prefs["color_scheme"]['label'][BACKGROUND]
+            return get_setting("colors/label/bg")
+        
+    def _make_settings_key_for_var_color(self, var_type, var_subtype=None, fg=True):
+        '''generates a key to use for accessing the key for the color in the QSettings object
+        note: fg means 'foreground' '''
+        
+        
+        sep = "/" # built in to QSettings
+        var_type_str = VARIABLE_TYPE_STRING_LC[var_type]
+        placement = "fg" if fg else "bg"
+        if var_subtype is not None: # need to check explicitly b/c var_subtype can be 0, a valid option
+            var_subtype_str = VARIABLE_SUBTYPE_STRING_LC[var_subtype]
+            path = ["colors", "var_with_subtype", var_subtype_str, placement]
+            key = sep.join(path)
+            # is the key present?
+            settings = QSettings()
+            if not settings.contains(key):
+                key = "colors/var_with_subtype/default_effect/" + placement
+        else:
+            path = ["colors", "variable", var_type_str, placement]
+            key = sep.join(path)
+        return key
     
     def _get_variable_color(self, variable, role=Qt.ForegroundRole):
         
         var_type, var_subtype = variable.get_type(), variable.get_subtype()
         
-        color = QVariant()
+        #color = QVariant()
         if role == Qt.ForegroundRole:
-            color = self.user_prefs["color_scheme"]['variable'][var_type][FOREGROUND]
-            if var_subtype is not None:
-                try:
-                    color =  self.user_prefs["color_scheme"]['variable_subtype'][var_subtype][FOREGROUND]
-                except KeyError:
-                    if var_subtype in EFFECT_TYPES:
-                        color =  self.user_prefs["color_scheme"]['variable_subtype']['DEFAULT_EFFECT'][FOREGROUND]
+            color = get_setting(self._make_settings_key_for_var_color(var_type, var_subtype, fg=True))
         else: # background role
-            color = self.user_prefs["color_scheme"]['variable'][var_type][BACKGROUND]
-            if var_subtype is not None:
-                try:
-                    color =  self.user_prefs["color_scheme"]['variable_subtype'][var_subtype][BACKGROUND]
-                except KeyError:
-                    if var_subtype in EFFECT_TYPES:
-                        color =  self.user_prefs["color_scheme"]['variable_subtype']['DEFAULT_EFFECT'][BACKGROUND]
+            color = get_setting(self._make_settings_key_for_var_color(var_type, var_subtype, fg=False))
         return color
-    
-    
         
         
     

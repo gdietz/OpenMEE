@@ -61,6 +61,11 @@ VARIABLE_TYPE_SHORT_STRING_REPS = {CATEGORICAL:"cat",
 VARIABLE_TYPE_STRING_REPS = {CATEGORICAL:"Categorical",
                              CONTINUOUS:"Continuous",
                              COUNT:"Count",}
+# same as above but lower case (used for indexing into qsettings)
+VARIABLE_TYPE_STRING_LC = {CATEGORICAL:"categorical",
+                             CONTINUOUS:"continuous",
+                             COUNT:"count",}
+
 # How variable subtypes are represented as normal length strings
 VARIABLE_SUBTYPE_STRING_REPS = {TRANS_EFFECT: "Trans. Effect",
                                 TRANS_VAR   : "Trans. Var",
@@ -68,6 +73,14 @@ VARIABLE_SUBTYPE_STRING_REPS = {TRANS_EFFECT: "Trans. Effect",
                                 RAW_LOWER   : "Raw lb.", 
                                 RAW_UPPER   : "Raw ub.",
                                 }
+# same as above but for indexing into qsettings
+VARIABLE_SUBTYPE_STRING_LC = {TRANS_EFFECT: "trans_effect",
+                              TRANS_VAR   : "trans_var",
+                              RAW_EFFECT  : "raw_effect",
+                              RAW_LOWER   : "raw_lower", 
+                              RAW_UPPER   : "raw_upper",
+                             }
+
 
 # Default # of digits for representing floating point numbers
 DEFAULT_PRECISION = 3
@@ -128,46 +141,29 @@ META_REG_MODES      = [META_REG_MODE, META_REG_COND_MEANS, BOOTSTRAP_META_REG, B
 DEFAULT_VAR_TYPE = CATEGORICAL
 
 DEFAULT_BACKGROUND_COLOR = QColor("white") #QColor(29,30,25)
+BLACK = QColor(0,0,0)
 FOREGROUND, BACKGROUND = range(2)
-
-DEFAULT_COLOR_SCHEME = {'DEFAULT_BACKGROUND_COLOR': QColor("white"),
-                        'label': {'FOREGROUND': QColor(255,204,102),
-                                  'BACKGROUND': DEFAULT_BACKGROUND_COLOR},
-                        'variable' : {
-                                      'CATEGORICAL':
-                                            {'FOREGROUND': QColor(0,0,0),
-                                             'BACKGROUND': DEFAULT_BACKGROUND_COLOR},
-                                      'COUNT':
-                                            {'FOREGROUND': QColor(242,38,111),
-                                             'BACKGROUND': DEFAULT_BACKGROUND_COLOR},
-                                      'CONTINUOUS':
-                                            {'FOREGROUND': QColor(157,102,253),
-                                             'BACKGROUND': DEFAULT_BACKGROUND_COLOR},
-                                      },
-                        'variable_subtype' : {
-                                              'DEFAULT_EFFECT':
-                                                    {'FOREGROUND': QColor(0,0,0),
-                                                     'BACKGROUND': QColor(222,211,96)},
-                                              },
-                        }
 
 DEFAULT_SETTINGS = {"splash"       : True,
                     "digits"       : DEFAULT_PRECISION,
                     "recent_files" : [],
-                    #"colors"       : DEFAULT_COLOR_SCHEME,
                     "model_data_font_str"     : "",
                     "model_header_font_str"   : "",
                     "show_additional_values"  : True,
                     "show_analysis_selections": True,
+                    # color scheme
+                    "colors/default_bg": DEFAULT_BACKGROUND_COLOR,
+                    "colors/label/fg"  : QColor(255,204,102),      # study label foreground
+                    "colors/label/bg"  : DEFAULT_BACKGROUND_COLOR, # study label background
+                    "colors/variable/categorical/fg": BLACK,
+                    "colors/variable/categorical/bg": DEFAULT_BACKGROUND_COLOR,
+                    "colors/variable/count/fg": QColor(242,38,111),
+                    "colors/variable/count/bg": DEFAULT_BACKGROUND_COLOR,
+                    "colors/variable/continuous/fg": QColor(157,102,253),
+                    "colors/variable/continuous/bg": DEFAULT_BACKGROUND_COLOR,
+                    "colors/var_with_subtype/default_effect/fg": BLACK,
+                    "colors/var_with_subtype/default_effect/bg": QColor(222,211,96),
                     }
-DEFAULT_SETTINGS_TYPES = {"splash": bool,
-                          "digits": int,
-                          "recent_files": list,
-                          #"colors: " TODO,
-                          "model_data_font_str": str,
-                          "model_header_font_str": str,
-                          "show_additional_values": bool,
-                          "show_analysis_selections": bool}
 
 
 # Meta Analysis data type enumerations
@@ -605,13 +601,6 @@ def update_setting(field, value):
     if value_type == list:
         # Make sure that the written elements are strings (for now...., maybe extend it to scalars (i.e. number or string) in the future)
         # for now, this is just for reading the most recent files list
-        
-#         settings.beginWriteArray(field, size=len(value))
-#         for i,x in enumerate(value): # value is a list
-#             settings.setArrayIndex(i)
-#             settings.setValue("dummy", x)
-#         settings.endArray()
-
         if settings.contains(field):
             settings.remove(field)
         settings.beginGroup(field)
@@ -619,16 +608,26 @@ def update_setting(field, value):
             settings.setValue(str(i),x)
         settings.endGroup()
     elif value_type == dict:
-        # TODO: do stuff:
-        pass
+        raise Exception("Not implemented yet!")
     elif value_type == bool:
         settings.setValue(field, QVariant(value))
+    elif value_type == QColor:
+        # just being explicit to signify i am aware of QColors and to match get_setting
+        settings.setValue(field, value)
+    elif value_type == int:
+        settings.setValue(field, value)
+    elif value_type == str:
+        settings.setValue(field, value)
     else:
         # nothing special needs to be done
+        print("Field: %s" % field)
+        print("Value type: %s" % str(value_type))
+        raise Exception("Are you SURE that NOTHING special needs to be done?")
         settings.setValue(field, value)
 
 def get_setting_type(field):
-    return DEFAULT_SETTINGS_TYPES[field]
+    #return DEFAULT_SETTINGS_TYPES[field]
+    return type(DEFAULT_SETTINGS[field])
         
 def get_setting(field):
     settings = QSettings()
@@ -637,13 +636,6 @@ def get_setting(field):
     value_type = get_setting_type(field)
     #print("Setting type: %s for %s" % (str(value_type), field))
     if value_type == list:
-#         size = settings.beginReadArray(field)
-#         foo_list = []
-#         for i in range(size):
-#             settings.setArrayIndex(i)
-#             foo_list.append(settings.value("dummy").toString()) # just for recent files list for now
-#         settings.endArray()
-#         setting_value = foo_list
         settings.beginGroup(field)
         indexes = list(settings.childKeys())
         foo_list = []
@@ -653,9 +645,7 @@ def get_setting(field):
         settings.endGroup()
         setting_value = foo_list
     elif value_type == dict:
-        # TODO: do stuff:
-        # convert to a python dict
-        pass
+        raise Exception("Not implemented yet!")
     elif value_type == bool:
         print("Converted %s to a boolean" % field)
         setting_value = settings.value(field).toBool()
@@ -663,6 +653,8 @@ def get_setting(field):
         setting_value = settings.value(field).toString()
     elif value_type == int:
         setting_value = settings.value(field).toInt()[0]
+    elif value_type == QColor:
+        setting_value = QColor(settings.value(field))
     else:
         # nothing special needs to be done
         raise Exception("Are you SURE that NOTHING special needs to be done?")

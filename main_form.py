@@ -95,12 +95,6 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
         
         self.undo_stack = QUndoStack(self)
         #### Handle user prefs / settings issue # 111
-        ##QCoreApplication::setOrganizationName("MySoft");
-        ##QCoreApplication::setOrganizationDomain("mysoft.com");
-        ##QCoreApplication::setApplicationName("Star Runner");
-        QCoreApplication.setOrganizationName("CEBM")
-        QCoreApplication.setApplicationName(PROGRAM_NAME)
-        ##reset_settings()
         load_settings()
         self.populate_recent_datasets()
         
