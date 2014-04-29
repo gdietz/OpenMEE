@@ -996,10 +996,10 @@ class EETableModel(QAbstractTableModel):
             
         elif role == Qt.BackgroundRole or role == Qt.ForegroundRole:
             if is_label_col:
-                return QVariant(QBrush(self._get_label_color(role)))
+                return QVariant(QBrush(self.get_label_color(role)))
             elif is_variable_col:
                 var = self.cols_2_vars[col]
-                color = self._get_variable_color(var, role)
+                color = self.get_variable_color(var, role)
                 # Missing entry backgrounds are colored
                 if role == Qt.BackgroundRole:
                     if self._is_empty(var, study=self.rows_2_studies[row] if is_study_row else None):
@@ -1029,7 +1029,7 @@ class EETableModel(QAbstractTableModel):
         return False
     
     
-    def _get_label_color(self, role=Qt.ForegroundRole):
+    def get_label_color(self, role=Qt.ForegroundRole):
         if role == Qt.ForegroundRole:
             return get_setting("colors/label/fg")
         else:
@@ -1056,7 +1056,7 @@ class EETableModel(QAbstractTableModel):
             key = sep.join(path)
         return key
     
-    def _get_variable_color(self, variable, role=Qt.ForegroundRole):
+    def get_variable_color(self, variable, role=Qt.ForegroundRole):
         
         var_type, var_subtype = variable.get_type(), variable.get_subtype()
         

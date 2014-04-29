@@ -443,24 +443,22 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
     def error_msg_signal_handler(self, title, err_msg):
         QMessageBox.critical(self, title, err_msg)
     
-#     def _get_preferences_init_params(self):
-#         return {'color_scheme':self.user_prefs['color_scheme'],
-#                 'precision':self.user_prefs['digits'],
-#                 'model_header_font_str':self.user_prefs['model_data_font_str'],
-#                 'model_data_font_str':self.user_prefs['model_data_font_str'],
-#                 'show_additional_values':self.user_prefs['show_additional_values'],
-#                 'show_analysis_selections':self.user_prefs['show_analysis_selections']}
-    
     def adjust_preferences(self):
-        form = preferences_dlg.PreferencesDialog(default_preferences=DEFAULT_SETTINGS)
+        form = preferences_dlg.PreferencesDialog()
         
         if form.exec_():
-            update_setting('color_scheme',           form.get_color_scheme())
             update_setting('digits',                 form.get_precision())
             update_setting('model_header_font_str',  form.get_model_header_font().toString())
             update_setting('model_data_font_str',    form.get_model_data_font().toString())
             update_setting('show_additional_values', form.get_show_additional_values())
             update_setting('show_analysis_selections', form.get_show_analysis_selections())
+            
+            # Copy color scheme into settings
+            color_scheme = form.get_color_scheme()
+            for key, color in color_scheme.items():
+                settings_key = "colors/" + key # add colors prefix
+                update_setting(settings_key, color)
+            
             self.model.beginResetModel()
             self.model.endResetModel()
             self.tableView.resizeColumnsToContents()
