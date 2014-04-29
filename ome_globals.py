@@ -61,6 +61,11 @@ VARIABLE_TYPE_SHORT_STRING_REPS = {CATEGORICAL:"cat",
 VARIABLE_TYPE_STRING_REPS = {CATEGORICAL:"Categorical",
                              CONTINUOUS:"Continuous",
                              COUNT:"Count",}
+# same as above but lower case (used for indexing into qsettings)
+VARIABLE_TYPE_STRING_LC = {CATEGORICAL:"categorical",
+                             CONTINUOUS:"continuous",
+                             COUNT:"count",}
+
 # How variable subtypes are represented as normal length strings
 VARIABLE_SUBTYPE_STRING_REPS = {TRANS_EFFECT: "Trans. Effect",
                                 TRANS_VAR   : "Trans. Var",
@@ -68,6 +73,14 @@ VARIABLE_SUBTYPE_STRING_REPS = {TRANS_EFFECT: "Trans. Effect",
                                 RAW_LOWER   : "Raw lb.", 
                                 RAW_UPPER   : "Raw ub.",
                                 }
+# same as above but for indexing into qsettings
+VARIABLE_SUBTYPE_STRING_LC = {TRANS_EFFECT: "trans_effect",
+                              TRANS_VAR   : "trans_var",
+                              RAW_EFFECT  : "raw_effect",
+                              RAW_LOWER   : "raw_lower", 
+                              RAW_UPPER   : "raw_upper",
+                             }
+
 
 # Default # of digits for representing floating point numbers
 DEFAULT_PRECISION = 3
@@ -128,27 +141,29 @@ META_REG_MODES      = [META_REG_MODE, META_REG_COND_MEANS, BOOTSTRAP_META_REG, B
 DEFAULT_VAR_TYPE = CATEGORICAL
 
 DEFAULT_BACKGROUND_COLOR = QColor("white") #QColor(29,30,25)
+BLACK = QColor(0,0,0)
 FOREGROUND, BACKGROUND = range(2)
-DEFAULT_COLOR_SCHEME = {'DEFAULT_BACKGROUND_COLOR': QColor("white"),
-                        'label': {FOREGROUND: QColor(255,204,102),
-                                  BACKGROUND: DEFAULT_BACKGROUND_COLOR},
-                        'variable' : {
-                                      CATEGORICAL:
-                                            {FOREGROUND: QColor(0,0,0),
-                                             BACKGROUND: DEFAULT_BACKGROUND_COLOR},
-                                      COUNT:
-                                            {FOREGROUND: QColor(242,38,111),
-                                             BACKGROUND: DEFAULT_BACKGROUND_COLOR},
-                                      CONTINUOUS:
-                                            {FOREGROUND: QColor(157,102,253),
-                                             BACKGROUND: DEFAULT_BACKGROUND_COLOR},
-                                      },
-                        'variable_subtype' : {
-                                              'DEFAULT_EFFECT':
-                                                    {FOREGROUND: QColor(0,0,0),
-                                                     BACKGROUND: QColor(222,211,96)},
-                                              },
-                        }
+
+DEFAULT_SETTINGS = {"splash"       : True,
+                    "digits"       : DEFAULT_PRECISION,
+                    "recent_files" : [],
+                    "model_data_font_str"     : "",
+                    "model_header_font_str"   : "",
+                    "show_additional_values"  : True,
+                    "show_analysis_selections": True,
+                    # color scheme
+                    "colors/default_bg": DEFAULT_BACKGROUND_COLOR,
+                    "colors/label/fg"  : QColor(255,204,102),      # study label foreground
+                    "colors/label/bg"  : DEFAULT_BACKGROUND_COLOR, # study label background
+                    "colors/variable/categorical/fg": BLACK,
+                    "colors/variable/categorical/bg": DEFAULT_BACKGROUND_COLOR,
+                    "colors/variable/count/fg": QColor(242,38,111),
+                    "colors/variable/count/bg": DEFAULT_BACKGROUND_COLOR,
+                    "colors/variable/continuous/fg": QColor(157,102,253),
+                    "colors/variable/continuous/bg": DEFAULT_BACKGROUND_COLOR,
+                    "colors/var_with_subtype/default_effect/fg": BLACK,
+                    "colors/var_with_subtype/default_effect/bg": QColor(222,211,96),
+                    }
 
 
 # Meta Analysis data type enumerations
@@ -240,19 +255,15 @@ def get_data_type_for_metric(metric):
     raise Exception("Metric matches no known data type")
 
 EFFECT_SIZE_KEYS = ('yi','vi')
-
-MAX_RECENT_FILES = 10
-USER_PREFERENCES_FILENAME = "user_prefs.dict"
 DEFAULT_FILENAME = "untited_dataset.ome"
-
 PROGRAM_NAME = "OpenMEE"
-
 BASE_PATH = str(os.path.abspath(os.getcwd()))
-
 METHODS_WITH_NO_FOREST_PLOT = [] # leftover from OMA
-
 DEFAULT_CONFIDENCE_LEVEL = 95
 
+# Dealing with settings
+MAX_RECENT_FILES = 10
+USER_PREFERENCES_FILENAME = "user_prefs.dict"
 # this is the (local) path to a (pickled) dictionary containing
 # user preferences
 PREFS_PATH = "user_prefs.dict"
@@ -350,7 +361,6 @@ class GenericUndoCommand(QUndoCommand):
         self.on_undo_exit = on_undo_exit
         self.on_redo_entry = on_redo_entry
         self.on_redo_exit = on_redo_exit
-        
         
         self.setText(QString(description))
         
@@ -577,3 +587,151 @@ def indent(target_str, spaces=2):
 
 class NotUltrametricException(Exception):
     pass
+
+
+##################### HANDLE SETTINGS #####################
+def update_setting(field, value):
+    settings = QSettings()
+    
+    # TODO: make sure that if the field is color, that it is converted
+    # appropriately.
+    
+    # see if we need to store the value in a special way
+    value_type = get_setting_type(field)
+    if value_type == list:
+        # Make sure that the written elements are strings (for now...., maybe extend it to scalars (i.e. number or string) in the future)
+        # for now, this is just for reading the most recent files list
+        if settings.contains(field):
+            settings.remove(field)
+        settings.beginGroup(field)
+        for i,x in enumerate(value): # value is a list
+            settings.setValue(str(i),x)
+        settings.endGroup()
+    elif value_type == dict:
+        raise Exception("Not implemented yet!")
+    elif value_type == bool:
+        settings.setValue(field, QVariant(value))
+    elif value_type == QColor:
+        # just being explicit to signify i am aware of QColors and to match get_setting
+        settings.setValue(field, value)
+    elif value_type == int:
+        settings.setValue(field, value)
+    elif value_type == str:
+        settings.setValue(field, value)
+    else:
+        # nothing special needs to be done
+        print("Field: %s" % field)
+        print("Value type: %s" % str(value_type))
+        raise Exception("Are you SURE that NOTHING special needs to be done?")
+        settings.setValue(field, value)
+
+def get_setting_type(field):
+    #return DEFAULT_SETTINGS_TYPES[field]
+    return type(DEFAULT_SETTINGS[field])
+        
+def get_setting(field):
+    settings = QSettings()
+    
+    # see if we need to store the value in a special way
+    value_type = get_setting_type(field)
+    #print("Setting type: %s for %s" % (str(value_type), field))
+    if value_type == list:
+        settings.beginGroup(field)
+        indexes = list(settings.childKeys())
+        foo_list = []
+        for i in indexes:
+            value = str(settings.value(i).toString())
+            foo_list.append(value)
+        settings.endGroup()
+        setting_value = foo_list
+    elif value_type == dict:
+        raise Exception("Not implemented yet!")
+    elif value_type == bool:
+        print("Converted %s to a boolean" % field)
+        setting_value = settings.value(field).toBool()
+    elif value_type == str:
+        setting_value = settings.value(field).toString()
+    elif value_type == int:
+        setting_value = settings.value(field).toInt()[0]
+    elif value_type == QColor:
+        setting_value = QColor(settings.value(field))
+    else:
+        # nothing special needs to be done
+        raise Exception("Are you SURE that NOTHING special needs to be done?")
+        setting_value = settings.value(field)
+        
+    return setting_value
+
+#     def get_color_setting(self, various params):
+#         # Todo: convert thing in qsetting to a qcolor (see QSettings doc page for info about this)
+#         pass
+    
+
+def save_settings():
+    print("saved settings")
+    settings = QSettings()
+    settings.sync() # writes to permanent storage
+
+
+def load_settings():
+    ''' loads settings from QSettings object, setting suitable defaults if
+    there are missing fields '''
+
+    settings = QSettings()
+    
+    # Check if a field is missing, if so, the settings are from an older version
+    # of OpenMEE and will be replaced
+#    #fields = DEFAULT_SETTINGS.keys()
+#    # are all fields present?
+#     if all([settings.contains(field) for field in fields]):
+#         pass
+#     else:
+#         reset_settings()
+
+    def field_is_toplevel_child_group_keys(field_name):
+        childgroups = list(settings.childGroups())
+        toplevel_group_keys = [str(x) for x in childgroups]
+        return field_name in toplevel_group_keys
+
+    for field, value in DEFAULT_SETTINGS.items():
+        setting_present = settings.contains(field) or field_is_toplevel_child_group_keys(field)
+        if not setting_present:
+            print("Filling in setting for %s" % field)
+            update_setting(field, value)
+    
+    save_settings()
+    print("loaded settings")
+    return settings
+    
+    
+
+def reset_settings():
+    print("Resetting settings to default")
+    settings = QSettings()
+    settings.clear()
+    
+    for field, value in DEFAULT_SETTINGS.items():
+        update_setting(field, value)
+
+def add_file_to_recent_files(fpath):
+    # add a new file to the front of the deque
+    # move existing file to the front of the deque
+    
+    if fpath in [None, ""]:
+        return False
+    
+    recent_files = get_setting("recent_files")
+    
+    if fpath in recent_files: #file already in deque so move to front
+        recent_files.remove(fpath)
+    recent_files.append(fpath)
+    
+    # only want up to MAX_RECENT_FILES
+    start_index = len(recent_files) - MAX_RECENT_FILES
+    if start_index > 0:
+        recent_files = recent_files[start_index:]
+    
+    update_setting("recent_files", recent_files)
+    save_settings()
+        
+################ END HANDLE SETTINGS ######################
