@@ -133,7 +133,7 @@ class ResultsWindow(QMainWindow, ui_results_window.Ui_ResultsWindow):
         
     def export_results(self, data):
         # Choose file location
-        fpath = os.path.join(BASE_PATH, "results.txt") # default
+        fpath = os.path.join(get_user_desktop_path(), "results.txt") # default
         fpath = QFileDialog.getSaveFileName(caption="Choose location to save file", filter="Text (*.txt)",directory=fpath)
         fpath = str(fpath)
         if fpath == "":
@@ -544,7 +544,7 @@ class ResultsWindow(QMainWindow, ui_results_window.Ui_ResultsWindow):
                             "scatterplot":"scatterplot"}[plot_type] + suffix
         
                         
-        default_path = os.path.join(BASE_PATH, default_filename)
+        default_path = os.path.join(get_user_desktop_path(), default_filename)
         print("default_path for graphic: %s" % default_path)
         default_path = QString(default_path)
         default_path

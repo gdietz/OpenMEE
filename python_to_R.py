@@ -20,27 +20,10 @@ from rpy2.robjects.packages import importr
 base = importr('base')
 
 
-# def exR.execute_in_R(r_str):
-#     try:
-#         print("Executing in R: %s" % r_str)
-#         
-#         # write out r_string to log file
-#         with open('rlog.txt', 'a') as f:
-#             f.write(r_str)
-#             f.write("\n\n")
-#         res = ro.r(r_str)
-#         return res
-#     except Exception as e:
-#         reset_Rs_working_dir()
-#         print("error in execute in r")
-#         raise CrazyRError("Some crazy R error occurred: %s" % str(e))
-
-
 # Need this class to deal with logging R output
 class RExecutor:
     def __init__(self):
         self.R_log_dialog = None
-        
         print("New RExecutor created")
 
     def set_R_log_dialog(self, dialog):
@@ -103,15 +86,6 @@ class RlibLoader:
 install this package and then re-start OpenMeta." % name)
 #################### END OF R Library Loader ####################
 
-try:
-    if not exR.execute_in_R("file.exists('./.r_tmp')")[0]:
-        print("creating tmp R directory...")
-        exR.execute_in_R("dir.create('./r_tmp')")
-        print("success -- temporary results will be written to ./r_tmp")
-except:
-    raise Exception, "unable to create temporary directory for R results! make sure you have sufficient permissions."
-
-
 def load_ape_file(ape_path, tree_format):
     # uses r package APE to load a tree in to object of class phylo (R object)
     print("loading ape file... {0} of format {1}".format(ape_path, tree_format))
@@ -140,15 +114,19 @@ def load_ape_file(ape_path, tree_format):
 
 
 def reset_Rs_working_dir():
+    ''' resets R's working directory to the the application base_path, not to r_tmp!'''
     print("resetting R working dir")
 
     # Fix paths issue in windows
-    r_str = "setwd('%s')" % BASE_PATH
-    print("before replacement r_string: %s" % r_str)
-    r_str = r_str.replace("\\","\\\\")
+    base_path = get_base_path()
+    r_str = "setwd('%s')" % base_path
+    #print("before replacement r_string: %s" % r_str)
+    #r_str = r_str.replace("\\","\\\\")
 
     # Executing r call with escaped backslashes
     exR.execute_in_R(r_str)
+    
+    print("Set R's working directory to %s" % base_path)
     
 def set_conf_level_in_R(conf_lev):
     

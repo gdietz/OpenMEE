@@ -254,19 +254,52 @@ def get_data_type_for_metric(metric):
             return d_type
     raise Exception("Metric matches no known data type")
 
+def make_base_path():
+    ''' Creates the base path if it doesn't exist and returns the path
+    On mac, this is something like: /Users/george/Library/Application Support/OpenMEE '''
+    
+    base_path = get_base_path()
+    
+    success = QDir().mkpath(base_path)
+    if not success:
+        raise Exception("Could not create base path at %s" % base_path)
+    print("Made base path: %s" % base_path)
+    return base_path
+
+def get_base_path(normalize=False):
+    '''normalize changes the path separators according to the OS,
+    Usually this shouldn't be done because R is confused by backward slashes \
+    because it sees it as an escape character and Qt is fine with / throughout '''
+    
+    applications_data_location = str(QDesktopServices.storageLocation(QDesktopServices.DataLocation))
+    base_path = "/".join([applications_data_location,PROGRAM_NAME])
+    if normalize:
+        base_path = str(QDir.toNativeSeparators(base_path))
+    print("Base path is: %s" % base_path)
+    return base_path
+    
+def make_r_tmp():
+    ''' Makes the r_tmp folder and returns the path to it'''
+    r_tmp_path = "/".join([get_base_path(),"r_tmp"])
+    success = QDir().mkpath(r_tmp_path)
+    if not success:
+        raise Exception("Could not create r_tmp path at %s" % r_tmp_path)
+    print("Made r_tmp_path at %s" % r_tmp_path)
+    return r_tmp_path
+    
+def get_user_desktop_path():
+    desktop_path = str(QDesktopServices.storageLocation(QDesktopServices.DesktopLocation))
+    return desktop_path
+
 EFFECT_SIZE_KEYS = ('yi','vi')
 DEFAULT_FILENAME = "untited_dataset.ome"
 PROGRAM_NAME = "OpenMEE"
-BASE_PATH = str(os.path.abspath(os.getcwd()))
+ORGANIZATION_NAME = "CEBM"
 METHODS_WITH_NO_FOREST_PLOT = [] # leftover from OMA
 DEFAULT_CONFIDENCE_LEVEL = 95
 
 # Dealing with settings
 MAX_RECENT_FILES = 10
-USER_PREFERENCES_FILENAME = "user_prefs.dict"
-# this is the (local) path to a (pickled) dictionary containing
-# user preferences
-PREFS_PATH = "user_prefs.dict"
 
 ###################### CUSTOM EXCEPTIONS ##################################
 
