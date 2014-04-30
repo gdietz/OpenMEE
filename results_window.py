@@ -204,8 +204,6 @@ class ResultsWindow(QMainWindow, ui_results_window.Ui_ResultsWindow):
             # add to the arguments to make more groups, also make sure to add them
             # in add_text
             grouped_images = self._group_items(ungrouped_images, self.groupings)
-                        #["Likelihood","nlr","plr"],
-                        #["sens","spec"])
             ordered_images = grouped_images
         
         
@@ -214,7 +212,7 @@ class ResultsWindow(QMainWindow, ui_results_window.Ui_ResultsWindow):
             cur_y = max(0, self.y_coord)
             print "cur_y: %s" % cur_y
             # first add the title
-            qt_item = self.add_title(title)
+            qt_item = self.add_title(self.purified_title_str(title))
             
             # custom scales to which special plots should be scaled
             title_contents_to_scale = {"histogram":1,
@@ -236,12 +234,22 @@ class ResultsWindow(QMainWindow, ui_results_window.Ui_ResultsWindow):
             if self.params_paths is not None and title in self.params_paths:
                 params_path = self.params_paths[title]
 
+            
             img_shape, pos, pixmap_item = self.create_pixmap_item(pixmap, self.position(),\
                                                 title, image, params_path=params_path)
             
             self.items_to_coords[qt_item] = pos
             
-
+    def purified_title_str(self, title):
+        ''' strips out metadata from title i.e. if title is "Forest Plot__phlyo",
+        this strips out the __phylo '''
+        
+        try:
+            metadata_index = title.index("__")
+        except ValueError:
+            return title
+        
+        return title[0:metadata_index]
 
     def generate_pixmap(self, image, custom_scale=None):
         # now the image
@@ -420,7 +428,9 @@ class ResultsWindow(QMainWindow, ui_results_window.Ui_ResultsWindow):
         # more...
         plot_type = None
         tmp_title = title.lower()
-        if "forest" in tmp_title:
+        if "forest" in tmp_title and "__phylo" in tmp_title:
+            plot_type = "forest__phylo"
+        elif "forest" in tmp_title:
             plot_type = "forest"
         elif "regression" in tmp_title:
             plot_type = "regression"
@@ -497,6 +507,13 @@ class ResultsWindow(QMainWindow, ui_results_window.Ui_ResultsWindow):
                             lambda : self.edit_image(params_path, title,
                                                      png_path, qpixmap_item))
                     menu.addAction(action)
+                elif plot_type == "forest__phylo":
+                    print("Is phylo forest plot")
+                    action = QAction("edit plot...", self)
+                    QObject.connect(action, SIGNAL("triggered()"),
+                            lambda : self.edit_image(params_path, title,
+                                                     png_path, qpixmap_item, plot_type=plot_type))
+                    menu.addAction(action)
                 elif plot_type in ["funnel","histogram","scatterplot"]:
                     action = QAction("edit plot...", self)
                     QObject.connect(action, SIGNAL("triggered()"),
@@ -537,7 +554,8 @@ class ResultsWindow(QMainWindow, ui_results_window.Ui_ResultsWindow):
             print("Loaded: %s" % "%s.plotdata" % params_path)
 
         suffix = unicode("."+fmt)
-        default_filename = {"forest":"forest_plot", 
+        default_filename = {"forest":"forest_plot",
+                            "forest__phylo":"forest_plot",
                             "regression":"regression",
                             "funnel":"funnel_plot",
                             "histogram":"histogram",
@@ -592,12 +610,15 @@ class ResultsWindow(QMainWindow, ui_results_window.Ui_ResultsWindow):
                                         png_path,
                                         pixmap_item,
                                         title=title,
+                                        plot_type=plot_type,
                                         parent=self)
             if plot_editor_window is not None:
                 plot_editor_window.show()
             else:
                 # TODO show a warning
                 print "sorry - can't edit"
+                
+                
         elif plot_type == "funnel":
             funnel_params = python_to_R.get_funnel_params(params_path)
             edit_form = EditFunnelPlotForm(funnel_params)

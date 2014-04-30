@@ -1936,15 +1936,14 @@ class R_parse_tools:
         return str(r_object.names) != "NULL"
 #### end of R data structure tools #########
 
-
-def load_vars_for_plot(params_path, return_params_dict=False):
+def load_vars_for_plot(params_path, return_params_dict=False, var_suffixes=("data", "params", "res")):
     ''' 
     loads the three necessary (for plot generation) variables
     into R. we assume a naming convention in which params_path
     is the base, data is stored in *.data, params in *.params
     and result in *.res.
     '''
-    for var in ("data", "params", "res"):
+    for var in var_suffixes:
         cur_path = "%s.%s" % (params_path, var)
         if os.path.exists(cur_path):
             load_in_R(cur_path)

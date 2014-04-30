@@ -31,10 +31,10 @@ class EditPlotWindow(QDialog, ui_edit_forest_plot.Ui_edit_forest_plot_dlg):
 
         # if we're unable to load the required R data files,
         # e.g., because they were moved or deleted, then fail
-        self.params_d = python_to_R.load_vars_for_plot(self.img_params_path, \
-                                                return_params_dict=True)
+        self.params_d = python_to_R.load_vars_for_plot(
+                                    self.img_params_path,
+                                    return_params_dict=True)
         self.title = title
-
 
         if not self.params_d:
             print "can't load R data for plot editing!"
@@ -154,23 +154,21 @@ class EditPlotWindow(QDialog, ui_edit_forest_plot.Ui_edit_forest_plot_dlg):
         # update relevant variables (on the R side)
         # with new values -- we also write the updated
         # params out to disk here
-        python_to_R.update_plot_params(self.current_param_vals, \
-                                      write_them_out=True, \
+        python_to_R.update_plot_params(self.current_param_vals,
+                                      write_them_out=True,
                                       outpath="%s.params" % self.img_params_path)
         print("out path for params: %s" % "%s.params" % self.img_params_path)
 
         # now re-generate the plot data on the R side of
         # things
-        python_to_R.regenerate_plot_data(title=self.title)
+        #python_to_R.regenerate_plot_data(title=self.title)
+        python_to_R.regenerate_plot_data()
 
 
         # finally, actually make the plot and spit it to disk in pdf and png formats
         self.png_path = self.current_param_vals["fp_outpath"]
-        #self.pdf_path = self.png_path[:-4] + ".pdf"
         python_to_R.generate_forest_plot(self.png_path)
-        #python_to_R.generate_forest_plot(self.pdf_path)
-
-        #python_to_R.write_out_plot_data("%s.plotdata" % self.img_params_path)
+        
         python_to_R.write_out_plot_data("%s" % self.img_params_path)
 
     def regenerate_graph(self):
