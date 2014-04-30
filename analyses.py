@@ -51,11 +51,6 @@ class Analyzer:
     def _get_model(self):
         return self.main_form.model
     
-    def _show_additional_values(self):
-        return self.main_form.user_prefs['show_additional_values']
-    def _show_analysis_selections(self):
-        return self.main_form.user_prefs['show_analysis_selections']
-    
     #### META ANALYSIS & META-REGRESSION ####
     def cum_ma(self):
         model = self._get_model()
@@ -330,14 +325,6 @@ class Analyzer:
         finally:
             bar.hide()
 
-        # update the user_preferences object for the selected method
-        # with the values selected for this run
-        # TODO: refactor this so that all preferences just get stored/loaded
-        # in the model
-        #current_dict = self.main_form.get_user_method_params_d()
-        #current_dict[chosen_method] = current_param_vals
-        #self.main_form.update_user_prefs("method_params", current_dict)
-        
         return result
     
     def gmeta_regression(self):
@@ -764,8 +751,8 @@ class Analyzer:
         else: # analysis succeeded
             form = results_window.ResultsWindow(
                     results=results,
-                    show_additional_values=self._show_additional_values(),
-                    show_analysis_selections=self._show_analysis_selections(),
+                    show_additional_values=get_setting("show_additional_values"),
+                    show_analysis_selections=get_setting("show_analysis_selections"),
                     summary=summary,
                     parent=self.main_form)
             form.show()

@@ -87,10 +87,6 @@ class EETableModel(QAbstractTableModel):
         # Give model access to undo_stack
         self.undo_stack = undo_stack
         
-#         self.user_prefs = user_prefs
-#         if "color_scheme" not in self.user_prefs:
-#             self.user_prefs["color_scheme"]=DEFAULT_COLOR_SCHEME
-        
         self.max_occupied_row = None
         self.max_occupied_col = None
         self.col_2_max_length = {} # the values in this dict will only be valid if not much messing around has happened
@@ -135,10 +131,7 @@ class EETableModel(QAbstractTableModel):
         if self.label_column:
             cols.append(self.label_column)
         return cols
-    
-    
-#     def set_user_prefs(self, user_prefs):
-#         self.user_prefs = user_prefs
+
         
     def set_conf_level(self, conf_level, ignore_undo=False):  # i.e. 95
         if ignore_undo:
