@@ -54,13 +54,15 @@ def load_R_libraries(app, splash=None):
 
 def start(open_file_path=None, reset_settings=False):
     ###### Setup directories ######
-    # Make working directory for python and R and sets up r_tmp (where R does
-    # its calculations. Also clears r_tmp
-    setup_directories()
-    
     app = QtGui.QApplication(sys.argv)
     app.setApplicationName(PROGRAM_NAME)
     app.setOrganizationName(ORGANIZATION_NAME)
+    
+    # Make working directory for python and R and sets up r_tmp (where R does
+    # its calculations. Also clears r_tmp
+    ## N.B. This MUST come after setting the app name and stuff in order for the
+    # paths and subsequent calls to get_base_path() to work correctly
+    setup_directories()
     
     if reset_settings:
         ome_globals.reset_settings()

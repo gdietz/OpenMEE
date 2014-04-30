@@ -271,8 +271,8 @@ def get_base_path(normalize=False):
     Usually this shouldn't be done because R is confused by backward slashes \
     because it sees it as an escape character and Qt is fine with / throughout '''
     
-    applications_data_location = str(QDesktopServices.storageLocation(QDesktopServices.DataLocation))
-    base_path = "/".join([applications_data_location,PROGRAM_NAME])
+    base_path = str(QDesktopServices.storageLocation(QDesktopServices.DataLocation))
+    #base_path = "/".join([applications_data_location,PROGRAM_NAME])
     if normalize:
         base_path = str(QDir.toNativeSeparators(base_path))
     print("Base path is: %s" % base_path)
@@ -290,6 +290,10 @@ def make_r_tmp():
 def get_user_desktop_path():
     desktop_path = str(QDesktopServices.storageLocation(QDesktopServices.DesktopLocation))
     return desktop_path
+
+def get_user_documents_path():
+    docs_path = str(QDesktopServices.storageLocation(QDesktopServices.DocumentsLocation))
+    return docs_path
 
 EFFECT_SIZE_KEYS = ('yi','vi')
 DEFAULT_FILENAME = "untited_dataset.ome"

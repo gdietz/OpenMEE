@@ -32,7 +32,7 @@ class RExecutor:
     def unset_R_log_dialog(self):
         self.R_log_dialog = None
     
-    def execute_in_R(self, r_str, show_output=False):
+    def execute_in_R(self, r_str, show_output=False, reset_wd=True):
         try:
             print("Executing in R: %s" % r_str)
             
@@ -46,7 +46,8 @@ class RExecutor:
             return res
         except Exception as e:
             print("error in execute in r: %s" % e)
-            reset_Rs_working_dir()
+            if reset_wd:
+                reset_Rs_working_dir()
             
             raise CrazyRError("Some crazy R error occurred: %s" % str(e))
 
@@ -119,10 +120,9 @@ def reset_Rs_working_dir():
 
     # Fix paths issue in windows
     base_path = get_base_path()
+    
+    print("Trying to set base_path to %s" % base_path)
     r_str = "setwd('%s')" % base_path
-    #print("before replacement r_string: %s" % r_str)
-    #r_str = r_str.replace("\\","\\\\")
-
     # Executing r call with escaped backslashes
     exR.execute_in_R(r_str)
     

@@ -1008,7 +1008,11 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
 
         # prompt the user if no file_name is provided
         if file_path is None:
-            file_path = unicode(QFileDialog.getOpenFileName(parent=self, caption=QString("Open File"), filter="OpenMEE files (*.ome)"))
+            file_path = unicode(QFileDialog.getOpenFileName(
+                            parent=self,
+                            caption=QString("Open File"),
+                            directory=get_user_documents_path(),
+                            filter="OpenMEE files (*.ome)"))
 
         # Leave if they didn't choose anything
         if file_path == "":
