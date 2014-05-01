@@ -18,6 +18,7 @@ from PyQt4.Qt import *
 import sys
 import ui_results_window
 import edit_forest_plot_form
+import edit_phylo_forest_plot_form
 import python_to_R
 #import shutil
 
@@ -610,15 +611,24 @@ class ResultsWindow(QMainWindow, ui_results_window.Ui_ResultsWindow):
                                         png_path,
                                         pixmap_item,
                                         title=title,
-                                        plot_type=plot_type,
                                         parent=self)
             if plot_editor_window is not None:
                 plot_editor_window.show()
             else:
                 # TODO show a warning
                 print "sorry - can't edit"
-                
-                
+        elif plot_type == "forest__phylo":
+            plot_editor_window = edit_phylo_forest_plot_form.EditPhyloForestPlotWindow(
+                                        params_path,
+                                        png_path,
+                                        pixmap_item,
+                                        title=title,
+                                        parent=self)
+            if plot_editor_window is not None:
+                plot_editor_window.show()
+            else:
+                # TODO show a warning
+                print "sorry - can't edit"
         elif plot_type == "funnel":
             funnel_params = python_to_R.get_funnel_params(params_path)
             edit_form = EditFunnelPlotForm(funnel_params)

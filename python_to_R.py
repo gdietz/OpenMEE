@@ -154,6 +154,19 @@ def generate_forest_plot(file_path, side_by_side=False, params_name="plot.data")
         print("generating a forest plot....")
         exR.execute_in_R("forest.plot(%s, '%s')" % (params_name, file_path))
         
+def regenerate_phylo_forest_plot(img_path,
+                                 params_name="params",
+                                 data_name="data",
+                                 res_name = "res",
+                                 params_path = "NULL",
+                                 level_name = "level"):
+    
+    r_str = "regenerate_phylo_forest_plot(plot.params={params_name}, data={data_name}, res={res_name}, level={level_name}, params.out.path=\"{params_path}\", out.path=\"{img_path}\")".format(
+                    params_name=params_name, data_name=data_name,
+                    res_name=res_name, level_name=level_name, params_path=params_path,
+                    img_path=img_path)
+    exR.execute_in_R(r_str)
+        
 def regenerate_funnel_plot(params_path, file_path, edited_funnel_params=None):
     if edited_funnel_params:
         funnel_params_r_str = unpack_r_parameters(prepare_funnel_params_for_R(edited_funnel_params))
@@ -2346,4 +2359,5 @@ def params_dict_to_Robject(params, robject_type ="list"):
         raise Exception("robject type is incorrect ")
     
     return robj
-        
+
+    
