@@ -136,6 +136,7 @@ class EditPhyloForestPlotWindow(QDialog, ui_edit_forest_plot.Ui_edit_forest_plot
         add_plot_params(self)
 
         # load things up in the R side
+
         python_to_R.load_vars_for_plot(self.img_params_path,
                                        var_suffixes=("data", "params", "res", "level"))
 

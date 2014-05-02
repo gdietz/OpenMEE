@@ -272,7 +272,6 @@ def get_base_path(normalize=False):
     because it sees it as an escape character and Qt is fine with / throughout '''
 
     base_path = str(QDesktopServices.storageLocation(QDesktopServices.DataLocation))
-    #base_path = "/".join([applications_data_location,PROGRAM_NAME])
     if normalize:
         base_path = str(QDir.toNativeSeparators(base_path))
     print("Base path is: %s" % base_path)

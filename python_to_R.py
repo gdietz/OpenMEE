@@ -1999,7 +1999,7 @@ def regenerate_plot_data(om_data_name="om.data", res_name="res",
 
     print("executed: %s" % r_str)
 
-def update_plot_params(plot_params, plot_params_name="params", \
+def update_plot_params(plot_params, plot_params_name="params",
                         write_them_out=False, outpath=None):
     # first cast the params to an R data frame to make it
     # R-palatable
