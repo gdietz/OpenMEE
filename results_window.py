@@ -219,9 +219,11 @@ class ResultsWindow(QMainWindow, ui_results_window.Ui_ResultsWindow):
             title_contents_to_scale = {"histogram":1,
                                        "funnel":1,
                                        "scatterplot":1,
+                                       "forest plot of coefficients":1,
                                        }
             for title_contents, scale in title_contents_to_scale.items():
                 if title.lower().rfind(title_contents) != -1:
+                    print("using scale=%d" % scale)
                     pixmap = self.generate_pixmap(image, custom_scale=scale)
                     break
                 else:
@@ -429,7 +431,9 @@ class ResultsWindow(QMainWindow, ui_results_window.Ui_ResultsWindow):
         # more...
         plot_type = None
         tmp_title = title.lower()
-        if "forest" in tmp_title and "__phylo" in tmp_title:
+        if "forest plot of coefficients" in tmp_title:
+            plot_type = "forest plot of coefficients"
+        elif "forest" in tmp_title and "__phylo" in tmp_title:
             plot_type = "forest__phylo"
         elif "forest" in tmp_title:
             plot_type = "forest"

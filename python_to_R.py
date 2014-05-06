@@ -75,6 +75,9 @@ class RlibLoader:
 
     def load_grid(self):
         return self._load_r_lib("grid")
+    
+    def load_rmeta(self):
+        return self._load_r_lib("rmeta")
 
     def _load_r_lib(self, name):
         try:
