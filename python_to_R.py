@@ -1480,7 +1480,7 @@ def run_gmeta_regression(metric,
     else:
         btt_indices_vector_str = str(ro.NULL)
     #g.meta.regression <- function(data, mods, method, level, digits, measure, btt=NULL)
-    r_str = "{results} <- g.meta.regression(data={data}, mods={mods}, method=\"{method}\", level={level}, digits={digits}, measure=\"{measure}\", btt={btt})".format(
+    r_str = "{results} <- g.meta.regression(data={data}, mods={mods}, method=\"{method}\", level={level}, digits={digits}, measure=\"{measure}\", btt={btt}, make.coeff.forest.plot={make_coeff_fp}, exclude.intercept={exclude_intercept})".format(
                 results=results_name,
                 data=data_name,
                 mods=mods.r_repr(),
@@ -1488,13 +1488,19 @@ def run_gmeta_regression(metric,
                 level=conf_level,
                 digits=digits,
                 measure=measure_str,
-                btt=btt_indices_vector_str)
+                btt=btt_indices_vector_str,
+                make_coeff_fp=bool_to_rstr(get_setting("reg_coeff_forest_plot")),
+                exclude_intercept=bool_to_rstr(get_setting("exclude_intercept_coeff_fp"))
+                )
 
     exR.execute_in_R(r_str)
     result = exR.execute_in_R("%s" % results_name)
 
     parsed_results = parse_out_results(result)
     return parsed_results
+
+def bool_to_rstr(x):
+    return "TRUE" if x else "FALSE"
 
 def _make_mods_listVector(covariates, interactions):
     #### Create mods list (model moderators) as specified in g.meta.regression

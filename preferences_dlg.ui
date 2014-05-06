@@ -54,7 +54,7 @@
    <item>
     <widget class="QTabWidget" name="tabWidget">
      <property name="currentIndex">
-      <number>0</number>
+      <number>1</number>
      </property>
      <widget class="QWidget" name="spreadsheet_tab">
       <attribute name="title">
@@ -497,6 +497,40 @@ exported results (essentially a dump of the R output)</string>
         </widget>
        </item>
        <item>
+        <widget class="QCheckBox" name="reg_coeff_checkBox">
+         <property name="text">
+          <string>Make forest plot for regression coefficients?</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <layout class="QHBoxLayout" name="horizontalLayout_8">
+         <item>
+          <spacer name="horizontalSpacer_5">
+           <property name="orientation">
+            <enum>Qt::Horizontal</enum>
+           </property>
+           <property name="sizeType">
+            <enum>QSizePolicy::Fixed</enum>
+           </property>
+           <property name="sizeHint" stdset="0">
+            <size>
+             <width>20</width>
+             <height>0</height>
+            </size>
+           </property>
+          </spacer>
+         </item>
+         <item>
+          <widget class="QCheckBox" name="exclude_intercept_checkBox">
+           <property name="text">
+            <string>exclude intercept?</string>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </item>
+       <item>
         <spacer name="verticalSpacer">
          <property name="orientation">
           <enum>Qt::Vertical</enum>
@@ -611,8 +645,8 @@ to Default!</string>
    <slot>accept()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>224</x>
-     <y>337</y>
+     <x>230</x>
+     <y>494</y>
     </hint>
     <hint type="destinationlabel">
      <x>157</x>
@@ -627,8 +661,8 @@ to Default!</string>
    <slot>reject()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>292</x>
-     <y>343</y>
+     <x>298</x>
+     <y>494</y>
     </hint>
     <hint type="destinationlabel">
      <x>286</x>

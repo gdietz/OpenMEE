@@ -34,6 +34,11 @@ class PreferencesDialog(QDialog, ui_preferences.Ui_Dialog):
         self.header_font_btn.clicked.connect(partial(self.set_font, which="header"))
         self.data_font_btn.clicked.connect(partial(self.set_font, which="data"))
         self.reset_pushButton.clicked.connect(self._reset_everything)
+        self.reg_coeff_checkBox.stateChanged.connect(self.enable_exclude_intercept_chkbox)
+    
+    def enable_exclude_intercept_chkbox(self):
+        should_be_enabled = self.reg_coeff_checkBox.isChecked()
+        self.exclude_intercept_checkBox.setEnabled(should_be_enabled)
         
     def initializeDialog(self):
         self.initialize_color_scheme_from_settings()
@@ -41,6 +46,8 @@ class PreferencesDialog(QDialog, ui_preferences.Ui_Dialog):
         self.digits_spinBox.setValue(get_setting('digits'))
         self.additional_values_checkBox.setChecked(get_setting('show_additional_values'))
         self.analysis_selections_checkBox.setChecked(get_setting('show_analysis_selections'))
+        self.reg_coeff_checkBox.setChecked(get_setting('reg_coeff_forest_plot'))
+        self.exclude_intercept_checkBox.setChecked(get_setting("exclude_intercept_coeff_fp"))
         
         self.header_font, self.data_font = None, None
         if get_setting('model_header_font_str'):
@@ -220,6 +227,12 @@ class PreferencesDialog(QDialog, ui_preferences.Ui_Dialog):
     
     def get_show_analysis_selections(self):
         return self.analysis_selections_checkBox.isChecked()
+    
+    def get_make_reg_coeff_fp(self):
+        return self.reg_coeff_checkBox.isChecked()
+    
+    def get_exclude_intercept(self):
+        return self.exclude_intercept_checkBox.isChecked()
 
 # if __name__ == '__main__':
 # 

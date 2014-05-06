@@ -151,6 +151,8 @@ DEFAULT_SETTINGS = {"splash"       : True,
                     "model_header_font_str"   : "",
                     "show_additional_values"  : True,
                     "show_analysis_selections": True,
+                    "reg_coeff_forest_plot": False, # Make forest plot for regression coefficients
+                    "exclude_intercept_coeff_fp": False, # Exclude intercept on reg. coeff. forest plot
                     # color scheme
                     "colors/default_bg": DEFAULT_BACKGROUND_COLOR,
                     "colors/label/fg"  : QColor(255,204,102),      # study label foreground

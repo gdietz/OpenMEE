@@ -2,8 +2,8 @@
 
 # Form implementation generated from reading ui file 'preferences_dlg.ui'
 #
-# Created: Wed Jan 22 10:52:07 2014
-#      by: PyQt4 UI code generator 4.10.3
+# Created: Tue May  6 16:11:44 2014
+#      by: PyQt4 UI code generator 4.10.4
 #
 # WARNING! All changes made in this file will be lost!
 
@@ -212,28 +212,39 @@ class Ui_Dialog(object):
         self.analysis_selections_checkBox.setChecked(True)
         self.analysis_selections_checkBox.setObjectName(_fromUtf8("analysis_selections_checkBox"))
         self.verticalLayout_4.addWidget(self.analysis_selections_checkBox)
-        spacerItem3 = QtGui.QSpacerItem(20, 40, QtGui.QSizePolicy.Minimum, QtGui.QSizePolicy.Expanding)
-        self.verticalLayout_4.addItem(spacerItem3)
+        self.reg_coeff_checkBox = QtGui.QCheckBox(self.tab_2)
+        self.reg_coeff_checkBox.setObjectName(_fromUtf8("reg_coeff_checkBox"))
+        self.verticalLayout_4.addWidget(self.reg_coeff_checkBox)
+        self.horizontalLayout_8 = QtGui.QHBoxLayout()
+        self.horizontalLayout_8.setObjectName(_fromUtf8("horizontalLayout_8"))
+        spacerItem3 = QtGui.QSpacerItem(20, 0, QtGui.QSizePolicy.Fixed, QtGui.QSizePolicy.Minimum)
+        self.horizontalLayout_8.addItem(spacerItem3)
+        self.exclude_intercept_checkBox = QtGui.QCheckBox(self.tab_2)
+        self.exclude_intercept_checkBox.setObjectName(_fromUtf8("exclude_intercept_checkBox"))
+        self.horizontalLayout_8.addWidget(self.exclude_intercept_checkBox)
+        self.verticalLayout_4.addLayout(self.horizontalLayout_8)
+        spacerItem4 = QtGui.QSpacerItem(20, 40, QtGui.QSizePolicy.Minimum, QtGui.QSizePolicy.Expanding)
+        self.verticalLayout_4.addItem(spacerItem4)
         self.tabWidget.addTab(self.tab_2, _fromUtf8(""))
         self.tab = QtGui.QWidget()
         self.tab.setObjectName(_fromUtf8("tab"))
         self.verticalLayout_5 = QtGui.QVBoxLayout(self.tab)
         self.verticalLayout_5.setObjectName(_fromUtf8("verticalLayout_5"))
-        spacerItem4 = QtGui.QSpacerItem(20, 113, QtGui.QSizePolicy.Minimum, QtGui.QSizePolicy.Expanding)
-        self.verticalLayout_5.addItem(spacerItem4)
+        spacerItem5 = QtGui.QSpacerItem(20, 113, QtGui.QSizePolicy.Minimum, QtGui.QSizePolicy.Expanding)
+        self.verticalLayout_5.addItem(spacerItem5)
         self.horizontalLayout_7 = QtGui.QHBoxLayout()
         self.horizontalLayout_7.setObjectName(_fromUtf8("horizontalLayout_7"))
-        spacerItem5 = QtGui.QSpacerItem(40, 20, QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Minimum)
-        self.horizontalLayout_7.addItem(spacerItem5)
+        spacerItem6 = QtGui.QSpacerItem(40, 20, QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Minimum)
+        self.horizontalLayout_7.addItem(spacerItem6)
         self.reset_pushButton = QtGui.QPushButton(self.tab)
         self.reset_pushButton.setMinimumSize(QtCore.QSize(200, 100))
         self.reset_pushButton.setObjectName(_fromUtf8("reset_pushButton"))
         self.horizontalLayout_7.addWidget(self.reset_pushButton)
-        spacerItem6 = QtGui.QSpacerItem(40, 20, QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Minimum)
-        self.horizontalLayout_7.addItem(spacerItem6)
+        spacerItem7 = QtGui.QSpacerItem(40, 20, QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Minimum)
+        self.horizontalLayout_7.addItem(spacerItem7)
         self.verticalLayout_5.addLayout(self.horizontalLayout_7)
-        spacerItem7 = QtGui.QSpacerItem(20, 113, QtGui.QSizePolicy.Minimum, QtGui.QSizePolicy.Expanding)
-        self.verticalLayout_5.addItem(spacerItem7)
+        spacerItem8 = QtGui.QSpacerItem(20, 113, QtGui.QSizePolicy.Minimum, QtGui.QSizePolicy.Expanding)
+        self.verticalLayout_5.addItem(spacerItem8)
         self.tabWidget.addTab(self.tab, _fromUtf8(""))
         self.verticalLayout_3.addWidget(self.tabWidget)
         self.buttonBox = QtGui.QDialogButtonBox(Dialog)
@@ -243,7 +254,7 @@ class Ui_Dialog(object):
         self.verticalLayout_3.addWidget(self.buttonBox)
 
         self.retranslateUi(Dialog)
-        self.tabWidget.setCurrentIndex(0)
+        self.tabWidget.setCurrentIndex(1)
         QtCore.QObject.connect(self.buttonBox, QtCore.SIGNAL(_fromUtf8("accepted()")), Dialog.accept)
         QtCore.QObject.connect(self.buttonBox, QtCore.SIGNAL(_fromUtf8("rejected()")), Dialog.reject)
         QtCore.QMetaObject.connectSlotsByName(Dialog)
@@ -268,6 +279,8 @@ class Ui_Dialog(object):
         self.additional_values_checkBox.setText(_translate("Dialog", "Show \"Additional Values\" in results window and in\n"
 "exported results (essentially a dump of the R output)", None))
         self.analysis_selections_checkBox.setText(_translate("Dialog", "Show analysis selections in exported results", None))
+        self.reg_coeff_checkBox.setText(_translate("Dialog", "Make forest plot for regression coefficients?", None))
+        self.exclude_intercept_checkBox.setText(_translate("Dialog", "exclude intercept?", None))
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab_2), _translate("Dialog", "Results Output", None))
         self.reset_pushButton.setText(_translate("Dialog", "Reset Everything\n"
 "to Default!", None))

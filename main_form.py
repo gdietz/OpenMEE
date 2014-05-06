@@ -452,6 +452,8 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
             update_setting('model_data_font_str',    form.get_model_data_font().toString())
             update_setting('show_additional_values', form.get_show_additional_values())
             update_setting('show_analysis_selections', form.get_show_analysis_selections())
+            update_setting("reg_coeff_forest_plot", form.get_make_reg_coeff_fp())
+            update_setting("exclude_intercept_coeff_fp", form.get_exclude_intercept())
             
             # Copy color scheme into settings
             color_scheme = form.get_color_scheme()
