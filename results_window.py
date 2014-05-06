@@ -554,9 +554,10 @@ class ResultsWindow(QMainWindow, ui_results_window.Ui_ResultsWindow):
         # note that the params object will, by convention,
         # have the (generic) name 'plot.data' -- after this
         # call, this object will be in the namespace
-        if plot_type not in ["funnel", "histogram", "scatterplot"]:
+        if plot_type not in ["funnel", "histogram", "scatterplot", "forest__phylo"]:
             python_to_R.load_in_R("%s.plotdata" % params_path)
-            print("Loaded: %s" % "%s.plotdata" % params_path)
+            print("Loaded: %s" % "%s.plotdata" % params_path)   
+        
 
         suffix = unicode("."+fmt)
         default_filename = {"forest":"forest_plot",
@@ -577,7 +578,7 @@ class ResultsWindow(QMainWindow, ui_results_window.Ui_ResultsWindow):
 
         # where to save the graphic?
         file_path = unicode(QFileDialog.getSaveFileName(self, 
-                                                        "OpenMeta[Analyst] -- save plot as",
+                                                        "OpenMEE -- save plot as",
                                                         default_path,))
                                                         #filter=QString(dfilter)))
 
@@ -591,6 +592,8 @@ class ResultsWindow(QMainWindow, ui_results_window.Ui_ResultsWindow):
                     python_to_R.generate_forest_plot(file_path, side_by_side=True)
                 else:
                     python_to_R.generate_forest_plot(file_path)
+            elif plot_type == "forest__phylo":
+                python_to_R.regenerate_phylo_forest_plot(file_path)
             elif plot_type == "regression":
                 python_to_R.generate_reg_plot(file_path)
             elif plot_type == "funnel":
