@@ -554,10 +554,15 @@ class ResultsWindow(QMainWindow, ui_results_window.Ui_ResultsWindow):
         # note that the params object will, by convention,
         # have the (generic) name 'plot.data' -- after this
         # call, this object will be in the namespace
-        if plot_type not in ["funnel", "histogram", "scatterplot", "forest__phylo"]:
+        ##if plot_type not in ["funnel", "histogram", "scatterplot", "forest__phylo"]:
+        ##    python_to_R.load_in_R("%s.plotdata" % params_path)
+        ##    print("Loaded: %s" % "%s.plotdata" % params_path)
+        if plot_type in ["forest", "regression"]:
             python_to_R.load_in_R("%s.plotdata" % params_path)
-            print("Loaded: %s" % "%s.plotdata" % params_path)   
-        
+            print("Loaded: %s" % "%s.plotdata" % params_path)
+        elif plot_type == "forest plot of coefficients":
+            python_to_R.load_in_R("%s.coef_fp_data" % params_path)
+            print("Loaded: %s" % "%s.coef_fp_data" % params_path)
 
         suffix = unicode("."+fmt)
         default_filename = {"forest":"forest_plot",
@@ -565,7 +570,8 @@ class ResultsWindow(QMainWindow, ui_results_window.Ui_ResultsWindow):
                             "regression":"regression",
                             "funnel":"funnel_plot",
                             "histogram":"histogram",
-                            "scatterplot":"scatterplot"}[plot_type] + suffix
+                            "scatterplot":"scatterplot",
+                            "forest plot of coefficients":"forest_plot_of_coefficients"}[plot_type] + suffix
         
                         
         default_path = os.path.join(get_user_desktop_path(), default_filename)
@@ -600,6 +606,8 @@ class ResultsWindow(QMainWindow, ui_results_window.Ui_ResultsWindow):
                 python_to_R.regenerate_funnel_plot(params_path, file_path)
             elif plot_type in ["histogram","scatterplot"]:
                 python_to_R.regenerate_exploratory_plot(params_path, file_path, plot_type=plot_type)
+            elif plot_type == "forest plot of coefficients":
+                python_to_R.regenerate_forest_plot_of_coefficients(file_path, params_path, fmt)
             else:
                 print "sorry -- I don't know how to draw %s plots!" % plot_type
 #        else: # case where we just have the png and can't regenerate the pdf from plot data

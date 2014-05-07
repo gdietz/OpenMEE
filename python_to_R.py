@@ -2369,3 +2369,12 @@ def params_dict_to_Robject(params, robject_type ="list"):
         raise Exception("robject type is incorrect ")
 
     return robj
+
+def regenerate_forest_plot_of_coefficients(file_path, params_path, img_fmt="png"):   
+    # fix file_path
+    if file_path[-4]!='.':
+        file_path = file_path + "." + img_fmt
+    file_path_wo_extension = file_path[0:-4]
+    
+    r_str = "regenerate.coeff.forest.plot(input.df, \"%s\", \"%s\")" % (file_path_wo_extension, img_fmt)
+    exR.execute_in_R(r_str)
