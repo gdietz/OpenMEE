@@ -47,6 +47,7 @@
       <li><a href="#modelbuilding">Model Building (Likelihood Ratio Testing for Nested Regressions)</a></li>
       <li><a href="#bootstrap">Bootstrapped Meta-Analysis</a></li>
       <li><a href="#imputation">Multiple Imputation for Missing Data</a></li>
+      <li><a href="#data-exploration">Data Exploration</a></li>
       <li><a href="#publication-bias">Publication Bias</a></li>
       <li><a href="#exporting-results">Exporting Analysis Results</a></li>
       <li><a href="#rconsole">The Embedded R Console</a></li>
@@ -65,9 +66,6 @@ To install OpenMEE, follow these steps.
     <li>First download the program from:<br/> <a href="http://www.cebm.brown.edu/open_mee/download">http://www.cebm.brown.edu/open_mee/download</a></li>
     <br /> Make sure to download the correct version of the program for your system. As of this writing, we currently support Mac OS X Mountain Lion and Windows 7 and 8 (64-bit versions). 
     <li>Save the zip file somewhere convenient and extract it (just double-clicking should do on most systems).</li>
-    <li>Make sure that the location from which you run the program is somewhere where you have write privileges (somewhere in your user path i.e. Somewhere after
-      <br /><code>/Users/yourname/ on Mac or<br />C:\Users\yourname\ on windows). </code><br />
-      <br />The program needs to be able to write to its own directory.</li> <b>Do not put the program in the Program Files folder on a PC or Applications folder on a Mac</b>!
 </ol>
 
 <a id="starting"><h2>Starting OpenMEE </h2></a>
@@ -344,6 +342,52 @@ Finally, you can give details about the phylogenetic model type, specifying a Br
 
 <p>These parameters specify the imputation method to use and the number of multiple imputations to perform. Providing the methodological details of the imputation is beyond the scope of this document, but we refer the interested reader to the R <a href="http://cran.r-project.org/web/packages/mice/index.html">MICE</a> documentation for more details: we use this package 'under the hood' to perform the imputation.</p>
 
+<a id="data-exploration"><h2>Data Exploration</h2></a>
+
+<p> OpenMEE offers various tools to help you visually explore your data including scatterplots and histograms.
+    <ol>
+        <li><b>Scatterplots</b><br />
+            Scatterplots are useful for seeing relationships between two quantitative variables. You can make a scatter plot in OpenMEE by choosing 'Scatterplot' from the 'Data Exploration' menu.
+            <figure>
+  <img src="img/exploratory/scatterplot_data.png">
+  <figcaption>Choosing Scatterplot Data </figcaption>
+</figure>
+
+            <figure>
+  <img src="img/exploratory/scatterplot_params.png">
+  <figcaption>Scatterplot parameters </figcaption>
+</figure>
+
+            You are presented with a wizard which will allow to choose the source of your data for each axis, then choose custom axis labels and limits. You can also choose to annotate each data point with the study that the point comes from.
+
+            Here is a scatterplot obtained by comparing Age with Correlation:
+                        <figure>
+  <img src="img/exploratory/scatterplot.png">
+  <figcaption>Example Scatterplot </figcaption>
+</figure>
+        </li>
+        <li><b>Histograms</b><br />
+            Histograms are a way to look at data, one variable at a time. For quantitative data, the values are 'binned' and then counted. For categorical variables, the count of each level corresponds to the height of each bar. In the figures below, we see the histogram details screen and also an example of a historgram of quantitative data (rainfall) and categorical data (planet),
+                                    <figure>
+  <img src="img/exploratory/histogram_params.png">
+  <figcaption>Histogram details </figcaption>
+</figure>
+                        <figure>
+  <img src="img/exploratory/histogram_planets.png">
+  <figcaption>Histrogram of planets (categorical variable) </figcaption>
+</figure>
+                        <figure>
+  <img src="img/exploratory/rainfall_histogram.png">
+  <figcaption>Histogram of rainfall (quantitative variable) </figcaption>
+</figure>
+        </li>
+        <li><b>Contingency Table</b><br />
+            The contingency table can be used to count the # of studies at each pair of levels between two categorical covariates of interest. This can be useful, for example, when making sure you have enough data for a meta-regression. A contingency table comparing Gender and planet is show below:
+                                    <figure>
+  <img src="img/exploratory/contingency_table.png">
+  <figcaption>Figure 7. Contingency Table </figcaption>
+</figure>
+    </ol>
 
 
 <a id="publication-bias"><h2>Publication Bias</h2></a>
@@ -394,7 +438,12 @@ Finally, you can give details about the phylogenetic model type, specifying a Br
   <dt><b>The program doesn't start! Or, no analyses work!</b></dt>
   <dd>First of all, did you extract the program to somewhere where you have write privileges as described in the <a href="#getting-started">'Getting Started'</a> section of this document? If you insist on putting the program in a strange place where you don't have write privileges, you can run it if you right-click it, and choose "Run as administrator" under windows or launch it from the command line in Mac via sudo. <b>Don't</b> do this though. Just run the program from where we say to! The desktop is a fine place.</dd>
   <dt><b>I opened my dataset that I made in a previous build of OpenMEE and 'weird' things are happening when I try to run an analysis.</b></dt>
-  <dd>This can happen if we updated the underlying format of the files we use to store data about datasets. If this happens, you can fix it most of the time by clicking the swirly blue arrow on the upper right of the toolbar and then saving. This should update your dataset to be fully compatible with your new version of OpenMEE.</dd>
+  <dd>This can happen if we updated the underlying format of the files we use to store data about datasets. If this happens, you can fix it most of the time by clicking the swirly blue arrow on the upper right of the toolbar and then saving(see the figure). This should update your dataset to be fully compatible with your new version of OpenMEE.
+    <figure>
+      <img src="img/reset_dataset.png">
+      <figcaption>Reset dataset parameters</figcaption>
+    </figure>
+  </dd>
   <dt><b>I'm getting 'Crazy R Errors' when I try to run a meta-analysis or meta-regression</b></dt>
   <dd>First of all, are your effect sizes reasonable? Not infinity? Make sure you're not dividing by zero somewhere. For meta-regression, are you trying to run it with too many covariates/interactions? This can cause problems with rank of matrices when the number of studies is not large compared to the number of covariates / levels in a categorical covariate.</dd>
   <dt><b>I don't like the colors in the spreadsheet</b></dt>

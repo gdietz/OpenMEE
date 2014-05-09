@@ -94,6 +94,7 @@
      <string>Help</string>
     </property>
     <addaction name="action_about"/>
+    <addaction name="actionGet_help_online"/>
    </widget>
    <widget class="QMenu" name="menuData_Exploration">
     <property name="title">
@@ -428,6 +429,11 @@
   <action name="actionMultiple_Imputation_Meta_Analysis">
    <property name="text">
     <string>Multiple Imputation Meta-Analysis</string>
+   </property>
+  </action>
+  <action name="actionGet_help_online">
+   <property name="text">
+    <string>Get help online</string>
    </property>
   </action>
  </widget>

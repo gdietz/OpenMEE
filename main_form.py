@@ -7,7 +7,7 @@
 
 import sys
 #import pdb
-import copy
+#import copy
 from functools import partial
 from collections import deque
 import pickle
@@ -94,9 +94,11 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
                                     self.conf_level_toolbar_widget)
         
         self.undo_stack = QUndoStack(self)
+        #### Handle user prefs / settings issue # 111
+        load_settings()
+        self.populate_recent_datasets()
         
-        self.load_user_prefs()
-        self.model = ee_model.EETableModel(undo_stack=self.undo_stack, user_prefs=self.user_prefs)
+        self.model = ee_model.EETableModel(undo_stack=self.undo_stack)
         self.tableView.setModel(self.model)
         self.tableView.resizeColumnsToContents()
         self.conf_level_toolbar_widget.conf_level_spinbox.setValue(self.model.get_conf_level())
@@ -226,7 +228,6 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
         
         self.undo_stack.clear()
         self.model = ee_model.EETableModel(undo_stack=self.undo_stack,
-                                           user_prefs=self.user_prefs,
                                            model_state=state)
         self.model.dirty = False
         self.model.change_row_count_if_needed()
@@ -312,12 +313,17 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
         
         # Help Menu
         self.action_about.triggered.connect(self.show_about_dlg)
+        self.actionGet_help_online.triggered.connect(self.open_help_online)
         
         # Through the looking glass .... Menu
         self.actionR_log.triggered.connect(self.show_R_log_dlg)
         
         # Toolbar
         self.actionResetAnalysisChoices.triggered.connect(self.reset_analysis_selection)
+        
+        
+    def open_help_online(self):
+        QDesktopServices.openUrl(QUrl(HELP_URL))
         
     def contingency_table(self):
         dlg = ContingencyTableDlg(model=self.model, parent=self)
@@ -386,7 +392,7 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
     def populate_recent_datasets(self):
         self.menuRecent_Data.clear()
         
-        for fpath in self.user_prefs['recent_files'].get_list():
+        for fpath in get_setting('recent_files'):
             action = self.menuRecent_Data.addAction("Load %s" % fpath)
             QObject.connect(action, SIGNAL("triggered()"), partial(self.open, file_path=fpath))
             
@@ -437,26 +443,24 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
     def error_msg_signal_handler(self, title, err_msg):
         QMessageBox.critical(self, title, err_msg)
     
-#     def _get_preferences_init_params(self):
-#         return {'color_scheme':self.user_prefs['color_scheme'],
-#                 'precision':self.user_prefs['digits'],
-#                 'model_header_font_str':self.user_prefs['model_data_font_str'],
-#                 'model_data_font_str':self.user_prefs['model_data_font_str'],
-#                 'show_additional_values':self.user_prefs['show_additional_values'],
-#                 'show_analysis_selections':self.user_prefs['show_analysis_selections']}
-    
     def adjust_preferences(self):
-        form = preferences_dlg.PreferencesDialog(
-                        current_preferences=self.user_prefs,
-                        default_preferences=default_user_prefs())
+        form = preferences_dlg.PreferencesDialog()
         
         if form.exec_():
-            self.update_user_prefs('color_scheme', form.get_color_scheme())
-            self.update_user_prefs('digits', form.get_precision())
-            self.update_user_prefs('model_header_font_str', form.get_model_header_font().toString())
-            self.update_user_prefs('model_data_font_str', form.get_model_data_font().toString())
-            self.update_user_prefs('show_additional_values', form.get_show_additional_values())
-            self.update_user_prefs('show_analysis_selections', form.get_show_analysis_selections())
+            update_setting('digits',                 form.get_precision())
+            update_setting('model_header_font_str',  form.get_model_header_font().toString())
+            update_setting('model_data_font_str',    form.get_model_data_font().toString())
+            update_setting('show_additional_values', form.get_show_additional_values())
+            update_setting('show_analysis_selections', form.get_show_analysis_selections())
+            update_setting("reg_coeff_forest_plot", form.get_make_reg_coeff_fp())
+            update_setting("exclude_intercept_coeff_fp", form.get_exclude_intercept())
+            
+            # Copy color scheme into settings
+            color_scheme = form.get_color_scheme()
+            for key, color in color_scheme.items():
+                settings_key = "colors/" + key # add colors prefix
+                update_setting(settings_key, color)
+            
             self.model.beginResetModel()
             self.model.endResetModel()
             self.tableView.resizeColumnsToContents()
@@ -627,7 +631,8 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
             new_index = self.model.createIndex(row,col)
             self.tableView.setCurrentIndex(new_index)
         if not self.model.big_paste_mode:
-            end_row, end_col = index_bottom_right.row(), index_bottom_right.column()
+            #end_row, end_col = index_bottom_right.row(), index_bottom_right.column()
+            end_col = index_bottom_right.column()
             ncols = end_col - col + 1
             if ncols >= 10:
                 self.tableView.resizeColumnsToContents()
@@ -914,6 +919,15 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
         if proposed_name in current_var_names:
             QMessageBox.warning(self,"Bad name", "That variable name is already present in the dataset, duplicates not allowed.")
             return False
+       
+        # check for disallowed chars that will cause problems on the R side
+        disallowed_chars_with_quotes = ["'%s'" % char for char in VARIABLE_LABEL_DISALLOWED_CHARS]
+        for char in VARIABLE_LABEL_DISALLOWED_CHARS:
+            if char in proposed_name:
+                msg = "The following characters are not allowed in column labels: %s" % ", ".join(disallowed_chars_with_quotes)
+                QMessageBox.warning(self,"Forbidden characters", msg)
+                return False
+        
         # Warn about character issue #76 with variable names in R
         special_chars = [" ","-"]
         special_char_in_proposed_name = False
@@ -922,6 +936,7 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
                 special_char_in_proposed_name = True
         if special_char_in_proposed_name:
             QMessageBox.warning(self,"Character Issue","Due to general R-craziness, the characters %s will be changed to '.' on the R side (and in ouput) -- just letting you know." % ", ".join(special_chars))
+
 
         # We will proceed with the renaming
         if is_label_column:
@@ -995,7 +1010,11 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
 
         # prompt the user if no file_name is provided
         if file_path is None:
-            file_path = unicode(QFileDialog.getOpenFileName(parent=self, caption=QString("Open File"), filter="OpenMEE files (*.ome)"))
+            file_path = unicode(QFileDialog.getOpenFileName(
+                            parent=self,
+                            caption=QString("Open File"),
+                            directory=get_user_documents_path(),
+                            filter="OpenMEE files (*.ome)"))
 
         # Leave if they didn't choose anything
         if file_path == "":
@@ -1013,8 +1032,7 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
             return False
 
         # add to collection of recent files
-        self.user_prefs['recent_files'].add_file(file_path)
-        self._save_user_prefs()
+        add_file_to_recent_files(file_path)
         self.populate_recent_datasets()
 
         # Rebuilds model from state,
@@ -1037,8 +1055,49 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
 
         # reset menu/toolbar
         self.initialize_display()
+        
+        # check for forbidden chars in variable names
+        self.check_for_forbidden_chars_in_variable_names()
 
         return True
+    
+    def check_for_forbidden_chars_in_variable_names(self):
+        variables = self.vars_with_forbidden_chars()
+        labels_with_forbidden_chars = [v.get_label() for v in variables]
+        if len(labels_with_forbidden_chars) > 0:
+            disallowed_chars_quoted = ["'%s'" % char for char in VARIABLE_LABEL_DISALLOWED_CHARS]
+            charlist = ", ".join(disallowed_chars_quoted)
+            msg = "The characters: %s are not allowed in variable names. The following variables names have these disallowed characters:\n%s\n\nIf it's ok to just remove the bad characters, click 'Ok' otherwise, click cancel and remove the characters manually. This action is not undoable." % (charlist, "\n".join(labels_with_forbidden_chars)) 
+            choice = QMessageBox.warning(self, "Forbidden characters in variable names", msg, buttons=QMessageBox.Ok|QMessageBox.Cancel)
+            if choice == QMessageBox.Ok:
+                self.remove_disallowed_chars_from_var_labels(variables)
+                occupied_cols = self.model.get_occupied_columns()
+                self.model.headerDataChanged.emit(Qt.Horizontal,min(occupied_cols), max(occupied_cols))
+    
+                
+    def remove_disallowed_chars_from_var_labels(self, variables):
+        for v in variables:
+            label = v.get_label()
+            new_label = label
+            for char in VARIABLE_LABEL_DISALLOWED_CHARS:
+                new_label = new_label.replace(char, "")
+            v.set_label(new_label)
+    
+    def vars_with_forbidden_chars(self):
+        ''' returns list of variables with disallowed characters in label'''
+        
+        all_variables = self.model.get_variables()
+        # exclude effects since these arn't covariates
+        variables = filter(lambda v: v.get_subtype() not in EFFECT_TYPES, all_variables)
+        vars_with_disallowed_chars = []
+        
+        for v in variables:
+            label = v.get_label()
+            bad_chars_present = any([char in label for char in VARIABLE_LABEL_DISALLOWED_CHARS])
+            if bad_chars_present:
+                vars_with_disallowed_chars.append(v)
+        return vars_with_disallowed_chars
+        
 
     def new_dataset(self):
         # What to do if current dataset is unsaved
@@ -1092,8 +1151,7 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
             return False
 
         # add to collection of recent files
-        self.user_prefs['recent_files'].add_file(self.outpath)
-        self._save_user_prefs()
+        add_file_to_recent_files(self.outpath)
         self.populate_recent_datasets()
 
         print("Saved %s" % self.outpath)
@@ -1210,57 +1268,12 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
                     event.ignore()
                 pass # ok to disregard current data
 
-        # save user prefs
-        self._save_user_prefs()
+        # save settings
+        save_settings()
         
         QApplication.quit()
 
-### HANDLE USER PREFERENCES
-    def update_user_prefs(self, field, value):
-        self.user_prefs[field] = value
-        self._save_user_prefs()
 
-    def get_user_method_params_d(self):
-        return self.user_prefs["method_params"]
-
-    def _save_user_prefs(self):
-        try:
-            fout = open(PREFS_PATH, 'wb')
-            pickle.dump(self.user_prefs, fout)
-            fout.close()
-            print("Saved user prefs")
-        except Exception as e:
-            print "failed to write preferences data!"
-            raise e
-
-    def load_user_prefs(self):
-        '''
-        Attempts to read a local dictionary of preferences
-        ('user_prefs.dict'). If not such file exists, this file
-        is created with defaults.
-        '''
-        
-        self.user_prefs = {}
-        if os.path.exists(PREFS_PATH):
-            try:
-                with open(PREFS_PATH, 'rb') as f:
-                    self.user_prefs = pickle.load(f)
-            except:
-                print "preferences dictionary is corrupt! using defaults"
-                self.user_prefs = self.default_user_prefs()
-        else:
-            self.user_prefs = self.default_user_prefs()
-
-        # for backwards-compatibility
-        if not "method_params" in self.user_prefs:
-            self.user_prefs["method_params"] = {}
-
-        self._save_user_prefs()
-        print "loaded user preferences: %s" % self.user_prefs
-        
-        self.populate_recent_datasets()
-        
-################ END HANDLE USER PREFS ######################
 
     def get_variable_group_column_indices(self):
         vertical_sizehint = self.tableView.verticalHeader().sizeHint()
@@ -1640,14 +1653,11 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
                 self.model.set_dirty_bit(False)
                 pass # ok to disregard current data
         
-        
-        
-        
         form = csv_import_dlg.CSVImportDialog(self)
         if form.exec_():
             data = form.get_csv_data()
             if data is None:
-                QMessageBox.warning(self, "problem", "Coudln't import csv data for some reason")
+                QMessageBox.warning(self, "problem", "Couldn't import csv data for some reason")
                 return
             matrix = data['data']
             headers = data['headers']
@@ -1680,7 +1690,8 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
                 self.tableView_selection_model.blockSignals(False)
             self.paste_wrapper(start_index, matrix)
             
-            
+            # check for forbidden characters in variable names
+            self.check_for_forbidden_chars_in_variable_names()
             self.undo_stack.clear()
 
     def export_csv(self):
@@ -1783,20 +1794,6 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
             self.undo_stack.endMacro()
             
 #################### not part of main_form ##########
-def default_user_prefs():
-    default_user_prefs = {"splash":True,
-                          "digits":DEFAULT_PRECISION,
-                          'recent_files': RecentFilesManager(),
-                          "method_params":{},
-                          "color_scheme": copy.deepcopy(DEFAULT_COLOR_SCHEME),
-                          "model_data_font_str":None,
-                          "model_header_font_str":None,
-                          'show_additional_values':True,
-                          'show_analysis_selections':True,
-                          }
-    print("default user prefs:\n%s" % civilized_dict_str(default_user_prefs))
-    
-    return default_user_prefs
 
 
 if __name__ == '__main__':

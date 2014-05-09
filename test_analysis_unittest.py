@@ -9,7 +9,6 @@ from PyQt4.Qt import *
 
 import ee_model
 import python_to_R
-from main_form import default_user_prefs
 from ome_globals import CONTINUOUS
 
 
@@ -17,7 +16,7 @@ working_directory = os.getcwd()
 test_sample_data_dir = os.path.join(working_directory, 'test_sample_data')
 
 # Load user prefs
-user_prefs = default_user_prefs()
+# TODO: do something about settings in unittests
 
 
 ###############################################################################
@@ -48,8 +47,7 @@ def load_testfile_model_and_setup_things_on_R_side(file_name):
     # load model
     undo_stack = QUndoStack()
     model = ee_model.EETableModel(undo_stack=undo_stack,
-                                       user_prefs=user_prefs,
-                                       model_state=model_state)
+                                  model_state=model_state)
     # reset workspace
     python_to_R.exR.execute_in_R("rm(list=ls())")
     python_to_R.set_conf_level_in_R(model.get_conf_level())

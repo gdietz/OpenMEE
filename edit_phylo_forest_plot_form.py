@@ -1,15 +1,10 @@
 #################
 #               #
 # George Dietz  #
-# Byron Wallace #
-# CEBM@Brown    ####################################################
-#                                                                  #
-# Slightly modified version of the same thing from OpenMetaAnalyst #
-#                                                                  #
-####################################################################
-
-#import pdb
-#import os
+# CEBM@Brown    #
+#               #
+# This is meant to be used only for editing forest plots generated fromth
+#################
 
 from PyQt4.Qt import QObject, SIGNAL
 from PyQt4.QtGui import QDialog, QDialogButtonBox
@@ -18,22 +13,22 @@ import ui_edit_forest_plot
 import python_to_R
 from ome_globals import check_plot_bound, seems_sane, add_plot_params
 
-class EditPlotWindow(QDialog, ui_edit_forest_plot.Ui_edit_forest_plot_dlg):
+class EditPhyloForestPlotWindow(QDialog, ui_edit_forest_plot.Ui_edit_forest_plot_dlg):
 
     def __init__(self, img_params_path, png_path, qpixmap_item, title, parent=None):
-        super(EditPlotWindow, self).__init__(parent)
+        super(EditPhyloForestPlotWindow, self).__init__(parent)
         self.setupUi(self)
 
         # img_params is a string that is the variable
         # name for the R object 
         self.img_params_path = img_params_path
-        print "parameters: %s" % self.img_params_path
 
         # if we're unable to load the required R data files,
         # e.g., because they were moved or deleted, then fail
         self.params_d = python_to_R.load_vars_for_plot(
                                     self.img_params_path,
-                                    return_params_dict=True)
+                                    return_params_dict=True,
+                                    var_suffixes=("data", "params", "res", "level"))
         self.title = title
 
         if not self.params_d:
@@ -88,15 +83,7 @@ class EditPlotWindow(QDialog, ui_edit_forest_plot.Ui_edit_forest_plot_dlg):
         self.x_ticks_le.setText(str(self.params_d["fp_xticks"]))
 
         ##self.show_summary_line.setChecked(_to_bool(self.params_d["fp_show_summary_line"]))
-        self.show_summary_line.setChecked(self.params_d["fp_show_summary_line"])
-
-        ###
-        # TODO fix issue #153 -- Paul is going to edit the R routine
-        #       so that it overwrites the params '[default]' values
-        #       with the generated values used in practice -- we'll
-        #       just need to write them out here.
-        # pyqtRemoveInputHook()
-        #pdb.set_trace()       
+        self.show_summary_line.setChecked(self.params_d["fp_show_summary_line"])    
 
 
     def populate_params(self):
@@ -149,7 +136,9 @@ class EditPlotWindow(QDialog, ui_edit_forest_plot.Ui_edit_forest_plot_dlg):
         add_plot_params(self)
 
         # load things up in the R side
-        python_to_R.load_vars_for_plot(self.img_params_path)
+
+        python_to_R.load_vars_for_plot(self.img_params_path,
+                                       var_suffixes=("data", "params", "res", "level"))
 
         # update relevant variables (on the R side)
         # with new values -- we also write the updated
@@ -162,14 +151,17 @@ class EditPlotWindow(QDialog, ui_edit_forest_plot.Ui_edit_forest_plot_dlg):
         # now re-generate the plot data on the R side of
         # things
         #python_to_R.regenerate_plot_data(title=self.title)
-        python_to_R.regenerate_plot_data()
+        ######python_to_R.regenerate_plot_data()
 
 
         # finally, actually make the plot and spit it to disk in pdf and png formats
         self.png_path = self.current_param_vals["fp_outpath"]
-        python_to_R.generate_forest_plot(self.png_path)
+        #####python_to_R.generate_forest_plot(self.png_path)
         
-        python_to_R.write_out_plot_data("%s" % self.img_params_path)
+        python_to_R.regenerate_phylo_forest_plot(img_path=self.png_path,
+                                                 params_path=self.img_params_path)
+        
+        #####python_to_R.write_out_plot_data("%s" % self.img_params_path)
 
     def regenerate_graph(self):
         # this loads the plot.data into R's environment;

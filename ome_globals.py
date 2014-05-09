@@ -11,6 +11,11 @@ import cProfile
 from PyQt4 import QtCore, QtGui
 from PyQt4.Qt import *
 
+######
+HELP_URL = "http://www.cebm.brown.edu/open_mee/help"
+
+VARIABLE_LABEL_DISALLOWED_CHARS = ['(',')']
+
 ###### SWITCHES #######
 # Enables additional elements of the program useful in debugging
 DEBUG_MODE = True           # mostly for printing debugging message to terminal
@@ -20,7 +25,7 @@ SOUND_EFFECTS = True
 MAKE_TESTS = False
 ###### END SWITCHES ######
 
-HEADER_LINE_LENGTH = 70 # maximum length of header labels 
+HEADER_LINE_LENGTH = 70 # maximum length of header labels
 
 DEFAULT_METAREG_RANDOM_EFFECTS_METHOD = "DL"
 RANDOM_EFFECTS_METHODS_TO_PRETTY_STRS = {"DL":"DerSimonian-Laird estimator",
@@ -56,13 +61,26 @@ VARIABLE_TYPE_SHORT_STRING_REPS = {CATEGORICAL:"cat",
 VARIABLE_TYPE_STRING_REPS = {CATEGORICAL:"Categorical",
                              CONTINUOUS:"Continuous",
                              COUNT:"Count",}
+# same as above but lower case (used for indexing into qsettings)
+VARIABLE_TYPE_STRING_LC = {CATEGORICAL:"categorical",
+                             CONTINUOUS:"continuous",
+                             COUNT:"count",}
+
 # How variable subtypes are represented as normal length strings
 VARIABLE_SUBTYPE_STRING_REPS = {TRANS_EFFECT: "Trans. Effect",
                                 TRANS_VAR   : "Trans. Var",
                                 RAW_EFFECT  : "Raw Effect",
-                                RAW_LOWER   : "Raw lb.", 
+                                RAW_LOWER   : "Raw lb.",
                                 RAW_UPPER   : "Raw ub.",
                                 }
+# same as above but for indexing into qsettings
+VARIABLE_SUBTYPE_STRING_LC = {TRANS_EFFECT: "trans_effect",
+                              TRANS_VAR   : "trans_var",
+                              RAW_EFFECT  : "raw_effect",
+                              RAW_LOWER   : "raw_lower",
+                              RAW_UPPER   : "raw_upper",
+                             }
+
 
 # Default # of digits for representing floating point numbers
 DEFAULT_PRECISION = 3
@@ -74,11 +92,11 @@ RAW_SCALE, TRANSFORMED_SCALE = range(2)
 def verify_transform_direction(direction):
     if direction not in [TRANS_TO_RAW, RAW_TO_TRANS]:
         raise Exception("Unrecognized Transform Direction")
-    
+
 def cancel_macro_creation_and_revert_state(undo_stack):
     ''' Ends creation of macro (in progress) and reverts the state of
     the model to before the macro began to be created '''
-    
+
     #print("Cancelling macro creation and reverting")
     undo_stack.endMacro()
     undo_stack.undo()
@@ -88,10 +106,10 @@ def cancel_macro_creation_and_revert_state(undo_stack):
  META_REG_MODE, TRANSFORM_MODE, META_REG_COND_MEANS,
  BOOTSTRAP_MA, BOOTSTRAP_META_REG, BOOTSTRAP_META_REG_COND_MEANS,
  FAILSAFE_MODE, FUNNEL_MODE) = range(13)
- 
+
 PARAMETRIC, BOOTSTRAP = range(2)     # analysis type
 NORMAL, CONDITIONAL_MEANS = range(2) # output type
- 
+
 MODE_TITLES = {CALCULATE_EFFECT_SIZE_MODE: "Calculate Effect Size",
                MA_MODE: "Meta Analysis",
                CUM_MODE: "Cumulative Meta Analysis",
@@ -110,7 +128,7 @@ MODE_TITLES = {CALCULATE_EFFECT_SIZE_MODE: "Calculate Effect Size",
 BOOTSTRAP_MODES_TO_STRING = {BOOTSTRAP_MA:'boot.ma',
                              BOOTSTRAP_META_REG: 'boot.meta.reg',
                              BOOTSTRAP_META_REG_COND_MEANS: 'boot.meta.reg.cond.means'}
- 
+
 ANALYSIS_MODES = [MA_MODE, CUM_MODE, SUBGROUP_MODE, LOO_MODE,
                   META_REG_MODE, META_REG_COND_MEANS,
                   BOOTSTRAP_MA, BOOTSTRAP_META_REG, BOOTSTRAP_META_REG_COND_MEANS,
@@ -123,34 +141,38 @@ META_REG_MODES      = [META_REG_MODE, META_REG_COND_MEANS, BOOTSTRAP_META_REG, B
 DEFAULT_VAR_TYPE = CATEGORICAL
 
 DEFAULT_BACKGROUND_COLOR = QColor("white") #QColor(29,30,25)
+BLACK = QColor(0,0,0)
 FOREGROUND, BACKGROUND = range(2)
-DEFAULT_COLOR_SCHEME = {'DEFAULT_BACKGROUND_COLOR': QColor("white"),
-                        'label': {FOREGROUND: QColor(255,204,102),
-                                  BACKGROUND: DEFAULT_BACKGROUND_COLOR},
-                        'variable' : {
-                                      CATEGORICAL:
-                                            {FOREGROUND: QColor(0,0,0),
-                                             BACKGROUND: DEFAULT_BACKGROUND_COLOR},
-                                      COUNT:
-                                            {FOREGROUND: QColor(242,38,111),
-                                             BACKGROUND: DEFAULT_BACKGROUND_COLOR},
-                                      CONTINUOUS:
-                                            {FOREGROUND: QColor(157,102,253),
-                                             BACKGROUND: DEFAULT_BACKGROUND_COLOR},
-                                      },
-                        'variable_subtype' : {
-                                              'DEFAULT_EFFECT':
-                                                    {FOREGROUND: QColor(0,0,0),
-                                                     BACKGROUND: QColor(222,211,96)},
-                                              },
-                        }
+
+DEFAULT_SETTINGS = {"splash"       : True,
+                    "digits"       : DEFAULT_PRECISION,
+                    "recent_files" : [],
+                    "model_data_font_str"     : "",
+                    "model_header_font_str"   : "",
+                    "show_additional_values"  : True,
+                    "show_analysis_selections": True,
+                    "reg_coeff_forest_plot": False, # Make forest plot for regression coefficients
+                    "exclude_intercept_coeff_fp": False, # Exclude intercept on reg. coeff. forest plot
+                    # color scheme
+                    "colors/default_bg": DEFAULT_BACKGROUND_COLOR,
+                    "colors/label/fg"  : QColor(255,204,102),      # study label foreground
+                    "colors/label/bg"  : DEFAULT_BACKGROUND_COLOR, # study label background
+                    "colors/variable/categorical/fg": BLACK,
+                    "colors/variable/categorical/bg": DEFAULT_BACKGROUND_COLOR,
+                    "colors/variable/count/fg": QColor(242,38,111),
+                    "colors/variable/count/bg": DEFAULT_BACKGROUND_COLOR,
+                    "colors/variable/continuous/fg": QColor(157,102,253),
+                    "colors/variable/continuous/bg": DEFAULT_BACKGROUND_COLOR,
+                    "colors/var_with_subtype/default_effect/fg": BLACK,
+                    "colors/var_with_subtype/default_effect/bg": QColor(222,211,96),
+                    }
 
 
 # Meta Analysis data type enumerations
 (MEANS_AND_STD_DEVS,                  # continuous (OMA)
  TWO_BY_TWO_CONTINGENCY_TABLE,        # binary (OMA)
  CORRELATION_COEFFICIENTS) = range(3) # continuous(OMA)
- 
+
 # Datatype OMA convention strings
 OMA_CONVENTION = {MEANS_AND_STD_DEVS:'continuous',
                   TWO_BY_TWO_CONTINGENCY_TABLE:'binary',
@@ -164,7 +186,7 @@ COVARIATE_TYPE_TO_OMA_STR_DICT = {CONTINUOUS:u"continuous",
 
 # Data type names mapping data types ---> pretty names
 DATA_TYPE_TEXT = {MEANS_AND_STD_DEVS:"Means and Stand. Devs",
-                  TWO_BY_TWO_CONTINGENCY_TABLE:"2x2 Contingency Table", 
+                  TWO_BY_TWO_CONTINGENCY_TABLE:"2x2 Contingency Table",
                   CORRELATION_COEFFICIENTS: "Correlation Coefficients",}
 
 # Metric enumerations
@@ -180,7 +202,7 @@ METRIC_TEXT = {HEDGES_D:"Hedges' d",
                RATE_DIFFERENCE:"Rate Difference",
                RELATIVE_RATE:"Log Relative Rate",
                FISHER_Z_TRANSFORM:"Fisher's Z-transform",
-               GENERIC_EFFECT:"Generic Effect" 
+               GENERIC_EFFECT:"Generic Effect"
                }
 
 # transformed (usually log) scale
@@ -210,7 +232,7 @@ METRIC_TEXT_SIMPLE = {HEDGES_D:"Hedges' d",
                       RATE_DIFFERENCE:"Rate Difference",
                       RELATIVE_RATE:"Relative Rate",
                       FISHER_Z_TRANSFORM:"Fisher's Z-transform",
-                      GENERIC_EFFECT:"Generic Effect" 
+                      GENERIC_EFFECT:"Generic Effect"
                      }
 
 METRIC_TO_ESCALC_MEASURE = {HEDGES_D: "SMD",
@@ -234,49 +256,81 @@ def get_data_type_for_metric(metric):
             return d_type
     raise Exception("Metric matches no known data type")
 
+def make_base_path():
+    ''' Creates the base path if it doesn't exist and returns the path
+    On mac, this is something like: /Users/george/Library/Application Support/OpenMEE '''
+
+    base_path = get_base_path()
+
+    success = QDir().mkpath(base_path)
+    if not success:
+        raise Exception("Could not create base path at %s" % base_path)
+    print("Made base path: %s" % base_path)
+    return base_path
+
+def get_base_path(normalize=False):
+    '''normalize changes the path separators according to the OS,
+    Usually this shouldn't be done because R is confused by backward slashes \
+    because it sees it as an escape character and Qt is fine with / throughout '''
+
+    base_path = str(QDesktopServices.storageLocation(QDesktopServices.DataLocation))
+    if normalize:
+        base_path = str(QDir.toNativeSeparators(base_path))
+    print("Base path is: %s" % base_path)
+    return base_path
+
+def make_r_tmp():
+    ''' Makes the r_tmp folder and returns the path to it'''
+    r_tmp_path = "/".join([get_base_path(),"r_tmp"])
+    success = QDir().mkpath(r_tmp_path)
+    if not success:
+        raise Exception("Could not create r_tmp path at %s" % r_tmp_path)
+    print("Made r_tmp_path at %s" % r_tmp_path)
+    return r_tmp_path
+
+def get_user_desktop_path():
+    desktop_path = str(QDesktopServices.storageLocation(QDesktopServices.DesktopLocation))
+    return desktop_path
+
+def get_user_documents_path():
+    docs_path = str(QDesktopServices.storageLocation(QDesktopServices.DocumentsLocation))
+    return docs_path
+
 EFFECT_SIZE_KEYS = ('yi','vi')
-
-MAX_RECENT_FILES = 10
-USER_PREFERENCES_FILENAME = "user_prefs.dict"
 DEFAULT_FILENAME = "untited_dataset.ome"
-
 PROGRAM_NAME = "OpenMEE"
-
-BASE_PATH = str(os.path.abspath(os.getcwd()))
-
+ORGANIZATION_NAME = "CEBM"
 METHODS_WITH_NO_FOREST_PLOT = [] # leftover from OMA
-
 DEFAULT_CONFIDENCE_LEVEL = 95
 
-# this is the (local) path to a (pickled) dictionary containing
-# user preferences
-PREFS_PATH = "user_prefs.dict"
+# Dealing with settings
+MAX_RECENT_FILES = 10
 
 ###################### CUSTOM EXCEPTIONS ##################################
 
 class DuplicateItemError(Exception):
     def __init__(self, arg):
         self.args = arg
-        
+
 class CrazyRError(Exception):
     def __init__(self, msg, R_error=None):
         self.msg = msg
         self.R_error = R_error
-    
+
     def __str__(self):
         return self.msg + ": " + str(self.R_error)
-        
-        
+
+
 
 ############################# Helper functions #############################
 
 def table_as_str(table):
     ''' Returns a string formatted as a pretty table. 'table' is a list of
     tuples, one tuple per row '''
-    
+
     if len(table) == 0:
         raise ValueError("Table cannot be empty")
-    
+
     output_str = ""
     num_cols = len(table[0])
     row_fmt = "{:>15}"*num_cols
@@ -290,23 +344,23 @@ def tabulate(lists, sep=" | ", return_col_widths=False, align=[]):
     ''' each arg is a list '''
     ''' if return_max_col_lenths is true, the return type is a tuple of (str, col_widths) '''
     ''' align is a list the same length as lists telling how the column should be aligned ('L','R') etc '''
-    
+
     if len(align) != len(lists):
-        align = ['L',]*len(lists) 
+        align = ['L',]*len(lists)
     print("Align is now %s: " % align)
-    
+
     # covert lists in args to string lists
     string_lists = []
     for arg in lists:
         str_arg = [str(x) for x in arg]
         string_lists.append(str_arg)
-    
+
     # get max length of each element in each column
     max_lengths = []
     for arg in string_lists:
         max_len = max([len(x) for x in arg])
         max_lengths.append(max_len)
-        
+
     data = zip(*string_lists)
     out = []
     for row in data:
@@ -314,7 +368,7 @@ def tabulate(lists, sep=" | ", return_col_widths=False, align=[]):
         row_str = sep.join(row_str)
         out.append(row_str)
     out_str =  "\n".join(out)
-    
+
     if return_col_widths:
         return (out_str, max_lengths)
     return out_str
@@ -327,43 +381,42 @@ def do_nothing():
 class GenericUndoCommand(QUndoCommand):
     ''' Generic undo command if the undo/redo is REALLY simple i.e. running
         redo/undo doesn't change the state for future executions
-        
+
         on_entry and on_exit are functions that happen before and after the undo/redo
         '''
-    
+
     def __init__(self, redo_fn, undo_fn,
                  on_undo_entry=do_nothing, on_undo_exit=do_nothing,
                  on_redo_entry=do_nothing, on_redo_exit=do_nothing,
                  description="GenericUndo"):
         super(GenericUndoCommand, self).__init__()
-        
+
         self.redo_fn = redo_fn
         self.undo_fn = undo_fn
-        
-        # functions that occur on 
+
+        # functions that occur on
         self.on_undo_entry = on_undo_entry
         self.on_undo_exit = on_undo_exit
         self.on_redo_entry = on_redo_entry
         self.on_redo_exit = on_redo_exit
-        
-        
+
         self.setText(QString(description))
-        
+
     def redo(self):
         self.on_redo_entry()
         self.redo_fn()
         self.on_redo_exit()
-    
+
     def undo(self):
         self.on_undo_entry()
         self.undo_fn()
         self.on_undo_exit()
-        
- 
+
+
 #http://www.riverbankcomputing.com/pipermail/pyqt/2009-November/025214.html
 def unfill_layout(layout2clear):
     ''' Unfills a layout and any sub-layouts '''
-    
+
     def deleteItems(layout):
         if layout is not None:
             while layout.count():
@@ -374,7 +427,7 @@ def unfill_layout(layout2clear):
                 else:
                     deleteItems(item.layout())
     deleteItems(layout2clear)
-    
+
 
 
 ############### FOR DEALING WITH PLOT-MAKING ###############################
@@ -395,7 +448,7 @@ def add_plot_params(specs_form):
     specs_form.current_param_vals["fp_col4_str"] = unicode(specs_form.col4_str_edit.text().toUtf8(), "utf-8")
     specs_form.current_param_vals["fp_xlabel"] = unicode(specs_form.x_lbl_le.text().toUtf8(), "utf-8")
     specs_form.current_param_vals["fp_outpath"] = unicode(specs_form.image_path.text().toUtf8(), "utf-8")
-    
+
     plot_lb = unicode(specs_form.plot_lb_le.text().toUtf8(), "utf-8")
     specs_form.current_param_vals["fp_plot_lb"] = "[default]"
     if plot_lb != "[default]" and check_plot_bound(plot_lb):
@@ -410,17 +463,17 @@ def add_plot_params(specs_form):
     specs_form.current_param_vals["fp_xticks"] = "[default]"
     if xticks != "[default]" and seems_sane(xticks):
         specs_form.current_param_vals["fp_xticks"] = xticks
-    
+
     specs_form.current_param_vals["fp_show_summary_line"] = specs_form.show_summary_line.isChecked()
-    
+
 def check_plot_bound(bound):
     try:
-        # errrm... this might cause a problem if 
-        # bound is 0... 
-        return float(bound) 
+        # errrm... this might cause a problem if
+        # bound is 0...
+        return float(bound)
     except:
         return False
-    
+
 def seems_sane(xticks):
     num_list = xticks.split(",")
     if len(num_list) == 1:
@@ -430,7 +483,7 @@ def seems_sane(xticks):
     except:
         return False
     return True
-    
+
 ################### END OF PLOT HELPER FUNCTIONS ################################
 
 
@@ -448,7 +501,7 @@ def profile_this(function):
         pr.disable()
         pr.create_stats()
         pr.print_stats(sort='cumulative')
-        
+
         return result
     return _profile_this
 
@@ -481,7 +534,7 @@ def listvals_to_scalars(d):
         #print("inspecting r object time")
         #pyqtRemoveInputHook()
         #import pdb; pdb.set_trace()
-        
+
 # Sound effects
 moment = QSound("sounds/moment.wav")
 silly = QSound("sounds/silly.wav")
@@ -490,7 +543,7 @@ def manual_word_wrap(x, max_length=HEADER_LINE_LENGTH, sep=' '):
     ''' Returns a wrapped version of x
     max_length is maximum length of the line, sep is the separator to break
     the string with, x is the input string'''
-    
+
     lines = []
     words = str(x).split(sep)
     line = ""
@@ -512,10 +565,10 @@ def boxify(astr, border="#", margin=1):
          # hello #
          #       #
          ######### '''
-    
+
     if len(border) > 1:
         raise ValueError("border must be one character long")
-    
+
     lstr = astr.split("\n")
     width = max([len(x) for x in lstr])
     lstr_padded = ['{:<{width}}'.format(x, width=width) for x in lstr]
@@ -538,16 +591,16 @@ def civilized_dict_str(a_dict):
     content = []
     for k in sorted(a_dict.keys()):
         content.append(" %s: '%s'" % (k, a_dict[k]))
-    
+
     return "{\n%s\n}" % "\n".join(content)
 
-################### Helpers for wizards ########################################    
+################### Helpers for wizards ########################################
 
 def wizard_summary(wizard, next_id_helper, summary_page_id, analysis_label):
     # Goes through all the pages that were visited (except summary page)
     # and collects their sub summary info (via str())
     # analysis_label is something like "Meta Regression" e.g.
-    
+
     analysis_label_str = "Analysis: %s\n" % analysis_label
     visited_page_ids = wizard.visitedPages()
     # Remove summary page id
@@ -555,7 +608,7 @@ def wizard_summary(wizard, next_id_helper, summary_page_id, analysis_label):
         visited_page_ids.remove(summary_page_id)
     except ValueError:
         pass
-    
+
     page_strs = (str(wizard.page(page_id)) for page_id in visited_page_ids)
     page_strs = filter(lambda x: x!="", page_strs)
     summary_text = "\n\n".join(page_strs)
@@ -572,3 +625,159 @@ def indent(target_str, spaces=2):
 
 class NotUltrametricException(Exception):
     pass
+
+
+##################### HANDLE SETTINGS #####################
+def update_setting(field, value):
+    settings = QSettings()
+
+    # TODO: make sure that if the field is color, that it is converted
+    # appropriately.
+
+    # see if we need to store the value in a special way
+    value_type = get_setting_type(field)
+    if value_type == list:
+        # Make sure that the written elements are strings (for now...., maybe extend it to scalars (i.e. number or string) in the future)
+        # for now, this is just for reading the most recent files list
+        if settings.contains(field):
+            settings.remove(field)
+        settings.beginGroup(field)
+        for i,x in enumerate(value): # value is a list
+            settings.setValue(str(i),x)
+        settings.endGroup()
+    elif value_type == dict:
+        raise Exception("Not implemented yet!")
+    elif value_type == bool:
+        settings.setValue(field, QVariant(value))
+    elif value_type == QColor:
+        # just being explicit to signify i am aware of QColors and to match get_setting
+        settings.setValue(field, value)
+    elif value_type == int:
+        settings.setValue(field, value)
+    elif value_type == str:
+        settings.setValue(field, value)
+    else:
+        # nothing special needs to be done
+        print("Field: %s" % field)
+        print("Value type: %s" % str(value_type))
+        raise Exception("Are you SURE that NOTHING special needs to be done?")
+        settings.setValue(field, value)
+
+def get_setting_type(field):
+    #return DEFAULT_SETTINGS_TYPES[field]
+    return type(DEFAULT_SETTINGS[field])
+
+def get_setting(field):
+    settings = QSettings()
+
+    # see if we need to store the value in a special way
+    value_type = get_setting_type(field)
+    #print("Setting type: %s for %s" % (str(value_type), field))
+    if value_type == list:
+        settings.beginGroup(field)
+        indexes = list(settings.childKeys())
+        foo_list = []
+        for i in indexes:
+            value = str(settings.value(i).toString())
+            foo_list.append(value)
+        settings.endGroup()
+        setting_value = foo_list
+    elif value_type == dict:
+        raise Exception("Not implemented yet!")
+    elif value_type == bool:
+        print("Converted %s to a boolean" % field)
+        setting_value = settings.value(field).toBool()
+    elif value_type == str:
+        setting_value = settings.value(field).toString()
+    elif value_type == int:
+        setting_value = settings.value(field).toInt()[0]
+    elif value_type == QColor:
+        setting_value = QColor(settings.value(field))
+    else:
+        # nothing special needs to be done
+        raise Exception("Are you SURE that NOTHING special needs to be done?")
+        setting_value = settings.value(field)
+
+    return setting_value
+
+#     def get_color_setting(self, various params):
+#         # Todo: convert thing in qsetting to a qcolor (see QSettings doc page for info about this)
+#         pass
+
+
+def save_settings():
+    print("saved settings")
+    settings = QSettings()
+    settings.sync() # writes to permanent storage
+
+
+def load_settings():
+    ''' loads settings from QSettings object, setting suitable defaults if
+    there are missing fields '''
+
+    settings = QSettings()
+
+    # Check if a field is missing, if so, the settings are from an older version
+    # of OpenMEE and will be replaced
+#    #fields = DEFAULT_SETTINGS.keys()
+#    # are all fields present?
+#     if all([settings.contains(field) for field in fields]):
+#         pass
+#     else:
+#         reset_settings()
+
+    def field_is_toplevel_child_group_keys(field_name):
+        childgroups = list(settings.childGroups())
+        toplevel_group_keys = [str(x) for x in childgroups]
+        return field_name in toplevel_group_keys
+
+    for field, value in DEFAULT_SETTINGS.items():
+        setting_present = settings.contains(field) or field_is_toplevel_child_group_keys(field)
+        if not setting_present:
+            print("Filling in setting for %s" % field)
+            update_setting(field, value)
+
+    save_settings()
+    print("loaded settings")
+    return settings
+
+
+
+def reset_settings():
+    print("Resetting settings to default")
+    settings = QSettings()
+    settings.clear()
+
+    for field, value in DEFAULT_SETTINGS.items():
+        update_setting(field, value)
+
+def add_file_to_recent_files(fpath):
+    # add a new file to the front of the deque
+    # move existing file to the front of the deque
+
+    if fpath in [None, ""]:
+        return False
+
+    recent_files = get_setting("recent_files")
+
+    if fpath in recent_files: #file already in deque so move to front
+        recent_files.remove(fpath)
+    recent_files.append(fpath)
+
+    # only want up to MAX_RECENT_FILES
+    start_index = len(recent_files) - MAX_RECENT_FILES
+    if start_index > 0:
+        recent_files = recent_files[start_index:]
+
+    update_setting("recent_files", recent_files)
+    save_settings()
+
+################ END HANDLE SETTINGS ######################
+
+
+def to_posix_path(path):
+    ''' for now, just changes \ to /
+    Assumes there are no escapes in the path, very important!'''
+
+    new_path = path.replace('\\', '/')
+    return new_path

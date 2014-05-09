@@ -8,7 +8,6 @@
 
 # clean the build directories
 rm -rf build dist
-rm user_prefs.dict
 
 python setup_mac.py py2app
 

@@ -18,6 +18,7 @@ import python_to_R
 import main_form
 #import icons_rc
 import ome_globals
+from ome_globals import PROGRAM_NAME, ORGANIZATION_NAME
 
 SPLASH_DISPLAY_TIME = 0
 
@@ -51,12 +52,20 @@ def load_R_libraries(app, splash=None):
     rloader.load_mice()
 
 
-def start(open_file_path=None):
-    # clear r_tmp:
-    #clear_r_tmp()
-    
+def start(open_file_path=None, reset_settings=False):
+    ###### Setup directories ######
     app = QtGui.QApplication(sys.argv)
-    app.setApplicationName("OpenMEE")
+    app.setApplicationName(PROGRAM_NAME)
+    app.setOrganizationName(ORGANIZATION_NAME)
+    
+    # Make working directory for python and R and sets up r_tmp (where R does
+    # its calculations. Also clears r_tmp
+    ## N.B. This MUST come after setting the app name and stuff in order for the
+    # paths and subsequent calls to get_base_path() to work correctly
+    setup_directories()
+    
+    if reset_settings:
+        ome_globals.reset_settings()
     
     splash_pixmap = QPixmap(":/splash/splash.png")
     splash = QSplashScreen(splash_pixmap)
@@ -90,7 +99,7 @@ def start(open_file_path=None):
     sys.exit(app.exec_())
  
 def clear_r_tmp():
-    r_tmp_dir = os.path.join(ome_globals.BASE_PATH, "r_tmp")
+    r_tmp_dir = os.path.join(ome_globals.get_base_path(), "r_tmp")
     print("Clearing %s" % r_tmp_dir)
     for file_p in os.listdir(r_tmp_dir):
         file_path = os.path.join(r_tmp_dir, file_p)
@@ -100,11 +109,28 @@ def clear_r_tmp():
                 os.unlink(file_path) # same as remove
         except Exception, e:
             print e
+            
+def setup_directories():
+    '''Makes temporary data directory, r_tmp within that
+    Sets python and R working directories to temporary data directory
+    clears r_tmp '''
+    
+    # make base path and r_tmp
+    base_path = ome_globals.make_base_path()
+    ome_globals.make_r_tmp()
+    
+    python_to_R.reset_Rs_working_dir() # set working directory on R side
+    os.chdir(os.path.normpath(base_path)) # set working directory on python side
+    
+    clear_r_tmp() # clear r_tmp
+    
 
 if __name__ == "__main__":
     try:
-        if sys.argv[1][-3:len(sys.argv[1])]=="ome":
-            start(open_file_path=sys.argv[1])
+#         if sys.argv[1][-3:len(sys.argv[1])]=="ome":
+#             start(open_file_path=sys.argv[1])
+        if sys.argv[1] == "-reset":
+            start(reset_settings=True)
     except IndexError:
         pass
-    start()
+        start()

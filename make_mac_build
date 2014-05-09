@@ -84,4 +84,4 @@ cp building/building_in_mac/config_files/* ../frozen/OpenMEE.app/Contents/MacOS/
 
 ###########################################
 # Make r_tmp folder in same directory as the app
-mkdir ../frozen/r_tmp
+# mkdir ../frozen/r_tmp

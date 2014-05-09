@@ -81,15 +81,11 @@ class EETableModel(QAbstractTableModel):
     conf_level_changed_during_undo = pyqtSignal(float)
     error_msg_signal       = pyqtSignal(str, str)
     
-    def __init__(self, undo_stack, user_prefs, model_state=None):
+    def __init__(self, undo_stack, model_state=None):
         super(EETableModel, self).__init__()
         
         # Give model access to undo_stack
         self.undo_stack = undo_stack
-        
-        self.user_prefs = user_prefs
-        if "color_scheme" not in self.user_prefs:
-            self.user_prefs["color_scheme"]=DEFAULT_COLOR_SCHEME
         
         self.max_occupied_row = None
         self.max_occupied_col = None
@@ -129,9 +125,13 @@ class EETableModel(QAbstractTableModel):
         self.change_row_count_if_needed()
         
         self.big_paste_mode = False # state to set/reset while pasting/importing
-        
-    def set_user_prefs(self, user_prefs):
-        self.user_prefs = user_prefs
+    
+    def get_occupied_columns(self):
+        cols = self.cols_2_vars.keys()
+        if self.label_column:
+            cols.append(self.label_column)
+        return cols
+
         
     def set_conf_level(self, conf_level, ignore_undo=False):  # i.e. 95
         if ignore_undo:
@@ -921,11 +921,10 @@ class EETableModel(QAbstractTableModel):
         ''' Sets precision (# of decimals after the decimal point for continuous)
         variable values '''
         
-        self.user_prefs['digits']
-        
+        update_setting('digits', new_precision)
         
     def get_precision(self):
-        return self.user_prefs['digits']
+        return get_setting('digits')
         
         
     def _var_value_for_display(self, value, var_type):
@@ -986,21 +985,25 @@ class EETableModel(QAbstractTableModel):
                     else:
                         return QVariant()
                 return QVariant(QString(self._var_value_for_display(var_value, var.get_type())))
+            
+            
         elif role == Qt.BackgroundRole or role == Qt.ForegroundRole:
             if is_label_col:
-                return QVariant(QBrush(self._get_label_color(role)))
+                return QVariant(QBrush(self.get_label_color(role)))
             elif is_variable_col:
                 var = self.cols_2_vars[col]
-                color = self._get_variable_color(var, role)
+                color = self.get_variable_color(var, role)
                 # Missing entry backgrounds are colored
                 if role == Qt.BackgroundRole:
                     if self._is_empty(var, study=self.rows_2_studies[row] if is_study_row else None):
                         color = Qt.yellow # missing entry bg color
                 return QVariant(QBrush(color))        
-                      
-            return QVariant(QBrush(self.user_prefs["color_scheme"]['DEFAULT_BACKGROUND_COLOR']))
+                       
+            return QVariant(QBrush(get_setting("colors/default_bg")))
+
+
         elif role == Qt.FontRole:
-            font_str = self.user_prefs['model_data_font_str']
+            font_str = get_setting('model_data_font_str')
             if font_str:
                 font = QFont()
                 font.fromString(font_str)
@@ -1019,36 +1022,43 @@ class EETableModel(QAbstractTableModel):
         return False
     
     
-    def _get_label_color(self, role=Qt.ForegroundRole):
+    def get_label_color(self, role=Qt.ForegroundRole):
         if role == Qt.ForegroundRole:
-            return self.user_prefs["color_scheme"]['label'][FOREGROUND]
+            return get_setting("colors/label/fg")
         else:
-            return self.user_prefs["color_scheme"]['label'][BACKGROUND]
+            return get_setting("colors/label/bg")
+        
+    def _make_settings_key_for_var_color(self, var_type, var_subtype=None, fg=True):
+        '''generates a key to use for accessing the key for the color in the QSettings object
+        note: fg means 'foreground' '''
+        
+        
+        sep = "/" # built in to QSettings
+        var_type_str = VARIABLE_TYPE_STRING_LC[var_type]
+        placement = "fg" if fg else "bg"
+        if var_subtype is not None: # need to check explicitly b/c var_subtype can be 0, a valid option
+            var_subtype_str = VARIABLE_SUBTYPE_STRING_LC[var_subtype]
+            path = ["colors", "var_with_subtype", var_subtype_str, placement]
+            key = sep.join(path)
+            # is the key present?
+            settings = QSettings()
+            if not settings.contains(key):
+                key = "colors/var_with_subtype/default_effect/" + placement
+        else:
+            path = ["colors", "variable", var_type_str, placement]
+            key = sep.join(path)
+        return key
     
-    def _get_variable_color(self, variable, role=Qt.ForegroundRole):
+    def get_variable_color(self, variable, role=Qt.ForegroundRole):
         
         var_type, var_subtype = variable.get_type(), variable.get_subtype()
         
-        color = QVariant()
+        #color = QVariant()
         if role == Qt.ForegroundRole:
-            color = self.user_prefs["color_scheme"]['variable'][var_type][FOREGROUND]
-            if var_subtype is not None:
-                try:
-                    color =  self.user_prefs["color_scheme"]['variable_subtype'][var_subtype][FOREGROUND]
-                except KeyError:
-                    if var_subtype in EFFECT_TYPES:
-                        color =  self.user_prefs["color_scheme"]['variable_subtype']['DEFAULT_EFFECT'][FOREGROUND]
+            color = get_setting(self._make_settings_key_for_var_color(var_type, var_subtype, fg=True))
         else: # background role
-            color = self.user_prefs["color_scheme"]['variable'][var_type][BACKGROUND]
-            if var_subtype is not None:
-                try:
-                    color =  self.user_prefs["color_scheme"]['variable_subtype'][var_subtype][BACKGROUND]
-                except KeyError:
-                    if var_subtype in EFFECT_TYPES:
-                        color =  self.user_prefs["color_scheme"]['variable_subtype']['DEFAULT_EFFECT'][BACKGROUND]
+            color = get_setting(self._make_settings_key_for_var_color(var_type, var_subtype, fg=False))
         return color
-    
-    
         
         
     
@@ -1064,7 +1074,7 @@ class EETableModel(QAbstractTableModel):
 
         
         if role==Qt.FontRole:
-            font_str = self.user_prefs['model_header_font_str']
+            font_str = get_setting('model_header_font_str')
             if font_str:
                 font = QFont()
                 font.fromString(font_str)

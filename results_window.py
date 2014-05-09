@@ -18,6 +18,7 @@ from PyQt4.Qt import *
 import sys
 import ui_results_window
 import edit_forest_plot_form
+import edit_phylo_forest_plot_form
 import python_to_R
 #import shutil
 
@@ -133,7 +134,7 @@ class ResultsWindow(QMainWindow, ui_results_window.Ui_ResultsWindow):
         
     def export_results(self, data):
         # Choose file location
-        fpath = os.path.join(BASE_PATH, "results.txt") # default
+        fpath = os.path.join(get_user_desktop_path(), "results.txt") # default
         fpath = QFileDialog.getSaveFileName(caption="Choose location to save file", filter="Text (*.txt)",directory=fpath)
         fpath = str(fpath)
         if fpath == "":
@@ -204,8 +205,6 @@ class ResultsWindow(QMainWindow, ui_results_window.Ui_ResultsWindow):
             # add to the arguments to make more groups, also make sure to add them
             # in add_text
             grouped_images = self._group_items(ungrouped_images, self.groupings)
-                        #["Likelihood","nlr","plr"],
-                        #["sens","spec"])
             ordered_images = grouped_images
         
         
@@ -214,15 +213,17 @@ class ResultsWindow(QMainWindow, ui_results_window.Ui_ResultsWindow):
             cur_y = max(0, self.y_coord)
             print "cur_y: %s" % cur_y
             # first add the title
-            qt_item = self.add_title(title)
+            qt_item = self.add_title(self.purified_title_str(title))
             
             # custom scales to which special plots should be scaled
             title_contents_to_scale = {"histogram":1,
                                        "funnel":1,
                                        "scatterplot":1,
+                                       "forest plot of coefficients":1,
                                        }
             for title_contents, scale in title_contents_to_scale.items():
                 if title.lower().rfind(title_contents) != -1:
+                    print("using scale=%d" % scale)
                     pixmap = self.generate_pixmap(image, custom_scale=scale)
                     break
                 else:
@@ -236,12 +237,22 @@ class ResultsWindow(QMainWindow, ui_results_window.Ui_ResultsWindow):
             if self.params_paths is not None and title in self.params_paths:
                 params_path = self.params_paths[title]
 
+            
             img_shape, pos, pixmap_item = self.create_pixmap_item(pixmap, self.position(),\
                                                 title, image, params_path=params_path)
             
             self.items_to_coords[qt_item] = pos
             
-
+    def purified_title_str(self, title):
+        ''' strips out metadata from title i.e. if title is "Forest Plot__phlyo",
+        this strips out the __phylo '''
+        
+        try:
+            metadata_index = title.index("__")
+        except ValueError:
+            return title
+        
+        return title[0:metadata_index]
 
     def generate_pixmap(self, image, custom_scale=None):
         # now the image
@@ -420,7 +431,11 @@ class ResultsWindow(QMainWindow, ui_results_window.Ui_ResultsWindow):
         # more...
         plot_type = None
         tmp_title = title.lower()
-        if "forest" in tmp_title:
+        if "forest plot of coefficients" in tmp_title:
+            plot_type = "forest plot of coefficients"
+        elif "forest" in tmp_title and "__phylo" in tmp_title:
+            plot_type = "forest__phylo"
+        elif "forest" in tmp_title:
             plot_type = "forest"
         elif "regression" in tmp_title:
             plot_type = "regression"
@@ -497,6 +512,13 @@ class ResultsWindow(QMainWindow, ui_results_window.Ui_ResultsWindow):
                             lambda : self.edit_image(params_path, title,
                                                      png_path, qpixmap_item))
                     menu.addAction(action)
+                elif plot_type == "forest__phylo":
+                    print("Is phylo forest plot")
+                    action = QAction("edit plot...", self)
+                    QObject.connect(action, SIGNAL("triggered()"),
+                            lambda : self.edit_image(params_path, title,
+                                                     png_path, qpixmap_item, plot_type=plot_type))
+                    menu.addAction(action)
                 elif plot_type in ["funnel","histogram","scatterplot"]:
                     action = QAction("edit plot...", self)
                     QObject.connect(action, SIGNAL("triggered()"),
@@ -532,19 +554,27 @@ class ResultsWindow(QMainWindow, ui_results_window.Ui_ResultsWindow):
         # note that the params object will, by convention,
         # have the (generic) name 'plot.data' -- after this
         # call, this object will be in the namespace
-        if plot_type not in ["funnel", "histogram", "scatterplot"]:
+        ##if plot_type not in ["funnel", "histogram", "scatterplot", "forest__phylo"]:
+        ##    python_to_R.load_in_R("%s.plotdata" % params_path)
+        ##    print("Loaded: %s" % "%s.plotdata" % params_path)
+        if plot_type in ["forest", "regression"]:
             python_to_R.load_in_R("%s.plotdata" % params_path)
             print("Loaded: %s" % "%s.plotdata" % params_path)
+        elif plot_type == "forest plot of coefficients":
+            python_to_R.load_in_R("%s.coef_fp_data" % params_path)
+            print("Loaded: %s" % "%s.coef_fp_data" % params_path)
 
         suffix = unicode("."+fmt)
-        default_filename = {"forest":"forest_plot", 
+        default_filename = {"forest":"forest_plot",
+                            "forest__phylo":"forest_plot",
                             "regression":"regression",
                             "funnel":"funnel_plot",
                             "histogram":"histogram",
-                            "scatterplot":"scatterplot"}[plot_type] + suffix
+                            "scatterplot":"scatterplot",
+                            "forest plot of coefficients":"forest_plot_of_coefficients"}[plot_type] + suffix
         
                         
-        default_path = os.path.join(BASE_PATH, default_filename)
+        default_path = os.path.join(get_user_desktop_path(), default_filename)
         print("default_path for graphic: %s" % default_path)
         default_path = QString(default_path)
         default_path
@@ -554,7 +584,7 @@ class ResultsWindow(QMainWindow, ui_results_window.Ui_ResultsWindow):
 
         # where to save the graphic?
         file_path = unicode(QFileDialog.getSaveFileName(self, 
-                                                        "OpenMeta[Analyst] -- save plot as",
+                                                        "OpenMEE -- save plot as",
                                                         default_path,))
                                                         #filter=QString(dfilter)))
 
@@ -568,12 +598,16 @@ class ResultsWindow(QMainWindow, ui_results_window.Ui_ResultsWindow):
                     python_to_R.generate_forest_plot(file_path, side_by_side=True)
                 else:
                     python_to_R.generate_forest_plot(file_path)
+            elif plot_type == "forest__phylo":
+                python_to_R.regenerate_phylo_forest_plot(file_path)
             elif plot_type == "regression":
                 python_to_R.generate_reg_plot(file_path)
             elif plot_type == "funnel":
                 python_to_R.regenerate_funnel_plot(params_path, file_path)
             elif plot_type in ["histogram","scatterplot"]:
                 python_to_R.regenerate_exploratory_plot(params_path, file_path, plot_type=plot_type)
+            elif plot_type == "forest plot of coefficients":
+                python_to_R.regenerate_forest_plot_of_coefficients(file_path, params_path, fmt)
             else:
                 print "sorry -- I don't know how to draw %s plots!" % plot_type
 #        else: # case where we just have the png and can't regenerate the pdf from plot data
@@ -588,6 +622,18 @@ class ResultsWindow(QMainWindow, ui_results_window.Ui_ResultsWindow):
     def edit_image(self, params_path, title, png_path, pixmap_item, plot_type="forest"):
         if plot_type == "forest":
             plot_editor_window = edit_forest_plot_form.EditPlotWindow(
+                                        params_path,
+                                        png_path,
+                                        pixmap_item,
+                                        title=title,
+                                        parent=self)
+            if plot_editor_window is not None:
+                plot_editor_window.show()
+            else:
+                # TODO show a warning
+                print "sorry - can't edit"
+        elif plot_type == "forest__phylo":
+            plot_editor_window = edit_phylo_forest_plot_form.EditPhyloForestPlotWindow(
                                         params_path,
                                         png_path,
                                         pixmap_item,
