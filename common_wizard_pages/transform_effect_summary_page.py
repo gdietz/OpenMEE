@@ -9,10 +9,7 @@ from PyQt4 import QtCore, QtGui
 from PyQt4.Qt import *
 
 from ome_globals import *
-
 import ui_transform_effect_summary_page
-
-
 
 class TransformEffectSummaryPage(QWizardPage, ui_transform_effect_summary_page.Ui_WizardPage):
     def __init__(self, parent=None):

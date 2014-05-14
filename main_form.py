@@ -6,10 +6,7 @@
 ################                
 
 import sys
-#import pdb
-#import copy
 from functools import partial
-from collections import deque
 import pickle
 import cProfile
 
@@ -39,24 +36,6 @@ from ome_globals import *
 # TODO: Handle setting the dirty bit more correctly in undo/redo
 # right now just set it all the time/(or not) (very haphazard) during redo but don't bother unsetting it
 
-
-class RecentFilesManager:
-    def __init__(self):
-        self.recent_files = deque(maxlen=MAX_RECENT_FILES)
-    
-    def add_file(self, fpath):
-        # add a new file to the front of the deque
-        # move existing file to the front of the deque
-        
-        if fpath in [None, ""]:
-            return False
-        
-        if fpath in self.recent_files: #file already in deque so move to front
-            self.recent_files.remove(fpath)
-        self.recent_files.appendleft(fpath)
-        
-    def get_list(self):
-        return list(self.recent_files)
 ####################################################################################
 import ui_conf_level_toolbar_widget
 
@@ -64,8 +43,6 @@ class ConfLevelToolbarWidget(QWidget, ui_conf_level_toolbar_widget.Ui_Form):
     def __init__(self, parent=None):
         super(ConfLevelToolbarWidget, self).__init__(parent)
         self.setupUi(self)
-        
-        #self.conf_level_spinbox
         
     def set_spinbox_value_no_signals(self, new_val):
         self.conf_level_spinbox.blockSignals(True)

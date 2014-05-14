@@ -53,12 +53,7 @@ class MethodsAndParametersPage(QWizardPage, ui_methods_and_parameters_page.Ui_Wi
                 
         if self.data_type != TWO_BY_TWO_CONTINGENCY_TABLE:
             self.disable_bin_only_fields()
-            
-#        # disable second arm display for one-arm analyses
-#        if self.model.current_effect in ONE_ARM_METRICS:
-#            self.setup_fields_for_one_arm()
 
-        self.current_widgets = []
         self.current_method = None
         self.current_params = None
         self.current_defaults = None
@@ -90,19 +85,23 @@ class MethodsAndParametersPage(QWizardPage, ui_methods_and_parameters_page.Ui_Wi
         self.show_4.setEnabled(False)
         
     def method_changed(self):
+        print("method_changed")
+        
         if self.parameter_grp_box.layout() is not None:
             print("Layout items count before: %d" % self.parameter_grp_box.layout().count())
         self.clear_param_ui()
-        self.current_widgets= []
         self.current_method = self.available_method_d[str(self.method_cbo_box.currentText())]
         self.setup_params()
         self.parameter_grp_box.setTitle(self.current_method)
         self.ui_for_params()
         
     def clear_param_ui(self):
-        for widget in self.current_widgets:
-            widget.deleteLater()
-            widget = None
+        param_layout = self.parameter_grp_box.layout()
+        if param_layout is None:
+            return
+        
+        for i in reversed(range(param_layout.count())): 
+            param_layout.itemAt(i).widget().setParent(None)
             
     def ui_for_params(self):
         if self.parameter_grp_box.layout() is None:
@@ -228,7 +227,6 @@ class MethodsAndParametersPage(QWizardPage, ui_methods_and_parameters_page.Ui_Wi
         lbl = QLabel(name, self.parameter_grp_box)
         if not tool_tip_text is None:
             lbl.setToolTip(tool_tip_text)
-        self.current_widgets.append(lbl)
         layout.addWidget(lbl, cur_grid_row, 0)
         
     def add_enum(self, layout, cur_grid_row, name, values):
@@ -254,7 +252,6 @@ class MethodsAndParametersPage(QWizardPage, ui_methods_and_parameters_page.Ui_Wi
         QObject.connect(cbo_box, QtCore.SIGNAL("currentIndexChanged(int)"),
                                  self.set_param_f_from_itemdata(name))
 
-        self.current_widgets.append(cbo_box)
         layout.addWidget(cbo_box, cur_grid_row, 1)
         
     def _get_enum_item_pretty_name(self, enum_name, item_name):
@@ -278,7 +275,6 @@ class MethodsAndParametersPage(QWizardPage, ui_methods_and_parameters_page.Ui_Wi
         finput.setMaximumWidth(50)
         QObject.connect(finput, QtCore.SIGNAL("textChanged(QString)"),
                                  self.set_param_f(name, to_type=float))
-        self.current_widgets.append(finput)
         layout.addWidget(finput, cur_grid_row, 1)
         
     def add_int_box(self, layout, cur_grid_row, name):
@@ -295,7 +291,6 @@ class MethodsAndParametersPage(QWizardPage, ui_methods_and_parameters_page.Ui_Wi
         iinput.setMaximumWidth(50)
         QObject.connect(iinput, QtCore.SIGNAL("textChanged(QString)"),
                                  self.set_param_f(name, to_type=int))
-        self.current_widgets.append(iinput)
         layout.addWidget(iinput, cur_grid_row, 1)
         
     def add_param(self, layout, cur_grid_row, name, value):
@@ -329,7 +324,6 @@ class MethodsAndParametersPage(QWizardPage, ui_methods_and_parameters_page.Ui_Wi
         txt_input.setMaximumWidth(200)
         QObject.connect(txt_input, QtCore.SIGNAL("textChanged(QString)"),
                                  self.set_param_f(name, to_type=float))
-        self.current_widgets.append(txt_input)
         layout.addWidget(txt_input, cur_grid_row, 1)
 
     def set_param_f(self, name, to_type=str):
