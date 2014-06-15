@@ -110,32 +110,57 @@ def cancel_macro_creation_and_revert_state(undo_stack):
 PARAMETRIC, BOOTSTRAP = range(2)     # analysis type
 NORMAL, CONDITIONAL_MEANS = range(2) # output type
 
-MODE_TITLES = {CALCULATE_EFFECT_SIZE_MODE: "Calculate Effect Size",
-               MA_MODE: "Meta Analysis",
-               CUM_MODE: "Cumulative Meta Analysis",
-               SUBGROUP_MODE: "Subgroup Meta Analysis",
-               LOO_MODE: "Leave-One-Out Meta Analysis",
-               META_REG_MODE: "Meta Regression",
-               TRANSFORM_MODE: "Transform Effect Size",
-               META_REG_COND_MEANS: "Meta Regression-Based Conditional Means",
-               BOOTSTRAP_MA: "Bootstrapped Meta-Analysis",
-               BOOTSTRAP_META_REG: "Bootstrapped Meta-Regression",
-               BOOTSTRAP_META_REG_COND_MEANS:"Bootstrapped Meta-Regression based Conditional Means",
-               FAILSAFE_MODE:"Fail-Safe N",
-               FUNNEL_MODE: "Funnel Plot"}
+MODE_TITLES = {
+    CALCULATE_EFFECT_SIZE_MODE: "Calculate Effect Size",
+    MA_MODE: "Meta Analysis",
+    CUM_MODE: "Cumulative Meta Analysis",
+    SUBGROUP_MODE: "Subgroup Meta Analysis",
+    LOO_MODE: "Leave-One-Out Meta Analysis",
+    META_REG_MODE: "Meta Regression",
+    TRANSFORM_MODE: "Transform Effect Size",
+    META_REG_COND_MEANS: "Meta Regression-Based Conditional Means",
+    BOOTSTRAP_MA: "Bootstrapped Meta-Analysis",
+    BOOTSTRAP_META_REG: "Bootstrapped Meta-Regression",
+    BOOTSTRAP_META_REG_COND_MEANS:"Bootstrapped Meta-Regression based Conditional Means",
+    FAILSAFE_MODE:"Fail-Safe N",
+    FUNNEL_MODE: "Funnel Plot"
+}
 
 # For choosing statistic function for bootstrapping
-BOOTSTRAP_MODES_TO_STRING = {BOOTSTRAP_MA:'boot.ma',
-                             BOOTSTRAP_META_REG: 'boot.meta.reg',
-                             BOOTSTRAP_META_REG_COND_MEANS: 'boot.meta.reg.cond.means'}
+BOOTSTRAP_MODES_TO_STRING = {
+    BOOTSTRAP_MA:'boot.ma',
+    BOOTSTRAP_META_REG: 'boot.meta.reg',
+    BOOTSTRAP_META_REG_COND_MEANS: 'boot.meta.reg.cond.means'
+}
 
-ANALYSIS_MODES = [MA_MODE, CUM_MODE, SUBGROUP_MODE, LOO_MODE,
-                  META_REG_MODE, META_REG_COND_MEANS,
-                  BOOTSTRAP_MA, BOOTSTRAP_META_REG, BOOTSTRAP_META_REG_COND_MEANS,
-                  FAILSAFE_MODE, FUNNEL_MODE]
+ANALYSIS_MODES = [
+    MA_MODE,
+    CUM_MODE,
+    SUBGROUP_MODE,
+    LOO_MODE,
+    META_REG_MODE,
+    META_REG_COND_MEANS,
+    BOOTSTRAP_MA,
+    BOOTSTRAP_META_REG,
+    BOOTSTRAP_META_REG_COND_MEANS,
+    FAILSAFE_MODE,
+    FUNNEL_MODE,
+]
 
-META_ANALYSIS_MODES = [MA_MODE, CUM_MODE, SUBGROUP_MODE, LOO_MODE, BOOTSTRAP_MA, FUNNEL_MODE]
-META_REG_MODES      = [META_REG_MODE, META_REG_COND_MEANS, BOOTSTRAP_META_REG, BOOTSTRAP_META_REG_COND_MEANS]
+META_ANALYSIS_MODES = [
+    MA_MODE,
+    CUM_MODE,
+    SUBGROUP_MODE,
+    LOO_MODE,
+    BOOTSTRAP_MA,
+    FUNNEL_MODE,
+]
+META_REG_MODES = [
+    META_REG_MODE,
+    META_REG_COND_MEANS,
+    BOOTSTRAP_META_REG,
+    BOOTSTRAP_META_REG_COND_MEANS,
+]
 
 # Default variable type
 DEFAULT_VAR_TYPE = CATEGORICAL
@@ -174,82 +199,151 @@ DEFAULT_SETTINGS = {"splash"       : True,
  CORRELATION_COEFFICIENTS) = range(3) # continuous(OMA)
 
 # Datatype OMA convention strings
-OMA_CONVENTION = {MEANS_AND_STD_DEVS:'continuous',
-                  TWO_BY_TWO_CONTINGENCY_TABLE:'binary',
-                  CORRELATION_COEFFICIENTS:'continuous'}
+OMA_CONVENTION = {
+    MEANS_AND_STD_DEVS:'continuous',
+    TWO_BY_TWO_CONTINGENCY_TABLE:'binary',
+    CORRELATION_COEFFICIENTS:'continuous',
+}
 
 # For dealing with covariates in the interface to OpenMetaR
-COVARIATE_TYPE_TO_OMA_STR_DICT = {CONTINUOUS:u"continuous",
-                                  CATEGORICAL:u"factor",
-                                  COUNT:u"continuous",
-                                 }
+COVARIATE_TYPE_TO_OMA_STR_DICT = {
+    CONTINUOUS:u"continuous",
+    CATEGORICAL:u"factor",
+    COUNT:u"continuous",
+}
 
 # Data type names mapping data types ---> pretty names
-DATA_TYPE_TEXT = {MEANS_AND_STD_DEVS:"Means and Stand. Devs",
-                  TWO_BY_TWO_CONTINGENCY_TABLE:"2x2 Contingency Table",
-                  CORRELATION_COEFFICIENTS: "Correlation Coefficients",}
+DATA_TYPE_TEXT = {
+    MEANS_AND_STD_DEVS:"Means and Stand. Devs",
+    TWO_BY_TWO_CONTINGENCY_TABLE:"2x2 Contingency Table",
+    CORRELATION_COEFFICIENTS: "Correlation Coefficients",
+}
 
 # Metric enumerations
-(HEDGES_D, LN_RESPONSE_RATIO,
-ODDS_RATIO, RATE_DIFFERENCE, RELATIVE_RATE,
-FISHER_Z_TRANSFORM, GENERIC_EFFECT) = range(7)
+(
+    HEDGES_D,
+    LN_RESPONSE_RATIO,
+    ODDS_RATIO,
+    RATE_DIFFERENCE,
+    RELATIVE_RATE,
+    FISHER_Z_TRANSFORM,
+    GENERIC_EFFECT,
+    ARCSINE_RD,
+    RAW_PROPORTION,
+    LOG_PROPORTION,
+    LOGIT_PROPORTION,
+    ARCSINE_PROPORTION,
+) = range(12)
+
+ONE_ARM_METRICS = [
+    RAW_PROPORTION,
+    LOG_PROPORTION,
+    LOGIT_PROPORTION,
+    ARCSINE_PROPORTION,
+]
 
 # Mapping of metrics ---> pretty names
 # fix for issue #21 -- adding generic effect
-METRIC_TEXT = {HEDGES_D:"Hedges' d",
-               LN_RESPONSE_RATIO:"ln Response Ratio",
-               ODDS_RATIO:"Log Odds Ratio",
-               RATE_DIFFERENCE:"Rate Difference",
-               RELATIVE_RATE:"Log Relative Rate",
-               FISHER_Z_TRANSFORM:"Fisher's Z-transform",
-               GENERIC_EFFECT:"Generic Effect"
-               }
+METRIC_TEXT = {
+    HEDGES_D: "Hedges' d",
+    LN_RESPONSE_RATIO: "ln Response Ratio",
+    ODDS_RATIO: "Log Odds Ratio",
+    RATE_DIFFERENCE: "Rate Difference",
+    RELATIVE_RATE: "Log Relative Rate",
+    FISHER_Z_TRANSFORM: "Fisher's Z-transform",
+    GENERIC_EFFECT: "Generic Effect",
+    ARCSINE_RD: "Arcsine transformed risk difference",
+    RAW_PROPORTION: "Raw Proportion",
+    LOG_PROPORTION: "Log transformed proportion",
+    LOGIT_PROPORTION: "Logit proportion",
+    ARCSINE_PROPORTION: "Arcsine transformed proportion",
+}
 
 # transformed (usually log) scale
-METRIC_TEXT_SHORT = {HEDGES_D:"d",
-                     LN_RESPONSE_RATIO:"ln Resp.R",
-                     ODDS_RATIO:"ln OR",
-                     RATE_DIFFERENCE:"RD",
-                     RELATIVE_RATE:"ln RR",
-                     FISHER_Z_TRANSFORM:"Zr",
-                     GENERIC_EFFECT:"Gen. Eff."
-                     }
+METRIC_TEXT_SHORT = {
+    HEDGES_D: "d",
+    LN_RESPONSE_RATIO: "ln Resp.R",
+    ODDS_RATIO: "ln OR",
+    RATE_DIFFERENCE: "RD",
+    RELATIVE_RATE: "ln RR",
+    FISHER_Z_TRANSFORM: "Zr",
+    GENERIC_EFFECT: "Gen. Eff.",
+    ARCSINE_RD: 'AS',
+    RAW_PROPORTION: 'Raw Pr',
+    LOG_PROPORTION: 'Log Pr',
+    LOGIT_PROPORTION: 'Logit Pr',
+    ARCSINE_PROPORTION: 'AS Pr',
+}
+
 # raw scale
 METRIC_TEXT_SHORT_RAW_SCALE = {
-                     HEDGES_D:"d",
-                     LN_RESPONSE_RATIO:"Resp.R",
-                     ODDS_RATIO:"OR",
-                     RATE_DIFFERENCE:"RD",
-                     RELATIVE_RATE:"RR",
-                     FISHER_Z_TRANSFORM:"Rz",
-                     GENERIC_EFFECT:"Gen. Eff."
-                     }
+    HEDGES_D:"d",
+    LN_RESPONSE_RATIO:"Resp.R",
+    ODDS_RATIO:"OR",
+    RATE_DIFFERENCE:"RD",
+    RELATIVE_RATE:"RR",
+    FISHER_Z_TRANSFORM:"Rz",
+    GENERIC_EFFECT:"Gen. Eff.",
+    ARCSINE_RD:"RD",
+    RAW_PROPORTION: 'Raw Pr',
+    LOG_PROPORTION: 'Pr',
+    LOGIT_PROPORTION: 'Pr',
+    ARCSINE_PROPORTION: 'Pr',
+}
 
 # Text to describe metrics without regard to being transformed or not
-METRIC_TEXT_SIMPLE = {HEDGES_D:"Hedges' d",
-                      LN_RESPONSE_RATIO:"Response Ratio",
-                      ODDS_RATIO:"Odds Ratio",
-                      RATE_DIFFERENCE:"Rate Difference",
-                      RELATIVE_RATE:"Relative Rate",
-                      FISHER_Z_TRANSFORM:"Fisher's Z-transform",
-                      GENERIC_EFFECT:"Generic Effect"
-                     }
+METRIC_TEXT_SIMPLE = {
+    HEDGES_D:"Hedges' d",
+    LN_RESPONSE_RATIO:"Response Ratio",
+    ODDS_RATIO:"Odds Ratio",
+    RATE_DIFFERENCE:"Rate Difference",
+    RELATIVE_RATE:"Relative Rate",
+    FISHER_Z_TRANSFORM:"Fisher's Z-transform",
+    GENERIC_EFFECT:"Generic Effect",
+    ARCSINE_RD:"Arcsine transformed risk difference",
+    RAW_PROPORTION: 'Raw Proportion',
+    LOG_PROPORTION: 'Log Proportion',
+    LOGIT_PROPORTION: 'Logit Proportion',
+    ARCSINE_PROPORTION: 'Arcsine proportion',
+}
 
-METRIC_TO_ESCALC_MEASURE = {HEDGES_D: "SMD",
-                            LN_RESPONSE_RATIO: "ROM",
-                            ODDS_RATIO:"OR",
-                            RATE_DIFFERENCE:"RD",
-                            RELATIVE_RATE:"RR",
-                            FISHER_Z_TRANSFORM:"ZCOR",
-                            GENERIC_EFFECT:"GEN", # not for escalc but for rma.uni (see metafor documentation)
-                            }
+METRIC_TO_ESCALC_MEASURE = {
+    HEDGES_D: "SMD",
+    LN_RESPONSE_RATIO: "ROM",
+    ODDS_RATIO:"OR",
+    RATE_DIFFERENCE:"RD",
+    RELATIVE_RATE:"RR",
+    FISHER_Z_TRANSFORM:"ZCOR",
+    GENERIC_EFFECT:"GEN", # not for escalc but for rma.uni (see metafor documentation)
+    ARCSINE_RD:"AS",
+    RAW_PROPORTION: 'PR',
+    LOG_PROPORTION: 'PLN',
+    LOGIT_PROPORTION: 'PLO',
+    ARCSINE_PROPORTION: 'PAS',
+}
 
 
 # dictionary mapping data types to available metrics
-DATA_TYPE_TO_METRICS = {MEANS_AND_STD_DEVS: [HEDGES_D, LN_RESPONSE_RATIO, GENERIC_EFFECT],
-                        TWO_BY_TWO_CONTINGENCY_TABLE: [ODDS_RATIO, RATE_DIFFERENCE, RELATIVE_RATE],
-                        CORRELATION_COEFFICIENTS: [FISHER_Z_TRANSFORM,],
-                        }
+DATA_TYPE_TO_METRICS = {
+    MEANS_AND_STD_DEVS: [
+        HEDGES_D,
+        LN_RESPONSE_RATIO,
+        GENERIC_EFFECT,
+    ],
+    TWO_BY_TWO_CONTINGENCY_TABLE: [
+        ODDS_RATIO,
+        RATE_DIFFERENCE,
+        RELATIVE_RATE,
+        ARCSINE_RD,
+        RAW_PROPORTION,
+        LOG_PROPORTION,
+        LOGIT_PROPORTION,
+        ARCSINE_PROPORTION,
+    ],
+    CORRELATION_COEFFICIENTS: [
+        FISHER_Z_TRANSFORM,
+    ],
+}
 def get_data_type_for_metric(metric):
     for d_type, metrics in DATA_TYPE_TO_METRICS.items():
         if metric in metrics:
