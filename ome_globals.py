@@ -28,14 +28,15 @@ MAKE_TESTS = False
 HEADER_LINE_LENGTH = 70 # maximum length of header labels
 
 DEFAULT_METAREG_RANDOM_EFFECTS_METHOD = "DL"
-RANDOM_EFFECTS_METHODS_TO_PRETTY_STRS = {"DL":"DerSimonian-Laird estimator",
-                                         "HE":"Hedges estimator",
-                                         "SJ":"Sidik-Jonkman estimator",
-                                         "ML":"maximum-likelihood estimator",
-                                         "REML":"restricted maximum likelihood estimator",
-                                         "EB":"empirical Bayes estimator",
-                                         "HS":"Hunter-Schmidt estimator",
-                                         }
+RANDOM_EFFECTS_METHODS_TO_PRETTY_STRS = {
+    "DL":"DerSimonian-Laird estimator",
+    "HE":"Hedges estimator",
+    "SJ":"Sidik-Jonkman estimator",
+    "ML":"maximum-likelihood estimator",
+    "REML":"restricted maximum likelihood estimator",
+    "EB":"empirical Bayes estimator",
+    "HS":"Hunter-Schmidt estimator",
+}
 
 
 # The different types of data that can be associated with studies
@@ -53,34 +54,43 @@ EFFECT_TYPES = (TRANS_EFFECT, TRANS_VAR,
                 RAW_EFFECT,RAW_LOWER, RAW_UPPER)
 
 # How variable types are represented as short string (for header labels)
-VARIABLE_TYPE_SHORT_STRING_REPS = {CATEGORICAL:"cat",
-                                   CONTINUOUS:"cont",
-                                   COUNT:"count",}
+VARIABLE_TYPE_SHORT_STRING_REPS = {
+    CATEGORICAL:"cat",
+    CONTINUOUS:"cont",
+    COUNT:"count",
+}
 
 # How variable types are represented as normal length strings
-VARIABLE_TYPE_STRING_REPS = {CATEGORICAL:"Categorical",
-                             CONTINUOUS:"Continuous",
-                             COUNT:"Count",}
+VARIABLE_TYPE_STRING_REPS = {
+    CATEGORICAL:"Categorical",
+    CONTINUOUS:"Continuous",
+    COUNT:"Count",
+}
+
 # same as above but lower case (used for indexing into qsettings)
-VARIABLE_TYPE_STRING_LC = {CATEGORICAL:"categorical",
-                             CONTINUOUS:"continuous",
-                             COUNT:"count",}
+VARIABLE_TYPE_STRING_LC = {
+    CATEGORICAL:"categorical",
+    CONTINUOUS:"continuous",
+    COUNT:"count",
+}
 
 # How variable subtypes are represented as normal length strings
-VARIABLE_SUBTYPE_STRING_REPS = {TRANS_EFFECT: "Trans. Effect",
-                                TRANS_VAR   : "Trans. Var",
-                                RAW_EFFECT  : "Raw Effect",
-                                RAW_LOWER   : "Raw lb.",
-                                RAW_UPPER   : "Raw ub.",
-                                }
-# same as above but for indexing into qsettings
-VARIABLE_SUBTYPE_STRING_LC = {TRANS_EFFECT: "trans_effect",
-                              TRANS_VAR   : "trans_var",
-                              RAW_EFFECT  : "raw_effect",
-                              RAW_LOWER   : "raw_lower",
-                              RAW_UPPER   : "raw_upper",
-                             }
+VARIABLE_SUBTYPE_STRING_REPS = {
+    TRANS_EFFECT: "Trans. Effect",
+    TRANS_VAR   : "Trans. Var",
+    RAW_EFFECT  : "Raw Effect",
+    RAW_LOWER   : "Raw lb.",
+    RAW_UPPER   : "Raw ub.",
+}
 
+# same as above but for indexing into qsettings
+VARIABLE_SUBTYPE_STRING_LC = {
+    TRANS_EFFECT: "trans_effect",
+    TRANS_VAR   : "trans_var",
+    RAW_EFFECT  : "raw_effect",
+    RAW_LOWER   : "raw_lower",
+    RAW_UPPER   : "raw_upper",
+}
 
 # Default # of digits for representing floating point numbers
 DEFAULT_PRECISION = 3
@@ -169,28 +179,29 @@ DEFAULT_BACKGROUND_COLOR = QColor("white") #QColor(29,30,25)
 BLACK = QColor(0,0,0)
 FOREGROUND, BACKGROUND = range(2)
 
-DEFAULT_SETTINGS = {"splash"       : True,
-                    "digits"       : DEFAULT_PRECISION,
-                    "recent_files" : [],
-                    "model_data_font_str"     : "",
-                    "model_header_font_str"   : "",
-                    "show_additional_values"  : True,
-                    "show_analysis_selections": True,
-                    "reg_coeff_forest_plot": False, # Make forest plot for regression coefficients
-                    "exclude_intercept_coeff_fp": False, # Exclude intercept on reg. coeff. forest plot
-                    # color scheme
-                    "colors/default_bg": DEFAULT_BACKGROUND_COLOR,
-                    "colors/label/fg"  : QColor(255,204,102),      # study label foreground
-                    "colors/label/bg"  : DEFAULT_BACKGROUND_COLOR, # study label background
-                    "colors/variable/categorical/fg": BLACK,
-                    "colors/variable/categorical/bg": DEFAULT_BACKGROUND_COLOR,
-                    "colors/variable/count/fg": QColor(242,38,111),
-                    "colors/variable/count/bg": DEFAULT_BACKGROUND_COLOR,
-                    "colors/variable/continuous/fg": QColor(157,102,253),
-                    "colors/variable/continuous/bg": DEFAULT_BACKGROUND_COLOR,
-                    "colors/var_with_subtype/default_effect/fg": BLACK,
-                    "colors/var_with_subtype/default_effect/bg": QColor(222,211,96),
-                    }
+DEFAULT_SETTINGS = {
+    "splash"       : True,
+    "digits"       : DEFAULT_PRECISION,
+    "recent_files" : [],
+    "model_data_font_str"     : "",
+    "model_header_font_str"   : "",
+    "show_additional_values"  : True,
+    "show_analysis_selections": True,
+    "reg_coeff_forest_plot": False, # Make forest plot for regression coefficients
+    "exclude_intercept_coeff_fp": False, # Exclude intercept on reg. coeff. forest plot
+    # color scheme
+    "colors/default_bg": DEFAULT_BACKGROUND_COLOR,
+    "colors/label/fg"  : QColor(255,204,102),      # study label foreground
+    "colors/label/bg"  : DEFAULT_BACKGROUND_COLOR, # study label background
+    "colors/variable/categorical/fg": BLACK,
+    "colors/variable/categorical/bg": DEFAULT_BACKGROUND_COLOR,
+    "colors/variable/count/fg": QColor(242,38,111),
+    "colors/variable/count/bg": DEFAULT_BACKGROUND_COLOR,
+    "colors/variable/continuous/fg": QColor(157,102,253),
+    "colors/variable/continuous/bg": DEFAULT_BACKGROUND_COLOR,
+    "colors/var_with_subtype/default_effect/fg": BLACK,
+    "colors/var_with_subtype/default_effect/bg": QColor(222,211,96),
+}
 
 
 # Meta Analysis data type enumerations
@@ -233,7 +244,8 @@ DATA_TYPE_TEXT = {
     LOG_PROPORTION,
     LOGIT_PROPORTION,
     ARCSINE_PROPORTION,
-) = range(12)
+    RAW_MEAN_DIFFEERENCE,
+) = range(13)
 
 ONE_ARM_METRICS = [
     RAW_PROPORTION,
@@ -245,6 +257,7 @@ ONE_ARM_METRICS = [
 # Mapping of metrics ---> pretty names
 # fix for issue #21 -- adding generic effect
 METRIC_TEXT = {
+    RAW_MEAN_DIFFEERENCE: "Raw mean difference",
     HEDGES_D: "Hedges' d",
     LN_RESPONSE_RATIO: "ln Response Ratio",
     ODDS_RATIO: "Log Odds Ratio",
@@ -261,6 +274,7 @@ METRIC_TEXT = {
 
 # transformed (usually log) scale
 METRIC_TEXT_SHORT = {
+    RAW_MEAN_DIFFEERENCE: 'MD',
     HEDGES_D: "d",
     LN_RESPONSE_RATIO: "ln Resp.R",
     ODDS_RATIO: "ln OR",
@@ -277,6 +291,7 @@ METRIC_TEXT_SHORT = {
 
 # raw scale
 METRIC_TEXT_SHORT_RAW_SCALE = {
+    RAW_MEAN_DIFFEERENCE: 'MD',
     HEDGES_D:"d",
     LN_RESPONSE_RATIO:"Resp.R",
     ODDS_RATIO:"OR",
@@ -293,6 +308,7 @@ METRIC_TEXT_SHORT_RAW_SCALE = {
 
 # Text to describe metrics without regard to being transformed or not
 METRIC_TEXT_SIMPLE = {
+    RAW_MEAN_DIFFEERENCE: 'Mean Difference',
     HEDGES_D:"Hedges' d",
     LN_RESPONSE_RATIO:"Response Ratio",
     ODDS_RATIO:"Odds Ratio",
@@ -308,6 +324,7 @@ METRIC_TEXT_SIMPLE = {
 }
 
 METRIC_TO_ESCALC_MEASURE = {
+    RAW_MEAN_DIFFEERENCE: 'MD',
     HEDGES_D: "SMD",
     LN_RESPONSE_RATIO: "ROM",
     ODDS_RATIO:"OR",
@@ -326,6 +343,7 @@ METRIC_TO_ESCALC_MEASURE = {
 # dictionary mapping data types to available metrics
 DATA_TYPE_TO_METRICS = {
     MEANS_AND_STD_DEVS: [
+        RAW_MEAN_DIFFEERENCE,
         HEDGES_D,
         LN_RESPONSE_RATIO,
         GENERIC_EFFECT,
