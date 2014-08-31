@@ -196,6 +196,10 @@ class MetaRegressionWizard(QtGui.QWizard):
     # Summary Page
     def get_summary(self):
         ''' Make a summary string to show the user at the end of the wizard summarizing most of the user selections '''
-        return wizard_summary(wizard=self, next_id_helper=self.nextId_helper,
-                              summary_page_id=Page_Summary,
-                              analysis_label=self.analysis_label)
+        summary = wizard_summary(
+            wizard=self,
+            next_id_helper=self.nextId_helper,
+            summary_page_id=Page_Summary,
+            analysis_label=self.analysis_label
+        )
+        return summary

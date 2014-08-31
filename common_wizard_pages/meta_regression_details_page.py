@@ -12,6 +12,8 @@ class MetaRegDetailsPage(QWizardPage, ui_meta_regression_details_page.Ui_WizardP
                  analysis_type, # PARAMETRIC or BOOTSTRAP
                  conf_level,
 				 phylogen,
+                 disable_analysis_type_groupbox=False,
+                 disable_output_type_groupbox=False,
                  parent=None): # todo: set defaults of previous parameters to None
         super(MetaRegDetailsPage, self).__init__(parent)
         self.setupUi(self)
@@ -19,6 +21,9 @@ class MetaRegDetailsPage(QWizardPage, ui_meta_regression_details_page.Ui_WizardP
         self.disable_btt = False
         if analysis_type not in [PARAMETRIC, BOOTSTRAP]:
             raise Exception("Unrecognized analysis type")
+
+        self.analysis_type_groupBox.setDisabled(disable_analysis_type_groupbox)
+        self.output_type_groupBox.setDisabled(disable_output_type_groupbox)
 
         ### Set values from previous analysis ###
         self.setup_values_from_previous_analysis(

@@ -88,6 +88,8 @@
     <addaction name="actionPhyloMA"/>
     <addaction name="actionModel_Building"/>
     <addaction name="actionMultiple_Imputation_Meta_Analysis"/>
+    <addaction name="actionPermuted_MA"/>
+    <addaction name="actionPermuted_metareg"/>
    </widget>
    <widget class="QMenu" name="menuAbout">
     <property name="title">
@@ -434,6 +436,16 @@
   <action name="actionGet_help_online">
    <property name="text">
     <string>Get help online</string>
+   </property>
+  </action>
+  <action name="actionPermuted_MA">
+   <property name="text">
+    <string>Randomized (Permuted) Meta-Analysis</string>
+   </property>
+  </action>
+  <action name="actionPermuted_metareg">
+   <property name="text">
+    <string>Randomized (Permuted) Meta-Regression</string>
    </property>
   </action>
  </widget>

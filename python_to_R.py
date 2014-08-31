@@ -75,7 +75,7 @@ class RlibLoader:
 
     def load_grid(self):
         return self._load_r_lib("grid")
-    
+
     def load_rmeta(self):
         return self._load_r_lib("rmeta")
 
@@ -164,7 +164,7 @@ def regenerate_phylo_forest_plot(img_path,
                                  res_name = "res",
                                  params_path = "NULL",
                                  level_name = "level"):
-    
+
     r_str = "regenerate_phylo_forest_plot(plot.params={params_name}, data={data_name}, res={res_name}, level={level_name}, params.out.path=\"{params_path}\", out.path=\"{img_path}\")".format(
                     params_name=params_name, data_name=data_name,
                     res_name=res_name, level_name=level_name, params_path=params_path,
@@ -2383,11 +2383,91 @@ def params_dict_to_Robject(params, robject_type ="list"):
 
     return robj
 
-def regenerate_forest_plot_of_coefficients(file_path, params_path, img_fmt="png"):   
+def regenerate_forest_plot_of_coefficients(file_path, params_path, img_fmt="png"):
     # fix file_path
     if file_path[-4]!='.':
         file_path = file_path + "." + img_fmt
     file_path_wo_extension = file_path[0:-4]
-    
+
     r_str = "regenerate.coeff.forest.plot(input.df, \"%s\", \"%s\")" % (file_path_wo_extension, img_fmt)
     exR.execute_in_R(r_str)
+
+def run_permutation_analysis(parameters,
+                             meta_reg_mode,
+                             data_name="tmp_obj",
+                             results_name="results_obj"):
+
+    print("Parameters: %s" % parameters)
+
+    # Get measure i.e. OR etc.
+    _,metric = parameters['data_type_and_metric']
+    measure_str = METRIC_TO_ESCALC_MEASURE[metric]
+
+    if meta_reg_mode:
+        # Mods is a Listvector (see description in _make_mods_listVector)
+        mods = _make_mods_listVector(parameters['covariates'],
+                                     parameters['interactions'])
+
+        # get btt indices for omnibus test of moderators
+        choice, choice_type = parameters['btt']
+        btt_indices = get_btt_indices(data=ro.r(data_name),
+                                      mods=mods,
+                                      choice=choice, choice_type=choice_type)
+        if len(btt_indices) > 0:
+            btt_indices_vector_str = ro.IntVector(btt_indices).r_repr()
+        else:
+            btt_indices_vector_str = str(ro.NULL)
+
+        r_str = '''{results} <- permuted.meta.reg(
+data={data},
+mods={mods},
+method=\"{method}\",
+level={level},
+btt={btt},
+exact={exact},
+iter={iter},
+retpermdist={retpermdist})'''.format(
+                    results=results_name,
+                    data=data_name,
+                    mods=mods.r_repr(),
+                    method=parameters['method'],
+                    level=parameters['level'],
+                    btt=btt_indices_vector_str,
+                    exact=toRBool(parameters['exact']),
+                    iter=parameters['iter'],
+                    retpermdist=toRBool(parameters['retpermdist']),
+                    )
+    else:
+        r_str = '''{results} <- permuted.ma(
+data={data},
+method=\"{method}\",
+intercept={intercept},
+level={level},
+digits={digits},
+weighted={weighted},
+knha={knha},
+exact={exact},
+iter={iter},
+retpermdist={retpermdist})'''.format(
+            results=results_name,
+            data=data_name,
+            method=parameters['method'],
+            intercept=toRBool(parameters['intercept']),
+            level=parameters['level'],
+            digits=parameters['digits'],
+            weighted=toRBool(parameters['weighted']),
+            knha=toRBool(parameters['knha']),
+            exact=toRBool(parameters['exact']),
+            iter=parameters['iter'],
+            retpermdist=toRBool(parameters['retpermdist']),
+        )
+
+    exR.execute_in_R(r_str)
+    result = exR.execute_in_R("%s" % results_name)
+
+    parsed_results = parse_out_results(result)
+    return parsed_results
+
+def toRBool(value):
+    '''Converts True/False to 'TRUE'/'FALSE' (suitable for passing to R)'''
+    return 'TRUE' if value else 'FALSE'

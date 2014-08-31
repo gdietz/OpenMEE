@@ -27,6 +27,7 @@ class SelectCovariatesPage(QWizardPage, ui_select_covariates_page.Ui_WizardPage)
                  previously_included_covs = [],
                  min_covariates=1, # minimum # of covariates requires
                  allow_covs_with_missing_data=False,
+                 disable_require_categorical=False,
                  parent=None): # todo: set defaults of previous parameters to None
         super(SelectCovariatesPage, self).__init__(parent)
         self.setupUi(self)
@@ -34,6 +35,7 @@ class SelectCovariatesPage(QWizardPage, ui_select_covariates_page.Ui_WizardPage)
         self.model = model
         self.min_covariates = min_covariates
         self.allow_covs_with_missing_data = allow_covs_with_missing_data
+        self.disable_require_categorical = disable_require_categorical
         
         if allow_covs_with_missing_data:
             self.unavailable_covs_groupbox.hide()
@@ -331,6 +333,8 @@ class SelectCovariatesPage(QWizardPage, ui_select_covariates_page.Ui_WizardPage)
         self.completeChanged.emit()
     
     def _require_categorical(self):
+        if self.disable_require_categorical:
+            return False
         return self.wizard()._require_categorical()
                    
     def isComplete(self):

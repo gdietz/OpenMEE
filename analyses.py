@@ -25,7 +25,7 @@ from meta_progress import MetaProgress
 from publication_bias_wizards import FunnelWizard, FailsafeWizard
 from model_building.model_building_wizard import ModelBuildingWizard
 from multiple_imputation_meta_analysis_wizard import MiMaWizard
-
+from permutation_wizard import PermutationWizard
 
 # # catches an r exception, displays a message, returns None if there is an exception
 # def CatchRError(function):
@@ -1026,3 +1026,51 @@ class Analyzer:
         bar.deleteLater()
         return result
     
+    def PermutationAnalysis(self, meta_reg_mode):
+        model = self._get_model()
+        wizard = PermutationWizard(
+            model=model,
+            meta_reg_mode=meta_reg_mode,
+            parent=self.main_form)
+        # get out of the analysis if we quit the wizard
+        if not wizard.exec_():
+            return
+
+        parameters = wizard.get_parameters()
+        summary = wizard.get_summary()
+        try:
+            result = self.run_permutation_analysis(parameters, meta_reg_mode)
+        except CrazyRError as e:
+            if SOUND_EFFECTS:
+                silly.play()
+            QMessageBox.critical(self.main_form, "Oops", str(e))
+        self._display_results(result, summary)
+
+    def run_permutation_analysis(self, parameters, meta_reg_mode):
+        model = self._get_model()
+        bar = MetaProgress()
+        bar.show()
+        
+        # Make dataframe of data with associated covariates
+        if meta_reg_mode:
+            python_to_R.dataset_to_dataframe(
+                model=model,
+                included_studies=parameters['studies'],
+                data_location=parameters['data_location'],
+                covariates=parameters['covariates'],
+                cov_ref_values=parameters['reference_values'],
+                var_name="tmp_obj")
+        else:
+            python_to_R.dataset_to_dataframe(
+                model=model,
+                included_studies=parameters['studies'],
+                data_location=parameters['data_location'],
+                var_name="tmp_obj")
+                
+        print("Running PermutationAnalysis with parameters %s", parameters)
+        result = python_to_R.run_permutation_analysis(
+            parameters, meta_reg_mode)
+
+        bar.hide()
+        bar.deleteLater()
+        return result

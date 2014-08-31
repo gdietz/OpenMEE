@@ -28,6 +28,8 @@ MAKE_TESTS = False
 HEADER_LINE_LENGTH = 70 # maximum length of header labels
 
 DEFAULT_METAREG_RANDOM_EFFECTS_METHOD = "DL"
+DEFAULT_RANDOM_EFFECTS_METHOD = "REML"
+FIXED_EFFECTS_METHOD_STR = "FE"
 RANDOM_EFFECTS_METHODS_TO_PRETTY_STRS = {
     "DL":"DerSimonian-Laird estimator",
     "HE":"Hedges estimator",

@@ -494,6 +494,12 @@ class RefineStudiesPage(QWizardPage, ui_refine_studies_page.Ui_WizardPage):
         ''' main interface to outside '''
         
         return [study for study,included in self.studies_to_include_status.items() if included]
+
+    def get_included_studies_in_proper_order(self):
+        all_studies = self.model.get_studies_in_current_order()
+        included_studies = [study for study,included in self.studies_to_include_status.items() if included]
+        included_studies_in_order = [study for study in all_studies if study in included_studies]
+        return included_studies_in_order
     
     ###########################################################################
     
