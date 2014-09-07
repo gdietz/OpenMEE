@@ -79,6 +79,40 @@ class SelectCovariatesPage(QWizardPage, ui_select_covariates_page.Ui_WizardPage)
         
         # interaction was removed
         self.interactionRemoved.emit()
+
+    def toggle_covariate_buttons_enabled_status(self):
+        # Change the enabled status of the buttons for adding/removing
+        # according to whether there are covariates to add/remove
+        num_included_covariates = len(self.selected_covariates)
+        num_available_covariates = len(self.available_covariates)
+
+        enable_add_buttons = True
+        if num_available_covariates == 0:
+            enable_add_buttons = False
+
+        enable_remove_buttons = True
+        if num_included_covariates == 0:
+            enable_remove_buttons = False
+
+        self.add_pushbutton.setEnabled(enable_add_buttons)
+        self.add_all_pushbutton.setEnabled(enable_add_buttons)
+        self.remove_pushButton.setEnabled(enable_remove_buttons)
+        self.remove_all_pushButton.setEnabled(enable_remove_buttons)
+
+        # Single add/remove buttons need a selected covariate in their
+        # respective listwidgets
+        if (not self.available_covs_listWidget.currentItem()):
+            self.add_pushbutton.setEnabled(False)
+            self.add_pushbutton.setToolTip('must select a covariate to add')
+        else:
+            self.add_pushbutton.setToolTip('')
+
+        if (not self.selected_covs_listWidget.currentItem()):
+            self.remove_pushButton.setEnabled(False)
+            self.remove_pushButton.setToolTip('must select a covariate to remove')
+        else:
+            self.remove_pushButton.setToolTip('')
+
         
     def chg_add_interaction_btn_enabled_status(self):
         # 1. You can only add an interaction if not every interaction is there
@@ -105,7 +139,7 @@ class SelectCovariatesPage(QWizardPage, ui_select_covariates_page.Ui_WizardPage)
         if len(possible_interactions) == len(interactions):
             enable = False # all interactions possible already added
         
-        self.add_all_pushbutton.setEnabled(enable)
+        self.add_interaction_pushButton.setEnabled(enable)
         
     def chg_remove_interaction_btn_enabled_status(self):
         # You can only remove an interaction if there is at least one
@@ -120,8 +154,6 @@ class SelectCovariatesPage(QWizardPage, ui_select_covariates_page.Ui_WizardPage)
             enable = False
         self.remove_interaction_pushButton.setEnabled(enable)
             
-        
-    
     def _get_possible_interactions(self, covariate_list):
         if len(covariate_list) < 2:
             return []
@@ -140,7 +172,12 @@ class SelectCovariatesPage(QWizardPage, ui_select_covariates_page.Ui_WizardPage)
         self.remove_pushButton.clicked.connect(lambda: self.remove_one_cov())
         self.available_covs_listWidget.itemDoubleClicked.connect(self.add_one_cov)
         self.selected_covs_listWidget.itemDoubleClicked.connect(self.remove_one_cov)
-        
+        # Toggle enable status of add/remove buttons
+        self.covariateAdded.connect(self.toggle_covariate_buttons_enabled_status)
+        self.covariateRemoved.connect(self.toggle_covariate_buttons_enabled_status)
+        self.available_covs_listWidget.currentItemChanged.connect(self.toggle_covariate_buttons_enabled_status)
+        self.selected_covs_listWidget.currentItemChanged.connect(self.toggle_covariate_buttons_enabled_status)
+
         #### interaction buttons
         # Connect buttons to handlers
         self.add_interaction_pushButton.clicked.connect(self.add_interaction_clicked)
@@ -176,6 +213,9 @@ class SelectCovariatesPage(QWizardPage, ui_select_covariates_page.Ui_WizardPage)
         self.populate_listWidget(self.selected_covs_listWidget, self.selected_covariates)
         self.populate_listWidget(self.unavailable_covs_listWidget, self.unavailable_covariates, enabled=False)
         
+        # Toggle the enable status of the add/remove covariate buttons
+        self.toggle_covariate_buttons_enabled_status()
+
         # enable/disable interaction buttons
         self.chg_add_interaction_btn_enabled_status()
         self.chg_remove_interaction_btn_enabled_status()
@@ -278,8 +318,6 @@ class SelectCovariatesPage(QWizardPage, ui_select_covariates_page.Ui_WizardPage)
         if item is None:
             item = self.available_covs_listWidget.currentItem()
         
-        
-        
         cov = self.item_to_cov[item]
         print("adding covariate: %s" % cov.get_label())
         
@@ -291,7 +329,7 @@ class SelectCovariatesPage(QWizardPage, ui_select_covariates_page.Ui_WizardPage)
         self.covariateAdded.emit()
         
         
-    def remove_one_cov(self, item, emit_change_signal=True):
+    def remove_one_cov(self, item=None, emit_change_signal=True):
         ''' 1) Moves item from the selected_listWidget to the available_listWidget
             2) updates internal 'available' list and 'selected' lists '''
 
