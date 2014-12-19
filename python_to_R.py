@@ -2471,3 +2471,12 @@ retpermdist={retpermdist})'''.format(
 def toRBool(value):
     '''Converts True/False to 'TRUE'/'FALSE' (suitable for passing to R)'''
     return 'TRUE' if value else 'FALSE'
+
+def get_R_libpaths():
+    ''' Returns the libpaths that R looks at, sanity check to make sure it sees the right paths '''
+    
+    libpaths = exR.execute_in_R(".libPaths()")
+    print("R Lib paths:")
+    for i, path in enumerate(libpaths):
+        print("%d: %s" % (i,path))
+    return list(libpaths)
