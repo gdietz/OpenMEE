@@ -229,29 +229,30 @@ class RefineStudiesPage(QWizardPage, ui_refine_studies_page.Ui_WizardPage):
         return included_studies_dict
         
     def _is_includable(self, study):
-        ''' Returns a tuple indicating whether or not a study is includable (i.e. if it has an
-        effect size and variance. tuple: (boolean includable, str reason not includable) '''
+        ''' Returns a tuple indicating whether or not a study is includable:
+        Returns a tuple: (boolean includable, str reason not includable)
+        To be includable, a study must:
+            1) Have an effect size and variance
+            2) The variance must not be zero.
+            3) If the study needs a species, it must have one
+        '''
         
         if not isinstance(study, Study):
             raise TypeError("study argument is not a study")
         
-        if self._effect_size_and_var_present(study):
-            includable = True
-            reason = ""
-        else:
+        includable = True
+        reason = ""
+        if not self._effect_size_and_var_present(study):
             includable = False
             reason = "Effect size or variance missing"
-        
-        if not includable:
-            return (includable, reason)
-            
-        if self.need_species:
-            if self._species_present(study):
-                includable = True
-                reason = ""
-            else:
+        else:
+            if equals_zero(study.get_var(self.variance_var)):
                 includable = False
-                reason = "species is missing"
+                reason = "zero variance"
+            else:
+                if self.need_species and not self._species_present(study):
+                    includable = False
+                    reason = "species is missing"
         
         return (includable, reason)
 

@@ -25,6 +25,7 @@ SOUND_EFFECTS = True
 MAKE_TESTS = False
 ###### END SWITCHES ######
 
+ZERO_THRESHHOLD = 1e-6  # for testing floats being close to zero
 HEADER_LINE_LENGTH = 70 # maximum length of header labels
 
 DEFAULT_METAREG_RANDOM_EFFECTS_METHOD = "DL"
@@ -708,6 +709,11 @@ def civilized_dict_str(a_dict):
 
     return "{\n%s\n}" % "\n".join(content)
 
+def equals_zero(value):
+    ''' Test that a value is equal to zero (threshhold) '''
+
+    return -ZERO_THRESHHOLD < value < ZERO_THRESHHOLD
+
 ################### Helpers for wizards ########################################
 
 def wizard_summary(wizard, next_id_helper, summary_page_id, analysis_label):
@@ -887,7 +893,6 @@ def add_file_to_recent_files(fpath):
     save_settings()
 
 ################ END HANDLE SETTINGS ######################
-
 
 def to_posix_path(path):
     ''' for now, just changes \ to /
