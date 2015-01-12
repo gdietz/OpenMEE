@@ -188,7 +188,7 @@ DEFAULT_SETTINGS = {
     "recent_files" : [],
     "model_data_font_str"     : "",
     "model_header_font_str"   : "",
-    "show_additional_values"  : True,
+    "show_additional_values"  : False,
     "show_analysis_selections": True,
     "reg_coeff_forest_plot": False, # Make forest plot for regression coefficients
     "exclude_intercept_coeff_fp": False, # Exclude intercept on reg. coeff. forest plot
