@@ -33,7 +33,6 @@ SCALE_P = .5 # percent images are to be scaled
 # these are special forest plots, in that multiple parameters objects are
 # require to re-generate them (and we invoke a different method!)
 SIDE_BY_SIDE_FOREST_PLOTS = ("NLR and PLR Forest Plot", "Sensitivity and Specificity","Cumulative Forest Plot")
-ROW_HEIGHT = 0 #15 # by trial-and-error; seems to work very well
 
 # TODO: Put all the titles + text or title + images into QGraphicsItemGroups
 
@@ -98,14 +97,6 @@ class ResultsWindow(QMainWindow, ui_results_window.Ui_ResultsWindow):
         self.scene = QGraphicsScene(self)
         self.graphics_view.setScene(self.scene)
         self.add_text()
-
-        # self.y_coord += ROW_HEIGHT/2.0
-
-        # # additional padding for Windows..
-        # # again, heuristic. I don't know
-        # # why windows requires so much padding.
-        # if sys.platform.startswith('win'):
-        #     self.y_coord += 2*ROW_HEIGHT
 
         # and now the images
         self.add_images()
