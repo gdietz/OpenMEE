@@ -110,9 +110,12 @@ class ResultsWindow(QMainWindow, ui_results_window.Ui_ResultsWindow):
         self.graphics_view.setScene(self.scene)
         self.graphics_view.ensureVisible(QRectF(0,0,0,0))
 
-        if "results_data" in results and self.show_additional_values:
-            if results["results_data"]:
+        if "results_data" in results and len(results["results_data"]) > 0:
+            if self.show_additional_values:
                 self.add_additional_values_texts(results["results_data"])
+            else:
+                # issue #152 show 'k' regardless
+                self.add_additional_values_texts(results["results_data"],ADDITIONAL_VALUES_TO_ALWAYS_SHOW, additionalvaluesparent=False)
 
 
     def f(self):
@@ -268,14 +271,29 @@ class ResultsWindow(QMainWindow, ui_results_window.Ui_ResultsWindow):
             self.texts_for_export.append((title,text))
     
             
-    def add_additional_values_texts(self, data, sublist_prefix="__"):
-        spacer_item = self._add_text_item("", "\n\n--------------------------------------------------")
-        additional_values_item = QTreeWidgetItem(self.nav_tree, ["Additional Values"])
-        self.items_to_ignore.extend([spacer_item, additional_values_item])
+    def add_additional_values_texts(self, data, keys_to_display=None, additionalvaluesparent=True, sublist_prefix="__"):
+        ''' Creates text items for the additional values and makes them children
+        of an 'Additional Values' item in the nav tree.
+            keys_to_display: List of keys to always display regardless of
+                whether self.show_additional_values is true or false
+                If None, all keys are displayed. If not None, only the listed
+                keys are displayed.
+            additionalvaluesparent: display the additional values under a parent
+                item on the left side of the results window
+        '''
+        if additionalvaluesparent:
+            spacer_item = self._add_text_item("", "\n\n--------------------------------------------------")
+            additional_values_item = QTreeWidgetItem(self.nav_tree, ["Additional Values"])
+            self.items_to_ignore.extend([spacer_item, additional_values_item])
+        else:
+            additional_values_item = None
 
         len_sublist_prefix = len(sublist_prefix)
         current_parent = additional_values_item
+
         for key,value_data in data:
+            if keys_to_display and key not in keys_to_display:
+                continue
             val_str = self._value_to_string(value_data['value'])
             if key[0:len_sublist_prefix] == sublist_prefix:
                 print("Sublist detectected")

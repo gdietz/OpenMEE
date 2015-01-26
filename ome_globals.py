@@ -206,6 +206,10 @@ DEFAULT_SETTINGS = {
     "colors/var_with_subtype/default_effect/bg": QColor(222,211,96),
 }
 
+# 'Additional values' to always show, regardless of whether the user has chosen
+# to display all 'additional values'
+ADDITIONAL_VALUES_TO_ALWAYS_SHOW = ['k'] 
+
 
 # Meta Analysis data type enumerations
 (MEANS_AND_STD_DEVS,                  # continuous (OMA)
