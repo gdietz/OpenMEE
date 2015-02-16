@@ -1,6 +1,8 @@
 call clean_build_win.bat
 
+python write_version.py
 python gsetup_win.py py2exe --includes sip
+
 cd dist
 
 REM Copy R in to executable

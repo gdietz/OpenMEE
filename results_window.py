@@ -26,6 +26,8 @@ from ome_globals import *
 from edit_funnel_plot_form import EditFunnelPlotForm
 from edit_data_exploration_plot_form import EditDataExplorationPlotForm
 
+builddatestr = 'OpenMEE build date: %s' % get_build_date()
+
 PageSize = (612, 792)
 padding = 15 # padding between items
 SCALE_P = .5 # percent images are to be scaled
@@ -96,7 +98,9 @@ class ResultsWindow(QMainWindow, ui_results_window.Ui_ResultsWindow):
         self.post_facto_text_to_add = []
         self.scene = QGraphicsScene(self)
         self.graphics_view.setScene(self.scene)
-        self.add_text()
+        # Add build date to output
+        self._add_text_item(None, builddatestr)
+        self.add_text() # adds the body of the text output
 
         # and now the images
         self.add_images()
@@ -142,6 +146,9 @@ class ResultsWindow(QMainWindow, ui_results_window.Ui_ResultsWindow):
         
         # write the file
         with open(fpath,'w') as f:
+            # Version
+            f.write ("%s\n\n" % boxify(builddatestr))
+
             # Add input summary
             if self.show_analysis_selections:
                 if len(self.summary) > 0:
@@ -304,20 +311,26 @@ class ResultsWindow(QMainWindow, ui_results_window.Ui_ResultsWindow):
                 self._add_text_item(key+": %s" % value_data['description'], val_str, parent_item=current_parent)
             
     def _add_text_item(self, title, text, parent_item=None):
-        ''' parent_item is the parent item in the nav tree '''
+        '''
+        parent_item is the parent item in the nav tree
+        If title is none, no title is created and no reference to the added item is returned.
+        '''
 
         text = text.replace("\\n","\n") # manual escaping
-        # first add the title
-        qt_item = self.add_title(title, parent_item)
+        if title:
+            # first add the title
+            qt_item = self.add_title(title, parent_item)
 
         # now the text
         position = self.position()
         self.create_text_item(unicode(text), position)
-        self.items_to_coords[qt_item] = position
+        if title:
+            self.items_to_coords[qt_item] = position
 
         # add padding to the next item
         self.y_coord += padding
-        return qt_item # returns the item in the nav tree
+        if title:
+            return qt_item # returns the item in the nav tree
     
     def _group_items(self, items, groups):
         '''Groups items together if their title contains an element in a group list.

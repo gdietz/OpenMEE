@@ -904,3 +904,29 @@ def to_posix_path(path):
 
     new_path = path.replace('\\', '/')
     return new_path
+
+###############################################################################
+# Report build date in output
+#
+# OpenMEE will look for a module named version.py and try to read the variable
+# BUILDDATE defined within. This file should be generated when either the 
+# windows or mac build scripts are invoked.
+###############################################################################
+def get_build_date():
+    try:
+        from version import BUILDDATE
+        return BUILDDATE
+    except ImportError:
+        print 'No version module detected'
+        return 'Unknown'
+
+def write_build_date():
+    '''
+    Overwrite version.py file with the current date. This function should only
+    be called by the build script
+    '''
+    from datetime import date
+    datestring = str(date.today())
+
+    with open('version.py', 'w') as f:
+        f.write("BUILDDATE = '%s'\n" % datestring)

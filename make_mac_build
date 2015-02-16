@@ -1,4 +1,5 @@
 # clean the build directories
 rm -rf build
 
+python write_version.py
 python setup.py bdist_dmg

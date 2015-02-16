@@ -45,7 +45,7 @@ executables = [
 ]
 
 setup(name='OpenMEE',
-      version='0.1412',
+      #version='0.1412',
       description='Intuitive open-source meta-analysis for ecology',
       options=options,
       executables=executables
