@@ -13,6 +13,7 @@
 #from py2exe.build_exe import py2exe
 from distutils.core import setup
 import py2exe
+#from version import BUILDDATE
 
 ##path_to_launch_file = os.path.join("src","launch.py")
 

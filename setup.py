@@ -15,6 +15,7 @@ import os
 
 import sys
 from cx_Freeze import setup, Executable
+from version import BUILDDATE
 
 base = None
 if sys.platform == 'win32':
@@ -45,7 +46,7 @@ executables = [
 ]
 
 setup(name='OpenMEE',
-      #version='0.1412',
+      version=BUILDDATE.replace('-',''),
       description='Intuitive open-source meta-analysis for ecology',
       options=options,
       executables=executables
