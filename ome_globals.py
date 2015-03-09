@@ -214,12 +214,14 @@ ADDITIONAL_VALUES_TO_ALWAYS_SHOW = ['k']
 # Meta Analysis data type enumerations
 (MEANS_AND_STD_DEVS,                  # continuous (OMA)
  TWO_BY_TWO_CONTINGENCY_TABLE,        # binary (OMA)
- CORRELATION_COEFFICIENTS) = range(3) # continuous(OMA)
+ PROPORTIONS, # single group dichotomous variable
+ CORRELATION_COEFFICIENTS) = range(4) # continuous(OMA)
 
 # Datatype OMA convention strings
 OMA_CONVENTION = {
     MEANS_AND_STD_DEVS:'continuous',
     TWO_BY_TWO_CONTINGENCY_TABLE:'binary',
+    PROPORTIONS:'binary',
     CORRELATION_COEFFICIENTS:'continuous',
 }
 
@@ -234,6 +236,7 @@ COVARIATE_TYPE_TO_OMA_STR_DICT = {
 DATA_TYPE_TEXT = {
     MEANS_AND_STD_DEVS:"Means and Stand. Devs",
     TWO_BY_TWO_CONTINGENCY_TABLE:"2x2 Contingency Table",
+    PROPORTIONS: "Proportions",
     CORRELATION_COEFFICIENTS: "Correlation Coefficients",
 }
 
@@ -259,6 +262,7 @@ ONE_ARM_METRICS = [
     LOG_PROPORTION,
     LOGIT_PROPORTION,
     ARCSINE_PROPORTION,
+    #Placeholder for PFT Freeman Tukey ?
 ]
 
 # Mapping of metrics ---> pretty names
@@ -276,7 +280,7 @@ METRIC_TEXT = {
     RAW_PROPORTION: "Raw Proportion",
     LOG_PROPORTION: "Log transformed proportion",
     LOGIT_PROPORTION: "Logit proportion",
-    ARCSINE_PROPORTION: "Arcsine transformed proportion",
+    ARCSINE_PROPORTION: "Arcsine square-root transformed proportion",
 }
 
 # transformed (usually log) scale
@@ -360,6 +364,8 @@ DATA_TYPE_TO_METRICS = {
         RATE_DIFFERENCE,
         RELATIVE_RATE,
         ARCSINE_RD,
+    ],
+    PROPORTIONS: [
         RAW_PROPORTION,
         LOG_PROPORTION,
         LOGIT_PROPORTION,

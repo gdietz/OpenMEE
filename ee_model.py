@@ -1690,40 +1690,52 @@ class VariableGroup:
         self.metric = metric
         self.data_type = get_data_type_for_metric(self.metric)
         
-        self.group_data = {RAW_EFFECT:None,
-                           RAW_LOWER:None,
-                           RAW_UPPER:None,
-                           TRANS_EFFECT:None,
-                           TRANS_VAR:None,
-                           
-                           # continuous
-                           'control_mean'            : None,
-                           'control_std_dev'         : None,
-                           'control_sample_size'     : None,
-                           'experimental_mean'       : None,
-                           'experimental_std_dev'    : None,
-                           'experimental_sample_size': None,
-                           
-                           # binary 
-                           'control_response'       : None, 
-                           'control_noresponse'     : None, 
-                           'experimental_response'  : None, 
-                           'experimental_noresponse': None, 
-                           
-                           # correlations
-                           'correlation': None,
-                           'sample_size': None,
-                           
+        self.group_data = {
+            RAW_EFFECT  : None,
+            RAW_LOWER   : None,
+            RAW_UPPER   : None,
+            TRANS_EFFECT: None,
+            TRANS_VAR   : None,
+
+            # continuous
+            'control_mean'            : None,
+            'control_std_dev'         : None,
+            'control_sample_size'     : None,
+            'experimental_mean'       : None,
+            'experimental_std_dev'    : None,
+            'experimental_sample_size': None,
+
+            # binary
+            'control_response'       : None,
+            'control_noresponse'     : None,
+            'experimental_response'  : None,
+            'experimental_noresponse': None,
+
+            # proportions
+            'num_events' : None,
+            'sample_size': None,
+
+            # correlations
+            'correlation': None,
+            'sample_size': None,
         }
         self.effect_keys = [TRANS_VAR, TRANS_EFFECT, RAW_EFFECT, RAW_LOWER, RAW_UPPER]
-        data_continuous_keys = ['control_mean', 'control_std_dev', 'control_sample_size',   
-                                     'experimental_mean', 'experimental_std_dev', 'experimental_sample_size'] 
-        data_binary_keys = ['control_response', 'control_noresponse',
-                                 'experimental_response','experimental_noresponse']
+        data_continuous_keys = [
+            'control_mean', 'control_std_dev', 'control_sample_size',
+            'experimental_mean', 'experimental_std_dev', 'experimental_sample_size',
+        ]
+        data_binary_keys = [
+            'control_response', 'control_noresponse',
+            'experimental_response','experimental_noresponse',
+        ]
+        data_proportion_keys = ['num_events', 'sample_size']
         data_correlation_keys = ['correlation', 'sample_size']
-        self.data_keys = {MEANS_AND_STD_DEVS: data_continuous_keys,
-                          TWO_BY_TWO_CONTINGENCY_TABLE: data_binary_keys,
-                          CORRELATION_COEFFICIENTS:data_correlation_keys}[self.data_type]
+        self.data_keys = {
+            MEANS_AND_STD_DEVS: data_continuous_keys,
+            TWO_BY_TWO_CONTINGENCY_TABLE: data_binary_keys,
+            PROPORTIONS: data_proportion_keys,
+            CORRELATION_COEFFICIENTS: data_correlation_keys,
+        }[self.data_type]
         
         
     def effects_empty(self):

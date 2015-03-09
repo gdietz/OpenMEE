@@ -277,13 +277,19 @@ def studies_have_raw_data(studies, data_type, data_location, model, first_arm_on
         columns_to_check = [data_location['experimental_response'],
                             data_location['experimental_noresponse'],]
 
-        if not first_arm_only:
-            if not keys_in_dictionary(['control_response',
-                                       'control_noresponse'], data_location):
-                return False
-            columns_to_check.extend([data_location['control_response'],
-                                     data_location['control_noresponse'],
-                                     ])
+        if not keys_in_dictionary(['control_response',
+                                   'control_noresponse'], data_location):
+            return False
+        columns_to_check.extend([data_location['control_response'],
+                                 data_location['control_noresponse'],
+                                 ])
+    elif data_type == PROPORTIONS:
+        if not keys_in_dictionary(['experimental_response',
+                                   'experimental_noresponse'], data_location):
+            return False
+
+        columns_to_check = [data_location['experimental_response'],
+                            data_location['experimental_noresponse'],]
 
     elif data_type == CORRELATION_COEFFICIENTS:
         if not keys_in_dictionary(['correlation',
@@ -1034,39 +1040,37 @@ def effect_size(metric, data_type, data):
         r_str = "escalc(measure='%s', m1i=%s, sd1i=%s, n1i=%s, m2i=%s, sd2i=%s, n2i=%s)" % args
 
     elif data_type == TWO_BY_TWO_CONTINGENCY_TABLE:
-        if metric in ONE_ARM_METRICS:
-            xi = data['num_events']
-            ni = data['sample_size']
+        ai = data['experimental_response']
+        bi = data['experimental_noresponse']
+        ci = data['control_response']
+        di = data['control_noresponse']
 
-            xi = [None_to_NA(x, int) for x in xi]
-            ni = [None_to_NA(x, int) for x in ni]
+        # convert None entries to R-type NAs
+        ai = [None_to_NA(x, int) for x in ai]
+        bi = [None_to_NA(x, int) for x in bi]
+        ci = [None_to_NA(x, int) for x in ci]
+        di = [None_to_NA(x, int) for x in di]
 
-            xi = ro.IntVector(xi)
-            ni = ro.IntVector(ni)
+        # convert to R objects
+        ai = ro.IntVector(ai)
+        bi = ro.IntVector(bi)
+        ci = ro.IntVector(ci)
+        di = ro.IntVector(di)
 
-            args = (measure, xi.r_repr(), ni.r_repr())
-            r_str = "escalc(measure='%s', xi=%s, ni=%s)" % args
-        else:
-            ai = data['experimental_response']
-            bi = data['experimental_noresponse']
-            ci = data['control_response']
-            di = data['control_noresponse']
+        args = (measure, ai.r_repr(), bi.r_repr(), ci.r_repr(), di.r_repr())
+        r_str = "escalc(measure='%s', ai=%s, bi=%s, ci=%s, di=%s)" % args
+    elif data_type == PROPORTIONS:
+        xi = data['num_events']
+        ni = data['sample_size']
 
-            # convert None entries to R-type NAs
-            ai = [None_to_NA(x, int) for x in ai]
-            bi = [None_to_NA(x, int) for x in bi]
-            ci = [None_to_NA(x, int) for x in ci]
-            di = [None_to_NA(x, int) for x in di]
+        xi = [None_to_NA(x, int) for x in xi]
+        ni = [None_to_NA(x, int) for x in ni]
 
-            # convert to R objects
-            ai = ro.IntVector(ai)
-            bi = ro.IntVector(bi)
-            ci = ro.IntVector(ci)
-            di = ro.IntVector(di)
+        xi = ro.IntVector(xi)
+        ni = ro.IntVector(ni)
 
-            args = (measure, ai.r_repr(), bi.r_repr(), ci.r_repr(), di.r_repr())
-            r_str = "escalc(measure='%s', ai=%s, bi=%s, ci=%s, di=%s)" % args
-
+        args = (measure, xi.r_repr(), ni.r_repr())
+        r_str = "escalc(measure='%s', xi=%s, ni=%s)" % args
     elif data_type == CORRELATION_COEFFICIENTS:
         ri = data['correlation']
         ni = data['sample_size']

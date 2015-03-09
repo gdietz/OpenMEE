@@ -87,6 +87,8 @@ class DataLocationPage(QWizardPage):
                     pass # don't choose data location columns for generic effect
             elif self.data_type == TWO_BY_TWO_CONTINGENCY_TABLE:
                 self._setup_TWO_BY_TWO_CONTINGENCY_table(layout, startrow=layout.rowCount())
+            elif self.data_type == PROPORTIONS:
+                self._setup_PROPORTIONS_table(layout, startrow=layout.rowCount())
             elif self.data_type == CORRELATION_COEFFICIENTS:
                 self._setup_CORRELATION_COEFFICIENTS_table(layout, startrow=layout.rowCount())
             else:
@@ -211,17 +213,8 @@ class DataLocationPage(QWizardPage):
         # connect boxes to update of selections
         for box in self.continuous_combo_boxes + self.counts_combo_boxes:
             QObject.connect(box, SIGNAL("currentIndexChanged(int)"), self._update_current_selections)
-        
 
-                            
-                                   
-                                   
-    
     def _setup_TWO_BY_TWO_CONTINGENCY_table(self, layout, startrow=0):
-        if self.metric in ONE_ARM_METRICS:
-            self._setup_binary_one_arm_metric_table(layout, startrow)
-            return
-
         # top row labels
         layout.addWidget(QLabel("Control"),   startrow, 1)
         layout.addWidget(QLabel("Treatment"), startrow, 2)
@@ -264,7 +257,7 @@ class DataLocationPage(QWizardPage):
                 self._update_current_selections
             )
             
-    def _setup_binary_one_arm_metric_table(self, layout, startrow=0):
+    def _setup_PROPORTIONS_table(self, layout, startrow=0):
         # Labels
         layout.addWidget(QLabel("# Events"), startrow, 0)
         layout.addWidget(QLabel("Sample Size"), startrow+1, 0)
@@ -403,22 +396,21 @@ class DataLocationPage(QWizardPage):
                 else: # metric is generic effect
                     current_selections = {}
             elif self.data_type == TWO_BY_TWO_CONTINGENCY_TABLE:
-                if self.metric in ONE_ARM_METRICS:
-                    current_selections = {
-                        'num_events': selected_column(self.num_events_combobox),
-                        'sample_size': selected_column(self.sample_size_combo_box),
-                    }
-                else:
-                    current_selections = {
-                        'control_response': selected_column(
-                            self.control_response_combo_box),
-                        'control_noresponse': selected_column(
-                            self.control_noresponse_combo_box),
-                        'experimental_response': selected_column(
-                            self.experimental_response_combo_box),
-                        'experimental_noresponse': selected_column(
-                            self.experimental_noresponse_combo_box),
-                    }
+                current_selections = {
+                    'control_response': selected_column(
+                        self.control_response_combo_box),
+                    'control_noresponse': selected_column(
+                        self.control_noresponse_combo_box),
+                    'experimental_response': selected_column(
+                        self.experimental_response_combo_box),
+                    'experimental_noresponse': selected_column(
+                        self.experimental_noresponse_combo_box),
+                }
+            elif self.data_type == PROPORTIONS:
+                current_selections = {
+                    'num_events': selected_column(self.num_events_combobox),
+                    'sample_size': selected_column(self.sample_size_combo_box),
+                }
             elif self.data_type == CORRELATION_COEFFICIENTS:
                 current_selections = {'correlation': selected_column(self.correlation_combo_box),
                                       'sample_size': selected_column(self.sample_size_combo_box),}
