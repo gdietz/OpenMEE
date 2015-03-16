@@ -13,6 +13,9 @@ import cProfile
 from PyQt4 import QtCore, QtGui
 from PyQt4.Qt import *
 
+import pdb
+from PyQt4.QtCore import pyqtRemoveInputHook
+
 import ui_main_window
 import about
 import calculate_effect_sizes_wizard
@@ -35,6 +38,11 @@ from ome_globals import *
 
 # TODO: Handle setting the dirty bit more correctly in undo/redo
 # right now just set it all the time/(or not) (very haphazard) during redo but don't bother unsetting it
+
+
+# debug:
+#pyqtRemoveInputHook()
+#pdb.set_trace()
 
 ####################################################################################
 import ui_conf_level_toolbar_widget
@@ -965,12 +973,6 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
     def model_has_unsaved_data(self):
         return self.model.dirty
 
-
-
-
-
-
-
     def open(self, file_path=None):
         ''' Prompts user to open a file and then opens it (picked data model) '''
         
@@ -988,24 +990,26 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
                 pass # ok to disregard current data
 
         # prompt the user if no file_name is provided
+        print "Filepath: %s" % file_path
         if file_path is None:
-            file_path = unicode(QFileDialog.getOpenFileName(
-                            parent=self,
-                            caption=QString("Open File"),
-                            directory=get_user_documents_path(),
-                            filter="OpenMEE files (*.ome)"))
+            print "No Filename selected"
+            file_path = QFileDialog.getOpenFileName(
+                parent=self,
+                caption=QString("Open File"),
+                directory=get_user_documents_path(),
+                filter="OpenMEE files (*.ome)")
+            file_path = unicode(file_path.toUtf8(),'utf8')
 
         # Leave if they didn't choose anything
         if file_path == "":
             return False
 
-
-        print("Loading %s ..." % str(file_path))
+        print("Loading %s ..." % file_path)
         try:
             with open(file_path, 'r') as f:
                 state = pickle.load(f)
         except Exception as e:
-            msg = "Could not open %s, the error is: %s" % (str(file_path),str(e))
+            msg = "Could not open %s, the error is: %s" % (file_path,str(e))
             QMessageBox.critical(self, "Oops", msg)
             raise e
             return False
@@ -1111,8 +1115,13 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
                 out_fpath = QString(self.outpath) # already have filename, maybe want to change it
             print("proposed file path: %s" % out_fpath)
             out_fpath # In an extremely bizarre turn of events, the directory path below doesn't work unles out_fpath is evaluated beforehand just making it with QString doesn't seem to be enough!
-            out_fpath = unicode(QFileDialog.getSaveFileName(parent=self, caption="OpenMEE - Save File",
-                                                            directory=out_fpath, filter="OpenMEE files: (.ome)"))
+            out_fpath = QFileDialog.getSaveFileName(
+                parent=self,
+                caption="OpenMEE - Save File",
+                directory=out_fpath,
+                filter="OpenMEE files: (.ome)",
+            )
+            out_fpath = unicode(out_fpath.toUtf8(),'utf8')
             if out_fpath in ["", None]:
                 print("save cancelled")
                 return "CANCEL"

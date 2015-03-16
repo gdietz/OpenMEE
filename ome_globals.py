@@ -11,6 +11,14 @@ import cProfile
 from PyQt4 import QtCore, QtGui
 from PyQt4.Qt import *
 
+import pdb
+from PyQt4.QtCore import pyqtRemoveInputHook
+
+# debugging:
+# import pdb; pdb.set_trace()
+# pyqtRemoveInputHook()
+# pdb.set_trace()
+
 ######
 HELP_URL = "http://www.cebm.brown.edu/open_mee/help"
 
@@ -786,6 +794,8 @@ def update_setting(field, value):
         settings.setValue(field, value)
     elif value_type == str:
         settings.setValue(field, value)
+    elif value_type == unicode:
+        settings.setValue(field, value)
     else:
         # nothing special needs to be done
         print("Field: %s" % field)
@@ -808,7 +818,8 @@ def get_setting(field):
         indexes = list(settings.childKeys())
         foo_list = []
         for i in indexes:
-            value = str(settings.value(i).toString())
+            value = settings.value(i).toString().toUtf8() # byte array encoded in utf-8
+            value = unicode(value, 'utf8')
             foo_list.append(value)
         settings.endGroup()
         setting_value = foo_list
@@ -834,12 +845,10 @@ def get_setting(field):
 #         # Todo: convert thing in qsetting to a qcolor (see QSettings doc page for info about this)
 #         pass
 
-
 def save_settings():
     print("saved settings")
     settings = QSettings()
     settings.sync() # writes to permanent storage
-
 
 def load_settings():
     ''' loads settings from QSettings object, setting suitable defaults if
