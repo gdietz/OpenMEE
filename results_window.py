@@ -398,8 +398,11 @@ class ResultsWindow(QMainWindow, ui_results_window.Ui_ResultsWindow):
 
     def create_text_item(self, text, position):
         txt_item = QGraphicsTextItem()
+        # This is a dumb way to escape the text for conversion to html but it works for now
         text = text.replace('\r','')
+        text = text.replace('<', '&lt;')
         text = text.replace('\n', '<br />')
+
         # we should use a mono-width font here
         html_str = '<pre>%s</pre>' % text
         txt_item.setHtml(html_str)
