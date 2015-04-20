@@ -1198,20 +1198,18 @@ class EETableModel(QAbstractTableModel):
             var = self.cols_2_vars[col]
             var_name = var.get_label()
             var_type = var.get_type()
-            
-            
+
+
             # Set value in study for variable
-            can_convert_value_to_desired_type = self.dataset.can_convert_var_value_to_type(var_type, value_as_string)
-            if not can_convert_value_to_desired_type:
-                bad_conversion_msg = "Cannot convert '%s' to %s data type" % (value_as_string, VARIABLE_TYPE_STRING_REPS[var_type])
-                self.emit(SIGNAL("DataError"), QString("Impossible Data Conversion"), QString(bad_conversion_msg))
+            can_convert_info = self.dataset.can_convert_var_value_to_type(var_type, value_as_string)
+            if not can_convert_info['OK']:
+                self.emit(SIGNAL("DataError"), QString("Impossible Data Conversion"), QString(can_convert_info['INVALIDMESSAGE']))
                 if not self.big_paste_mode:
                     cancel_macro_creation_and_revert_state(self.undo_stack)
-                print("bad setData: %s" % bad_conversion_msg)
+                print("bad setData: %s" % can_convert_info['INVALIDMESSAGE'])
                 return False
-                
+
             formatted_value = self._convert_input_value_to_correct_type_for_assignment(value_as_string, var_type)
-            
             
             if not self.big_paste_mode:
                 old_value = study.get_var(var)
@@ -1287,9 +1285,13 @@ class EETableModel(QAbstractTableModel):
                 var = self.cols_2_vars[col]
                 var_type = var.get_type()
             
-            can_convert_value_to_desired_type = self.dataset.can_convert_var_value_to_type(var_type, value_as_string)
-            if not can_convert_value_to_desired_type:
-                self.emit(SIGNAL("DataError"), QString("Impossible Data Conversion"), QString("Cannot convert '%s' to %s data type" % (value_as_string, VARIABLE_TYPE_STRING_REPS[var_type])))
+            can_convert_info = self.dataset.can_convert_var_value_to_type(var_type, value_as_string)
+            if not can_convert_info['OK']:
+                self.emit(
+                    SIGNAL("DataError"),
+                    QString("Impossible Data Conversion"),
+                    QString(can_convert_info['INVALIDMESSAGE']),
+                )
                 return False
         return True
     
@@ -1681,8 +1683,7 @@ class EETableModel(QAbstractTableModel):
     
     def get_variable_groups(self):
         return self.variable_groups
-        
-        
+
 class VariableGroup:
     # Stores info on related groups of variables i.e. effect size and variance, etc
     def __init__(self, metric, name=""):
