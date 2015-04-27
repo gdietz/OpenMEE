@@ -33,7 +33,7 @@ SOUND_EFFECTS = True
 MAKE_TESTS = False
 ###### END SWITCHES ######
 
-ZERO_THRESHHOLD = 1e-6  # for testing floats being close to zero
+#ZERO_THRESHHOLD = 1e-20  # for testing floats being close to zero
 HEADER_LINE_LENGTH = 70 # maximum length of header labels
 
 DEFAULT_METAREG_RANDOM_EFFECTS_METHOD = "DL"

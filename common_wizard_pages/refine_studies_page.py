@@ -246,9 +246,12 @@ class RefineStudiesPage(QWizardPage, ui_refine_studies_page.Ui_WizardPage):
             includable = False
             reason = "Effect size or variance missing"
         else:
-            if equals_zero(study.get_var(self.variance_var)):
+            if study.get_var(self.variance_var) == 0:
                 includable = False
                 reason = "zero variance"
+            elif study.get_var(self.variance_var) < 0:
+                includable = False
+                reason = "negative variance is invalid"
             else:
                 if self.need_species and not self._species_present(study):
                     includable = False
@@ -256,13 +259,13 @@ class RefineStudiesPage(QWizardPage, ui_refine_studies_page.Ui_WizardPage):
         
         return (includable, reason)
 
-    def _effect_size_and_var_present(self, study):  
+    def _effect_size_and_var_present(self, study):
         effect_size = study.get_var(self.effect_size_var)
         variance = study.get_var(self.variance_var)
         
-        includable= False
+        includable = False
         if isinstance(effect_size, float) and isinstance(variance, float):
-            includable=True
+            includable = True
             
         return includable
     
