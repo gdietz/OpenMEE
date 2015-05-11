@@ -2,8 +2,8 @@
 
 # Form implementation generated from reading ui file 'main_window.ui'
 #
-# Created: Sat Aug 30 21:08:52 2014
-#      by: PyQt4 UI code generator 4.10.4
+# Created: Sun May 10 19:37:55 2015
+#      by: PyQt4 UI code generator 4.11.3
 #
 # WARNING! All changes made in this file will be lost!
 
@@ -34,7 +34,7 @@ class Ui_MainWindow(object):
         self.centralwidget.setObjectName(_fromUtf8("centralwidget"))
         self.verticalLayout = QtGui.QVBoxLayout(self.centralwidget)
         self.verticalLayout.setObjectName(_fromUtf8("verticalLayout"))
-        self.tableView = QtGui.QTableView(self.centralwidget)
+        self.tableView = MyTableView(self.centralwidget)
         self.tableView.setObjectName(_fromUtf8("tableView"))
         self.verticalLayout.addWidget(self.tableView)
         MainWindow.setCentralWidget(self.centralwidget)
@@ -329,4 +329,5 @@ class Ui_MainWindow(object):
         self.actionPermuted_MA.setText(_translate("MainWindow", "Randomized (Permuted) Meta-Analysis", None))
         self.actionPermuted_metareg.setText(_translate("MainWindow", "Randomized (Permuted) Meta-Regression", None))
 
+from mytableview import MyTableView
 import icons_rc

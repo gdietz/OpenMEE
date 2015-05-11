@@ -1105,6 +1105,9 @@ class EETableModel(QAbstractTableModel):
         elif orientation == Qt.Vertical:
             return QVariant(int(section + 1))
     
+    def clearIndex(self, index):
+        self.setData(index, None)
+
     def setData(self, index, value, role=Qt.EditRole, basic_value=False): # basic_value means a regular python type not a QVariant
         if not index.isValid() and not (0 <= index.row() < self.rowCount()):
             print("bad setData: Index not valid")
