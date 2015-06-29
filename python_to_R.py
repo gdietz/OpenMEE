@@ -88,6 +88,13 @@ class RlibLoader:
         except:
             raise Exception("The %s R package is not installed.\nPlease \
 install this package and then re-start OpenMeta." % name)
+    def load_all_libraries(self):
+        self.load_metafor()
+        self.load_openmetar()
+        self.load_igraph()
+        self.load_grid()
+        self.load_ape()
+        self.load_mice()
 #################### END OF R Library Loader ####################
 
 def load_ape_file(ape_path, tree_format):
@@ -1005,7 +1012,7 @@ def transform_effect_size(metric, source_data, direction, conf_level):
 
 
 def effect_size(metric, data_type, data):
-    ''' calculates effect sizes for the data given in the data where data
+    ''' calculates effect sizes (yi, vi) for the data given in the data where data
     is a dictionary of values obtained from columns as specified in the
     calculate effect size dialog '''
 
@@ -1091,6 +1098,37 @@ def effect_size(metric, data_type, data):
     escalc_result = exR.execute_in_R(r_str)
     result = dataframe_to_pydict(escalc_result) #yi, vi
     return result
+
+def calculate_bounds(yi, vi, conf_level):
+    '''
+    Calculates the upper and lower bounds based on the given effect size,
+    variance, and confidence level.
+    Returns:
+        yi - point estimate
+        lb - lower bound
+        ub - upper bound
+        vi - variance
+    '''
+
+    se = math.sqrt(vi)
+    alpha = 1.0-(conf_level/100.0)
+    r_str = "abs(qnorm(%s))" % str(alpha/2.0)
+    mult = exR.execute_in_R(r_str)[0]
+
+    # note that the point estimate, lower & upper are all computed
+    # and returned on the calculation scale (e.g., log in the case of
+    # ratios)
+    lb, ub = (yi-mult*se, yi+mult*se)
+    
+    print "%s, %s, %s" % (lb, yi, ub)
+
+    return {
+        'yi': yi,
+        'lb': lb,
+        'ub': ub,
+        'vi': vi,
+    }
+
 
 def try_n_run(fn):
     ''' tries to run a function (a call to R) and raises an error if it fails'''
@@ -2484,3 +2522,9 @@ def get_R_libpaths():
     for i, path in enumerate(libpaths):
         print("%d: %s" % (i,path))
     return list(libpaths)
+
+def get_mult_from_r(confidence_level):
+    alpha = 1-float(confidence_level)/100.0
+    r_str = "abs(qnorm(%s/2))" % str(alpha)
+    mult = exR.execute_in_R(r_str)
+    return mult[0]

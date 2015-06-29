@@ -15,9 +15,9 @@ import pdb
 from PyQt4.QtCore import pyqtRemoveInputHook
 
 # debugging:
-# import pdb; pdb.set_trace()
-# pyqtRemoveInputHook()
-# pdb.set_trace()
+# import pdb
+# from PyQt4.QtCore import pyqtRemoveInputHook
+# pyqtRemoveInputHook(), pdb.set_trace()
 
 ######
 HELP_URL = "http://www.cebm.brown.edu/open_mee/help"
@@ -945,3 +945,29 @@ def write_build_date():
 
     with open('version.py', 'w') as f:
         f.write("BUILDDATE = '%s'\n" % datestring)
+
+def represents_int(s):
+    ''' Returns true if this string can be converted to an integer '''
+
+    try:
+        value = int(s)
+        if value % 1 != 0:
+            return False
+    except ValueError:
+        return False
+    except TypeError:
+        return False
+
+    return True
+
+def represents_float(s):
+    ''' Returns true if this string can be converted to a float '''
+
+    try:
+        float(s)
+    except ValueError:
+        return False
+    except TypeError:
+        return False
+
+    return True

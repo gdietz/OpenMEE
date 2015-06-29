@@ -163,6 +163,7 @@
    <addaction name="actionMeta_Regression"/>
    <addaction name="separator"/>
    <addaction name="actionResetAnalysisChoices"/>
+   <addaction name="actionCalculator"/>
   </widget>
   <action name="actionNew">
    <property name="icon">
@@ -446,6 +447,18 @@
   <action name="actionPermuted_metareg">
    <property name="text">
     <string>Randomized (Permuted) Meta-Regression</string>
+   </property>
+  </action>
+  <action name="actionCalculator">
+   <property name="icon">
+    <iconset resource="icons.qrc">
+     <normaloff>:/function_icon_set/images/function_icon_set/coffee_48.png</normaloff>:/function_icon_set/images/function_icon_set/coffee_48.png</iconset>
+   </property>
+   <property name="text">
+    <string>Calculator</string>
+   </property>
+   <property name="toolTip">
+    <string>Binary Data Calculator</string>
    </property>
   </action>
  </widget>
