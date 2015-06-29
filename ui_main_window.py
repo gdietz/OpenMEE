@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'main_window.ui'
 #
-# Created: Sun May 10 19:37:55 2015
+# Created: Sun May 10 23:20:05 2015
 #      by: PyQt4 UI code generator 4.11.3
 #
 # WARNING! All changes made in this file will be lost!
@@ -196,6 +196,11 @@ class Ui_MainWindow(object):
         self.actionPermuted_MA.setObjectName(_fromUtf8("actionPermuted_MA"))
         self.actionPermuted_metareg = QtGui.QAction(MainWindow)
         self.actionPermuted_metareg.setObjectName(_fromUtf8("actionPermuted_metareg"))
+        self.actionCalculator = QtGui.QAction(MainWindow)
+        icon14 = QtGui.QIcon()
+        icon14.addPixmap(QtGui.QPixmap(_fromUtf8(":/function_icon_set/images/function_icon_set/coffee_48.png")), QtGui.QIcon.Normal, QtGui.QIcon.Off)
+        self.actionCalculator.setIcon(icon14)
+        self.actionCalculator.setObjectName(_fromUtf8("actionCalculator"))
         self.menuFile.addAction(self.actionNew)
         self.menuFile.addAction(self.actionOpen)
         self.menuFile.addAction(self.actionSave)
@@ -264,6 +269,7 @@ class Ui_MainWindow(object):
         self.toolBar.addAction(self.actionMeta_Regression)
         self.toolBar.addSeparator()
         self.toolBar.addAction(self.actionResetAnalysisChoices)
+        self.toolBar.addAction(self.actionCalculator)
 
         self.retranslateUi(MainWindow)
         QtCore.QMetaObject.connectSlotsByName(MainWindow)
@@ -328,6 +334,8 @@ class Ui_MainWindow(object):
         self.actionGet_help_online.setText(_translate("MainWindow", "Get help online", None))
         self.actionPermuted_MA.setText(_translate("MainWindow", "Randomized (Permuted) Meta-Analysis", None))
         self.actionPermuted_metareg.setText(_translate("MainWindow", "Randomized (Permuted) Meta-Regression", None))
+        self.actionCalculator.setText(_translate("MainWindow", "Calculator", None))
+        self.actionCalculator.setToolTip(_translate("MainWindow", "Binary Data Calculator", None))
 
 from mytableview import MyTableView
 import icons_rc

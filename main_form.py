@@ -29,6 +29,7 @@ import csv_export_dlg
 import preferences_dlg
 from contingency_table_dlg import ContingencyTableDlg
 import imputation.imputation_wizard
+import binary_calculator
 
 from variable_group_graphic import VariableGroupGraphic
 from analyses import Analyzer
@@ -307,8 +308,14 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
         
         # Toolbar
         self.actionResetAnalysisChoices.triggered.connect(self.reset_analysis_selection)
-        
-        
+
+        # Binary Data Calculator
+        self.actionCalculator.triggered.connect(self.binary_calculator)
+
+    def binary_calculator(self):
+        form = binary_calculator.BinaryCalculator(parent=self)
+        form.exec_()
+ 
     def open_help_online(self):
         QDesktopServices.openUrl(QUrl(HELP_URL))
         
