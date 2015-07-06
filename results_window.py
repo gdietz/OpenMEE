@@ -114,7 +114,9 @@ class ResultsWindow(QMainWindow, ui_results_window.Ui_ResultsWindow):
         self.graphics_view.setScene(self.scene)
         self.graphics_view.ensureVisible(QRectF(0,0,0,0))
 
-        if "results_data" in results and len(results["results_data"]) > 0:
+        print "Results: %s" % str(results)
+
+        if "results_data" in results and islistortuple(results["results_data"]) and len(results["results_data"]) > 0:
             if self.show_additional_values:
                 self.add_additional_values_texts(results["results_data"])
             else:

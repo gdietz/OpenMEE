@@ -971,3 +971,11 @@ def represents_float(s):
         return False
 
     return True
+
+def islistortuple(obj):
+    ''' Returns true if obj is alist or tuple '''
+
+    if isinstance(obj, list) or isinstance(obj, tuple):
+        return True
+    else:
+        return False
