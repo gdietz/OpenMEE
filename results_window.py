@@ -82,6 +82,12 @@ class ResultsWindow(QMainWindow, ui_results_window.Ui_ResultsWindow):
         self.params_paths = {}
         if "image_params_paths" in results:
             self.params_paths = results["image_params_paths"]
+        # R functions to use in regenerating the plots
+        # usually take plot.data, base.path, and image.format
+        self.save_plot_functions = {}
+        if "save_plot_functions" in results:
+            self.save_plot_functions = results["save_plot_functions"]
+
 
         self.image_var_names = results["image_var_names"]
         
@@ -229,8 +235,17 @@ class ResultsWindow(QMainWindow, ui_results_window.Ui_ResultsWindow):
             params_path = None
             if self.params_paths is not None and title in self.params_paths:
                 params_path = self.params_paths[title]
+            if self.save_plot_functions is not None and title in self.save_plot_functions:
+                save_plot_function = self.save_plot_functions[title]
 
-            self.create_pixmap_item(pixmap, self.position(), title, image, params_path=params_path)
+            self.create_pixmap_item(
+                pixmap,
+                self.position(),
+                title,
+                image,
+                params_path=params_path,
+                save_plot_function=save_plot_function
+            )
 
             self.items_to_coords[qt_item] = self.position()
             self.y_coord += padding
@@ -426,6 +441,7 @@ class ResultsWindow(QMainWindow, ui_results_window.Ui_ResultsWindow):
         # more...
         plot_type = None
         tmp_title = title.lower()
+
         if "forest plot of coefficients" in tmp_title:
             plot_type = "forest plot of coefficients"
         elif "forest" in tmp_title and "__phylo" in tmp_title:
@@ -436,14 +452,23 @@ class ResultsWindow(QMainWindow, ui_results_window.Ui_ResultsWindow):
             plot_type = "regression"
         elif "funnel" in tmp_title:
             plot_type = "funnel"
+        elif "weighted histogram":
+            plot_type = "weighted_histogram"
         elif "histogram" in tmp_title:
             plot_type = "histogram"
         elif "scatterplot" in tmp_title:
             plot_type = "scatterplot"
         return plot_type
 
-    def create_pixmap_item(self, pixmap, position, title, image_path,
-            params_path=None, matrix=QMatrix()):
+    def create_pixmap_item(
+            self,
+            pixmap,
+            position,
+            title,
+            image_path,
+            params_path=None,
+            save_plot_function=None,
+            matrix=QMatrix()):
         item = QGraphicsPixmapItem(pixmap)
 
         item.setFlags(QGraphicsItem.ItemIsSelectable)
@@ -464,30 +489,57 @@ class ResultsWindow(QMainWindow, ui_results_window.Ui_ResultsWindow):
         # attach event handler for mouse-clicks, i.e., to handle
         # user right-clicks
         item.contextMenuEvent = self._make_context_menu(
-                params_path, title, image_path, item, plot_type=plot_type)
+            params_path,
+            save_plot_function,
+            title,
+            image_path,
+            item,
+            plot_type=plot_type,
+        )
 
-    def _make_context_menu(self, params_path, title, png_path, 
-                           qpixmap_item, plot_type="forest"):
+    def _make_context_menu(
+            self,
+            params_path,
+            save_plot_function,
+            title,
+            png_path,
+            qpixmap_item,
+            plot_type="forest"):
         plot_img = QImage(png_path)
-        
+
         print("plot_img: %s" % plot_img)
         def _graphics_item_context_menu(event):
             def add_save_as_pdf_menu_action(menu):
                 action = QAction("save pdf image as...", self)
-                QObject.connect(action, SIGNAL("triggered()"),
-                                lambda : self.save_image_as(params_path, title, 
-                                plot_type=plot_type, fmt="pdf"))
+                QObject.connect(
+                    action,
+                    SIGNAL("triggered()"),
+                    lambda : self.save_image_as(
+                        params_path,
+                        save_plot_function,
+                        title,
+                        plot_type=plot_type,
+                        fmt="pdf"),
+                    )
                 menu.addAction(action)
             def add_save_as_png_menu_action(menu):
                 action = QAction("save png image as...", self)
-                QObject.connect(action, SIGNAL("triggered()"),
-                            lambda : self.save_image_as(params_path, title, 
-                                            plot_type=plot_type,
-                                            unscaled_image = plot_img, fmt="png"))
+                QObject.connect(
+                    action,
+                    SIGNAL("triggered()"),
+                    lambda : self.save_image_as(
+                        params_path,
+                        save_plot_function,
+                        title,
+                        plot_type=plot_type,
+                        unscaled_image = plot_img,
+                        fmt="png"),
+                    )
                 menu.addAction(action)
             def add_edit_plot_menu_action(menu):
                 # only know how to edit *simple* (i.e., _not_ side-by-side, as 
                 # in sens and spec plotted on the same canvass) forest plots for now
+                print "in add_edit_plot_menu_action, plot type: %s" % plot_type
                 if plot_type == "forest" and not self._is_side_by_side_fp(title):
                     action = QAction("edit plot...", self)
                     QObject.connect(action, SIGNAL("triggered()"),
@@ -526,7 +578,7 @@ class ResultsWindow(QMainWindow, ui_results_window.Ui_ResultsWindow):
     def _is_side_by_side_fp(self, title):
         return any([side_by_side in title for side_by_side in SIDE_BY_SIDE_FOREST_PLOTS])
 
-    def save_image_as(self, params_path, title, plot_type="forest", unscaled_image=None, fmt="png"):
+    def save_image_as(self, params_path, save_plot_function, title, plot_type="forest", unscaled_image=None, fmt="png"):
         
         if fmt not in ["pdf","png"]:
             raise Exception("Invalid fmt, needs to be either pdf or png!")
@@ -547,15 +599,21 @@ class ResultsWindow(QMainWindow, ui_results_window.Ui_ResultsWindow):
             print("Loaded: %s" % "%s.coef_fp_data" % params_path)
 
         suffix = unicode("."+fmt)
-        default_filename = {"forest":"forest_plot",
-                            "forest__phylo":"forest_plot",
-                            "regression":"regression",
-                            "funnel":"funnel_plot",
-                            "histogram":"histogram",
-                            "scatterplot":"scatterplot",
-                            "forest plot of coefficients":"forest_plot_of_coefficients"}[plot_type] + suffix
+        default_filenames = {
+            "forest": "forest_plot",
+            "forest__phylo": "forest_plot",
+            "regression": "regression",
+            "funnel": "funnel_plot",
+            "histogram": "histogram",
+            "scatterplot": "scatterplot",
+            "forest plot of coefficients": "forest_plot_of_coefficients",
+        }
+
+        try:
+            default_filename = default_filenames[plot_type] + suffix
+        except KeyError:
+            default_filename = plot_type + suffix
         
-                        
         default_path = os.path.join(get_user_desktop_path(), default_filename)
         print("default_path for graphic: %s" % default_path)
         default_path = QString(default_path)
@@ -565,10 +623,11 @@ class ResultsWindow(QMainWindow, ui_results_window.Ui_ResultsWindow):
         print("filter: %s" % dfilter)
 
         # where to save the graphic?
-        file_path = unicode(QFileDialog.getSaveFileName(self, 
-                                                        "OpenMEE -- save plot as",
-                                                        default_path,))
-                                                        #filter=QString(dfilter)))
+        file_path = unicode(QFileDialog.getSaveFileName(
+            self,
+            "OpenMEE -- save plot as",
+            default_path,
+        ))
 
         # now we re-generate it, unless they canceled, of course
         if file_path != "":
@@ -591,7 +650,15 @@ class ResultsWindow(QMainWindow, ui_results_window.Ui_ResultsWindow):
             elif plot_type == "forest plot of coefficients":
                 python_to_R.regenerate_forest_plot_of_coefficients(file_path, params_path, fmt)
             else:
-                print "sorry -- I don't know how to draw %s plots!" % plot_type
+                if save_plot_function:
+                    python_to_R.dynamic_save_plot(
+                        rfunction=save_plot_function,
+                        plot_data_path=params_path,
+                        file_path=file_path,
+                        format=fmt,
+                    )
+                else:
+                    print "sorry -- I don't know how to draw %s plots!" % plot_type
 #        else: # case where we just have the png and can't regenerate the pdf from plot data
 #            print("Can't regenerate pdf")
 #            default_path = '.'.join([title.replace(' ','_'),"png"])

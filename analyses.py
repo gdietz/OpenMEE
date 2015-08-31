@@ -26,6 +26,7 @@ from publication_bias_wizards import FunnelWizard, FailsafeWizard
 from model_building.model_building_wizard import ModelBuildingWizard
 from multiple_imputation_meta_analysis_wizard import MiMaWizard
 from permutation_wizard import PermutationWizard
+from dynamic_wizard import DynamicWizard
 
 # # catches an r exception, displays a message, returns None if there is an exception
 # def CatchRError(function):
@@ -741,7 +742,43 @@ class Analyzer:
                 QMessageBox.critical(self.main_form, "Oops", str(e))
  
             self._display_results(result, summary="")
-    
+
+    def dynamic_data_exploration_analysis(self, analysis_details):
+        '''
+        Creates a custom data exploration analysis
+
+        analysis_details: a dictionary expected to be of the following structure:
+            {
+                'MAIN': string,                 # R analysis function
+                'WIZARD.WINDOW.TITLE': string,  # Title of wizard window
+                'WIZARD.PAGES': {
+                    'NAME OF WIZARD PAGE1': {
+                        wizard page parameters
+                    },
+                    'NAME OF WIZARD PAGE2': {
+                        wizard page parameters
+                    },
+                    ......,
+                }
+            }
+        '''
+        model = self._get_model()
+
+        wizard = DynamicWizard(
+            model=model,
+            parent=self.main_form,
+            wizard_parameters=analysis_details
+        )
+
+        if wizard.exec_():
+            data_location = wizard.get_data_location()
+            included_studies = wizard.get_included_studies_in_proper_order()
+            summary = wizard.get_summary()
+            save_selections = wizard.save_selections() # a bool
+
+            #result = python_to_R.run_failsafe_analysis(model, included_studies, data_location, failsafe_parameters)
+            result = python_to_R.run_dynamic_data_exploration_analysis(model, included_studies, data_location, analysis_details)
+            self._display_results(result, summary)
             
     #### RESULTS OUTPUT ####
 

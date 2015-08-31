@@ -293,11 +293,15 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
         self.actionFail_Safe_N.triggered.connect(self.analyst.failsafe_analysis)
         self.actionFunnel_Plot.triggered.connect(self.analyst.funnel_plot_analysis)
         
-        #### Data Exploration Menu ###
+        #### Data Exploration Menu ####
         self.actionHistogram.triggered.connect(self.analyst.histogram)
         self.actionScatterplot.triggered.connect(self.analyst.scatterplot)
         self.actionContingency_Table.triggered.connect(self.contingency_table)
         self.actionImpute_Missing_Data.triggered.connect(self.impute_missing_data)
+
+        #### Add supplementary data exploration ananlyes from openmeer
+        self.setup_dynamic_data_exploration_options(self.actionContingency_Table)
+        #### End Data Exploration Menu ####
         
         # Help Menu
         self.action_about.triggered.connect(self.show_about_dlg)
@@ -311,6 +315,24 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
 
         # Binary Data Calculator
         self.actionCalculator.triggered.connect(self.binary_calculator)
+
+    def setup_dynamic_data_exploration_options(self, last_not_dynamic_action=None):
+        ''' Add data exploration options from R to data exploration menu
+            and connect them to analysis actions.
+
+            Arguments:
+                last_not_dynamic_action - last action that is not dynamically
+                    generated from openmeer
+        '''
+
+        # Should probably sort these in some manner ....
+        options_descriptions = python_to_R.get_data_exploration_analyses()
+
+        for key, info in options_descriptions.items():
+            if key != 'ORDER':
+                action = self.menuData_Exploration.addAction(info['ACTIONTEXT'])
+                action.triggered.connect(partial(self.analyst.dynamic_data_exploration_analysis, info))
+
 
     def binary_calculator(self):
         form = binary_calculator.BinaryCalculator(parent=self)

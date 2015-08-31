@@ -36,6 +36,8 @@ class DataLocationPage(QWizardPage):
         self.effect_and_var_boxes_exist = False
         
         self.box_names_to_boxes = {}
+
+        print "Raw data: %s" % self.raw_data
         
     def set_show_raw_data(self, show_raw_data):
         self.raw_data = show_raw_data

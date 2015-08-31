@@ -37,6 +37,10 @@ def load_R_libraries(app, splash=None):
     splash.showMessage("Loading openmetar\n........")
     app.processEvents()
     rloader.load_openmetar()
+
+    splash.showMessage("Loading openmee\n............")
+    app.processEvents()
+    rloader.load_openmeer()
     
     splash.showMessage("Loading igraph\n............")
     app.processEvents()

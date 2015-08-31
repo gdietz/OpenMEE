@@ -15,8 +15,10 @@ import rpy2
 import rpy2.robjects
 from rpy2 import robjects as ro
 import rpy2.rlike.container as rlc
-
 from rpy2.robjects.packages import importr
+
+from rpy2_helper import *
+
 base = importr('base')
 
 
@@ -61,20 +63,23 @@ class RlibLoader:
     def load_ape(self):
         return self._load_r_lib("ape")
 
-    def load_mice(self):
-        return self._load_r_lib("mice")
-
-    def load_metafor(self):
-        return self._load_r_lib("metafor")
-
-    def load_openmetar(self):
-        return self._load_r_lib("openmetar")
+    def load_grid(self):
+        return self._load_r_lib("grid")
 
     def load_igraph(self):
         return self._load_r_lib("igraph")
 
-    def load_grid(self):
-        return self._load_r_lib("grid")
+    def load_metafor(self):
+        return self._load_r_lib("metafor")
+
+    def load_mice(self):
+        return self._load_r_lib("mice")
+
+    def load_openmeer(self):
+        return self._load_r_lib("openmeer")
+
+    def load_openmetar(self):
+        return self._load_r_lib("openmetar")
 
     def load_rmeta(self):
         return self._load_r_lib("rmeta")
@@ -88,13 +93,17 @@ class RlibLoader:
         except:
             raise Exception("The %s R package is not installed.\nPlease \
 install this package and then re-start OpenMeta." % name)
+
     def load_all_libraries(self):
-        self.load_metafor()
-        self.load_openmetar()
-        self.load_igraph()
-        self.load_grid()
         self.load_ape()
+        self.load_grid()
+        self.load_igraph()
+        self.load_metafor()
         self.load_mice()
+        self.load_openmeer()
+        self.load_openmetar()
+        #self.load_rmeta()
+
 #################### END OF R Library Loader ####################
 
 def load_ape_file(ape_path, tree_format):
@@ -711,6 +720,17 @@ def run_failsafe_analysis(model, included_studies, data_location, failsafe_param
     result = exR.execute_in_R("%s" % res_name)
     return parse_out_results(result)
 
+def run_dynamic_data_exploration_analysis(model, included_studies, data_location, analysis_details, res_name="result", var_name="tmp_obj"):
+    dataset_to_dataframe(model=model,
+                         included_studies=included_studies,
+                         data_location=data_location,
+                         var_name=var_name)
+    ranalysis_function_name = analysis_details['MAIN']
+    r_str = "%s <- %s(list(data=%s))" % (res_name, ranalysis_function_name, var_name)
+    exR.execute_in_R(r_str)
+    result = exR.execute_in_R("%s" % res_name)
+    return parse_out_results(result)
+
 def run_histogram(model, var, params, res_name = "result", var_name = "tmp_obj", summary=""):
     var_type = var.get_type()
 
@@ -1277,6 +1297,7 @@ def parse_out_results(result, function_name=None, meta_function_name=None):
     # in R (for graphics manipulation).
     text_d = {}
     image_var_name_d, image_params_paths_d, image_path_d  = {}, {}, {}
+    save_plot_function_d = {}
     image_order = None
 
     # Turn result into a nice dictionary
@@ -1292,23 +1313,26 @@ def parse_out_results(result, function_name=None, meta_function_name=None):
             image_path_d = R_parse_tools.recursioner(text)
         elif text_n == "image_order":
             image_order = list(text)
-        elif text_n == "plot_names":
+        elif text_n in ("plot_names", "plot_params_paths"):
             if str(text) == "NULL":
                 image_var_name_d = {}
             else:
                 image_var_name_d = R_parse_tools.recursioner(text)
-        elif text_n == "plot_params_paths":
+        elif text_n in ("plot.data.paths"):
             if str(text) == "NULL":
                 image_params_paths_d = {}
             else:
                 image_params_paths_d = R_parse_tools.recursioner(text)
+        elif text_n in ("save.plot.function"):
+            if str(text) == "NULL":
+                save_plot_function_d = {}
+            else:
+                save_plot_function_d = R_parse_tools.recursioner(text)
         elif text_n == "References":
             references_list = list(text)
             references_list.append('metafor: Viechtbauer, Wolfgang. "Conducting meta-analyses in R with the metafor package." Journal of 36 (2010).')
             references_list.append('OpenMetaAnalyst: Wallace, Byron C., Issa J. Dahabreh, Thomas A. Trikalinos, Joseph Lau, Paul Trow, and Christopher H. Schmid. "Closing the Gap between Methodologists and End-Users: R as a Computational Back-End." Journal of Statistical Software 49 (2012): 5."')
             ref_set = set(references_list) # removes duplicates
-
-
             references_str = ""
             for i, ref in enumerate(ref_set):
                 references_str += str(i+1) + ". " + ref + "\n"
@@ -1342,12 +1366,15 @@ def parse_out_results(result, function_name=None, meta_function_name=None):
                  "image_var_names":image_var_name_d,
                  "texts":text_d,
                  "image_params_paths":image_params_paths_d,
-                 "image_order":image_order}
+                 "image_order":image_order,
+                 "save_plot_functions": save_plot_function_d,
+                 }
     try:
         to_return["results_data"]=results_data
     except NameError:
         pass
 
+    print "parsed_out_results: %s" % str(to_return)
     return to_return
 
 def extract_additional_values(res, res_info, sublist_prefix = "__"):
@@ -2528,3 +2555,53 @@ def get_mult_from_r(confidence_level):
     r_str = "abs(qnorm(%s/2))" % str(alpha)
     mult = exR.execute_in_R(r_str)
     return mult[0]
+
+def get_nested_rlist_as_pydict(rcommand):
+    ''' Execute a command in R that returns a nested list stucture.
+        Convert that structure to nested python dictionaries '''
+
+    rstruct = exR.execute_in_R(rcommand)
+    pydict = parse_r_struct(rstruct)
+    return pydict
+
+def get_data_exploration_analyses():
+    ''' Get description of data exploration analyses from R '''
+
+    analyses_info = get_nested_rlist_as_pydict('get.data.exploration.analyses()')
+    analyses_info = singletonlists_to_scalars(analyses_info)
+    return analyses_info
+
+if __name__ == '__main__': 
+    #app = QApplication(sys.argv)
+    #form = BinaryCalculator(conf_level=DEFAULT_CONFIDENCE_LEVEL, debug=True, digits=3)
+    rloader = RlibLoader()
+    rloader.load_all_libraries()
+
+    data_exploration_analyses = get_data_exploration_analyses()
+    print "Data exploration analyses: %s" % str(data_exploration_analyses)
+
+def dynamic_save_plot(rfunction, plot_data_path, file_path, format):
+    '''
+    Calls the specified R save plot function to generate a new plot at
+    file_path location.
+        rfunction - string representing r save function e.g. 'weighted.histogram.plot'
+            This R function is expected to take the following arguments as elements
+            of an R list:
+                plot.data - which is the name of the object that we reload on the R side
+                base.path (path w/o extension to desired save location e.g. \Users\yourusername\myimage)
+                image.format - image format, probably 'png' or 'pdf'
+        plot_data_path - path to plot data used to generate plot
+        file_path - path where we should save the plot image
+        format - image format for plot
+    '''
+
+    if file_path:
+        file_path = file_path.split('.')[0]
+
+    # load plot data
+    r_str = "load('%s')" % plot_data_path
+    exR.execute_in_R(r_str)
+
+    rarguments = "list(plot.data=%s, base.path='%s', image.format='%s')" % ('plot.data', file_path, format)
+    r_str = "%s(%s)" % (rfunction, rarguments)
+    result = exR.execute_in_R(r_str)
