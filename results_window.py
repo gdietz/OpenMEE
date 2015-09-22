@@ -233,6 +233,7 @@ class ResultsWindow(QMainWindow, ui_results_window.Ui_ResultsWindow):
             # to the create_pixmap_item method to for the context_menu 
             # construction
             params_path = None
+            save_plot_function = None
             if self.params_paths is not None and title in self.params_paths:
                 params_path = self.params_paths[title]
             if self.save_plot_functions is not None and title in self.save_plot_functions:
