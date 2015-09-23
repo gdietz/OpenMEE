@@ -7,7 +7,7 @@ cd dist
 
 REM Copy R in to executable
 mkdir R_dist
-cp -rv "C:\Program Files\R\R-3.1.0" R_dist
+cp -rv "C:\Program Files\R\R-3.2.2" R_dist
 
 REM Copy sounds
 cp -rv ../sounds .
