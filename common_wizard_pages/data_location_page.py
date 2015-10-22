@@ -36,6 +36,8 @@ class DataLocationPage(QWizardPage):
         self.effect_and_var_boxes_exist = False
         
         self.box_names_to_boxes = {}
+
+        print "Raw data: %s" % self.raw_data
         
     def set_show_raw_data(self, show_raw_data):
         self.raw_data = show_raw_data
@@ -87,6 +89,8 @@ class DataLocationPage(QWizardPage):
                     pass # don't choose data location columns for generic effect
             elif self.data_type == TWO_BY_TWO_CONTINGENCY_TABLE:
                 self._setup_TWO_BY_TWO_CONTINGENCY_table(layout, startrow=layout.rowCount())
+            elif self.data_type == PROPORTIONS:
+                self._setup_PROPORTIONS_table(layout, startrow=layout.rowCount())
             elif self.data_type == CORRELATION_COEFFICIENTS:
                 self._setup_CORRELATION_COEFFICIENTS_table(layout, startrow=layout.rowCount())
             else:
@@ -211,12 +215,7 @@ class DataLocationPage(QWizardPage):
         # connect boxes to update of selections
         for box in self.continuous_combo_boxes + self.counts_combo_boxes:
             QObject.connect(box, SIGNAL("currentIndexChanged(int)"), self._update_current_selections)
-        
 
-                            
-                                   
-                                   
-    
     def _setup_TWO_BY_TWO_CONTINGENCY_table(self, layout, startrow=0):
         # top row labels
         layout.addWidget(QLabel("Control"),   startrow, 1)
@@ -237,28 +236,59 @@ class DataLocationPage(QWizardPage):
         layout.addWidget(self.experimental_response_combo_box,   startrow+1, 2)
         layout.addWidget(self.experimental_noresponse_combo_box, startrow+2, 2)
         
-        self.counts_combo_boxes = [self.control_response_combo_box,
-                                   self.control_noresponse_combo_box,
-                                   self.experimental_noresponse_combo_box, 
-                                   self.experimental_response_combo_box]
+        self.counts_combo_boxes = [
+            self.control_response_combo_box,
+            self.control_noresponse_combo_box,
+            self.experimental_noresponse_combo_box, 
+            self.experimental_response_combo_box
+        ]
         
         self.box_names_to_boxes = {
             'control_response'        : self.control_response_combo_box,
             'control_noresponse'      : self.control_noresponse_combo_box,
             'experimental_response'   : self.experimental_response_combo_box,
-            'experimental_noresponse' : self.experimental_noresponse_combo_box}
+            'experimental_noresponse' : self.experimental_noresponse_combo_box
+        }
         
         self._populate_combo_boxes(self.counts_combo_boxes, self.count_columns)
         
         for box in self.counts_combo_boxes:
-            QObject.connect(box, SIGNAL("currentIndexChanged(int)"), self._update_current_selections)
+            QObject.connect(
+                box,
+                SIGNAL("currentIndexChanged(int)"),
+                self._update_current_selections
+            )
             
-            
+    def _setup_PROPORTIONS_table(self, layout, startrow=0):
+        # Labels
+        layout.addWidget(QLabel("# Events"), startrow, 0)
+        layout.addWidget(QLabel("Sample Size"), startrow+1, 0)
 
+        # combo boxes
+        self.num_events_combobox = QComboBox()
+        self.sample_size_combo_box = QComboBox()
+        layout.addWidget(self.num_events_combobox, startrow, 1)
+        layout.addWidget(self.sample_size_combo_box, startrow+1, 1)
 
- 
+        self.counts_combo_boxes = [
+            self.num_events_combobox,
+            self.sample_size_combo_box
+        ]
 
-        
+        self.box_names_to_boxes = {
+            'num_events': self.num_events_combobox,
+            'sample_size': self.sample_size_combo_box,
+        }
+
+        self._populate_combo_boxes(self.counts_combo_boxes, self.count_columns)
+
+        for box in self.counts_combo_boxes:
+            QObject.connect(
+                box,
+                SIGNAL("currentIndexChanged(int)"),
+                self._update_current_selections
+            )
+
     def _setup_CORRELATION_COEFFICIENTS_table(self, layout, startrow=0):
         # top row labels
         layout.addWidget(QLabel("Correlation"), startrow, 1)
@@ -368,11 +398,21 @@ class DataLocationPage(QWizardPage):
                 else: # metric is generic effect
                     current_selections = {}
             elif self.data_type == TWO_BY_TWO_CONTINGENCY_TABLE:
-                current_selections = {'control_response'    : selected_column(self.control_response_combo_box),
-                                      'control_noresponse'  : selected_column(self.control_noresponse_combo_box),
-                                      'experimental_response'  : selected_column(self.experimental_response_combo_box),
-                                      'experimental_noresponse': selected_column(self.experimental_noresponse_combo_box),
-                                      }
+                current_selections = {
+                    'control_response': selected_column(
+                        self.control_response_combo_box),
+                    'control_noresponse': selected_column(
+                        self.control_noresponse_combo_box),
+                    'experimental_response': selected_column(
+                        self.experimental_response_combo_box),
+                    'experimental_noresponse': selected_column(
+                        self.experimental_noresponse_combo_box),
+                }
+            elif self.data_type == PROPORTIONS:
+                current_selections = {
+                    'num_events': selected_column(self.num_events_combobox),
+                    'sample_size': selected_column(self.sample_size_combo_box),
+                }
             elif self.data_type == CORRELATION_COEFFICIENTS:
                 current_selections = {'correlation': selected_column(self.correlation_combo_box),
                                       'sample_size': selected_column(self.sample_size_combo_box),}
@@ -430,4 +470,3 @@ class DataLocationPage(QWizardPage):
     
     def __str__(self):
         return "Data Location: \n%s" % self._get_data_location_string(self.get_data_locations())
-                

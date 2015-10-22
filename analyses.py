@@ -25,7 +25,8 @@ from meta_progress import MetaProgress
 from publication_bias_wizards import FunnelWizard, FailsafeWizard
 from model_building.model_building_wizard import ModelBuildingWizard
 from multiple_imputation_meta_analysis_wizard import MiMaWizard
-
+from permutation_wizard import PermutationWizard
+from dynamic_wizard import DynamicWizard
 
 # # catches an r exception, displays a message, returns None if there is an exception
 # def CatchRError(function):
@@ -741,7 +742,43 @@ class Analyzer:
                 QMessageBox.critical(self.main_form, "Oops", str(e))
  
             self._display_results(result, summary="")
-    
+
+    def dynamic_data_exploration_analysis(self, analysis_details):
+        '''
+        Creates a custom data exploration analysis
+
+        analysis_details: a dictionary expected to be of the following structure:
+            {
+                'MAIN': string,                 # R analysis function
+                'WIZARD.WINDOW.TITLE': string,  # Title of wizard window
+                'WIZARD.PAGES': {
+                    'NAME OF WIZARD PAGE1': {
+                        wizard page parameters
+                    },
+                    'NAME OF WIZARD PAGE2': {
+                        wizard page parameters
+                    },
+                    ......,
+                }
+            }
+        '''
+        model = self._get_model()
+
+        wizard = DynamicWizard(
+            model=model,
+            parent=self.main_form,
+            wizard_parameters=analysis_details
+        )
+
+        if wizard.exec_():
+            data_location = wizard.get_data_location()
+            included_studies = wizard.get_included_studies_in_proper_order()
+            summary = wizard.get_summary()
+            save_selections = wizard.save_selections() # a bool
+
+            #result = python_to_R.run_failsafe_analysis(model, included_studies, data_location, failsafe_parameters)
+            result = python_to_R.run_dynamic_data_exploration_analysis(model, included_studies, data_location, analysis_details)
+            self._display_results(result, summary)
             
     #### RESULTS OUTPUT ####
 
@@ -1026,3 +1063,51 @@ class Analyzer:
         bar.deleteLater()
         return result
     
+    def PermutationAnalysis(self, meta_reg_mode):
+        model = self._get_model()
+        wizard = PermutationWizard(
+            model=model,
+            meta_reg_mode=meta_reg_mode,
+            parent=self.main_form)
+        # get out of the analysis if we quit the wizard
+        if not wizard.exec_():
+            return
+
+        parameters = wizard.get_parameters()
+        summary = wizard.get_summary()
+        try:
+            result = self.run_permutation_analysis(parameters, meta_reg_mode)
+        except CrazyRError as e:
+            if SOUND_EFFECTS:
+                silly.play()
+            QMessageBox.critical(self.main_form, "Oops", str(e))
+        self._display_results(result, summary)
+
+    def run_permutation_analysis(self, parameters, meta_reg_mode):
+        model = self._get_model()
+        bar = MetaProgress()
+        bar.show()
+        
+        # Make dataframe of data with associated covariates
+        if meta_reg_mode:
+            python_to_R.dataset_to_dataframe(
+                model=model,
+                included_studies=parameters['studies'],
+                data_location=parameters['data_location'],
+                covariates=parameters['covariates'],
+                cov_ref_values=parameters['reference_values'],
+                var_name="tmp_obj")
+        else:
+            python_to_R.dataset_to_dataframe(
+                model=model,
+                included_studies=parameters['studies'],
+                data_location=parameters['data_location'],
+                var_name="tmp_obj")
+                
+        print("Running PermutationAnalysis with parameters %s", parameters)
+        result = python_to_R.run_permutation_analysis(
+            parameters, meta_reg_mode)
+
+        bar.hide()
+        bar.deleteLater()
+        return result

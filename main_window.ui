@@ -20,7 +20,7 @@
   <widget class="QWidget" name="centralwidget">
    <layout class="QVBoxLayout" name="verticalLayout">
     <item>
-     <widget class="QTableView" name="tableView"/>
+     <widget class="MyTableView" name="tableView"/>
     </item>
    </layout>
   </widget>
@@ -88,6 +88,8 @@
     <addaction name="actionPhyloMA"/>
     <addaction name="actionModel_Building"/>
     <addaction name="actionMultiple_Imputation_Meta_Analysis"/>
+    <addaction name="actionPermuted_MA"/>
+    <addaction name="actionPermuted_metareg"/>
    </widget>
    <widget class="QMenu" name="menuAbout">
     <property name="title">
@@ -161,6 +163,7 @@
    <addaction name="actionMeta_Regression"/>
    <addaction name="separator"/>
    <addaction name="actionResetAnalysisChoices"/>
+   <addaction name="actionCalculator"/>
   </widget>
   <action name="actionNew">
    <property name="icon">
@@ -436,7 +439,36 @@
     <string>Get help online</string>
    </property>
   </action>
+  <action name="actionPermuted_MA">
+   <property name="text">
+    <string>Randomized (Permuted) Meta-Analysis</string>
+   </property>
+  </action>
+  <action name="actionPermuted_metareg">
+   <property name="text">
+    <string>Randomized (Permuted) Meta-Regression</string>
+   </property>
+  </action>
+  <action name="actionCalculator">
+   <property name="icon">
+    <iconset resource="icons.qrc">
+     <normaloff>:/function_icon_set/images/function_icon_set/coffee_48.png</normaloff>:/function_icon_set/images/function_icon_set/coffee_48.png</iconset>
+   </property>
+   <property name="text">
+    <string>Calculator</string>
+   </property>
+   <property name="toolTip">
+    <string>Binary Data Calculator</string>
+   </property>
+  </action>
  </widget>
+ <customwidgets>
+  <customwidget>
+   <class>MyTableView</class>
+   <extends>QTableView</extends>
+   <header>mytableview.h</header>
+  </customwidget>
+ </customwidgets>
  <resources>
   <include location="icons.qrc"/>
  </resources>

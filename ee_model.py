@@ -1105,6 +1105,9 @@ class EETableModel(QAbstractTableModel):
         elif orientation == Qt.Vertical:
             return QVariant(int(section + 1))
     
+    def clearIndex(self, index):
+        self.setData(index, None)
+
     def setData(self, index, value, role=Qt.EditRole, basic_value=False): # basic_value means a regular python type not a QVariant
         if not index.isValid() and not (0 <= index.row() < self.rowCount()):
             print("bad setData: Index not valid")
@@ -1198,20 +1201,18 @@ class EETableModel(QAbstractTableModel):
             var = self.cols_2_vars[col]
             var_name = var.get_label()
             var_type = var.get_type()
-            
-            
+
+
             # Set value in study for variable
-            can_convert_value_to_desired_type = self.dataset.can_convert_var_value_to_type(var_type, value_as_string)
-            if not can_convert_value_to_desired_type:
-                bad_conversion_msg = "Cannot convert '%s' to %s data type" % (value_as_string, VARIABLE_TYPE_STRING_REPS[var_type])
-                self.emit(SIGNAL("DataError"), QString("Impossible Data Conversion"), QString(bad_conversion_msg))
+            can_convert_info = self.dataset.can_convert_var_value_to_type(var_type, value_as_string)
+            if not can_convert_info['OK']:
+                self.emit(SIGNAL("DataError"), QString("Impossible Data Conversion"), QString(can_convert_info['INVALIDMESSAGE']))
                 if not self.big_paste_mode:
                     cancel_macro_creation_and_revert_state(self.undo_stack)
-                print("bad setData: %s" % bad_conversion_msg)
+                print("bad setData: %s" % can_convert_info['INVALIDMESSAGE'])
                 return False
-                
+
             formatted_value = self._convert_input_value_to_correct_type_for_assignment(value_as_string, var_type)
-            
             
             if not self.big_paste_mode:
                 old_value = study.get_var(var)
@@ -1287,9 +1288,13 @@ class EETableModel(QAbstractTableModel):
                 var = self.cols_2_vars[col]
                 var_type = var.get_type()
             
-            can_convert_value_to_desired_type = self.dataset.can_convert_var_value_to_type(var_type, value_as_string)
-            if not can_convert_value_to_desired_type:
-                self.emit(SIGNAL("DataError"), QString("Impossible Data Conversion"), QString("Cannot convert '%s' to %s data type" % (value_as_string, VARIABLE_TYPE_STRING_REPS[var_type])))
+            can_convert_info = self.dataset.can_convert_var_value_to_type(var_type, value_as_string)
+            if not can_convert_info['OK']:
+                self.emit(
+                    SIGNAL("DataError"),
+                    QString("Impossible Data Conversion"),
+                    QString(can_convert_info['INVALIDMESSAGE']),
+                )
                 return False
         return True
     
@@ -1681,8 +1686,7 @@ class EETableModel(QAbstractTableModel):
     
     def get_variable_groups(self):
         return self.variable_groups
-        
-        
+
 class VariableGroup:
     # Stores info on related groups of variables i.e. effect size and variance, etc
     def __init__(self, metric, name=""):
@@ -1690,40 +1694,52 @@ class VariableGroup:
         self.metric = metric
         self.data_type = get_data_type_for_metric(self.metric)
         
-        self.group_data = {RAW_EFFECT:None,
-                           RAW_LOWER:None,
-                           RAW_UPPER:None,
-                           TRANS_EFFECT:None,
-                           TRANS_VAR:None,
-                           
-                           # continuous
-                           'control_mean'            : None,
-                           'control_std_dev'         : None,
-                           'control_sample_size'     : None,
-                           'experimental_mean'       : None,
-                           'experimental_std_dev'    : None,
-                           'experimental_sample_size': None,
-                           
-                           # binary 
-                           'control_response'       : None, 
-                           'control_noresponse'     : None, 
-                           'experimental_response'  : None, 
-                           'experimental_noresponse': None, 
-                           
-                           # correlations
-                           'correlation': None,
-                           'sample_size': None,
-                           
+        self.group_data = {
+            RAW_EFFECT  : None,
+            RAW_LOWER   : None,
+            RAW_UPPER   : None,
+            TRANS_EFFECT: None,
+            TRANS_VAR   : None,
+
+            # continuous
+            'control_mean'            : None,
+            'control_std_dev'         : None,
+            'control_sample_size'     : None,
+            'experimental_mean'       : None,
+            'experimental_std_dev'    : None,
+            'experimental_sample_size': None,
+
+            # binary
+            'control_response'       : None,
+            'control_noresponse'     : None,
+            'experimental_response'  : None,
+            'experimental_noresponse': None,
+
+            # proportions
+            'num_events' : None,
+            'sample_size': None,
+
+            # correlations
+            'correlation': None,
+            'sample_size': None,
         }
         self.effect_keys = [TRANS_VAR, TRANS_EFFECT, RAW_EFFECT, RAW_LOWER, RAW_UPPER]
-        data_continuous_keys = ['control_mean', 'control_std_dev', 'control_sample_size',   
-                                     'experimental_mean', 'experimental_std_dev', 'experimental_sample_size'] 
-        data_binary_keys = ['control_response', 'control_noresponse',
-                                 'experimental_response','experimental_noresponse']
+        data_continuous_keys = [
+            'control_mean', 'control_std_dev', 'control_sample_size',
+            'experimental_mean', 'experimental_std_dev', 'experimental_sample_size',
+        ]
+        data_binary_keys = [
+            'control_response', 'control_noresponse',
+            'experimental_response','experimental_noresponse',
+        ]
+        data_proportion_keys = ['num_events', 'sample_size']
         data_correlation_keys = ['correlation', 'sample_size']
-        self.data_keys = {MEANS_AND_STD_DEVS: data_continuous_keys,
-                          TWO_BY_TWO_CONTINGENCY_TABLE: data_binary_keys,
-                          CORRELATION_COEFFICIENTS:data_correlation_keys}[self.data_type]
+        self.data_keys = {
+            MEANS_AND_STD_DEVS: data_continuous_keys,
+            TWO_BY_TWO_CONTINGENCY_TABLE: data_binary_keys,
+            PROPORTIONS: data_proportion_keys,
+            CORRELATION_COEFFICIENTS: data_correlation_keys,
+        }[self.data_type]
         
         
     def effects_empty(self):

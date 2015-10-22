@@ -1,0 +1,2 @@
+R CMD build openmeer
+sudo R CMD INSTALL openmeer_0.1.tar.gz

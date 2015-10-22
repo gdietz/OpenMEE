@@ -15,8 +15,10 @@ import rpy2
 import rpy2.robjects
 from rpy2 import robjects as ro
 import rpy2.rlike.container as rlc
-
 from rpy2.robjects.packages import importr
+
+from rpy2_helper import *
+
 base = importr('base')
 
 
@@ -61,21 +63,24 @@ class RlibLoader:
     def load_ape(self):
         return self._load_r_lib("ape")
 
-    def load_mice(self):
-        return self._load_r_lib("mice")
-
-    def load_metafor(self):
-        return self._load_r_lib("metafor")
-
-    def load_openmetar(self):
-        return self._load_r_lib("openmetar")
+    def load_grid(self):
+        return self._load_r_lib("grid")
 
     def load_igraph(self):
         return self._load_r_lib("igraph")
 
-    def load_grid(self):
-        return self._load_r_lib("grid")
-    
+    def load_metafor(self):
+        return self._load_r_lib("metafor")
+
+    def load_mice(self):
+        return self._load_r_lib("mice")
+
+    def load_openmeer(self):
+        return self._load_r_lib("openmeer")
+
+    def load_openmetar(self):
+        return self._load_r_lib("openmetar")
+
     def load_rmeta(self):
         return self._load_r_lib("rmeta")
 
@@ -88,6 +93,17 @@ class RlibLoader:
         except:
             raise Exception("The %s R package is not installed.\nPlease \
 install this package and then re-start OpenMeta." % name)
+
+    def load_all_libraries(self):
+        self.load_ape()
+        self.load_grid()
+        self.load_igraph()
+        self.load_metafor()
+        self.load_mice()
+        self.load_openmeer()
+        self.load_openmetar()
+        #self.load_rmeta()
+
 #################### END OF R Library Loader ####################
 
 def load_ape_file(ape_path, tree_format):
@@ -164,7 +180,7 @@ def regenerate_phylo_forest_plot(img_path,
                                  res_name = "res",
                                  params_path = "NULL",
                                  level_name = "level"):
-    
+
     r_str = "regenerate_phylo_forest_plot(plot.params={params_name}, data={data_name}, res={res_name}, level={level_name}, params.out.path=\"{params_path}\", out.path=\"{img_path}\")".format(
                     params_name=params_name, data_name=data_name,
                     res_name=res_name, level_name=level_name, params_path=params_path,
@@ -277,13 +293,19 @@ def studies_have_raw_data(studies, data_type, data_location, model, first_arm_on
         columns_to_check = [data_location['experimental_response'],
                             data_location['experimental_noresponse'],]
 
-        if not first_arm_only:
-            if not keys_in_dictionary(['control_response',
-                                       'control_noresponse'], data_location):
-                return False
-            columns_to_check.extend([data_location['control_response'],
-                                     data_location['control_noresponse'],
-                                     ])
+        if not keys_in_dictionary(['control_response',
+                                   'control_noresponse'], data_location):
+            return False
+        columns_to_check.extend([data_location['control_response'],
+                                 data_location['control_noresponse'],
+                                 ])
+    elif data_type == PROPORTIONS:
+        if not keys_in_dictionary(['experimental_response',
+                                   'experimental_noresponse'], data_location):
+            return False
+
+        columns_to_check = [data_location['experimental_response'],
+                            data_location['experimental_noresponse'],]
 
     elif data_type == CORRELATION_COEFFICIENTS:
         if not keys_in_dictionary(['correlation',
@@ -698,6 +720,17 @@ def run_failsafe_analysis(model, included_studies, data_location, failsafe_param
     result = exR.execute_in_R("%s" % res_name)
     return parse_out_results(result)
 
+def run_dynamic_data_exploration_analysis(model, included_studies, data_location, analysis_details, res_name="result", var_name="tmp_obj"):
+    dataset_to_dataframe(model=model,
+                         included_studies=included_studies,
+                         data_location=data_location,
+                         var_name=var_name)
+    ranalysis_function_name = analysis_details['MAIN']
+    r_str = "%s <- %s(list(data=%s))" % (res_name, ranalysis_function_name, var_name)
+    exR.execute_in_R(r_str)
+    result = exR.execute_in_R("%s" % res_name)
+    return parse_out_results(result)
+
 def run_histogram(model, var, params, res_name = "result", var_name = "tmp_obj", summary=""):
     var_type = var.get_type()
 
@@ -999,7 +1032,7 @@ def transform_effect_size(metric, source_data, direction, conf_level):
 
 
 def effect_size(metric, data_type, data):
-    ''' calculates effect sizes for the data given in the data where data
+    ''' calculates effect sizes (yi, vi) for the data given in the data where data
     is a dictionary of values obtained from columns as specified in the
     calculate effect size dialog '''
 
@@ -1053,7 +1086,18 @@ def effect_size(metric, data_type, data):
 
         args = (measure, ai.r_repr(), bi.r_repr(), ci.r_repr(), di.r_repr())
         r_str = "escalc(measure='%s', ai=%s, bi=%s, ci=%s, di=%s)" % args
+    elif data_type == PROPORTIONS:
+        xi = data['num_events']
+        ni = data['sample_size']
 
+        xi = [None_to_NA(x, int) for x in xi]
+        ni = [None_to_NA(x, int) for x in ni]
+
+        xi = ro.IntVector(xi)
+        ni = ro.IntVector(ni)
+
+        args = (measure, xi.r_repr(), ni.r_repr())
+        r_str = "escalc(measure='%s', xi=%s, ni=%s)" % args
     elif data_type == CORRELATION_COEFFICIENTS:
         ri = data['correlation']
         ni = data['sample_size']
@@ -1074,6 +1118,37 @@ def effect_size(metric, data_type, data):
     escalc_result = exR.execute_in_R(r_str)
     result = dataframe_to_pydict(escalc_result) #yi, vi
     return result
+
+def calculate_bounds(yi, vi, conf_level):
+    '''
+    Calculates the upper and lower bounds based on the given effect size,
+    variance, and confidence level.
+    Returns:
+        yi - point estimate
+        lb - lower bound
+        ub - upper bound
+        vi - variance
+    '''
+
+    se = math.sqrt(vi)
+    alpha = 1.0-(conf_level/100.0)
+    r_str = "abs(qnorm(%s))" % str(alpha/2.0)
+    mult = exR.execute_in_R(r_str)[0]
+
+    # note that the point estimate, lower & upper are all computed
+    # and returned on the calculation scale (e.g., log in the case of
+    # ratios)
+    lb, ub = (yi-mult*se, yi+mult*se)
+    
+    print "%s, %s, %s" % (lb, yi, ub)
+
+    return {
+        'yi': yi,
+        'lb': lb,
+        'ub': ub,
+        'vi': vi,
+    }
+
 
 def try_n_run(fn):
     ''' tries to run a function (a call to R) and raises an error if it fails'''
@@ -1222,6 +1297,7 @@ def parse_out_results(result, function_name=None, meta_function_name=None):
     # in R (for graphics manipulation).
     text_d = {}
     image_var_name_d, image_params_paths_d, image_path_d  = {}, {}, {}
+    save_plot_function_d = {}
     image_order = None
 
     # Turn result into a nice dictionary
@@ -1237,23 +1313,26 @@ def parse_out_results(result, function_name=None, meta_function_name=None):
             image_path_d = R_parse_tools.recursioner(text)
         elif text_n == "image_order":
             image_order = list(text)
-        elif text_n == "plot_names":
+        elif text_n in ("plot_names", "plot_params_paths"):
             if str(text) == "NULL":
                 image_var_name_d = {}
             else:
                 image_var_name_d = R_parse_tools.recursioner(text)
-        elif text_n == "plot_params_paths":
+        elif text_n in ("plot.data.paths"):
             if str(text) == "NULL":
                 image_params_paths_d = {}
             else:
                 image_params_paths_d = R_parse_tools.recursioner(text)
+        elif text_n in ("save.plot.function"):
+            if str(text) == "NULL":
+                save_plot_function_d = {}
+            else:
+                save_plot_function_d = R_parse_tools.recursioner(text)
         elif text_n == "References":
             references_list = list(text)
             references_list.append('metafor: Viechtbauer, Wolfgang. "Conducting meta-analyses in R with the metafor package." Journal of 36 (2010).')
             references_list.append('OpenMetaAnalyst: Wallace, Byron C., Issa J. Dahabreh, Thomas A. Trikalinos, Joseph Lau, Paul Trow, and Christopher H. Schmid. "Closing the Gap between Methodologists and End-Users: R as a Computational Back-End." Journal of Statistical Software 49 (2012): 5."')
             ref_set = set(references_list) # removes duplicates
-
-
             references_str = ""
             for i, ref in enumerate(ref_set):
                 references_str += str(i+1) + ". " + ref + "\n"
@@ -1287,12 +1366,15 @@ def parse_out_results(result, function_name=None, meta_function_name=None):
                  "image_var_names":image_var_name_d,
                  "texts":text_d,
                  "image_params_paths":image_params_paths_d,
-                 "image_order":image_order}
+                 "image_order":image_order,
+                 "save_plot_functions": save_plot_function_d,
+                 }
     try:
         to_return["results_data"]=results_data
     except NameError:
         pass
 
+    print "parsed_out_results: %s" % str(to_return)
     return to_return
 
 def extract_additional_values(res, res_info, sublist_prefix = "__"):
@@ -2370,11 +2452,156 @@ def params_dict_to_Robject(params, robject_type ="list"):
 
     return robj
 
-def regenerate_forest_plot_of_coefficients(file_path, params_path, img_fmt="png"):   
+def regenerate_forest_plot_of_coefficients(file_path, params_path, img_fmt="png"):
     # fix file_path
     if file_path[-4]!='.':
         file_path = file_path + "." + img_fmt
     file_path_wo_extension = file_path[0:-4]
-    
+
     r_str = "regenerate.coeff.forest.plot(input.df, \"%s\", \"%s\")" % (file_path_wo_extension, img_fmt)
     exR.execute_in_R(r_str)
+
+def run_permutation_analysis(parameters,
+                             meta_reg_mode,
+                             data_name="tmp_obj",
+                             results_name="results_obj"):
+
+    print("Parameters: %s" % parameters)
+
+    # Get measure i.e. OR etc.
+    _,metric = parameters['data_type_and_metric']
+    measure_str = METRIC_TO_ESCALC_MEASURE[metric]
+
+    if meta_reg_mode:
+        # Mods is a Listvector (see description in _make_mods_listVector)
+        mods = _make_mods_listVector(parameters['covariates'],
+                                     parameters['interactions'])
+
+        # get btt indices for omnibus test of moderators
+        choice, choice_type = parameters['btt']
+        btt_indices = get_btt_indices(data=ro.r(data_name),
+                                      mods=mods,
+                                      choice=choice, choice_type=choice_type)
+        if len(btt_indices) > 0:
+            btt_indices_vector_str = ro.IntVector(btt_indices).r_repr()
+        else:
+            btt_indices_vector_str = str(ro.NULL)
+
+        r_str = '''{results} <- permuted.meta.reg(
+data={data},
+mods={mods},
+method=\"{method}\",
+level={level},
+btt={btt},
+exact={exact},
+iter={iter},
+retpermdist={retpermdist})'''.format(
+                    results=results_name,
+                    data=data_name,
+                    mods=mods.r_repr(),
+                    method=parameters['method'],
+                    level=parameters['level'],
+                    btt=btt_indices_vector_str,
+                    exact=toRBool(parameters['exact']),
+                    iter=parameters['iter'],
+                    retpermdist=toRBool(parameters['retpermdist']),
+                    )
+    else:
+        r_str = '''{results} <- permuted.ma(
+data={data},
+method=\"{method}\",
+intercept={intercept},
+level={level},
+digits={digits},
+weighted={weighted},
+knha={knha},
+exact={exact},
+iter={iter},
+retpermdist={retpermdist})'''.format(
+            results=results_name,
+            data=data_name,
+            method=parameters['method'],
+            intercept=toRBool(parameters['intercept']),
+            level=parameters['level'],
+            digits=parameters['digits'],
+            weighted=toRBool(parameters['weighted']),
+            knha=toRBool(parameters['knha']),
+            exact=toRBool(parameters['exact']),
+            iter=parameters['iter'],
+            retpermdist=toRBool(parameters['retpermdist']),
+        )
+
+    exR.execute_in_R(r_str)
+    result = exR.execute_in_R("%s" % results_name)
+
+    parsed_results = parse_out_results(result)
+    return parsed_results
+
+def toRBool(value):
+    '''Converts True/False to 'TRUE'/'FALSE' (suitable for passing to R)'''
+    return 'TRUE' if value else 'FALSE'
+
+def get_R_libpaths():
+    ''' Returns the libpaths that R looks at, sanity check to make sure it sees the right paths '''
+    
+    libpaths = exR.execute_in_R(".libPaths()")
+    print("R Lib paths:")
+    for i, path in enumerate(libpaths):
+        print("%d: %s" % (i,path))
+    return list(libpaths)
+
+def get_mult_from_r(confidence_level):
+    alpha = 1-float(confidence_level)/100.0
+    r_str = "abs(qnorm(%s/2))" % str(alpha)
+    mult = exR.execute_in_R(r_str)
+    return mult[0]
+
+def get_nested_rlist_as_pydict(rcommand):
+    ''' Execute a command in R that returns a nested list stucture.
+        Convert that structure to nested python dictionaries '''
+
+    rstruct = exR.execute_in_R(rcommand)
+    pydict = parse_r_struct(rstruct)
+    return pydict
+
+def get_data_exploration_analyses():
+    ''' Get description of data exploration analyses from R '''
+
+    analyses_info = get_nested_rlist_as_pydict('get.data.exploration.analyses()')
+    analyses_info = singletonlists_to_scalars(analyses_info)
+    return analyses_info
+
+if __name__ == '__main__': 
+    #app = QApplication(sys.argv)
+    #form = BinaryCalculator(conf_level=DEFAULT_CONFIDENCE_LEVEL, debug=True, digits=3)
+    rloader = RlibLoader()
+    rloader.load_all_libraries()
+
+    data_exploration_analyses = get_data_exploration_analyses()
+    print "Data exploration analyses: %s" % str(data_exploration_analyses)
+
+def dynamic_save_plot(rfunction, plot_data_path, file_path, format):
+    '''
+    Calls the specified R save plot function to generate a new plot at
+    file_path location.
+        rfunction - string representing r save function e.g. 'weighted.histogram.plot'
+            This R function is expected to take the following arguments as elements
+            of an R list:
+                plot.data - which is the name of the object that we reload on the R side
+                base.path (path w/o extension to desired save location e.g. \Users\yourusername\myimage)
+                image.format - image format, probably 'png' or 'pdf'
+        plot_data_path - path to plot data used to generate plot
+        file_path - path where we should save the plot image
+        format - image format for plot
+    '''
+
+    if file_path:
+        file_path = file_path.split('.')[0]
+
+    # load plot data
+    r_str = "load('%s')" % plot_data_path
+    exR.execute_in_R(r_str)
+
+    rarguments = "list(plot.data=%s, base.path='%s', image.format='%s')" % ('plot.data', file_path, format)
+    r_str = "%s(%s)" % (rfunction, rarguments)
+    result = exR.execute_in_R(r_str)

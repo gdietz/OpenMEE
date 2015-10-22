@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>836</width>
-    <height>590</height>
+    <width>879</width>
+    <height>508</height>
    </rect>
   </property>
   <property name="font">
@@ -19,9 +19,15 @@
    <string>results / analysis</string>
   </property>
   <widget class="QWidget" name="centralwidget">
+   <property name="enabled">
+    <bool>true</bool>
+   </property>
    <layout class="QVBoxLayout" name="verticalLayout">
     <item>
-     <layout class="QHBoxLayout" name="horizontalLayout_3">
+     <layout class="QHBoxLayout" name="horizontalLayout">
+      <property name="sizeConstraint">
+       <enum>QLayout::SetDefaultConstraint</enum>
+      </property>
       <item>
        <spacer name="horizontalSpacer">
         <property name="orientation">
@@ -58,15 +64,21 @@
      </layout>
     </item>
     <item>
-     <widget class="QSplitter" name="splitter">
-      <property name="orientation">
-       <enum>Qt::Vertical</enum>
+     <widget class="QSplitter" name="results_nav_splitter">
+      <property name="sizePolicy">
+       <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+        <horstretch>0</horstretch>
+        <verstretch>0</verstretch>
+       </sizepolicy>
       </property>
-      <widget class="QFrame" name="frame">
-       <property name="minimumSize">
+      <property name="orientation">
+       <enum>Qt::Horizontal</enum>
+      </property>
+      <widget class="QTreeWidget" name="nav_tree">
+       <property name="maximumSize">
         <size>
-         <width>733</width>
-         <height>0</height>
+         <width>16777215</width>
+         <height>16777215</height>
         </size>
        </property>
        <property name="font">
@@ -74,47 +86,19 @@
          <family>Verdana</family>
         </font>
        </property>
-       <property name="frameShape">
-        <enum>QFrame::StyledPanel</enum>
+       <column>
+        <property name="text">
+         <string notr="true">1</string>
+        </property>
+       </column>
+      </widget>
+      <widget class="QGraphicsView" name="graphics_view">
+       <property name="toolTip">
+        <string/>
        </property>
-       <property name="frameShadow">
-        <enum>QFrame::Raised</enum>
+       <property name="alignment">
+        <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
        </property>
-       <layout class="QHBoxLayout" name="horizontalLayout">
-        <item>
-         <widget class="QSplitter" name="results_nav_splitter">
-          <property name="orientation">
-           <enum>Qt::Horizontal</enum>
-          </property>
-          <widget class="QTreeWidget" name="nav_tree">
-           <property name="maximumSize">
-            <size>
-             <width>16777215</width>
-             <height>16777215</height>
-            </size>
-           </property>
-           <property name="font">
-            <font>
-             <family>Verdana</family>
-            </font>
-           </property>
-           <column>
-            <property name="text">
-             <string notr="true">1</string>
-            </property>
-           </column>
-          </widget>
-          <widget class="QGraphicsView" name="graphics_view">
-           <property name="toolTip">
-            <string/>
-           </property>
-           <property name="alignment">
-            <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
-           </property>
-          </widget>
-         </widget>
-        </item>
-       </layout>
       </widget>
      </widget>
     </item>

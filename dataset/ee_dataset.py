@@ -98,8 +98,17 @@ class EEDataSet():
         var.set_type(new_type)
     
     def can_convert_var_value_to_type(self, new_type, value):
+        '''
+        Performs validation on values that want to be converted to new_type
+        Returns dictinary:
+        {
+            'OK': True if conversion is OK
+            'INVALIDMESSAGE': String indication why conversion is invalid. May not be returned if 'OK' is True
+        }
+        '''
+
         if value in [None,""]:
-            return True
+            return {'OK': True}
         
         if new_type == CATEGORICAL:
             pass
@@ -107,13 +116,24 @@ class EEDataSet():
             try:
                 float(value)
             except ValueError:
-                return False
+                return {
+                    'OK': False,
+                    'INVALIDMESSAGE': "Cannot convert '%s' into a continuous value." % value,
+                }
         elif new_type == COUNT:
             try:
-                int(float(value))
+                count_value = int(float(value))
             except ValueError:
-                return False
-        return True
+                return {
+                    'OK': False,
+                    'INVALIDMESSAGE': "Cannot convert '%s' into an integer value." % value,
+                }
+            if count_value < 0:
+                return {
+                    'OK': False,
+                    'INVALIDMESSAGE': "Negative counts are not allowed",
+                }
+        return {'OK': True}
             
     def convert_var_value_to_type(self, old_type, new_type, value,
                                    precision=DEFAULT_PRECISION):
@@ -145,7 +165,7 @@ class EEDataSet():
         for study in self.study_collection.get_studies_with_variable(var):
             value = study.get_var(var)
             # verification
-            if not self.can_convert_var_value_to_type(new_type, value):
+            if not self.can_convert_var_value_to_type(new_type, value)['OK']:
                 return False
         return True
 

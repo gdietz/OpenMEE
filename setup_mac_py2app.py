@@ -9,11 +9,10 @@ setup(
   app=["mac_prelaunch.py"],
   options={"py2app":
     {"argv_emulation": True,
-     "resources": ["/opt/local/Library/Frameworks/R.framework/Versions/3.0/Resources",],
+     "resources": ["/opt/local/Library/Frameworks/R.framework/Versions/Current/Resources",],
      "iconfile": "images/mac_icon.icns",
      "no_strip": True,
      "includes":"rpy2",
      }
-     
   },
-  setup_requires=["py2app"]) 
+  setup_requires=["py2app"])

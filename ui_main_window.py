@@ -2,8 +2,8 @@
 
 # Form implementation generated from reading ui file 'main_window.ui'
 #
-# Created: Fri Apr 18 14:14:05 2014
-#      by: PyQt4 UI code generator 4.10.4
+# Created: Sun May 10 23:20:05 2015
+#      by: PyQt4 UI code generator 4.11.3
 #
 # WARNING! All changes made in this file will be lost!
 
@@ -34,7 +34,7 @@ class Ui_MainWindow(object):
         self.centralwidget.setObjectName(_fromUtf8("centralwidget"))
         self.verticalLayout = QtGui.QVBoxLayout(self.centralwidget)
         self.verticalLayout.setObjectName(_fromUtf8("verticalLayout"))
-        self.tableView = QtGui.QTableView(self.centralwidget)
+        self.tableView = MyTableView(self.centralwidget)
         self.tableView.setObjectName(_fromUtf8("tableView"))
         self.verticalLayout.addWidget(self.tableView)
         MainWindow.setCentralWidget(self.centralwidget)
@@ -192,6 +192,15 @@ class Ui_MainWindow(object):
         self.actionMultiple_Imputation_Meta_Analysis.setObjectName(_fromUtf8("actionMultiple_Imputation_Meta_Analysis"))
         self.actionGet_help_online = QtGui.QAction(MainWindow)
         self.actionGet_help_online.setObjectName(_fromUtf8("actionGet_help_online"))
+        self.actionPermuted_MA = QtGui.QAction(MainWindow)
+        self.actionPermuted_MA.setObjectName(_fromUtf8("actionPermuted_MA"))
+        self.actionPermuted_metareg = QtGui.QAction(MainWindow)
+        self.actionPermuted_metareg.setObjectName(_fromUtf8("actionPermuted_metareg"))
+        self.actionCalculator = QtGui.QAction(MainWindow)
+        icon14 = QtGui.QIcon()
+        icon14.addPixmap(QtGui.QPixmap(_fromUtf8(":/function_icon_set/images/function_icon_set/coffee_48.png")), QtGui.QIcon.Normal, QtGui.QIcon.Off)
+        self.actionCalculator.setIcon(icon14)
+        self.actionCalculator.setObjectName(_fromUtf8("actionCalculator"))
         self.menuFile.addAction(self.actionNew)
         self.menuFile.addAction(self.actionOpen)
         self.menuFile.addAction(self.actionSave)
@@ -223,6 +232,8 @@ class Ui_MainWindow(object):
         self.menuAnalysis.addAction(self.actionPhyloMA)
         self.menuAnalysis.addAction(self.actionModel_Building)
         self.menuAnalysis.addAction(self.actionMultiple_Imputation_Meta_Analysis)
+        self.menuAnalysis.addAction(self.actionPermuted_MA)
+        self.menuAnalysis.addAction(self.actionPermuted_metareg)
         self.menuAbout.addAction(self.action_about)
         self.menuAbout.addAction(self.actionGet_help_online)
         self.menuPublication_Bias_2.addAction(self.actionFail_Safe_N)
@@ -258,6 +269,7 @@ class Ui_MainWindow(object):
         self.toolBar.addAction(self.actionMeta_Regression)
         self.toolBar.addSeparator()
         self.toolBar.addAction(self.actionResetAnalysisChoices)
+        self.toolBar.addAction(self.actionCalculator)
 
         self.retranslateUi(MainWindow)
         QtCore.QMetaObject.connectSlotsByName(MainWindow)
@@ -320,5 +332,10 @@ class Ui_MainWindow(object):
         self.actionImpute_Missing_Data.setText(_translate("MainWindow", "Impute Missing Data", None))
         self.actionMultiple_Imputation_Meta_Analysis.setText(_translate("MainWindow", "Multiple Imputation Meta-Analysis", None))
         self.actionGet_help_online.setText(_translate("MainWindow", "Get help online", None))
+        self.actionPermuted_MA.setText(_translate("MainWindow", "Randomized (Permuted) Meta-Analysis", None))
+        self.actionPermuted_metareg.setText(_translate("MainWindow", "Randomized (Permuted) Meta-Regression", None))
+        self.actionCalculator.setText(_translate("MainWindow", "Calculator", None))
+        self.actionCalculator.setToolTip(_translate("MainWindow", "Binary Data Calculator", None))
 
+from mytableview import MyTableView
 import icons_rc

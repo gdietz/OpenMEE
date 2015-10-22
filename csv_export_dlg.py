@@ -73,17 +73,19 @@ class CSVExportDialog(QDialog, ui_csv_export_dlg.Ui_Dialog):
     
     def write_out_csv(self, file_path, matrix):
         with open(file_path, 'wb') as f:
-            make_spamwriter = partial(csv.writer,
-                                      f,
-                                      delimiter=self.delimiter,
-                                      quotechar=self.quotechar,
-                                      quoting=csv.QUOTE_NONNUMERIC if self.quote_text_cells else csv.QUOTE_MINIMAL)
+            make_spamwriter = partial(
+                csv.writer,
+                f,
+                delimiter=self.delimiter,
+                quotechar=self.quotechar,
+                quoting=csv.QUOTE_NONNUMERIC if self.quote_text_cells else csv.QUOTE_MINIMAL,
+            )
             if self.excel_dialect:
                 spamwriter = make_spamwriter(dialect='excel')
             else:
                 spamwriter = make_spamwriter()
             
-            print("Writing out csv to %s" % str(file_path))
+            print("Writing out csv to %s" % file_path)
             spamwriter.writerows(matrix)
             
             
@@ -106,11 +108,15 @@ class CSVExportDialog(QDialog, ui_csv_export_dlg.Ui_Dialog):
     
 
     def get_save_file_name(self):
-        print("proposed file path: %s" % str(self.filepath))
-        
-        self.filepath = unicode(QFileDialog.getSaveFileName(self, "OpenMEE - Export CSV",
-                                                     self.filepath, "CSV file (.csv)"))
-        if self.filepath in ["", None]:
+        print("proposed file path: %s" % self.filepath)
+        self.filepath = QFileDialog.getSaveFileName(
+            self,
+            "OpenMEE - Export CSV",
+            self.filepath,
+            "CSV file (.csv)",
+        )
+        self.filepath = unicode(self.filepath.toUtf8(),'utf8')
+        if self.filepath in ["",u"", None]:
             return False
         
         self.filepath = self.adjust_file_path(self.filepath)
@@ -149,8 +155,7 @@ class CSVExportDialog(QDialog, ui_csv_export_dlg.Ui_Dialog):
             return var_value
             
         return None
-    
-    
+
     def header_data_from_model(self, column):
         #default case
         unassigned_column = column not in self.model.cols_2_vars and column != self.model.label_column
@@ -164,10 +169,6 @@ class CSVExportDialog(QDialog, ui_csv_export_dlg.Ui_Dialog):
         else: # is a variable column
             col_name = self.model.cols_2_vars[column].get_label()
         return str(col_name)
-    
-    
-    
-
     
 if __name__ == '__main__':
 

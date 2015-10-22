@@ -13,6 +13,9 @@ import cProfile
 from PyQt4 import QtCore, QtGui
 from PyQt4.Qt import *
 
+import pdb
+from PyQt4.QtCore import pyqtRemoveInputHook
+
 import ui_main_window
 import about
 import calculate_effect_sizes_wizard
@@ -26,6 +29,7 @@ import csv_export_dlg
 import preferences_dlg
 from contingency_table_dlg import ContingencyTableDlg
 import imputation.imputation_wizard
+import binary_calculator
 
 from variable_group_graphic import VariableGroupGraphic
 from analyses import Analyzer
@@ -35,6 +39,11 @@ from ome_globals import *
 
 # TODO: Handle setting the dirty bit more correctly in undo/redo
 # right now just set it all the time/(or not) (very haphazard) during redo but don't bother unsetting it
+
+
+# debug:
+#pyqtRemoveInputHook()
+#pdb.set_trace()
 
 ####################################################################################
 import ui_conf_level_toolbar_widget
@@ -271,6 +280,8 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
         self.actionTransform_Effect_Size.triggered.connect(self.transform_effect_size_bulk)
         self.actionModel_Building.triggered.connect(self.analyst.model_building)
         self.actionMultiple_Imputation_Meta_Analysis.triggered.connect(self.analyst.mi_meta_analysis)
+        self.actionPermuted_MA.triggered.connect(lambda: self.analyst.PermutationAnalysis(meta_reg_mode=False))
+        self.actionPermuted_metareg.triggered.connect(lambda: self.analyst.PermutationAnalysis(meta_reg_mode=True))
         
         #self.actionMeta_Regression.triggered.connect(self.analyst.meta_regression)
         self.actionMeta_Regression.triggered.connect(self.analyst.gmeta_regression)
@@ -282,11 +293,15 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
         self.actionFail_Safe_N.triggered.connect(self.analyst.failsafe_analysis)
         self.actionFunnel_Plot.triggered.connect(self.analyst.funnel_plot_analysis)
         
-        #### Data Exploration Menu ###
+        #### Data Exploration Menu ####
         self.actionHistogram.triggered.connect(self.analyst.histogram)
         self.actionScatterplot.triggered.connect(self.analyst.scatterplot)
         self.actionContingency_Table.triggered.connect(self.contingency_table)
         self.actionImpute_Missing_Data.triggered.connect(self.impute_missing_data)
+
+        #### Add supplementary data exploration ananlyes from openmeer
+        self.setup_dynamic_data_exploration_options(self.actionContingency_Table)
+        #### End Data Exploration Menu ####
         
         # Help Menu
         self.action_about.triggered.connect(self.show_about_dlg)
@@ -297,8 +312,32 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
         
         # Toolbar
         self.actionResetAnalysisChoices.triggered.connect(self.reset_analysis_selection)
-        
-        
+
+        # Binary Data Calculator
+        self.actionCalculator.triggered.connect(self.binary_calculator)
+
+    def setup_dynamic_data_exploration_options(self, last_not_dynamic_action=None):
+        ''' Add data exploration options from R to data exploration menu
+            and connect them to analysis actions.
+
+            Arguments:
+                last_not_dynamic_action - last action that is not dynamically
+                    generated from openmeer
+        '''
+
+        # Should probably sort these in some manner ....
+        options_descriptions = python_to_R.get_data_exploration_analyses()
+
+        for key, info in options_descriptions.items():
+            if key != 'ORDER':
+                action = self.menuData_Exploration.addAction(info['ACTIONTEXT'])
+                action.triggered.connect(partial(self.analyst.dynamic_data_exploration_analysis, info))
+
+
+    def binary_calculator(self):
+        form = binary_calculator.BinaryCalculator(parent=self)
+        form.exec_()
+ 
     def open_help_online(self):
         QDesktopServices.openUrl(QUrl(HELP_URL))
         
@@ -963,12 +1002,6 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
     def model_has_unsaved_data(self):
         return self.model.dirty
 
-
-
-
-
-
-
     def open(self, file_path=None):
         ''' Prompts user to open a file and then opens it (picked data model) '''
         
@@ -986,24 +1019,26 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
                 pass # ok to disregard current data
 
         # prompt the user if no file_name is provided
+        print "Filepath: %s" % file_path
         if file_path is None:
-            file_path = unicode(QFileDialog.getOpenFileName(
-                            parent=self,
-                            caption=QString("Open File"),
-                            directory=get_user_documents_path(),
-                            filter="OpenMEE files (*.ome)"))
+            print "No Filename selected"
+            file_path = QFileDialog.getOpenFileName(
+                parent=self,
+                caption=QString("Open File"),
+                directory=get_user_documents_path(),
+                filter="OpenMEE files (*.ome)")
+            file_path = unicode(file_path.toUtf8(),'utf8')
 
         # Leave if they didn't choose anything
         if file_path == "":
             return False
 
-
-        print("Loading %s ..." % str(file_path))
+        print("Loading %s ..." % file_path)
         try:
             with open(file_path, 'r') as f:
                 state = pickle.load(f)
         except Exception as e:
-            msg = "Could not open %s, the error is: %s" % (str(file_path),str(e))
+            msg = "Could not open %s, the error is: %s" % (file_path,str(e))
             QMessageBox.critical(self, "Oops", msg)
             raise e
             return False
@@ -1109,8 +1144,13 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
                 out_fpath = QString(self.outpath) # already have filename, maybe want to change it
             print("proposed file path: %s" % out_fpath)
             out_fpath # In an extremely bizarre turn of events, the directory path below doesn't work unles out_fpath is evaluated beforehand just making it with QString doesn't seem to be enough!
-            out_fpath = unicode(QFileDialog.getSaveFileName(parent=self, caption="OpenMEE - Save File",
-                                                            directory=out_fpath, filter="OpenMEE files: (.ome)"))
+            out_fpath = QFileDialog.getSaveFileName(
+                parent=self,
+                caption="OpenMEE - Save File",
+                directory=out_fpath,
+                filter="OpenMEE files: (.ome)",
+            )
+            out_fpath = unicode(out_fpath.toUtf8(),'utf8')
             if out_fpath in ["", None]:
                 print("save cancelled")
                 return "CANCEL"

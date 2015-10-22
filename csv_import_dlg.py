@@ -10,8 +10,10 @@ import csv
 from PyQt4 import QtCore, QtGui
 from PyQt4.Qt import *
 
-import ui_csv_import_dlg
+import pdb
+from PyQt4.QtCore import pyqtRemoveInputHook
 
+import ui_csv_import_dlg
 from ee_model import EETableModel
 
 MAX_PREVIEW_ROWS = 10
@@ -54,8 +56,17 @@ class CSVImportDialog(QDialog, ui_csv_import_dlg.Ui_CSVImportDialog):
         self.buttonBox.button(QDialogButtonBox.Ok).setEnabled(False)
         
     def _select_file(self):
-        self.file_path = unicode(QFileDialog.getOpenFileName(self, "OpenMeta[analyst] - Import CSV", ".", "csv files (*.csv)"))
-        if self.file_path is not None and str(self.file_path) != "":
+        self.file_path = QFileDialog.getOpenFileName(
+            self,
+            "OpenMeta[analyst] - Import CSV",
+            ".",
+            "csv files (*.csv)",
+        )
+        self.file_path = unicode(self.file_path.toUtf8(),'utf8')
+        print "Selected file: %s" % self.file_path
+
+        if self.file_path not in [None, u""]:
+            print "File path is not blank"
             self.file_path_lbl.setText(QString(self.file_path))
             self._rebuild_display()
             self.reimport_btn.setEnabled(True)
@@ -147,8 +158,6 @@ class CSVImportDialog(QDialog, ui_csv_import_dlg.Ui_CSVImportDialog):
                 print("cell content: '%s', Missing: %s" % (cell, cell==missing_data_string))
                 normalized_cell=normalize_cell_format(cell)
                 converted_cell=convert_missing_data_to_empty_str(normalized_cell)
-                #pyqtRemoveInputHook()
-                #import pdb; pdb.set_trace()
                 return converted_cell
 
             for row in reader:
@@ -175,7 +184,7 @@ class CSVImportDialog(QDialog, ui_csv_import_dlg.Ui_CSVImportDialog):
             return None
 
     def _get_filepath(self):
-        return str(self.file_path)
+        return self.file_path
     def _isFromExcel(self):
         return self.from_excel_chkbx.isChecked()
     def _hasHeaders(self):

@@ -11,6 +11,14 @@ import cProfile
 from PyQt4 import QtCore, QtGui
 from PyQt4.Qt import *
 
+import pdb
+from PyQt4.QtCore import pyqtRemoveInputHook
+
+# debugging:
+# import pdb
+# from PyQt4.QtCore import pyqtRemoveInputHook
+# pyqtRemoveInputHook(), pdb.set_trace()
+
 ######
 HELP_URL = "http://www.cebm.brown.edu/open_mee/help"
 
@@ -25,17 +33,21 @@ SOUND_EFFECTS = True
 MAKE_TESTS = False
 ###### END SWITCHES ######
 
+#ZERO_THRESHHOLD = 1e-20  # for testing floats being close to zero
 HEADER_LINE_LENGTH = 70 # maximum length of header labels
 
 DEFAULT_METAREG_RANDOM_EFFECTS_METHOD = "DL"
-RANDOM_EFFECTS_METHODS_TO_PRETTY_STRS = {"DL":"DerSimonian-Laird estimator",
-                                         "HE":"Hedges estimator",
-                                         "SJ":"Sidik-Jonkman estimator",
-                                         "ML":"maximum-likelihood estimator",
-                                         "REML":"restricted maximum likelihood estimator",
-                                         "EB":"empirical Bayes estimator",
-                                         "HS":"Hunter-Schmidt estimator",
-                                         }
+DEFAULT_RANDOM_EFFECTS_METHOD = "REML"
+FIXED_EFFECTS_METHOD_STR = "FE"
+RANDOM_EFFECTS_METHODS_TO_PRETTY_STRS = {
+    "DL":"DerSimonian-Laird estimator",
+    "HE":"Hedges estimator",
+    "SJ":"Sidik-Jonkman estimator",
+    "ML":"maximum-likelihood estimator",
+    "REML":"restricted maximum likelihood estimator",
+    "EB":"empirical Bayes estimator",
+    "HS":"Hunter-Schmidt estimator",
+}
 
 
 # The different types of data that can be associated with studies
@@ -53,34 +65,43 @@ EFFECT_TYPES = (TRANS_EFFECT, TRANS_VAR,
                 RAW_EFFECT,RAW_LOWER, RAW_UPPER)
 
 # How variable types are represented as short string (for header labels)
-VARIABLE_TYPE_SHORT_STRING_REPS = {CATEGORICAL:"cat",
-                                   CONTINUOUS:"cont",
-                                   COUNT:"count",}
+VARIABLE_TYPE_SHORT_STRING_REPS = {
+    CATEGORICAL:"cat",
+    CONTINUOUS:"cont",
+    COUNT:"count",
+}
 
 # How variable types are represented as normal length strings
-VARIABLE_TYPE_STRING_REPS = {CATEGORICAL:"Categorical",
-                             CONTINUOUS:"Continuous",
-                             COUNT:"Count",}
+VARIABLE_TYPE_STRING_REPS = {
+    CATEGORICAL:"Categorical",
+    CONTINUOUS:"Continuous",
+    COUNT:"Count",
+}
+
 # same as above but lower case (used for indexing into qsettings)
-VARIABLE_TYPE_STRING_LC = {CATEGORICAL:"categorical",
-                             CONTINUOUS:"continuous",
-                             COUNT:"count",}
+VARIABLE_TYPE_STRING_LC = {
+    CATEGORICAL:"categorical",
+    CONTINUOUS:"continuous",
+    COUNT:"count",
+}
 
 # How variable subtypes are represented as normal length strings
-VARIABLE_SUBTYPE_STRING_REPS = {TRANS_EFFECT: "Trans. Effect",
-                                TRANS_VAR   : "Trans. Var",
-                                RAW_EFFECT  : "Raw Effect",
-                                RAW_LOWER   : "Raw lb.",
-                                RAW_UPPER   : "Raw ub.",
-                                }
-# same as above but for indexing into qsettings
-VARIABLE_SUBTYPE_STRING_LC = {TRANS_EFFECT: "trans_effect",
-                              TRANS_VAR   : "trans_var",
-                              RAW_EFFECT  : "raw_effect",
-                              RAW_LOWER   : "raw_lower",
-                              RAW_UPPER   : "raw_upper",
-                             }
+VARIABLE_SUBTYPE_STRING_REPS = {
+    TRANS_EFFECT: "Trans. Effect",
+    TRANS_VAR   : "Trans. Var",
+    RAW_EFFECT  : "Raw Effect",
+    RAW_LOWER   : "Raw lb.",
+    RAW_UPPER   : "Raw ub.",
+}
 
+# same as above but for indexing into qsettings
+VARIABLE_SUBTYPE_STRING_LC = {
+    TRANS_EFFECT: "trans_effect",
+    TRANS_VAR   : "trans_var",
+    RAW_EFFECT  : "raw_effect",
+    RAW_LOWER   : "raw_lower",
+    RAW_UPPER   : "raw_upper",
+}
 
 # Default # of digits for representing floating point numbers
 DEFAULT_PRECISION = 3
@@ -110,32 +131,57 @@ def cancel_macro_creation_and_revert_state(undo_stack):
 PARAMETRIC, BOOTSTRAP = range(2)     # analysis type
 NORMAL, CONDITIONAL_MEANS = range(2) # output type
 
-MODE_TITLES = {CALCULATE_EFFECT_SIZE_MODE: "Calculate Effect Size",
-               MA_MODE: "Meta Analysis",
-               CUM_MODE: "Cumulative Meta Analysis",
-               SUBGROUP_MODE: "Subgroup Meta Analysis",
-               LOO_MODE: "Leave-One-Out Meta Analysis",
-               META_REG_MODE: "Meta Regression",
-               TRANSFORM_MODE: "Transform Effect Size",
-               META_REG_COND_MEANS: "Meta Regression-Based Conditional Means",
-               BOOTSTRAP_MA: "Bootstrapped Meta-Analysis",
-               BOOTSTRAP_META_REG: "Bootstrapped Meta-Regression",
-               BOOTSTRAP_META_REG_COND_MEANS:"Bootstrapped Meta-Regression based Conditional Means",
-               FAILSAFE_MODE:"Fail-Safe N",
-               FUNNEL_MODE: "Funnel Plot"}
+MODE_TITLES = {
+    CALCULATE_EFFECT_SIZE_MODE: "Calculate Effect Size",
+    MA_MODE: "Meta Analysis",
+    CUM_MODE: "Cumulative Meta Analysis",
+    SUBGROUP_MODE: "Subgroup Meta Analysis",
+    LOO_MODE: "Leave-One-Out Meta Analysis",
+    META_REG_MODE: "Meta Regression",
+    TRANSFORM_MODE: "Transform Effect Size",
+    META_REG_COND_MEANS: "Meta Regression-Based Conditional Means",
+    BOOTSTRAP_MA: "Bootstrapped Meta-Analysis",
+    BOOTSTRAP_META_REG: "Bootstrapped Meta-Regression",
+    BOOTSTRAP_META_REG_COND_MEANS:"Bootstrapped Meta-Regression based Conditional Means",
+    FAILSAFE_MODE:"Fail-Safe N",
+    FUNNEL_MODE: "Funnel Plot"
+}
 
 # For choosing statistic function for bootstrapping
-BOOTSTRAP_MODES_TO_STRING = {BOOTSTRAP_MA:'boot.ma',
-                             BOOTSTRAP_META_REG: 'boot.meta.reg',
-                             BOOTSTRAP_META_REG_COND_MEANS: 'boot.meta.reg.cond.means'}
+BOOTSTRAP_MODES_TO_STRING = {
+    BOOTSTRAP_MA:'boot.ma',
+    BOOTSTRAP_META_REG: 'boot.meta.reg',
+    BOOTSTRAP_META_REG_COND_MEANS: 'boot.meta.reg.cond.means'
+}
 
-ANALYSIS_MODES = [MA_MODE, CUM_MODE, SUBGROUP_MODE, LOO_MODE,
-                  META_REG_MODE, META_REG_COND_MEANS,
-                  BOOTSTRAP_MA, BOOTSTRAP_META_REG, BOOTSTRAP_META_REG_COND_MEANS,
-                  FAILSAFE_MODE, FUNNEL_MODE]
+ANALYSIS_MODES = [
+    MA_MODE,
+    CUM_MODE,
+    SUBGROUP_MODE,
+    LOO_MODE,
+    META_REG_MODE,
+    META_REG_COND_MEANS,
+    BOOTSTRAP_MA,
+    BOOTSTRAP_META_REG,
+    BOOTSTRAP_META_REG_COND_MEANS,
+    FAILSAFE_MODE,
+    FUNNEL_MODE,
+]
 
-META_ANALYSIS_MODES = [MA_MODE, CUM_MODE, SUBGROUP_MODE, LOO_MODE, BOOTSTRAP_MA, FUNNEL_MODE]
-META_REG_MODES      = [META_REG_MODE, META_REG_COND_MEANS, BOOTSTRAP_META_REG, BOOTSTRAP_META_REG_COND_MEANS]
+META_ANALYSIS_MODES = [
+    MA_MODE,
+    CUM_MODE,
+    SUBGROUP_MODE,
+    LOO_MODE,
+    BOOTSTRAP_MA,
+    FUNNEL_MODE,
+]
+META_REG_MODES = [
+    META_REG_MODE,
+    META_REG_COND_MEANS,
+    BOOTSTRAP_META_REG,
+    BOOTSTRAP_META_REG_COND_MEANS,
+]
 
 # Default variable type
 DEFAULT_VAR_TYPE = CATEGORICAL
@@ -144,112 +190,199 @@ DEFAULT_BACKGROUND_COLOR = QColor("white") #QColor(29,30,25)
 BLACK = QColor(0,0,0)
 FOREGROUND, BACKGROUND = range(2)
 
-DEFAULT_SETTINGS = {"splash"       : True,
-                    "digits"       : DEFAULT_PRECISION,
-                    "recent_files" : [],
-                    "model_data_font_str"     : "",
-                    "model_header_font_str"   : "",
-                    "show_additional_values"  : True,
-                    "show_analysis_selections": True,
-                    "reg_coeff_forest_plot": False, # Make forest plot for regression coefficients
-                    "exclude_intercept_coeff_fp": False, # Exclude intercept on reg. coeff. forest plot
-                    # color scheme
-                    "colors/default_bg": DEFAULT_BACKGROUND_COLOR,
-                    "colors/label/fg"  : QColor(255,204,102),      # study label foreground
-                    "colors/label/bg"  : DEFAULT_BACKGROUND_COLOR, # study label background
-                    "colors/variable/categorical/fg": BLACK,
-                    "colors/variable/categorical/bg": DEFAULT_BACKGROUND_COLOR,
-                    "colors/variable/count/fg": QColor(242,38,111),
-                    "colors/variable/count/bg": DEFAULT_BACKGROUND_COLOR,
-                    "colors/variable/continuous/fg": QColor(157,102,253),
-                    "colors/variable/continuous/bg": DEFAULT_BACKGROUND_COLOR,
-                    "colors/var_with_subtype/default_effect/fg": BLACK,
-                    "colors/var_with_subtype/default_effect/bg": QColor(222,211,96),
-                    }
+DEFAULT_SETTINGS = {
+    "splash"       : True,
+    "digits"       : DEFAULT_PRECISION,
+    "recent_files" : [],
+    "model_data_font_str"     : "",
+    "model_header_font_str"   : "",
+    "show_additional_values"  : False,
+    "show_analysis_selections": True,
+    "reg_coeff_forest_plot": False, # Make forest plot for regression coefficients
+    "exclude_intercept_coeff_fp": False, # Exclude intercept on reg. coeff. forest plot
+    # color scheme
+    "colors/default_bg": DEFAULT_BACKGROUND_COLOR,
+    "colors/label/fg"  : QColor(255,204,102),      # study label foreground
+    "colors/label/bg"  : DEFAULT_BACKGROUND_COLOR, # study label background
+    "colors/variable/categorical/fg": BLACK,
+    "colors/variable/categorical/bg": DEFAULT_BACKGROUND_COLOR,
+    "colors/variable/count/fg": QColor(242,38,111),
+    "colors/variable/count/bg": DEFAULT_BACKGROUND_COLOR,
+    "colors/variable/continuous/fg": QColor(157,102,253),
+    "colors/variable/continuous/bg": DEFAULT_BACKGROUND_COLOR,
+    "colors/var_with_subtype/default_effect/fg": BLACK,
+    "colors/var_with_subtype/default_effect/bg": QColor(222,211,96),
+}
+
+# 'Additional values' to always show, regardless of whether the user has chosen
+# to display all 'additional values'
+ADDITIONAL_VALUES_TO_ALWAYS_SHOW = ['k'] 
 
 
 # Meta Analysis data type enumerations
 (MEANS_AND_STD_DEVS,                  # continuous (OMA)
  TWO_BY_TWO_CONTINGENCY_TABLE,        # binary (OMA)
- CORRELATION_COEFFICIENTS) = range(3) # continuous(OMA)
+ PROPORTIONS, # single group dichotomous variable
+ CORRELATION_COEFFICIENTS) = range(4) # continuous(OMA)
 
 # Datatype OMA convention strings
-OMA_CONVENTION = {MEANS_AND_STD_DEVS:'continuous',
-                  TWO_BY_TWO_CONTINGENCY_TABLE:'binary',
-                  CORRELATION_COEFFICIENTS:'continuous'}
+OMA_CONVENTION = {
+    MEANS_AND_STD_DEVS:'continuous',
+    TWO_BY_TWO_CONTINGENCY_TABLE:'binary',
+    PROPORTIONS:'binary',
+    CORRELATION_COEFFICIENTS:'continuous',
+}
 
 # For dealing with covariates in the interface to OpenMetaR
-COVARIATE_TYPE_TO_OMA_STR_DICT = {CONTINUOUS:u"continuous",
-                                  CATEGORICAL:u"factor",
-                                  COUNT:u"continuous",
-                                 }
+COVARIATE_TYPE_TO_OMA_STR_DICT = {
+    CONTINUOUS:u"continuous",
+    CATEGORICAL:u"factor",
+    COUNT:u"continuous",
+}
 
 # Data type names mapping data types ---> pretty names
-DATA_TYPE_TEXT = {MEANS_AND_STD_DEVS:"Means and Stand. Devs",
-                  TWO_BY_TWO_CONTINGENCY_TABLE:"2x2 Contingency Table",
-                  CORRELATION_COEFFICIENTS: "Correlation Coefficients",}
+DATA_TYPE_TEXT = {
+    MEANS_AND_STD_DEVS:"Means and Stand. Devs",
+    TWO_BY_TWO_CONTINGENCY_TABLE:"2x2 Contingency Table",
+    PROPORTIONS: "Proportions",
+    CORRELATION_COEFFICIENTS: "Correlation Coefficients",
+}
 
 # Metric enumerations
-(HEDGES_D, LN_RESPONSE_RATIO,
-ODDS_RATIO, RATE_DIFFERENCE, RELATIVE_RATE,
-FISHER_Z_TRANSFORM, GENERIC_EFFECT) = range(7)
+(
+    HEDGES_D,
+    LN_RESPONSE_RATIO,
+    ODDS_RATIO,
+    RISK_DIFFERENCE,
+    RELATIVE_RATE,
+    FISHER_Z_TRANSFORM,
+    GENERIC_EFFECT,
+    ARCSINE_RD,
+    RAW_PROPORTION,
+    LOG_PROPORTION,
+    LOGIT_PROPORTION,
+    ARCSINE_PROPORTION,
+    RAW_MEAN_DIFFEERENCE,
+) = range(13)
+
+ONE_ARM_METRICS = [
+    RAW_PROPORTION,
+    LOG_PROPORTION,
+    LOGIT_PROPORTION,
+    ARCSINE_PROPORTION,
+    #Placeholder for PFT Freeman Tukey ?
+]
 
 # Mapping of metrics ---> pretty names
 # fix for issue #21 -- adding generic effect
-METRIC_TEXT = {HEDGES_D:"Hedges' d",
-               LN_RESPONSE_RATIO:"ln Response Ratio",
-               ODDS_RATIO:"Log Odds Ratio",
-               RATE_DIFFERENCE:"Rate Difference",
-               RELATIVE_RATE:"Log Relative Rate",
-               FISHER_Z_TRANSFORM:"Fisher's Z-transform",
-               GENERIC_EFFECT:"Generic Effect"
-               }
+METRIC_TEXT = {
+    RAW_MEAN_DIFFEERENCE: "Raw mean difference",
+    HEDGES_D: "Hedges' d",
+    LN_RESPONSE_RATIO: "ln Response Ratio",
+    ODDS_RATIO: "Log Odds Ratio",
+    RISK_DIFFERENCE: "Risk Difference",
+    RELATIVE_RATE: "Log Relative Rate",
+    FISHER_Z_TRANSFORM: "Fisher's Z-transform",
+    GENERIC_EFFECT: "Generic Effect",
+    ARCSINE_RD: "Arcsine transformed risk difference",
+    RAW_PROPORTION: "Raw Proportion",
+    LOG_PROPORTION: "Log transformed proportion",
+    LOGIT_PROPORTION: "Logit proportion",
+    ARCSINE_PROPORTION: "Arcsine square-root transformed proportion",
+}
 
 # transformed (usually log) scale
-METRIC_TEXT_SHORT = {HEDGES_D:"d",
-                     LN_RESPONSE_RATIO:"ln Resp.R",
-                     ODDS_RATIO:"ln OR",
-                     RATE_DIFFERENCE:"RD",
-                     RELATIVE_RATE:"ln RR",
-                     FISHER_Z_TRANSFORM:"Zr",
-                     GENERIC_EFFECT:"Gen. Eff."
-                     }
+METRIC_TEXT_SHORT = {
+    RAW_MEAN_DIFFEERENCE: 'MD',
+    HEDGES_D: "d",
+    LN_RESPONSE_RATIO: "ln Resp.R",
+    ODDS_RATIO: "ln OR",
+    RISK_DIFFERENCE: "RD",
+    RELATIVE_RATE: "ln RR",
+    FISHER_Z_TRANSFORM: "Zr",
+    GENERIC_EFFECT: "Gen. Eff.",
+    ARCSINE_RD: 'AS',
+    RAW_PROPORTION: 'Raw Pr',
+    LOG_PROPORTION: 'Log Pr',
+    LOGIT_PROPORTION: 'Logit Pr',
+    ARCSINE_PROPORTION: 'AS Pr',
+}
+
 # raw scale
 METRIC_TEXT_SHORT_RAW_SCALE = {
-                     HEDGES_D:"d",
-                     LN_RESPONSE_RATIO:"Resp.R",
-                     ODDS_RATIO:"OR",
-                     RATE_DIFFERENCE:"RD",
-                     RELATIVE_RATE:"RR",
-                     FISHER_Z_TRANSFORM:"Rz",
-                     GENERIC_EFFECT:"Gen. Eff."
-                     }
+    RAW_MEAN_DIFFEERENCE: 'MD',
+    HEDGES_D:"d",
+    LN_RESPONSE_RATIO:"Resp.R",
+    ODDS_RATIO:"OR",
+    RISK_DIFFERENCE:"RD",
+    RELATIVE_RATE:"RR",
+    FISHER_Z_TRANSFORM:"Rz",
+    GENERIC_EFFECT:"Gen. Eff.",
+    ARCSINE_RD:"RD",
+    RAW_PROPORTION: 'Raw Pr',
+    LOG_PROPORTION: 'Pr',
+    LOGIT_PROPORTION: 'Pr',
+    ARCSINE_PROPORTION: 'Pr',
+}
 
 # Text to describe metrics without regard to being transformed or not
-METRIC_TEXT_SIMPLE = {HEDGES_D:"Hedges' d",
-                      LN_RESPONSE_RATIO:"Response Ratio",
-                      ODDS_RATIO:"Odds Ratio",
-                      RATE_DIFFERENCE:"Rate Difference",
-                      RELATIVE_RATE:"Relative Rate",
-                      FISHER_Z_TRANSFORM:"Fisher's Z-transform",
-                      GENERIC_EFFECT:"Generic Effect"
-                     }
+METRIC_TEXT_SIMPLE = {
+    RAW_MEAN_DIFFEERENCE: 'Mean Difference',
+    HEDGES_D:"Hedges' d",
+    LN_RESPONSE_RATIO:"Response Ratio",
+    ODDS_RATIO:"Odds Ratio",
+    RISK_DIFFERENCE:"Risk Difference",
+    RELATIVE_RATE:"Relative Rate",
+    FISHER_Z_TRANSFORM:"Fisher's Z-transform",
+    GENERIC_EFFECT:"Generic Effect",
+    ARCSINE_RD:"Arcsine transformed risk difference",
+    RAW_PROPORTION: 'Raw Proportion',
+    LOG_PROPORTION: 'Log Proportion',
+    LOGIT_PROPORTION: 'Logit Proportion',
+    ARCSINE_PROPORTION: 'Arcsine proportion',
+}
 
-METRIC_TO_ESCALC_MEASURE = {HEDGES_D: "SMD",
-                            LN_RESPONSE_RATIO: "ROM",
-                            ODDS_RATIO:"OR",
-                            RATE_DIFFERENCE:"RD",
-                            RELATIVE_RATE:"RR",
-                            FISHER_Z_TRANSFORM:"ZCOR",
-                            GENERIC_EFFECT:"GEN", # not for escalc but for rma.uni (see metafor documentation)
-                            }
+METRIC_TO_ESCALC_MEASURE = {
+    RAW_MEAN_DIFFEERENCE: 'MD',
+    HEDGES_D: "SMD",
+    LN_RESPONSE_RATIO: "ROM",
+    ODDS_RATIO:"OR",
+    RISK_DIFFERENCE:"RD",
+    RELATIVE_RATE:"RR",
+    FISHER_Z_TRANSFORM:"ZCOR",
+    GENERIC_EFFECT:"GEN", # not for escalc but for rma.uni (see metafor documentation)
+    ARCSINE_RD:"AS",
+    RAW_PROPORTION: 'PR',
+    LOG_PROPORTION: 'PLN',
+    LOGIT_PROPORTION: 'PLO',
+    ARCSINE_PROPORTION: 'PAS',
+}
 
 
 # dictionary mapping data types to available metrics
-DATA_TYPE_TO_METRICS = {MEANS_AND_STD_DEVS: [HEDGES_D, LN_RESPONSE_RATIO, GENERIC_EFFECT],
-                        TWO_BY_TWO_CONTINGENCY_TABLE: [ODDS_RATIO, RATE_DIFFERENCE, RELATIVE_RATE],
-                        CORRELATION_COEFFICIENTS: [FISHER_Z_TRANSFORM,],
-                        }
+DATA_TYPE_TO_METRICS = {
+    MEANS_AND_STD_DEVS: [
+        RAW_MEAN_DIFFEERENCE,
+        HEDGES_D,
+        LN_RESPONSE_RATIO,
+        GENERIC_EFFECT,
+    ],
+    TWO_BY_TWO_CONTINGENCY_TABLE: [
+        ODDS_RATIO,
+        RISK_DIFFERENCE,
+        RELATIVE_RATE,
+        ARCSINE_RD,
+    ],
+    PROPORTIONS: [
+        RAW_PROPORTION,
+        LOG_PROPORTION,
+        LOGIT_PROPORTION,
+        ARCSINE_PROPORTION,
+    ],
+    CORRELATION_COEFFICIENTS: [
+        FISHER_Z_TRANSFORM,
+    ],
+}
 def get_data_type_for_metric(metric):
     for d_type, metrics in DATA_TYPE_TO_METRICS.items():
         if metric in metrics:
@@ -594,6 +727,11 @@ def civilized_dict_str(a_dict):
 
     return "{\n%s\n}" % "\n".join(content)
 
+def equals_zero(value):
+    ''' Test that a value is equal to zero (threshhold) '''
+
+    return -ZERO_THRESHHOLD < value < ZERO_THRESHHOLD
+
 ################### Helpers for wizards ########################################
 
 def wizard_summary(wizard, next_id_helper, summary_page_id, analysis_label):
@@ -656,6 +794,8 @@ def update_setting(field, value):
         settings.setValue(field, value)
     elif value_type == str:
         settings.setValue(field, value)
+    elif value_type == unicode:
+        settings.setValue(field, value)
     else:
         # nothing special needs to be done
         print("Field: %s" % field)
@@ -678,7 +818,8 @@ def get_setting(field):
         indexes = list(settings.childKeys())
         foo_list = []
         for i in indexes:
-            value = str(settings.value(i).toString())
+            value = settings.value(i).toString().toUtf8() # byte array encoded in utf-8
+            value = unicode(value, 'utf8')
             foo_list.append(value)
         settings.endGroup()
         setting_value = foo_list
@@ -704,12 +845,10 @@ def get_setting(field):
 #         # Todo: convert thing in qsetting to a qcolor (see QSettings doc page for info about this)
 #         pass
 
-
 def save_settings():
     print("saved settings")
     settings = QSettings()
     settings.sync() # writes to permanent storage
-
 
 def load_settings():
     ''' loads settings from QSettings object, setting suitable defaults if
@@ -774,10 +913,69 @@ def add_file_to_recent_files(fpath):
 
 ################ END HANDLE SETTINGS ######################
 
-
 def to_posix_path(path):
     ''' for now, just changes \ to /
     Assumes there are no escapes in the path, very important!'''
 
     new_path = path.replace('\\', '/')
     return new_path
+
+###############################################################################
+# Report build date in output
+#
+# OpenMEE will look for a module named version.py and try to read the variable
+# BUILDDATE defined within. This file should be generated when either the 
+# windows or mac build scripts are invoked.
+###############################################################################
+def get_build_date():
+    try:
+        from version import BUILDDATE
+        return BUILDDATE
+    except ImportError:
+        print 'No version module detected'
+        return 'Unknown'
+
+def write_build_date():
+    '''
+    Overwrite version.py file with the current date. This function should only
+    be called by the build script
+    '''
+    from datetime import date
+    datestring = str(date.today())
+
+    with open('version.py', 'w') as f:
+        f.write("BUILDDATE = '%s'\n" % datestring)
+
+def represents_int(s):
+    ''' Returns true if this string can be converted to an integer '''
+
+    try:
+        value = int(s)
+        if value % 1 != 0:
+            return False
+    except ValueError:
+        return False
+    except TypeError:
+        return False
+
+    return True
+
+def represents_float(s):
+    ''' Returns true if this string can be converted to a float '''
+
+    try:
+        float(s)
+    except ValueError:
+        return False
+    except TypeError:
+        return False
+
+    return True
+
+def islistortuple(obj):
+    ''' Returns true if obj is alist or tuple '''
+
+    if isinstance(obj, list) or isinstance(obj, tuple):
+        return True
+    else:
+        return False

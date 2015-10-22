@@ -26,17 +26,17 @@ from ome_globals import *
 from edit_funnel_plot_form import EditFunnelPlotForm
 from edit_data_exploration_plot_form import EditDataExplorationPlotForm
 
+builddatestr = 'OpenMEE build date: %s' % get_build_date()
+
 PageSize = (612, 792)
-padding = 25
-horizontal_padding = 75
+padding = 15 # padding between items
 SCALE_P = .5 # percent images are to be scaled
 
 # these are special forest plots, in that multiple parameters objects are
 # require to re-generate them (and we invoke a different method!)
 SIDE_BY_SIDE_FOREST_PLOTS = ("NLR and PLR Forest Plot", "Sensitivity and Specificity","Cumulative Forest Plot")
-ROW_HEIGHT = 15 # by trial-and-error; seems to work very well
 
-
+# TODO: Put all the titles + text or title + images into QGraphicsItemGroups
 
 class ResultsWindow(QMainWindow, ui_results_window.Ui_ResultsWindow):
 
@@ -48,10 +48,9 @@ class ResultsWindow(QMainWindow, ui_results_window.Ui_ResultsWindow):
         self.show_additional_values = show_additional_values
         self.show_analysis_selections = show_analysis_selections
         self.items_to_ignore = []
-        self.copied_item = QByteArray()
-        self.paste_offset = 5
-        self.add_offset = 5
-        self.buffer_size = 2
+        #self.copied_item = QByteArray()
+        #self.paste_offset = 5
+        #self.add_offset = 5
         self.prev_point = QPoint()
         self.borders = []
         self.printer = QPrinter(QPrinter.HighResolution)
@@ -64,19 +63,14 @@ class ResultsWindow(QMainWindow, ui_results_window.Ui_ResultsWindow):
         if "results_data" not in results:
             results["results_data"] = None
         self.export_btn.clicked.connect(lambda: self.export_results(results["results_data"]))
-            
-                                       
-                              
+        
         self.nav_tree.setHeaderLabels(["results"])
         self.nav_tree.setItemsExpandable(True)
         self.x_coord = 5
         self.y_coord = 5
 
         # set (default) splitter sizes
-        self.splitter.setSizes([400, 100])
         self.results_nav_splitter.setSizes([200,500])
-
-        self.scene = QGraphicsScene(self)
 
         self.images = results["images"]
         print "images returned from analytic routine: %s" % self.images
@@ -88,7 +82,13 @@ class ResultsWindow(QMainWindow, ui_results_window.Ui_ResultsWindow):
         self.params_paths = {}
         if "image_params_paths" in results:
             self.params_paths = results["image_params_paths"]
-    
+        # R functions to use in regenerating the plots
+        # usually take plot.data, base.path, and image.format
+        self.save_plot_functions = {}
+        if "save_plot_functions" in results:
+            self.save_plot_functions = results["save_plot_functions"]
+
+
         self.image_var_names = results["image_var_names"]
         
         self.items_to_coords = {}
@@ -102,15 +102,11 @@ class ResultsWindow(QMainWindow, ui_results_window.Ui_ResultsWindow):
 
         # first add the text to self.scene
         self.post_facto_text_to_add = []
-        self.add_text()
-
-        self.y_coord += ROW_HEIGHT/2.0
-
-        # additional padding for Windows..
-        # again, heuristic. I don't know
-        # why windows requires so much padding.
-        if sys.platform.startswith('win'):
-            self.y_coord += 2*ROW_HEIGHT
+        self.scene = QGraphicsScene(self)
+        self.graphics_view.setScene(self.scene)
+        # Add build date to output
+        self._add_text_item(None, builddatestr)
+        self.add_text() # adds the body of the text output
 
         # and now the images
         self.add_images()
@@ -123,10 +119,15 @@ class ResultsWindow(QMainWindow, ui_results_window.Ui_ResultsWindow):
         # reset the scene
         self.graphics_view.setScene(self.scene)
         self.graphics_view.ensureVisible(QRectF(0,0,0,0))
-            
-        if "results_data" in results and self.show_additional_values:
-            if results["results_data"]:
+
+        print "Results: %s" % str(results)
+
+        if "results_data" in results and islistortuple(results["results_data"]) and len(results["results_data"]) > 0:
+            if self.show_additional_values:
                 self.add_additional_values_texts(results["results_data"])
+            else:
+                # issue #152 show 'k' regardless
+                self.add_additional_values_texts(results["results_data"],ADDITIONAL_VALUES_TO_ALWAYS_SHOW, additionalvaluesparent=False)
 
 
     def f(self):
@@ -153,6 +154,9 @@ class ResultsWindow(QMainWindow, ui_results_window.Ui_ResultsWindow):
         
         # write the file
         with open(fpath,'w') as f:
+            # Version
+            f.write ("%s\n\n" % boxify(builddatestr))
+
             # Add input summary
             if self.show_analysis_selections:
                 if len(self.summary) > 0:
@@ -178,7 +182,6 @@ class ResultsWindow(QMainWindow, ui_results_window.Ui_ResultsWindow):
         
         self.statusbar.showMessage("Saved results to: %s" % fpath,5000)
         
-        
     def _value_to_string(self, value):
         if isinstance(value, str):
             val_str = value+"\n"
@@ -194,7 +197,7 @@ class ResultsWindow(QMainWindow, ui_results_window.Ui_ResultsWindow):
     def add_images(self):
         # temporary fix!
         image_order = self.images.keys()
-        
+
         if self.image_order is not None:
             image_order = self.image_order
         
@@ -206,12 +209,8 @@ class ResultsWindow(QMainWindow, ui_results_window.Ui_ResultsWindow):
             # in add_text
             grouped_images = self._group_items(ungrouped_images, self.groupings)
             ordered_images = grouped_images
-        
-        
+
         for title,image in ordered_images:
-            print "title: %s; image: %s" % (title, image)
-            cur_y = max(0, self.y_coord)
-            print "cur_y: %s" % cur_y
             # first add the title
             qt_item = self.add_title(self.purified_title_str(title))
             
@@ -234,14 +233,23 @@ class ResultsWindow(QMainWindow, ui_results_window.Ui_ResultsWindow):
             # to the create_pixmap_item method to for the context_menu 
             # construction
             params_path = None
+            save_plot_function = None
             if self.params_paths is not None and title in self.params_paths:
                 params_path = self.params_paths[title]
+            if self.save_plot_functions is not None and title in self.save_plot_functions:
+                save_plot_function = self.save_plot_functions[title]
 
-            
-            img_shape, pos, pixmap_item = self.create_pixmap_item(pixmap, self.position(),\
-                                                title, image, params_path=params_path)
-            
-            self.items_to_coords[qt_item] = pos
+            self.create_pixmap_item(
+                pixmap,
+                self.position(),
+                title,
+                image,
+                params_path=params_path,
+                save_plot_function=save_plot_function
+            )
+
+            self.items_to_coords[qt_item] = self.position()
+            self.y_coord += padding
             
     def purified_title_str(self, title):
         ''' strips out metadata from title i.e. if title is "Forest Plot__phlyo",
@@ -268,16 +276,8 @@ class ResultsWindow(QMainWindow, ui_results_window.Ui_ResultsWindow):
         else:
             scaled_width = SCALE_P*pixmap.width()
             scaled_height = SCALE_P*pixmap.height()
-        
 
-        if scaled_width > self.scene.width():
-            self.scene.setSceneRect(0, 0, \
-                                scaled_width+horizontal_padding,\
-                                self.scene.height())
-        
-
-        pixmap = pixmap.scaled(scaled_width, scaled_height, \
-                            transformMode=Qt.SmoothTransformation)
+        pixmap = pixmap.scaled(scaled_width, scaled_height, transformMode=Qt.SmoothTransformation)
 
         return pixmap
 
@@ -296,14 +296,29 @@ class ResultsWindow(QMainWindow, ui_results_window.Ui_ResultsWindow):
             self.texts_for_export.append((title,text))
     
             
-    def add_additional_values_texts(self, data, sublist_prefix="__"):
-        spacer_item = self._add_text_item("", "\n\n--------------------------------------------------")
-        additional_values_item = QTreeWidgetItem(self.nav_tree, ["Additional Values"])
-        self.items_to_ignore.extend([spacer_item, additional_values_item])
+    def add_additional_values_texts(self, data, keys_to_display=None, additionalvaluesparent=True, sublist_prefix="__"):
+        ''' Creates text items for the additional values and makes them children
+        of an 'Additional Values' item in the nav tree.
+            keys_to_display: List of keys to always display regardless of
+                whether self.show_additional_values is true or false
+                If None, all keys are displayed. If not None, only the listed
+                keys are displayed.
+            additionalvaluesparent: display the additional values under a parent
+                item on the left side of the results window
+        '''
+        if additionalvaluesparent:
+            spacer_item = self._add_text_item("", "\n\n--------------------------------------------------")
+            additional_values_item = QTreeWidgetItem(self.nav_tree, ["Additional Values"])
+            self.items_to_ignore.extend([spacer_item, additional_values_item])
+        else:
+            additional_values_item = None
 
         len_sublist_prefix = len(sublist_prefix)
         current_parent = additional_values_item
+
         for key,value_data in data:
+            if keys_to_display and key not in keys_to_display:
+                continue
             val_str = self._value_to_string(value_data['value'])
             if key[0:len_sublist_prefix] == sublist_prefix:
                 print("Sublist detectected")
@@ -314,23 +329,26 @@ class ResultsWindow(QMainWindow, ui_results_window.Ui_ResultsWindow):
                 self._add_text_item(key+": %s" % value_data['description'], val_str, parent_item=current_parent)
             
     def _add_text_item(self, title, text, parent_item=None):
-        # parent_item is the parent item in the nav tree
-        
-        try:
-            #text = text[0]
-            text = text.replace("\\n","\n") # manual escaping
-            print "title: %s; text: %s" % (title, text)
-            cur_y = max(0, self.y_coord)
-            print "cur_y: %s" % cur_y
+        '''
+        parent_item is the parent item in the nav tree
+        If title is none, no title is created and no reference to the added item is returned.
+        '''
+
+        text = text.replace("\\n","\n") # manual escaping
+        if title:
             # first add the title
             qt_item = self.add_title(title, parent_item)
 
-            # now the text
-            text_item_rect, pos = self.create_text_item(unicode(text), self.position())
-            self.items_to_coords[qt_item] =  pos
-        except:
-            pass
-        return qt_item # returns the item in the nav tree
+        # now the text
+        position = self.position()
+        self.create_text_item(unicode(text), position)
+        if title:
+            self.items_to_coords[qt_item] = position
+
+        # add padding to the next item
+        self.y_coord += padding
+        if title:
+            return qt_item # returns the item in the nav tree
     
     def _group_items(self, items, groups):
         '''Groups items together if their title contains an element in a group list.
@@ -375,28 +393,18 @@ class ResultsWindow(QMainWindow, ui_results_window.Ui_ResultsWindow):
         
         return result
 
-                        
-
-                            
-        
-
     def add_title(self, title, parent_item=None):
-        print("Adding title")
         text = QGraphicsTextItem()
         # I guess we should use a style sheet here,
         # but it seems like it'd be overkill.
         html_str = '<p style="font-size: 14pt; color: black; face:verdana">%s</p>' % title
         text.setHtml(html_str)
-        #text.setPos(self.position())
-        print "  title at: %s" % self.y_coord
         self.scene.addItem(text)
         if parent_item:
             qt_item = QTreeWidgetItem(parent_item, [title])
         else:
             qt_item = QTreeWidgetItem(self.nav_tree, [title])
-        self.scene.setSceneRect(0, 0, self.scene.width(), self.y_coord + text.boundingRect().height() + padding)
-        print("  Setting position at (%d,%d)" % (self.x_coord, self.y_coord))                        
-        text.setPos(self.position()) #####
+        text.setPos(self.x_coord, self.y_coord)
         self.y_coord += text.boundingRect().height()
         return qt_item
 
@@ -407,20 +415,23 @@ class ResultsWindow(QMainWindow, ui_results_window.Ui_ResultsWindow):
         self.graphics_view.centerOn(self.items_to_coords[item])
 
     def create_text_item(self, text, position):
-        txt_item = QGraphicsTextItem(QString(text))
-        txt_item.setFont(QFont("courier", 12))
-        txt_item.setToolTip("To copy the text:\n1) Right click on the text and choose \"Select All\".\n2) Right click again and choose \"Copy\".")
+        txt_item = QGraphicsTextItem()
+        # This is a dumb way to escape the text for conversion to html but it works for now
+        text = text.replace('\r','')
+        text = text.replace('<', '&lt;')
+        text = text.replace('\n', '<br />')
+
+        # we should use a mono-width font here
+        html_str = '<pre>%s</pre>' % text
+        txt_item.setHtml(html_str)
+        font = QFont(QString('monospace'),12)
+        txt_item.setFont(font)
+
         txt_item.setTextInteractionFlags(Qt.TextSelectableByMouse)
         self.scene.addItem(txt_item)
-
-        self.scene.setSceneRect(0, 0, max(self.scene.width(),
-                                          txt_item.boundingRect().size().width()),
-                                          self.y_coord+txt_item.boundingRect().height()+padding)
-        
+        txt_item.setPos(self.x_coord, self.y_coord)
+        txt_item.setToolTip("To copy the text:\n1) Right click on the text and choose \"Select All\".\n2) Right click again and choose \"Copy\".")
         self.y_coord += txt_item.boundingRect().height()
-        txt_item.setPos(position)
-        
-        return (txt_item.boundingRect(), position)
     
     def _get_plot_type(self, title):
         # at present we use the *title* as the type --
@@ -431,6 +442,7 @@ class ResultsWindow(QMainWindow, ui_results_window.Ui_ResultsWindow):
         # more...
         plot_type = None
         tmp_title = title.lower()
+
         if "forest plot of coefficients" in tmp_title:
             plot_type = "forest plot of coefficients"
         elif "forest" in tmp_title and "__phylo" in tmp_title:
@@ -441,34 +453,35 @@ class ResultsWindow(QMainWindow, ui_results_window.Ui_ResultsWindow):
             plot_type = "regression"
         elif "funnel" in tmp_title:
             plot_type = "funnel"
+        elif "weighted histogram":
+            plot_type = "weighted_histogram"
         elif "histogram" in tmp_title:
             plot_type = "histogram"
         elif "scatterplot" in tmp_title:
             plot_type = "scatterplot"
         return plot_type
 
-    def create_pixmap_item(self, pixmap, position, title, image_path,\
-                             params_path=None, matrix=QMatrix()):
+    def create_pixmap_item(
+            self,
+            pixmap,
+            position,
+            title,
+            image_path,
+            params_path=None,
+            save_plot_function=None,
+            matrix=QMatrix()):
         item = QGraphicsPixmapItem(pixmap)
-        item.setToolTip("To save the image:\nright-click on the image and choose \"save image as\".\nSave as png will correctly render non-latin fonts but does not respect changes to plot made through 'edit_plot ...'")
-        
-        self.y_coord += item.boundingRect().size().height()
-#        item.setFlags(QGraphicsItem.ItemIsSelectable|
-#                      QGraphicsItem.ItemIsMovable)
+
         item.setFlags(QGraphicsItem.ItemIsSelectable)
-
-
-        self.scene.setSceneRect(0, 0,
-                                max(self.scene.width(),
-                                    item.boundingRect().size().width()),
-                                self.y_coord+item.boundingRect().size().height()+padding)
-
         print "creating item @:%s" % position
         
         item.setMatrix(matrix)
         self.scene.clearSelection()
         self.scene.addItem(item)
-        item.setPos(position)
+        item.setPos(self.x_coord, self.y_coord)
+        item.setToolTip("To save the image:\nright-click on the image and choose \"save image as\".\nSave as png will correctly render non-latin fonts but does not respect changes to plot made through 'edit_plot ...'")
+
+        self.y_coord += item.boundingRect().height()
         
         # for now we're inferring the plot type (e.g., 'forest'
         # from the title of the plot (see in-line comments, above)
@@ -477,35 +490,57 @@ class ResultsWindow(QMainWindow, ui_results_window.Ui_ResultsWindow):
         # attach event handler for mouse-clicks, i.e., to handle
         # user right-clicks
         item.contextMenuEvent = self._make_context_menu(
-                params_path, title, image_path, item, plot_type=plot_type)
+            params_path,
+            save_plot_function,
+            title,
+            image_path,
+            item,
+            plot_type=plot_type,
+        )
 
-        return (item.boundingRect().size(), position, item)
-
-
-
-
-    def _make_context_menu(self, params_path, title, png_path, 
-                           qpixmap_item, plot_type="forest"):
+    def _make_context_menu(
+            self,
+            params_path,
+            save_plot_function,
+            title,
+            png_path,
+            qpixmap_item,
+            plot_type="forest"):
         plot_img = QImage(png_path)
-        
+
         print("plot_img: %s" % plot_img)
         def _graphics_item_context_menu(event):
             def add_save_as_pdf_menu_action(menu):
                 action = QAction("save pdf image as...", self)
-                QObject.connect(action, SIGNAL("triggered()"),
-                                lambda : self.save_image_as(params_path, title, 
-                                plot_type=plot_type, fmt="pdf"))
+                QObject.connect(
+                    action,
+                    SIGNAL("triggered()"),
+                    lambda : self.save_image_as(
+                        params_path,
+                        save_plot_function,
+                        title,
+                        plot_type=plot_type,
+                        fmt="pdf"),
+                    )
                 menu.addAction(action)
             def add_save_as_png_menu_action(menu):
                 action = QAction("save png image as...", self)
-                QObject.connect(action, SIGNAL("triggered()"),
-                            lambda : self.save_image_as(params_path, title, 
-                                            plot_type=plot_type,
-                                            unscaled_image = plot_img, fmt="png"))
+                QObject.connect(
+                    action,
+                    SIGNAL("triggered()"),
+                    lambda : self.save_image_as(
+                        params_path,
+                        save_plot_function,
+                        title,
+                        plot_type=plot_type,
+                        unscaled_image = plot_img,
+                        fmt="png"),
+                    )
                 menu.addAction(action)
             def add_edit_plot_menu_action(menu):
                 # only know how to edit *simple* (i.e., _not_ side-by-side, as 
                 # in sens and spec plotted on the same canvass) forest plots for now
+                print "in add_edit_plot_menu_action, plot type: %s" % plot_type
                 if plot_type == "forest" and not self._is_side_by_side_fp(title):
                     action = QAction("edit plot...", self)
                     QObject.connect(action, SIGNAL("triggered()"),
@@ -544,7 +579,7 @@ class ResultsWindow(QMainWindow, ui_results_window.Ui_ResultsWindow):
     def _is_side_by_side_fp(self, title):
         return any([side_by_side in title for side_by_side in SIDE_BY_SIDE_FOREST_PLOTS])
 
-    def save_image_as(self, params_path, title, plot_type="forest", unscaled_image=None, fmt="png"):
+    def save_image_as(self, params_path, save_plot_function, title, plot_type="forest", unscaled_image=None, fmt="png"):
         
         if fmt not in ["pdf","png"]:
             raise Exception("Invalid fmt, needs to be either pdf or png!")
@@ -565,15 +600,21 @@ class ResultsWindow(QMainWindow, ui_results_window.Ui_ResultsWindow):
             print("Loaded: %s" % "%s.coef_fp_data" % params_path)
 
         suffix = unicode("."+fmt)
-        default_filename = {"forest":"forest_plot",
-                            "forest__phylo":"forest_plot",
-                            "regression":"regression",
-                            "funnel":"funnel_plot",
-                            "histogram":"histogram",
-                            "scatterplot":"scatterplot",
-                            "forest plot of coefficients":"forest_plot_of_coefficients"}[plot_type] + suffix
+        default_filenames = {
+            "forest": "forest_plot",
+            "forest__phylo": "forest_plot",
+            "regression": "regression",
+            "funnel": "funnel_plot",
+            "histogram": "histogram",
+            "scatterplot": "scatterplot",
+            "forest plot of coefficients": "forest_plot_of_coefficients",
+        }
+
+        try:
+            default_filename = default_filenames[plot_type] + suffix
+        except KeyError:
+            default_filename = plot_type + suffix
         
-                        
         default_path = os.path.join(get_user_desktop_path(), default_filename)
         print("default_path for graphic: %s" % default_path)
         default_path = QString(default_path)
@@ -583,10 +624,11 @@ class ResultsWindow(QMainWindow, ui_results_window.Ui_ResultsWindow):
         print("filter: %s" % dfilter)
 
         # where to save the graphic?
-        file_path = unicode(QFileDialog.getSaveFileName(self, 
-                                                        "OpenMEE -- save plot as",
-                                                        default_path,))
-                                                        #filter=QString(dfilter)))
+        file_path = unicode(QFileDialog.getSaveFileName(
+            self,
+            "OpenMEE -- save plot as",
+            default_path,
+        ))
 
         # now we re-generate it, unless they canceled, of course
         if file_path != "":
@@ -609,7 +651,15 @@ class ResultsWindow(QMainWindow, ui_results_window.Ui_ResultsWindow):
             elif plot_type == "forest plot of coefficients":
                 python_to_R.regenerate_forest_plot_of_coefficients(file_path, params_path, fmt)
             else:
-                print "sorry -- I don't know how to draw %s plots!" % plot_type
+                if save_plot_function:
+                    python_to_R.dynamic_save_plot(
+                        rfunction=save_plot_function,
+                        plot_data_path=params_path,
+                        file_path=file_path,
+                        format=fmt,
+                    )
+                else:
+                    print "sorry -- I don't know how to draw %s plots!" % plot_type
 #        else: # case where we just have the png and can't regenerate the pdf from plot data
 #            print("Can't regenerate pdf")
 #            default_path = '.'.join([title.replace(' ','_'),"png"])
@@ -660,11 +710,10 @@ class ResultsWindow(QMainWindow, ui_results_window.Ui_ResultsWindow):
                 python_to_R.regenerate_exploratory_plot(params_path, png_path, plot_type=plot_type, edited_params=new_params)
                 new_pixmap = self.generate_pixmap(png_path, custom_scale=1)
                 pixmap_item.setPixmap(new_pixmap)
-        
+
     def position(self):
         point = QPoint(self.x_coord, self.y_coord)
-        return self.graphics_view.mapToScene(point)
-    
+        return point
 
 if __name__ == "__main__":
     

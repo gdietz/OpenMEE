@@ -13,6 +13,8 @@ import time
 #from PyQt4.Qt import *
 from PyQt4 import QtGui
 from PyQt4.Qt import QPixmap, QSplashScreen, QThread
+# from PyQt4 import QtGui
+# from PyQt4.Qt import *
 
 import python_to_R
 import main_form
@@ -25,6 +27,7 @@ SPLASH_DISPLAY_TIME = 0
 def load_R_libraries(app, splash=None):
     ''' Loads the R libraries while updating the splash screen'''
     
+    python_to_R.get_R_libpaths() # print the lib paths
     rloader = python_to_R.RlibLoader()
 
     splash.showMessage("Loading metafor\n....")
@@ -34,6 +37,10 @@ def load_R_libraries(app, splash=None):
     splash.showMessage("Loading openmetar\n........")
     app.processEvents()
     rloader.load_openmetar()
+
+    splash.showMessage("Loading openmee\n............")
+    app.processEvents()
+    rloader.load_openmeer()
     
     splash.showMessage("Loading igraph\n............")
     app.processEvents()
@@ -126,11 +133,4 @@ def setup_directories():
     
 
 if __name__ == "__main__":
-    try:
-#         if sys.argv[1][-3:len(sys.argv[1])]=="ome":
-#             start(open_file_path=sys.argv[1])
-        if sys.argv[1] == "-reset":
-            start(reset_settings=True)
-    except IndexError:
-        pass
-        start()
+    start()

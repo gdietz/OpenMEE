@@ -5,6 +5,7 @@
 #               #
 #################
 
+import sys
 from functools import partial
 
 from PyQt4 import QtCore, QtGui
@@ -39,6 +40,33 @@ class ChooseEffectSizePage(QWizardPage, ui_choose_effect_size_page.Ui_choose_eff
         # calls self.wizard().adjustSize() and the wizard doesn't exist yet when
         # __init__() is called
         self._populate_data_type_groupBox()
+
+    def validatePage(self):
+        ''' Implements validatePage virtual function of QWizardPage. Called when
+        the user clicks 'Next' or 'Finish' to perform last minute validation.
+        In this case, we make sure that if the selected data type is
+        GENERIC_EFFECT, we display a warning to the user to make sure that the
+        variance is normally distributed'''
+
+        generic_effect_selected = self.get_metric() is GENERIC_EFFECT
+        if generic_effect_selected:
+            generic_effect_string = METRIC_TEXT_SIMPLE[GENERIC_EFFECT]
+            button_pressed = QMessageBox.question(
+                self,
+                QString("Variance normally distributed?"),
+                QString("You have selected %s. The %s metric is only valid if"
+                    " the variance is normally distributed. Knowing this, do you"
+                    " wish to continue with the analysis?\n\nIf the variance is not"
+                    " normally distributed, consider transforming your effect"
+                    " size and variance to a scale where the variance is normally"
+                    " distributed" % (generic_effect_string, generic_effect_string)
+                ),
+                QMessageBox.Yes|QMessageBox.No,
+            )
+            if button_pressed == QMessageBox.No:
+                return False
+
+        return True
         
         
     def isComplete(self):
@@ -156,6 +184,19 @@ class ChooseEffectSizePage(QWizardPage, ui_choose_effect_size_page.Ui_choose_eff
         
         summary = "\n".join([metric_str, data_type_str])
         return summary
+
+def test_page():
+    ''' This doesn't really work for testing the page. Don't rely on it '''
+    app = QtGui.QApplication(sys.argv)
+    choose_effect_size_page = ChooseEffectSizePage(
+        parent=None,
+        add_generic_effect=True,
+        data_type=None,
+        metric=None,
+        var_groups=[]
+    )
+    choose_effect_size_page.show()
+    sys.exit(app.exec_())
         
 # Delete a layout
 #import sip

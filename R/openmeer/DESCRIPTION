@@ -1,0 +1,8 @@
+Package: openmeer
+Title: R component for OpenMEE
+Version: 0.1
+Authors@R: person("George", "Dietz", email = "dietzgeorge@gmail.com", role = c("aut", "cre"))
+Description: R component for OpenMEE, a graphical user interface for performing meta-analysis 
+Depends: R (>= 3.1.2), openmetar
+License: GPL (>= 2)
+LazyData: true

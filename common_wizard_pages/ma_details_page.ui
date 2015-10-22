@@ -1,0 +1,216 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>WizardPage</class>
+ <widget class="QWizardPage" name="WizardPage">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>339</width>
+    <height>283</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>WizardPage</string>
+  </property>
+  <layout class="QVBoxLayout" name="verticalLayout">
+   <item>
+    <widget class="QGroupBox" name="groupBox">
+     <property name="title">
+      <string>Model Type</string>
+     </property>
+     <layout class="QGridLayout" name="gridLayout">
+      <item row="0" column="1">
+       <widget class="QLabel" name="label">
+        <property name="text">
+         <string>Random Effects Method:</string>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="0">
+       <widget class="QRadioButton" name="rand_effects_radio_btn">
+        <property name="text">
+         <string>Random Effects</string>
+        </property>
+        <property name="checked">
+         <bool>true</bool>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="1">
+       <widget class="QComboBox" name="rand_effects_method_cbo_box"/>
+      </item>
+      <item row="2" column="0">
+       <widget class="QRadioButton" name="fixed_effects_radio_btn">
+        <property name="text">
+         <string>Fixed Effects</string>
+        </property>
+       </widget>
+      </item>
+     </layout>
+    </widget>
+   </item>
+   <item>
+    <widget class="QCheckBox" name="intercept_chkbox">
+     <property name="toolTip">
+      <string>Add intercept term to the model? (default: yes)</string>
+     </property>
+     <property name="text">
+      <string>Add intercept to the model? (default: yes)</string>
+     </property>
+     <property name="checked">
+      <bool>true</bool>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <widget class="QCheckBox" name="weighted_chkbox">
+     <property name="toolTip">
+      <string>Use weighted (default) or unweighted least-squares when fitting the model.</string>
+     </property>
+     <property name="text">
+      <string>Weighted least squares? (default: yes)</string>
+     </property>
+     <property name="checked">
+      <bool>true</bool>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <widget class="QCheckBox" name="knha_chkbox">
+     <property name="toolTip">
+      <string>Adjust test statistics and conidence intervals using the method of Knapp and Hartung (default: no)</string>
+     </property>
+     <property name="text">
+      <string>Knapp and Hartung? (default: no)</string>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <layout class="QHBoxLayout" name="horizontalLayout">
+     <item>
+      <widget class="QLabel" name="label_2">
+       <property name="text">
+        <string>Confidence Level:</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QDoubleSpinBox" name="level_spinbox">
+       <property name="suffix">
+        <string>%</string>
+       </property>
+       <property name="decimals">
+        <number>1</number>
+       </property>
+       <property name="value">
+        <double>95.000000000000000</double>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <spacer name="horizontalSpacer">
+       <property name="orientation">
+        <enum>Qt::Horizontal</enum>
+       </property>
+       <property name="sizeHint" stdset="0">
+        <size>
+         <width>40</width>
+         <height>20</height>
+        </size>
+       </property>
+      </spacer>
+     </item>
+    </layout>
+   </item>
+   <item>
+    <layout class="QHBoxLayout" name="horizontalLayout_2">
+     <item>
+      <widget class="QLabel" name="label_3">
+       <property name="toolTip">
+        <string># of decimal places to which to round the printed results</string>
+       </property>
+       <property name="text">
+        <string>Digits:</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QSpinBox" name="digits_spinBox">
+       <property name="toolTip">
+        <string># of decimal places to which to round the printed results</string>
+       </property>
+       <property name="maximum">
+        <number>10</number>
+       </property>
+       <property name="value">
+        <number>4</number>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <spacer name="horizontalSpacer_2">
+       <property name="orientation">
+        <enum>Qt::Horizontal</enum>
+       </property>
+       <property name="sizeHint" stdset="0">
+        <size>
+         <width>40</width>
+         <height>20</height>
+        </size>
+       </property>
+      </spacer>
+     </item>
+    </layout>
+   </item>
+   <item>
+    <spacer name="verticalSpacer">
+     <property name="orientation">
+      <enum>Qt::Vertical</enum>
+     </property>
+     <property name="sizeHint" stdset="0">
+      <size>
+       <width>20</width>
+       <height>40</height>
+      </size>
+     </property>
+    </spacer>
+   </item>
+  </layout>
+ </widget>
+ <resources/>
+ <connections>
+  <connection>
+   <sender>rand_effects_radio_btn</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>label</receiver>
+   <slot>setVisible(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>150</x>
+     <y>79</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>201</x>
+     <y>56</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>rand_effects_radio_btn</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>rand_effects_method_cbo_box</receiver>
+   <slot>setVisible(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>101</x>
+     <y>84</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>218</x>
+     <y>86</y>
+    </hint>
+   </hints>
+  </connection>
+ </connections>
+</ui>
