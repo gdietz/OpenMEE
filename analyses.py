@@ -902,7 +902,8 @@ class Analyzer:
             # Unstored selections
             summary         = wizard.get_summary()
             save_selections = wizard.save_selections() # a bool
-            tree = wizard.get_tree()
+            tree_filepath = wizard.get_tree_filepath_and_format()['filepath']
+            tree_format   = wizard.get_tree_filepath_and_format()['format']
             evo_model = wizard.get_phylo_model_type()
             lambda_, alpha = wizard.get_lambda(), wizard.get_alpha()
             include_species = wizard.get_include_species_as_random_factor()
@@ -920,29 +921,41 @@ class Analyzer:
                 model.update_random_effects_method(random_effects_method)    
                 
             try:
-                result = self.run_phylo_ma(tree=tree, evo_model=evo_model,
-                                           lambda_=lambda_, alpha=alpha,
-                                           include_species=include_species,
-                                           included_studies=included_studies,
-                                           data_location=data_location,
-                                           conf_level=conf_level,
-                                           random_effects_method=random_effects_method,
-                                           digits=digits,
-                                           plot_params=current_param_vals,
-                                           metric=metric)
+                result = self.run_phylo_ma(
+                    tree_path = tree_filepath,
+                    tree_format = tree_format,
+                    evo_model=evo_model,
+                    lambda_=lambda_,
+                    alpha=alpha,
+                    include_species=include_species,
+                    included_studies=included_studies,
+                    data_location=data_location,
+                    conf_level=conf_level,
+                    random_effects_method=random_effects_method,
+                    digits=digits,
+                    plot_params=current_param_vals,
+                    metric=metric,
+                )
             except CrazyRError as e:
                 if SOUND_EFFECTS:
                     silly.play()
                 QMessageBox.critical(self.main_form, "Oops", str(e))
             self._display_results(result, summary)
             
-    def run_phylo_ma(self,tree, evo_model, lambda_, alpha, include_species,
-                     included_studies,
-                     data_location,
-                     #cov_ref_values,
-                     #fixed_effects,
-                     conf_level, random_effects_method, plot_params, metric,
-                     digits=4):
+    def run_phylo_ma(self,
+            tree_path,
+            tree_format,
+            evo_model,
+            lambda_,
+            alpha,
+            include_species,
+            included_studies,
+            data_location,
+            conf_level,
+            random_effects_method,
+            plot_params,
+            metric,
+            digits=4):
 
         model = self._get_model()
         
@@ -953,21 +966,25 @@ class Analyzer:
         plot_params["digits"] = digits
         
         # Make dataframe of data with associated covariates + interactions
-        python_to_R.dataset_to_dataframe(model=model,
-                                         included_studies=included_studies,
-                                         data_location=data_location,
-                                         #cov_ref_values=cov_ref_values,
-                                         var_name="tmp_obj")
+        python_to_R.dataset_to_dataframe(
+            model=model,
+            included_studies=included_studies,
+            data_location=data_location,
+            var_name="tmp_obj",
+        )
                 
-        result = python_to_R.run_phylo_ma(tree,
-                                          evo_model,
-                                          random_effects_method,
-                                          lambda_, alpha,
-                                          include_species,
-                                          fixed_effects=False,
-                                          digits=digits,
-                                          conf_level=conf_level,
-                                          plot_params=plot_params)
+        result = python_to_R.run_phylo_ma(
+            tree_path,
+            tree_format,
+            evo_model,
+            random_effects_method,
+            lambda_, alpha,
+            include_species,
+            fixed_effects=False,
+            digits=digits,
+            conf_level=conf_level,
+            plot_params=plot_params,
+        )
         
         bar.hide()
         bar.deleteLater()

@@ -21,10 +21,41 @@ validate.tree <- function(tree) {
 #	res
 #}
 
-phylo.meta.analysis <- function(tree, evo.model, 
-                                data, method, level, digits, plot.params, metric,
-								btt=NULL,
-                                lambda=1.0, alpha=1.0, include.species=TRUE) {
+load.ape.file <- function(ape.path, tree.format) {
+	if (tree.format == "caic") {
+		tree <- read.caic(ape.path) 
+	}
+	else if (tree.format == "nexus") {
+		tree <- read.nexus(ape.path)
+	}
+	else if (tree.format %in% c("newick", "new_hampshire")) {
+		tree <- read.tree(ape.path)
+	}
+	else {
+		stop(sprintf("'%s' is an unrecognize tree file format", tree.format))
+	}
+	tree
+}
+
+phylo.meta.analysis <- function(
+	treepath, # path to tree file
+	treeformat, # tree file format
+	evo.model,
+	data,
+	method,
+	level,
+	digits,
+	plot.params,
+	metric,
+	btt=NULL,
+	lambda=1.0,
+	alpha=1.0,
+	include.species=TRUE) {
+
+	# Get tree object
+	tree <- load.ape.file(treepath, treeformat)
+
+
 	# data: should be a dataframe of the type that metafor likes ie
 	#   yi and vi for the effect and variance columns
 	#   slab holds study names
@@ -46,32 +77,44 @@ phylo.meta.analysis <- function(tree, evo.model,
 	C <- corMatrix(Initialize(M, blankDataFrame)) # nlme function corMatrix to extract correlation matrix from model
 	
 	######## end of constructing phylogenetic correlation matrix for rma.mv #########
-	
+
 	# additional columns needed for rma.mv
-	betweenStudyVariance <- rep(1:nrow(data)) # used to initialize a random-effects meta-analysis
-	phylogenyVariance <- data$species # used to initialize phylogeny as a random-factor in analyses
+	data$betweenStudyVariance <- rep(1:nrow(data)) # used to initialize a random-effects meta-analysis
+	data$phylogenyVariance <- data$species # used to initialize phylogeny as a random-factor in analyses
 	
+	random <- NULL
 	if (include.species) {
 		unique.species <- unique(data$species)
 		if (length(unique.species) == length(data$species)) {
-			stop("All species are unique, no good")
+			stop("All species are unique, and there is one effect size per species, please exclude species as random factor from model.")
 		}
 		## random-effects meta-analysis including species and phylogeny as random factors (phylogenetic meta-analysis with a random-effects model), 
-		## here 'species' is included as a random factor because we have multiple replicates within species (e.g., two A's)
-		#res <- rma.mv(yi, vi, data=data, random = list(~ 1 | betweenStudyVariance, ~ 1 | data$species, ~ 1 | phylogenyVariance), R=list(phylogenyVariance=C)) 
-		res <- rma.mv(yi, vi, data = data, random = list(~1 | betweenStudyVariance, ~1 | species , ~1 | phylogenyVariance), R = list(phylogenyVariance = C))
+		## here 'species' is included as a random factor because we have multiple replicates (effect sizes) per species 
+		random <- list(~ 1 | betweenStudyVariance, ~ 1 | species, ~ 1 | phylogenyVariance)
 	} else {
 		# include phylogeny as a random factor
-		res <- rma.mv(data$yi, data$vi, data=data, random = list(~ 1 | phylogenyVariance), R=list(phylogenyVariance=C))
+		random <- list(~ 1 | betweenStudyVariance, ~ 1 | phylogenyVariance)
 	}
+
+	res <- rma.mv(
+		yi=yi,
+		V=vi,
+		data=data,
+		random=list(~ 1 | betweenStudyVariance, ~ 1 | phylogenyVariance),
+		R=list(phylogenyVariance = C),
+		method=method,
+		level=level,
+		digits=digits,
+		btt=btt
+	)
 
 	# generate forest plot
 	paths = regenerate_phylo_forest_plot(
-			     plot.params=plot.params,
-			     data=data,
-				 res=res,
-				 level=level,
-				 params.out.path=NULL, out.path=NULL)
+		plot.params=plot.params,
+		data=data,
+		res=res,
+		level=level,
+		params.out.path=NULL, out.path=NULL)
 	forest.path <- paths[["img.path"]]
 	forest.plot.params.path <- paths[["params.path"]] 
 
@@ -84,12 +127,14 @@ phylo.meta.analysis <- function(tree, evo.model,
 	images <- c("Forest Plot__phylo"=forest.path)
 	plot.names <- c("forest plot"="forest_plot")
 	
-	results <- list("images"=images,
-			"Summary"=paste(capture.output(res), collapse="\n"), # convert print output to a string
-			"plot_names"=plot.names,
-			"plot_params_paths"=plot.params.paths,
-			"res"=res,
-			"res.info"=rma.mv.value.info())
+	results <- list(
+		"images"=images,
+		"Summary"=paste(capture.output(res), collapse="\n"), # convert print output to a string
+		"plot_names"=plot.names,
+		"plot_params_paths"=plot.params.paths,
+		"res"=res,
+		"res.info"=rma.mv.value.info()
+	)
 }
 
 regenerate_phylo_forest_plot <- function(plot.params, data, res, level, params.out.path=NULL, out.path=NULL) {
