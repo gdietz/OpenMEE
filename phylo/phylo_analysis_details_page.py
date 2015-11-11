@@ -12,7 +12,7 @@ RMA_MV_RANDOM_EFFECTS_METHODS_TO_PRETTY_STRS = {
 
 
 class PhyloAnalysisDetailsPage(QWizardPage, ui_phylo_analysis_details_page.Ui_WizardPage):
-    def __init__(self, model, default_method="REML",parent=None):
+    def __init__(self, model, default_method="ML",parent=None):
         super(PhyloAnalysisDetailsPage, self).__init__(parent)
         self.setupUi(self)
         
