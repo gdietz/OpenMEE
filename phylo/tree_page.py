@@ -104,10 +104,12 @@ class TreePage(QWizardPage, ui_tree_page.Ui_WizardPage):
         return self.phylo
     def get_filepath(self):
         return self.selected_file_path
-    
-    def get_tree_and_filename(self):
-        return {'tree':self.get_phylo_object(),
-                'filepath':self.get_filepath()}
+
+    def get_filepath_and_format(self):
+        return {
+            'filepath': self.get_filepath(),
+            'format': self.get_selected_format(),
+        }
         
     def __str__(self):
         return "Selected Tree File: '%s'" % self.get_filepath()

@@ -17,8 +17,8 @@ from common_wizard_pages.refine_studies_page import RefineStudiesPage
 from ome_globals import wizard_summary
 
 (Page_ChooseEffectSize, Page_DataLocation, Page_RefineStudies,
-Page_MethodsAndParameters, Page_SubgroupVariable, Page_Bootstrap,
-Page_Summary, Page_TreePage, Page_PhyloModelDesignPage, Page_Parameters) = range(10)
+ Page_MethodsAndParameters, Page_SubgroupVariable, Page_Bootstrap,
+ Page_Summary, Page_TreePage, Page_PhyloModelDesignPage, Page_Parameters) = range(10)
 
 class PhyloMAWizard(AbstractMetaAnalysisWizard):
     def __init__(self, model, parent=None):
@@ -26,7 +26,6 @@ class PhyloMAWizard(AbstractMetaAnalysisWizard):
         
         self.analysis_label = "Phylogenetic Meta Analysis"
         self.setWindowTitle(self.analysis_label)
-        
         
         # Refine studies page
         self.removePage(Page_RefineStudies)
@@ -42,7 +41,7 @@ class PhyloMAWizard(AbstractMetaAnalysisWizard):
         self.setPage(Page_PhyloModelDesignPage, self.phylo_model_design_page)
         
         # data location page and parameters page
-        self.parameters_page = PhyloAnalysisDetailsPage(model=model, default_method="REML")
+        self.parameters_page = PhyloAnalysisDetailsPage(model=model, default_method="ML")
         self.setPage(Page_Parameters, self.parameters_page)
         
     def nextId_helper(self, page_id):
@@ -63,18 +62,25 @@ class PhyloMAWizard(AbstractMetaAnalysisWizard):
     # Summary Page
     def get_summary(self):
         ''' Make a summary string to show the user at the end of the wizard summarizing most of the user selections '''
-        return wizard_summary(wizard=self, next_id_helper=self.nextId_helper,
-                              summary_page_id=Page_Summary,
-                              analysis_label=self.analysis_label)
+        return wizard_summary(
+            wizard=self,
+            next_id_helper=self.nextId_helper,
+            summary_page_id=Page_Summary,
+            analysis_label=self.analysis_label)
     
     ##### getters #####
-        
+
     def get_tree_and_filename(self):
         return self.tree_page.get_tree_and_filename()
     
-    def get_tree(self):
-        tree = self.get_tree_and_filename()['tree']
-        return tree
+
+    def get_tree_filepath_and_format(self):
+        '''
+        dictionary with keys:
+            'filepath': path to tree file
+            'format': tree file format
+        '''
+        return self.tree_page.get_filepath_and_format()
     
     ### Phylo Model Design Page ####
     def get_phylo_model_type(self): # BM or OU
