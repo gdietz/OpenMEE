@@ -7,15 +7,12 @@ To run OpenMEE from source, you'll need to install the corresponding dependencie
 
 You'll need to install the necessary R packages. 
 First install the dependencies:
-From within a sudo-ed R session type:
 
-	> install.packages(c("metafor","lme4","MCMCpack","igraph"))
+From within a (possibly) sudo-ed R session type:
 
+	> install.packages(c("metafor","lme4","MCMCpack","igraph", "ape", "mice", "Hmisc"))
 
-	
-Next, you'll need to build and install the openmetar packages and altered HSROC (NOT THE ONE FROM CRAN) package and install them. For now, these packages are located in the [OpenMetaAnalyst Repository](https://github.com/bwallace/OpenMeta-analyst-)
-
-These package are distributed with the source under the "src/R" directory of the OMA repository. 
+Next, you'll need to build and install the openmetar packages and altered HSROC (NOT THE ONE FROM CRAN) package and install them. For now, these packages are located in the [OpenMetaAnalyst Repository](https://github.com/bwallace/OpenMeta-analyst-). These package are distributed with the source (NOT the OpenMEE source; the OpenMetaAnalyst source!) under the "src/R" directory of the OMA repository. 
 
     > R CMD build HSROC
     > R CMD build openmetar
