@@ -24,13 +24,35 @@ get.bcg <- function(){
 }
 
 ###
-# mortality risks from Hine et al. 1989
+# From Raudenbush and Bryk (1985); probably just 
+# want to use the yi and vis; note that this 
+# contains covariates as well. 
+get.raudenbush <- function(){
+    dat <- get(data(dat.raudenbush1985))
+    print("loaded `raudenbush'; columns are: ")
+    print(names(dat))
+    dat
+}
+
+###
+# Mortality risks from Hine et al. 1989
 # this is more 2x2 data.
 get.hine89 <- function(){
     data(dat.hine1989)
     print("loaded `hine89'; columns are: ")
-    print(dat.hine1989.names)
+    print(names(dat.hine1989))
     dat.hine1989
+}
+
+###
+# From Viechtbauer (2007)
+get.viechtbauer2007 <- function(){
+    library(metafor)
+    data(dat.linde2005)
+    dat <- escalc(measure="RR", ai=ai, ci=ci, n1i=n1i, n2i=n2i, data=dat.linde2005)
+    dat <- dat[c(7:10,13:25), c(13:16,18:19,11,6,7,9)]
+    dat$dosage <- (dat$dosage * 7) / 1000
+    dat
 }
 
 
