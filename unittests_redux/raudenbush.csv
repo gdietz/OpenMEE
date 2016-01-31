@@ -1,0 +1,20 @@
+"study" "author" "year" "weeks" "setting" "tester" "yi" "vi"
+"1" 1 "Rosenthal et al." 1974 2 "group" "aware" 0.03 0.0156
+"2" 2 "Conn et al." 1968 21 "group" "aware" 0.12 0.0216
+"3" 3 "Jose & Cody" 1971 19 "group" "aware" -0.14 0.0279
+"4" 4 "Pellegrini & Hicks" 1972 0 "group" "aware" 1.18 0.1391
+"5" 5 "Pellegrini & Hicks" 1972 0 "group" "blind" 0.26 0.1362
+"6" 6 "Evans & Rosenthal" 1969 3 "group" "aware" -0.06 0.0106
+"7" 7 "Fielder et al." 1971 17 "group" "blind" -0.02 0.0106
+"8" 8 "Claiborn" 1969 24 "group" "aware" -0.32 0.0484
+"9" 9 "Kester" 1969 0 "group" "aware" 0.27 0.0269
+"10" 10 "Maxwell" 1970 1 "indiv" "blind" 0.8 0.063
+"11" 11 "Carter" 1970 0 "group" "blind" 0.54 0.0912
+"12" 12 "Flowers" 1966 0 "group" "blind" 0.18 0.0497
+"13" 13 "Keshock" 1970 1 "indiv" "blind" -0.02 0.0835
+"14" 14 "Henrikson" 1970 2 "indiv" "blind" 0.23 0.0841
+"15" 15 "Fine" 1972 17 "group" "aware" -0.18 0.0253
+"16" 16 "Grieger" 1970 5 "group" "blind" -0.06 0.0279
+"17" 17 "Rosenthal & Jacobson" 1968 1 "group" "aware" 0.3 0.0193
+"18" 18 "Fleming & Anttonen" 1971 2 "group" "blind" 0.07 0.0088
+"19" 19 "Ginsburg" 1970 7 "group" "aware" -0.07 0.0303
