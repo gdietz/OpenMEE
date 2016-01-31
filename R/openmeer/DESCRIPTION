@@ -6,3 +6,4 @@ Description: R component for OpenMEE, a graphical user interface for performing 
 Depends: R (>= 3.1.2), openmetar
 License: GPL (>= 2)
 LazyData: true
+Suggests: testthat

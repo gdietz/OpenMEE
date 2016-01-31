@@ -1,0 +1,7 @@
+to run the R unit test we're using the testthat testing package
+to test:
+
+library(devtools)
+setwd(directory where openmeer is i.e. "/Users/idahabreh/git/OpenMEE/R/openmeer")
+
+devtools::test()

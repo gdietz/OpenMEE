@@ -12,26 +12,18 @@
 #
 #	Based on code by Fred Oswald:
 #		Please cite as:
-#		Oswald, F. L., & Ercan, S. (2013). Illustrating heterogeneity in meta-analysis 
+#		Oswald, F. L., & Ercan, S. (2013). Illustrating heterogeneity in meta-analysis
 #		using a new-yet-simple plot. Presented at the Society for Research Synthesis Methods, Boston, MA.
 ################################################################################
-weighted.histogram <- function (args.list) {
-	data <- args.list[['data']]
-
+weighted.histogram <- function (data) {
 	# Make and save plot data
 	base.path <- default.plot.path()
-	plot.data <- list(data=data)
+	plot.data <- data
 	plot.data.path <- paste0(base.path,".plotdata")
 	save(plot.data, file=plot.data.path)
 	#print(paste0("Saved plot data to: ",getwd(),plot.data.path))
 
-	plot.args <- list(
-		plot.data=plot.data,
-		base.path=default.plot.path(),
-		image.format='png'
-	)
-
-	plot.results <- weighted.histogram.plot(plot.args)
+	plot.results <- weighted.histogram.plot(plot.data=data, base.path=base.path, image.format="png")
 	results <- list(
 		images=c("Weighted Histogram of Correlations"=plot.results[['images']][[1]]),
 		plot.data.paths=c("Weighted Histogram of Correlations"=plot.data.path),
@@ -47,7 +39,7 @@ weighted.histogram <- function (args.list) {
 # Weighted Histogram plot.
 #
 #	Writes out a histogram plot to a png or pdf file.
-#	
+#
 #	Required arguments:
 #		args: list containing the following keys:
 #			plot.data: list with keys:
@@ -61,11 +53,8 @@ weighted.histogram <- function (args.list) {
 #		list containing the follows keys:
 #			images - vector of image paths
 ################################################################################
-weighted.histogram.plot <- function (args) {
-	data <- args[['plot.data']][['data']]
-	image.format <- args[['image.format']]
-	base.path <- args[['base.path']]
-
+weighted.histogram.plot <- function (plot.data, base.path, image.format) {
+	data <- plot.data
 
 	# set image format and begin plotting
 	if (image.format == 'png') {

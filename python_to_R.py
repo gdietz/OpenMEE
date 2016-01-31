@@ -726,7 +726,7 @@ def run_dynamic_data_exploration_analysis(model, included_studies, data_location
                          data_location=data_location,
                          var_name=var_name)
     ranalysis_function_name = analysis_details['MAIN']
-    r_str = "%s <- %s(list(data=%s))" % (res_name, ranalysis_function_name, var_name)
+    r_str = "%s <- %s(data=%s)" % (res_name, ranalysis_function_name, var_name)
     exR.execute_in_R(r_str)
     result = exR.execute_in_R("%s" % res_name)
     return parse_out_results(result)
