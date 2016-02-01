@@ -1,5 +1,4 @@
 library(openmeer)
-#reload(inst("openmeer"))
 
 context("Weighted Histogram")
 
@@ -27,10 +26,12 @@ test_that("Saving histogram plot from plotdata works", {
   base.path <- file.path(getwd(),"r_tmp","saved_weighted_histogram")
   final.image.path <- paste0(base.path,".png")
 
-  save.plot.results <- do.call(save.plot.fn.name, list(
-    plot.data=plot.data,
-    base.path=file.path("r_tmp","saved_weighted_histogram"),
-    image.format="png"
-  ))
+  save.plot.results <- do.call(
+    save.plot.fn.name, list(
+      plot.data = plot.data,
+      base.path = file.path("r_tmp","saved_weighted_histogram"),
+      image.format = "png"
+    )
+  )
   expect_true(file.exists(final.image.path))
 })

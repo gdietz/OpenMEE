@@ -71,7 +71,7 @@ class FunnelPage(QWizardPage, ui_funnel_page.Ui_WizardPage):
             no_index = self.addtau2ComboBox.findText("no")
             yes_index = self.addtau2ComboBox.findText("yes")
             if -1 in [no_index, yes_index]: raise ValueError("yes and no not found in combobox")
-            if old_params['add_tau'] == True: # redundant but explicit
+            if old_params.get('add_tau', None) == True: # redundant but explicit
                 self.addtau2ComboBox.setCurrentIndex(yes_index) 
             else:
                 self.addtau2ComboBox.setCurrentIndex(no_index)
