@@ -41,4 +41,12 @@ pyqt4  : 4.10.1
 
 Unit testing:
 in python: run: FINISH LATER
-in R: run: FINISH LATER
+in R:
+    -Navigate to the openmeer source directory (OpenMEE/R/openmeer)
+    -Launch R:
+        > R
+    - load devtools:
+        > library(devtools)
+    - run unit tests:
+        > devtools::test()
+
