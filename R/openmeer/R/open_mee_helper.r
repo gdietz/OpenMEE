@@ -485,7 +485,13 @@ rma.mv.value.info <- function() {
 
 
 impute <- function(data, m, maxit, defaultMethod) {
-	imp.result = mice(data=data, m=m, maxit=maxit, defaultMethod=defaultMethod)
+  imp.result <- mice(
+    data=data,
+    m=m,
+    maxit=maxit,
+    defaultMethod=defaultMethod,
+    printFlag=FALSE
+  )
 
 	# Plotting code for inspection of imputation results?
 #	library(lattice)

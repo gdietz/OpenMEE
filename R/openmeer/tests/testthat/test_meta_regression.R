@@ -48,5 +48,5 @@ test_that("Meta-Regression Runs", {
     exclude.intercept=FALSE
   )
 
-  expect_true("Summary" %in% names(results_obj))
+  expect_true("Summary" %in% names(results))
 })
