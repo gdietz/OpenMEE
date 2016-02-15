@@ -1057,24 +1057,28 @@ class Analyzer:
     
         # regression and imputation covaraites
         all_covs = set(reg_covariates+imp_covariates)
-        
         # Make dataframe of data with associated covariates (both those for imputation and for regression)
-        original_dataset = python_to_R.dataset_to_dataframe(model=model,
-                                         included_studies=included_studies,
-                                         data_location=data_location,
-                                         covariates=all_covs,
-                                         cov_ref_values=cov_ref_values)
-        
-        
+        original_dataset = python_to_R.dataset_to_dataframe(
+            model=model,
+            included_studies=included_studies,
+            data_location=data_location,
+            covariates=all_covs,
+            cov_ref_values=cov_ref_values)
+
         # Make R list of datasets with imputed data and insert into workspace
         imputed_datasets_name = "imputed.datasets"
-        python_to_R.make_imputed_datasets(original_dataset, imputations, imputed_datasets_name=imputed_datasets_name)
+        python_to_R.make_imputed_datasets(
+            original_dataset,
+            imputations,
+            imputed_datasets_name=imputed_datasets_name,
+        )
         
         result = python_to_R.run_multiple_imputation_meta_analysis(
-                    ma_params,
-                    covariates=reg_covariates, interactions=interactions,
-                    imputed_datasets_name=imputed_datasets_name,
-                    results_name="results_obj")
+            ma_params,
+            covariates=reg_covariates, interactions=interactions,
+            imputed_datasets_name=imputed_datasets_name,
+            results_name="results_obj",
+        )
         
         bar.hide()
         bar.deleteLater()

@@ -172,12 +172,14 @@ class MiMaWizard(QtGui.QWizard):
         return self.choose_effect_size_page.get_data_type_and_metric()
     
     def _run_imputation(self):
-        imp_results = python_to_R.impute(model=self.model,
-                                         studies=self.get_included_studies_in_proper_order(),
-                                         covariates=self.get_covariates_for_imputation(),
-                                         m=self.get_m(),
-                                         maxit=self.get_maxit(),
-                                         defaultMethod_rstring=self.get_defaultMethod_rstring())
+        imp_results = python_to_R.impute(
+            model=self.model,
+            studies=self.get_included_studies_in_proper_order(),
+            covariates=self.get_covariates_for_imputation(),
+            m=self.get_m(),
+            maxit=self.get_maxit(),
+            defaultMethod_rstring=self.get_defaultMethod_rstring(),
+        )
         self.imp_results = imp_results
         return imp_results
  
