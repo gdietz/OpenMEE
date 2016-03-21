@@ -108,7 +108,7 @@ class TestStandardMetaAnalysis(unittest.TestCase):
         studies = self.model.get_studies_in_current_order()
         data_location = {'experimental_mean': 2, 'effect_size': 18, 'experimental_std_dev': 5, 'experimental_sample_size': 1, 'control_std_dev': 5, 'control_sample_size': 1, 'variance': 19, 'control_mean': 4}
         data_type = CONTINUOUS
-        python_to_R.dataset_to_simple_continuous_robj(model=self.model,
+        python_to_R.dataset_to_simple_cont_robj(model=self.model,
                                                       included_studies=studies,
                                                       data_location=data_location,
                                                       data_type=data_type, 
@@ -133,7 +133,7 @@ class TestMetaMethods(unittest.TestCase):
         data_location = {'experimental_mean': 2, 'effect_size': 18, 'experimental_std_dev': 5, 'experimental_sample_size': 1, 'control_std_dev': 5, 'control_sample_size': 1, 'variance': 19, 'control_mean': 4}
         meta_f_str = "cum.ma.continuous"
         
-        python_to_R.dataset_to_simple_continuous_robj(model=self.model,
+        python_to_R.dataset_to_simple_cont_robj(model=self.model,
                                                       included_studies=studies,
                                                       data_location=data_location,
                                                       data_type=CONTINUOUS, 
@@ -155,7 +155,7 @@ class TestMetaMethods(unittest.TestCase):
         data_location = {'experimental_mean': 2, 'effect_size': 18, 'experimental_std_dev': 5, 'experimental_sample_size': 1, 'control_std_dev': 5, 'control_sample_size': 1, 'variance': 19, 'control_mean': 4}
         meta_f_str = "loo.ma.continuous"
         
-        python_to_R.dataset_to_simple_continuous_robj(model=self.model,
+        python_to_R.dataset_to_simple_cont_robj(model=self.model,
                                                       included_studies=studies,
                                                       data_location=data_location,
                                                       data_type=CONTINUOUS, 
@@ -176,7 +176,7 @@ class TestMetaMethods(unittest.TestCase):
         cov_names_to_include = ["Gender",]
         covs_to_include = get_covs_from_names(cov_names_to_include, model=self.model)
         
-        python_to_R.dataset_to_simple_continuous_robj(model=self.model,
+        python_to_R.dataset_to_simple_cont_robj(model=self.model,
                                                       included_studies=studies,
                                                       data_location=data_location,
                                                       data_type=CONTINUOUS, 
@@ -195,7 +195,7 @@ class TestMetaMethods(unittest.TestCase):
         data_location = {'experimental_mean': 2, 'effect_size': 18, 'experimental_std_dev': 5, 'experimental_sample_size': 1, 'control_std_dev': 5, 'control_sample_size': 1, 'variance': 19, 'control_mean': 4}
         meta_f_str = "bootstrap.continuous"
         
-        python_to_R.dataset_to_simple_continuous_robj(model=self.model,
+        python_to_R.dataset_to_simple_cont_robj(model=self.model,
                                                       included_studies=studies,
                                                       data_location=data_location,
                                                       data_type=CONTINUOUS, 

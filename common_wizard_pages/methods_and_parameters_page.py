@@ -180,7 +180,7 @@ class MethodsAndParametersPage(QWizardPage, ui_methods_and_parameters_page.Ui_Wi
                                                       covs_to_include=covs_to_include,
                                                       one_arm=False)
         elif OMA_CONVENTION[self.data_type] == "continuous":
-            python_to_R.dataset_to_simple_continuous_robj(model=self.model,
+            python_to_R.dataset_to_simple_cont_robj(model=self.model,
                                                           included_studies=self.get_included_studies_in_proper_order(),
                                                           data_location=self.data_location, 
                                                           data_type=self.data_type, 

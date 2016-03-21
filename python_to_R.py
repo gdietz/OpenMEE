@@ -603,7 +603,7 @@ def dataset_to_simple_binary_robj(
     return r_str
 
 
-def dataset_to_simple_continuous_robj(
+def dataset_to_simple_cont_robj(
         model,
         included_studies,
         data_location,
@@ -613,7 +613,10 @@ def dataset_to_simple_continuous_robj(
         covariate_reference_values={},
         one_arm=False,
         generic_effect=False,
-        ):
+    ):
+    '''
+        Convert the dataset into a simple continuous R object
+    '''
 
     r_str = None
 
@@ -1140,7 +1143,7 @@ def run_funnelplot_analysis(
             var_name=var_name,
         )
     elif OMA_CONVENTION[data_type] == "continuous":
-        make_dataset_r_str = dataset_to_simple_continuous_robj(
+        make_dataset_r_str = dataset_to_simple_cont_robj(
             model=model,
             included_studies=included_studies,
             data_location=data_location,
