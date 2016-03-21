@@ -6,18 +6,18 @@ import os, sys, time
 from PyQt4 import QtCore, QtGui, Qt
 from PyQt4.Qt import *
 
-
-#import meta_py_r # this needs to come first or else weird stuff happens w/ nose
-#import meta_globals
+# this needs to come first or else weird stuff happens w/nose
+# import meta_py_r
+# import meta_globals
 
 print("Importing meta_globals")
 import ome_globals
-#print("Importing meta_form")
+# print("Importing meta_form")
 import launch
 import main_form
-#print("Importing meta_py_r")
+# print("Importing meta_py_r")
 import python_to_R
-#from python_to_R import exR
+# from python_to_R import exR
 from meta_progress import MetaProgress
 
 app,form = None, None
@@ -94,51 +94,57 @@ def check_analysis(test_data, check_images=False):
     # make function parameters dict
     function_params_dict = {}
     for key,value in test_data.items():
-        if key not in ['test_name','fnc_to_evaluate','make_dataset_r_str','results']:
+        if key not in [
+            'test_name',
+            'fnc_to_evaluate',
+            'make_dataset_r_str',
+            'results',
+        ]:
             if key == 'selected_cov':
                 value = form._selected_cov_to_select_col(value, reverse=True)
             if key == 'covs_to_values':
-                value = form._covs_to_values_to_cols_to_values(value, reverse=True) 
+                value = form._covs_to_values_to_cols_to_values(
+                    value,
+                    reverse=True,
+                ) 
             function_params_dict[key] = value
-    
+
     analysis_function = eval(fnc_to_evaluate)
     python_to_R.exR.execute_in_R(make_dataset_r_str)
     test_results = analysis_function(**function_params_dict)
-    
+
     if not check_images:
         assert 'texts' in results
     else:
         assert 'images' in results
-        
+
     results_summary, test_results_summary = None, None
     results_summary_key, test_results_summary_key = None, None
-    
+
     for key in results['texts'].keys():
         if key.lower().find("summary") != -1:
             results_summary_key = key
             results_summary = results['texts'][key]
             break
-        
+
     test_results_summary = None
     for key in test_results['texts'].keys():
         if key.lower().find("summary") != -1:
             test_results_summary_key = key
             test_results_summary = test_results['texts'][key]
             break
-    
-    #if "Conditional Means" in results['texts']:
-    #    print("Check analysis")
-        #pyqtRemoveInputHook()
-        #import pdb; pdb.set_trace()
-        
-    #if results_summary!=test_results_summary:
-    #    print("Check analysis")
-    #    pyqtRemoveInputHook()
-    #    import pdb; pdb.set_trace()
-    
 
-        
-    #assert True
+    # if "Conditional Means" in results['texts']:
+    #     print("Check analysis")
+    # pyqtRemoveInputHook()
+    # import pdb; pdb.set_trace()
+
+    # if results_summary!=test_results_summary:
+    #     print("Check analysis")
+    #     pyqtRemoveInputHook()
+    #     import pdb; pdb.set_trace()
+  
+    # assert True
     if check_images:
         results_histo_key = get_key_close_enough('histogram',results['images'])
         test_result_histo_key = get_key_close_enough('histogram',test_results['images'])
@@ -153,12 +159,49 @@ def get_key_close_enough(key, adict):
 
 regular_test_data = [ # can test the actual numerical results
     {
-     'test_name'          : "Binary Meta Analysis (binary.random)"
-    ,'fnc_to_evaluate'    : 'python_to_R.run_binary_ma'
-    ,'make_dataset_r_str' : "tmp_obj <- new('BinaryData', g1O1=c(30, 56, 5, 63, 5, 52, 56, 6, 43, 5, 55, 33, 8, 5, 56, 111, 23, 76, 89, 10, 123, 32, 119, 46, 32, 22, 28, 52, 99), g1O2=c(40, 654, 2, 25, 6, 45, 5, 56, 13, 52, 2, 93, 2, 10, 15, 21, 12, 115, 83, 46, 23, 24, 32, 109, 42, 51, 19, 117, 102), g2O1=c(10, 13, 104, 51, 13, 11, 31, 32, 52, 111, 51, 10, 68, 72, 129, 15, 2, 46, 2, 83, 56, 54, 82, 111, 125, 109, 63, 6, 83), g2O2=c(20, 4, 7, 54, 8, 34, 32, 23, 3, 33, 3, 50, 72, 84, 41, 22, 78, 55, 82, 66, 77, 125, 29, 9, 64, 49, 74, 120, 32),                             y=c(0.4055, -3.6364, -1.7822, 0.9814, -0.6678, 1.273, 2.4477, -2.5638, -1.6564, -3.5548, 0.481, 0.5733, 1.4435, -0.539, 0.1711, 2.048, 4.3141, -0.2355, 3.7834, -1.7552, 1.9951, 1.127, 0.274, -3.375, -0.9414, -1.6403, 0.5487, 2.1848, -0.983), SE=c(0.45639894829, 0.588472599192, 0.923309265631, 0.306594194335, 0.75405570086, 0.402243707222, 0.530471488395, 0.509215082259, 0.67282984476, 0.508428952755, 0.933327380933, 0.401372644808, 0.808455317256, 0.570788927713, 0.341613817051, 0.410731055558, 0.799749960925, 0.248596057893, 0.731778655059, 0.385875627631, 0.287228132327, 0.315277655409, 0.293768616431, 0.388587184555, 0.280535202782, 0.307571129985, 0.343074335968, 0.450333209968, 0.2513961018), study.names=c('George', 'Byron', 'Issa', 'Tom', 'Big Chris', 'Little Chris', 'Jens', 'Anja', 'Hailee', 'Joseph', 'Meghan', 'Medium Chris', 'Superman', 'Batman', 'Leonardo', 'Michaelangelo', 'Donatello', 'Raphael', 'The Hulk', 'Professor X', 'Cyclops', 'Storm', 'Rogue', 'Wolverine', 'Gambit', 'Spiderman', 'Mr. Fantastic', 'The Flash', 'Thor'), years=c(as.integer(), as.integer(), as.integer(), as.integer(), as.integer(), as.integer(), as.integer(), as.integer(), as.integer(), as.integer(), as.integer(), as.integer(), as.integer(), as.integer(), as.integer(), as.integer(), as.integer(), as.integer(), as.integer(), as.integer(), as.integer(), as.integer(), as.integer(), as.integer(), as.integer(), as.integer(), as.integer(), as.integer(), as.integer()), covariates=list())"
-    ,'results'            : {'images': {'Forest Plot': './r_tmp/forest.png'}, 'texts': {'References': '1. this is a placeholder for binary random reference\n2. metafor: Viechtbauer, Wolfgang. "Conducting meta-analyses in R with the metafor package." Journal of 36 (2010).\n3. OpenMetaAnalyst: Wallace, Byron C., Issa J. Dahabreh, Thomas A. Trikalinos, Joseph Lau, Paul Trow, and Christopher H. Schmid. "Closing the Gap between Methodologists and End-Users: R as a Computational Back-End." Journal of Statistical Software 49 (2012): 5."\n', 'Weights': u'studies       weights\nGeorge         3.5%\nByron          3.4%\nIssa           2.9%\nTom            3.7%\nBig Chris      3.1%\nLittle Chris   3.6%\nJens           3.4%\nAnja           3.5%\nHailee         3.2%\nJoseph         3.5%\nMeghan         2.8%\nMedium Chris   3.6%\nSuperman       3.0%\nBatman         3.4%\nLeonardo       3.6%\nMichaelangelo  3.6%\nDonatello      3.1%\nRaphael        3.7%\nThe Hulk       3.2%\nProfessor X    3.6%\nCyclops        3.7%\nStorm          3.7%\nRogue          3.7%\nWolverine      3.6%\nGambit         3.7%\nSpiderman      3.7%\nMr. Fantastic  3.6%\nThe Flash      3.5%\nThor           3.7%\n', 'Summary': 'Binary Random-Effects Model\n\nMetric: Odds Ratio\n\n Model Results\n\n Estimate  Lower bound   Upper bound   p-Value  \n\n 1.0084       0.5435        1.8707      0.9789  \n\n\n Heterogeneity\n\n tau^2   Q(df=28)   Het. p-Value   I^2  \n\n 2.6196  492.2579     < 1e-04      94%  \n\n\n Results (log scale)\n\n Estimate  Lower bound   Upper bound   Std. error  \n\n 0.0083      -0.6097        0.6263       0.3153    \n\n\n'}, 'image_var_names': {'forest plot': 'forest_plot'}, 'image_params_paths': {'Forest Plot': 'r_tmp/1382043049.54824'}, 'image_order': None}
-    ,'params'             : {'conf.level': 95.0, 'digits': 4, 'fp_col2_str': u'[default]', 'fp_show_col4': True, 'to': 'only0', 'fp_col4_str': u'Ev/Ctrl', 'fp_xticks': '[default]', 'fp_col3_str': u'Ev/Trt', 'fp_show_col3': True, 'fp_show_col2': True, 'fp_show_col1': True, 'fp_plot_lb': '[default]', 'fp_outpath': u'./r_tmp/forest.png', 'rm.method': 'DL', 'adjust': 0.5, 'fp_plot_ub': '[default]', 'fp_col1_str': u'Studies', 'measure': 'OR', 'fp_xlabel': u'[default]', 'fp_show_summary_line': True}
-    ,'function_name'      : 'binary.random'
+        'test_name': "Binary Meta Analysis (binary.random)",
+        'fnc_to_evaluate': 'python_to_R.run_binary_ma',
+        'make_dataset_r_str': "tmp_obj <- new('BinaryData', g1O1=c(30, 56, 5, 63, 5, 52, 56, 6, 43, 5, 55, 33, 8, 5, 56, 111, 23, 76, 89, 10, 123, 32, 119, 46, 32, 22, 28, 52, 99), g1O2=c(40, 654, 2, 25, 6, 45, 5, 56, 13, 52, 2, 93, 2, 10, 15, 21, 12, 115, 83, 46, 23, 24, 32, 109, 42, 51, 19, 117, 102), g2O1=c(10, 13, 104, 51, 13, 11, 31, 32, 52, 111, 51, 10, 68, 72, 129, 15, 2, 46, 2, 83, 56, 54, 82, 111, 125, 109, 63, 6, 83), g2O2=c(20, 4, 7, 54, 8, 34, 32, 23, 3, 33, 3, 50, 72, 84, 41, 22, 78, 55, 82, 66, 77, 125, 29, 9, 64, 49, 74, 120, 32),                             y=c(0.4055, -3.6364, -1.7822, 0.9814, -0.6678, 1.273, 2.4477, -2.5638, -1.6564, -3.5548, 0.481, 0.5733, 1.4435, -0.539, 0.1711, 2.048, 4.3141, -0.2355, 3.7834, -1.7552, 1.9951, 1.127, 0.274, -3.375, -0.9414, -1.6403, 0.5487, 2.1848, -0.983), SE=c(0.45639894829, 0.588472599192, 0.923309265631, 0.306594194335, 0.75405570086, 0.402243707222, 0.530471488395, 0.509215082259, 0.67282984476, 0.508428952755, 0.933327380933, 0.401372644808, 0.808455317256, 0.570788927713, 0.341613817051, 0.410731055558, 0.799749960925, 0.248596057893, 0.731778655059, 0.385875627631, 0.287228132327, 0.315277655409, 0.293768616431, 0.388587184555, 0.280535202782, 0.307571129985, 0.343074335968, 0.450333209968, 0.2513961018), study.names=c('George', 'Byron', 'Issa', 'Tom', 'Big Chris', 'Little Chris', 'Jens', 'Anja', 'Hailee', 'Joseph', 'Meghan', 'Medium Chris', 'Superman', 'Batman', 'Leonardo', 'Michaelangelo', 'Donatello', 'Raphael', 'The Hulk', 'Professor X', 'Cyclops', 'Storm', 'Rogue', 'Wolverine', 'Gambit', 'Spiderman', 'Mr. Fantastic', 'The Flash', 'Thor'), years=c(as.integer(), as.integer(), as.integer(), as.integer(), as.integer(), as.integer(), as.integer(), as.integer(), as.integer(), as.integer(), as.integer(), as.integer(), as.integer(), as.integer(), as.integer(), as.integer(), as.integer(), as.integer(), as.integer(), as.integer(), as.integer(), as.integer(), as.integer(), as.integer(), as.integer(), as.integer(), as.integer(), as.integer(), as.integer()), covariates=list())",
+        'results': {
+                'images': {
+                    'Forest Plot': './r_tmp/forest.png',
+                },
+                'texts': {
+                    'References': '1. this is a placeholder for binary random reference\n2. metafor: Viechtbauer, Wolfgang. "Conducting meta-analyses in R with the metafor package." Journal of 36 (2010).\n3. OpenMetaAnalyst: Wallace, Byron C., Issa J. Dahabreh, Thomas A. Trikalinos, Joseph Lau, Paul Trow, and Christopher H. Schmid. "Closing the Gap between Methodologists and End-Users: R as a Computational Back-End." Journal of Statistical Software 49 (2012): 5."\n',
+                    'Weights': u'studies       weights\nGeorge         3.5%\nByron          3.4%\nIssa           2.9%\nTom            3.7%\nBig Chris      3.1%\nLittle Chris   3.6%\nJens           3.4%\nAnja           3.5%\nHailee         3.2%\nJoseph         3.5%\nMeghan         2.8%\nMedium Chris   3.6%\nSuperman       3.0%\nBatman         3.4%\nLeonardo       3.6%\nMichaelangelo  3.6%\nDonatello      3.1%\nRaphael        3.7%\nThe Hulk       3.2%\nProfessor X    3.6%\nCyclops        3.7%\nStorm          3.7%\nRogue          3.7%\nWolverine      3.6%\nGambit         3.7%\nSpiderman      3.7%\nMr. Fantastic  3.6%\nThe Flash      3.5%\nThor           3.7%\n',
+                    'Summary': 'Binary Random-Effects Model\n\nMetric: Odds Ratio\n\n Model Results\n\n Estimate  Lower bound   Upper bound   p-Value  \n\n 1.0084       0.5435        1.8707      0.9789  \n\n\n Heterogeneity\n\n tau^2   Q(df=28)   Het. p-Value   I^2  \n\n 2.6196  492.2579     < 1e-04      94%  \n\n\n Results (log scale)\n\n Estimate  Lower bound   Upper bound   Std. error  \n\n 0.0083      -0.6097        0.6263       0.3153    \n\n\n',
+                },
+                'image_var_names': {
+                    'forest plot': 'forest_plot',
+                },
+                'image_params_paths': {
+                    'Forest Plot': 'r_tmp/1382043049.54824',
+                },
+                'image_order': None,
+        },
+        'params': {
+            'conf.level': 95.0,
+            'digits': 4,
+            'fp_col2_str': u'[default]',
+            'fp_show_col4': True,
+            'to': 'only0',
+            'fp_col4_str': u'Ev/Ctrl',
+            'fp_xticks': '[default]',
+            'fp_col3_str': u'Ev/Trt',
+            'fp_show_col3': True,
+            'fp_show_col2': True,
+            'fp_show_col1': True,
+            'fp_plot_lb': '[default]',
+            'fp_outpath': u'./r_tmp/forest.png',
+            'rm.method': 'DL',
+            'adjust': 0.5,
+            'fp_plot_ub': '[default]',
+            'fp_col1_str': u'Studies',
+            'measure': 'OR',
+            'fp_xlabel': u'[default]',
+            'fp_show_summary_line': True,
+        },
+        'function_name': 'binary.random',
     },
 
     {
