@@ -27,15 +27,16 @@ from python_to_R import exR
 import csv_import_dlg
 import csv_export_dlg
 import preferences_dlg
-from contingency_table_dlg import ContingencyTableDlg
+import contingency_table_dlg
 import imputation.imputation_wizard
 import binary_calculator
 
-from variable_group_graphic import VariableGroupGraphic
-from analyses import Analyzer
+import variable_group_graphic
+import analyses
 import r_log_dlg
 
 from ome_globals import *
+import ome_globals
 
 # TODO: Handle setting the dirty bit more correctly in undo/redo
 # right now just set it all the time/(or not) (very haphazard) during redo but don't bother unsetting it
@@ -64,14 +65,14 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
         super(MainForm, self).__init__(parent)
         self.setupUi(self)
         
-        # Setup analyzer (which performs analyses)
-        self.analyst = Analyzer(main_form=self)
+        # Setup analyses.analyzer (which performs analyses)
+        self.analyst = analyses.Analyzer(main_form=self)
         
         # R log dialog
         self.r_log_dlg = None
         
         layout = self.verticalLayout # 
-        self.vargroup_graphic = VariableGroupGraphic()
+        self.vargroup_graphic = variable_group_graphic.VariableGroupGraphic()
         layout.addWidget(self.vargroup_graphic)
         
         # Confidence level spinbox
@@ -87,12 +88,18 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
         self.model = ee_model.EETableModel(undo_stack=self.undo_stack)
         self.tableView.setModel(self.model)
         self.tableView.resizeColumnsToContents()
-        self.conf_level_toolbar_widget.conf_level_spinbox.setValue(self.model.get_conf_level())
+        self.conf_level_toolbar_widget.conf_level_spinbox.setValue(
+            self.model.get_conf_level(),
+        )
         python_to_R.set_conf_level_in_R(self.model.get_conf_level())
         
         #### Display undo stack (if we want to...)
-        self.undo_view_form = useful_dialogs.UndoViewForm(undo_stack=self.undo_stack, model=self.model, parent=self)
-        if SHOW_UNDO_VIEW:
+        self.undo_view_form = useful_dialogs.UndoViewForm(
+            undo_stack=self.undo_stack,
+            model=self.model,
+            parent=self,
+        )
+        if ome_globals.SHOW_UNDO_VIEW:
             self.undo_view_form.show()
             self.undo_view_form.raise_()
         
@@ -105,11 +112,15 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
         
         horizontal_header = self.tableView.horizontalHeader()
         horizontal_header.setContextMenuPolicy(Qt.CustomContextMenu)
-        horizontal_header.customContextMenuRequested.connect(self.make_horizontal_header_context_menu)
+        horizontal_header.customContextMenuRequested.connect(
+            self.make_horizontal_header_context_menu,
+        )
         
         vertical_header = self.tableView.verticalHeader()
         vertical_header.setContextMenuPolicy(Qt.CustomContextMenu)
-        vertical_header.customContextMenuRequested.connect(self.make_vertical_header_context_menu)
+        vertical_header.customContextMenuRequested.connect(
+            self.make_vertical_header_context_menu,
+        )
         
         self.set_window_title()
         
@@ -121,11 +132,12 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
         
     def set_window_title(self):
         if self.outpath is None:
-            filename = DEFAULT_FILENAME
+            filename = ome_globals.DEFAULT_FILENAME
         else:
             filename = os.path.basename(self.outpath)
-        self.setWindowTitle(' - '.join([PROGRAM_NAME, filename]))
-        self.setWindowIcon(QIcon(":/general/images/logo.png")) # don't know why this isn't set automatically (since I set it in Qt Designer for the main.ui)
+        self.setWindowTitle(' - '.join([ome_globals.PROGRAM_NAME, filename]))
+        # don't know why this isn't set automatically (since I set it in Qt Designer for the main.ui)
+        self.setWindowIcon(QIcon(":/general/images/logo.png"))
 
     def toggle_copy_pasta(self, b):
         '''
@@ -213,15 +225,19 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
         self.disconnect_model_connections()
         
         self.undo_stack.clear()
-        self.model = ee_model.EETableModel(undo_stack=self.undo_stack,
-                                           model_state=state)
+        self.model = ee_model.EETableModel(
+            undo_stack=self.undo_stack,
+            model_state=state,
+        )
         self.model.dirty = False
         self.model.change_row_count_if_needed()
         self.model.change_column_count_if_needed(debug=True)
         
         self.tableView.setModel(self.model)
         self.tableView.resizeColumnsToContents()
-        self.conf_level_toolbar_widget.conf_level_spinbox.setValue(self.model.get_conf_level())
+        self.conf_level_toolbar_widget.conf_level_spinbox.setValue(
+            self.model.get_conf_level(),
+        )
         self.make_model_connections()
 
     def setup_menus(self):
@@ -339,10 +355,13 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
         form.exec_()
  
     def open_help_online(self):
-        QDesktopServices.openUrl(QUrl(HELP_URL))
+        QDesktopServices.openUrl(QUrl(ome_globals.HELP_URL))
         
     def contingency_table(self):
-        dlg = ContingencyTableDlg(model=self.model, parent=self)
+        dlg = contingency_table_dlg.ContingencyTableDlg(
+            model=self.model,
+            parent=self,
+        )
         dlg.exec_()
     
     def show_about_dlg(self):
@@ -370,7 +389,9 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
         self.undo_stack.canUndoChanged.connect(self.update_undo_enable_status)
         self.undo_stack.canRedoChanged.connect(self.update_redo_enable_status)
 
-        self.tableView.horizontalScrollBar().actionTriggered.connect(lambda: QTimer.singleShot(0, self.update_vargroup_graphic))
+        self.tableView.horizontalScrollBar().actionTriggered.connect(
+            lambda: QTimer.singleShot(0, self.update_vargroup_graphic),
+        )
 
 
     def stupid(self):
@@ -410,36 +431,63 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
         
         for fpath in get_setting('recent_files'):
             action = self.menuRecent_Data.addAction("Load %s" % fpath)
-            QObject.connect(action, SIGNAL("triggered()"), partial(self.open, file_path=fpath))
+            QObject.connect(
+                action,
+                SIGNAL("triggered()"),
+                partial(self.open, file_path=fpath),
+            )
             
         
     def disconnect_model_connections(self):
         QObject.disconnect(self.model, SIGNAL("DataError"), self.warning_msg)
-        QObject.disconnect(self.model, SIGNAL("dataChanged(QModelIndex, QModelIndex)"), 
-                            self.change_index_after_data_edited)
-        QObject.disconnect(self.tableView_selection_model, 
-                    SIGNAL("selectionChanged(QItemSelection, QItemSelection)"), 
-                    self.table_selection_changed)
+        QObject.disconnect(
+            self.model,
+            SIGNAL("dataChanged(QModelIndex, QModelIndex)"), 
+            self.change_index_after_data_edited,
+        )
+        QObject.disconnect(
+            self.tableView_selection_model, 
+            SIGNAL("selectionChanged(QItemSelection, QItemSelection)"), 
+            self.table_selection_changed,
+        )
         
-        self.model.column_formats_changed.disconnect(self.toggle_analyses_enable_status)
-        self.model.studies_changed.disconnect(self.toggle_analyses_enable_status)
-        self.model.label_column_changed.disconnect(self.toggle_analyses_enable_status)
+        self.model.column_formats_changed.disconnect(
+            self.toggle_analyses_enable_status,
+        )
+        self.model.studies_changed.disconnect(
+            self.toggle_analyses_enable_status,
+        )
+        self.model.label_column_changed.disconnect(
+            self.toggle_analyses_enable_status,
+        )
         self.model.duplicate_label.disconnect(self.duplicate_label_attempt)
         self.model.error_msg_signal.disconnect(self.error_msg_signal_handler)
         self.model.should_resize_column.disconnect(self.resize_column)
         self.conf_level_toolbar_widget.conf_level_spinbox.valueChanged[float].disconnect(
-            self.model.set_conf_level)
-        self.model.conf_level_changed_during_undo.disconnect(self.conf_level_toolbar_widget.set_spinbox_value_no_signals)
+            self.model.set_conf_level,
+        )
+        self.model.conf_level_changed_during_undo.disconnect(
+            self.conf_level_toolbar_widget.set_spinbox_value_no_signals,
+        )
         
         
     def make_model_connections(self):
-        QObject.connect(self.model, SIGNAL("DataError"), self.warning_msg)
-        QObject.connect(self.model, SIGNAL("dataChanged(QModelIndex, QModelIndex)"), 
-                        self.change_index_after_data_edited)
+        QObject.connect(
+            self.model,
+            SIGNAL("DataError"),
+            self.warning_msg,
+        )
+        QObject.connect(
+            self.model,
+            SIGNAL("dataChanged(QModelIndex, QModelIndex)"), 
+            self.change_index_after_data_edited,
+        )
         self.tableView_selection_model = self.tableView.selectionModel()
-        QObject.connect(self.tableView_selection_model, 
-                    SIGNAL("selectionChanged(QItemSelection, QItemSelection)"), 
-                    self.table_selection_changed)
+        QObject.connect(
+            self.tableView_selection_model, 
+            SIGNAL("selectionChanged(QItemSelection, QItemSelection)"), 
+            self.table_selection_changed,
+        )
     
         self.model.column_formats_changed.connect(self.toggle_analyses_enable_status)
         self.model.studies_changed.connect(self.toggle_analyses_enable_status)
@@ -482,12 +530,17 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
             self.tableView.resizeColumnsToContents()
 
     def calculate_effect_size(self):
-        ''' Opens the calculate effect size wizard form and then calculates the new
+        '''
+        Opens the calculate effect size wizard form and then calculates the new
         effect size. Places the new calculated effect + variance in the 2
         columns beyond the most recently occupied one as new continuous
-        variables '''
+        variables
+        '''
         
-        wizard = calculate_effect_sizes_wizard.CalculateEffectSizeWizard(model=self.model, parent=self)
+        wizard = calculate_effect_sizes_wizard.CalculateEffectSizeWizard(
+            model=self.model,
+            parent=self,
+        )
         
         if wizard.exec_():
             data_type, metric = wizard.get_data_type_and_metric()
@@ -508,24 +561,44 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
             print("Computed these effect sizes: %s" % str(effect_sizes))
             
             self.undo_stack.beginMacro("Calculate Effect Size")
-            ################################################################
+            ###################################################################
             if cols_to_overwrite:
-                effect_cols_dict = self.model.add_effect_sizes_to_model(metric, effect_sizes, cols_to_overwrite=cols_to_overwrite)
+                effect_cols_dict = self.model.add_effect_sizes_to_model(
+                    metric,
+                    effect_sizes,
+                    cols_to_overwrite=cols_to_overwrite,
+                )
             else: # vanilla
                 # effect sizes is just yi and vi
-                effect_cols_dict = self.model.add_effect_sizes_to_model(metric, effect_sizes)
+                effect_cols_dict = self.model.add_effect_sizes_to_model(
+                    metric,
+                    effect_sizes,
+                )
             
             #### Add raw data source variables to group ###
-            tmp_var = self.model.get_variable_assigned_to_column(effect_cols_dict[TRANS_EFFECT]) 
+            tmp_var = self.model.get_variable_assigned_to_column(
+                effect_cols_dict[TRANS_EFFECT],
+            ) 
             var_grp = self.model.get_variable_group_of_var(tmp_var)
             old_var_group_data = var_grp.get_group_data_copy()
             undo_fn = lambda: var_grp.set_group_data(old_var_group_data) 
             if make_link:
-                redo_fn = lambda: self.add_data_vars_to_var_group(data_location, var_grp)
+                redo_fn = lambda: self.add_data_vars_to_var_group(
+                    data_location,
+                    var_grp,
+                )
             else:
-                redo_fn = lambda: self.clear_data_vars_from_var_group(data_location.keys(), var_grp)
-            self.undo_stack.push(GenericUndoCommand(redo_fn=redo_fn, undo_fn=undo_fn))
-            #####################################################################
+                redo_fn = lambda: self.clear_data_vars_from_var_group(
+                    data_location.keys(),
+                    var_grp,
+                )
+            self.undo_stack.push(
+                GenericUndoCommand(
+                    redo_fn=redo_fn,
+                    undo_fn=undo_fn,
+                ),
+            )
+            ###################################################################
             self.undo_stack.endMacro()
             
             self.tableView.resizeColumnsToContents()
@@ -553,7 +626,8 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
         return var_data_location
             
     def transform_effect_size_bulk(self):
-        ''' transforms the effect size given in metric from either
+        '''
+        Transforms the effect size given in metric from either
             
             1) normal scale to transformed scale (usually log scale) or
             2) transformed scale to normal scale
@@ -565,17 +639,20 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
             Output:
                 Will make new columns at the end of existing columns and put
                 the new info there.
-            '''
-
+        '''
 
         conf_level=self.model.conf_level
 
-        wizard = transform_effect_size_wizard.TransformEffectSizeWizard(model=self.model)
+        wizard = transform_effect_size_wizard.TransformEffectSizeWizard(
+            model=self.model,
+        )
 
         if not wizard.exec_():
             return False
 
-        effect_var_to_transform = self.model.get_variable_assigned_to_column(wizard.get_chosen_column())
+        effect_var_to_transform = self.model.get_variable_assigned_to_column(
+            wizard.get_chosen_column(),
+        )
         transform_direction = wizard.get_transformation_direction()
         verify_transform_direction(transform_direction)
 
@@ -587,59 +664,110 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
             new_grp_cols = wizard.get_new_column_group_column_selections()
             metric = wizard.get_new_column_group_metric()
             if transform_direction == TRANS_TO_RAW:
-                trans_yi = self.model.get_variable_assigned_to_column(new_grp_cols[TRANS_EFFECT])
-                trans_vi = self.model.get_variable_assigned_to_column(new_grp_cols[TRANS_VAR])
-                keys_to_vars = {TRANS_EFFECT:trans_yi,
-                                TRANS_VAR:trans_vi}
+                trans_yi = self.model.get_variable_assigned_to_column(
+                    new_grp_cols[TRANS_EFFECT],
+                )
+                trans_vi = self.model.get_variable_assigned_to_column(
+                    new_grp_cols[TRANS_VAR],
+                )
+                keys_to_vars = {
+                    TRANS_EFFECT: trans_yi,
+                    TRANS_VAR: trans_vi,
+                }
             elif transform_direction == RAW_TO_TRANS:
-                raw_yi = self.model.get_variable_assigned_to_column(new_grp_cols[RAW_EFFECT])
-                raw_lb = self.model.get_variable_assigned_to_column(new_grp_cols[RAW_LOWER])
-                raw_ub = self.model.get_variable_assigned_to_column(new_grp_cols[RAW_UPPER])
-                keys_to_vars = {RAW_EFFECT:raw_yi,
-                                RAW_LOWER:raw_lb,
-                                RAW_UPPER:raw_ub}
+                raw_yi = self.model.get_variable_assigned_to_column(
+                    new_grp_cols[RAW_EFFECT],
+                )
+                raw_lb = self.model.get_variable_assigned_to_column(
+                    new_grp_cols[RAW_LOWER],
+                )
+                raw_ub = self.model.get_variable_assigned_to_column(
+                    new_grp_cols[RAW_UPPER],
+                )
+                keys_to_vars = {
+                    RAW_EFFECT: raw_yi,
+                    RAW_LOWER: raw_lb,
+                    RAW_UPPER: raw_ub,
+                }
             
             # make new column group and add variables to it
-            col_group = self.model.make_new_variable_group(metric=metric, name=METRIC_TEXT_SIMPLE[metric] + " column group")
-            self.undo_stack.push(GenericUndoCommand(redo_fn=partial(self.model.add_vars_to_col_group, col_group, keys_to_vars),
-                                                    undo_fn=partial(self.model.remove_vars_from_col_group, col_group, keys=keys_to_vars.keys()),
-                                                    description="Add variables to column group"))
+            col_group = self.model.make_new_variable_group(
+                metric=metric,
+                name=METRIC_TEXT_SIMPLE[metric] + " column group",
+            )
+            self.undo_stack.push(
+                GenericUndoCommand(
+                    redo_fn=partial(
+                        self.model.add_vars_to_col_group,
+                        col_group,
+                        keys_to_vars,
+                    ),
+                    undo_fn=partial(
+                        self.model.remove_vars_from_col_group,
+                        col_group,
+                        keys=keys_to_vars.keys(),
+                    ),
+                    description="Add variables to column group",
+                ),
+            )
         else: # column group already exists
-            col_group = self.model.get_variable_group_of_var(effect_var_to_transform)
+            col_group = self.model.get_variable_group_of_var(
+                effect_var_to_transform,
+            )
         metric = col_group.get_metric()
 
         data_location = {}
         if transform_direction == TRANS_TO_RAW:
             trans_yi = col_group.get_var_with_key(TRANS_EFFECT)
             trans_vi = col_group.get_var_with_key(TRANS_VAR)
-            data_location = {TRANS_EFFECT:trans_yi,
-                             TRANS_VAR:trans_vi}
+            data_location = {
+                TRANS_EFFECT: trans_yi,
+                TRANS_VAR: trans_vi,
+            }
         elif transform_direction == RAW_TO_TRANS:
             raw_yi = col_group.get_var_with_key(RAW_EFFECT)
             raw_lb = col_group.get_var_with_key(RAW_LOWER)
             raw_ub = col_group.get_var_with_key(RAW_UPPER)
-            data_location = {RAW_EFFECT: raw_yi,
-                             RAW_LOWER: raw_lb,
-                             RAW_UPPER: raw_ub}
-        
-        
-        data = python_to_R.gather_data(self.model, data_location, vars_given_directly=True)
-        
+            data_location = {
+                RAW_EFFECT: raw_yi,
+                RAW_LOWER: raw_lb,
+                RAW_UPPER: raw_ub,
+            }
+
+        data = python_to_R.gather_data(
+            self.model,
+            data_location,
+            vars_given_directly=True,
+        )
+
         try:
-            effect_sizes = python_to_R.transform_effect_size(metric, data, transform_direction, conf_level)
+            effect_sizes = python_to_R.transform_effect_size(
+                metric,
+                data,
+                transform_direction,
+                conf_level,
+            )
         except CrazyRError as e:
             QMessageBox.critical(self, QString("R error"), QString(str(e)))
             return False
+
         # effect sizes is just yi and vi
-        self.model.add_transformed_effect_sizes_to_model(metric, effect_sizes, transform_direction, col_group)
+        self.model.add_transformed_effect_sizes_to_model(
+            metric,
+            effect_sizes,
+            transform_direction,
+            col_group,
+        )
         self.tableView.resizeColumnsToContents()
-        
-        #print("Computed these effect sizes: %s" % str(results))
-        
+
         self.undo_stack.endMacro()
         
     #@profile_this
-    def change_index_after_data_edited(self, index_top_left, index_bottom_right):        
+    def change_index_after_data_edited(
+        self,
+        index_top_left,
+        index_bottom_right,
+    ):        
         row, col = index_top_left.row(), index_top_left.column()
         row += 1
         if row < self.model.rowCount():
@@ -647,7 +775,6 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
             new_index = self.model.createIndex(row,col)
             self.tableView.setCurrentIndex(new_index)
         if not self.model.big_paste_mode:
-            #end_row, end_col = index_bottom_right.row(), index_bottom_right.column()
             end_col = index_bottom_right.column()
             ncols = end_col - col + 1
             if ncols >= 10:
@@ -676,11 +803,12 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
         self.undo_stack.redo()
 
     def make_vertical_header_context_menu(self, pos):
-        ''' makes the context menu for the row headers when user right-clicks '''
+        '''
+        Makes the context menu for the row headers when user right-clicks
 
-        '''Actions:
-        Insert row 
-        delete study (row)
+        Actions:
+            Insert row 
+            delete study (row)
         '''
 
         row_clicked = self.tableView.rowAt(pos.y())
@@ -693,18 +821,21 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
 
         # Delete a row(study)
         delete_row_action = context_menu.addAction("Remove row")
-        QAction.connect(delete_row_action, SIGNAL("triggered()"), lambda: self.model.removeRow(row_clicked))
-
+        QAction.connect(
+            delete_row_action,
+            SIGNAL("triggered()"),
+            lambda: self.model.removeRow(row_clicked),
+        )
 
         # Insert a row
         insert_row_action = context_menu.addAction("Insert row")
-        QAction.connect(insert_row_action, SIGNAL("triggered()"), lambda: self.model.insertRow(row_clicked))
+        QAction.connect(
+            insert_row_action,
+            SIGNAL("triggered()"),
+            lambda: self.model.insertRow(row_clicked),
+        )
 
         context_menu.popup(QCursor.pos())
-
-
-
-
 
     def make_horizontal_header_context_menu(self, pos):
         '''
@@ -722,10 +853,6 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
 #         pr=cProfile.Profile()
 #         pr.enable()
 #         ###############
-
- 
-
-
 
         column_clicked = self.tableView.columnAt(pos.x())
 
@@ -787,7 +914,7 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
 
     def remove_column(self, column):
         is_variable_column = self.model.column_assigned_to_variable(column)
-        
+
         # Remove other columns @ same scale in var_group
         if is_variable_column:
             var = self.model.get_variable_assigned_to_column(column)
@@ -798,26 +925,23 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
                     keylist = [TRANS_EFFECT, TRANS_VAR]
                 else:
                     keylist = [RAW_EFFECT, RAW_LOWER, RAW_UPPER]
-                
+
                 self.undo_stack.beginMacro("Deleting all columns at same scale as selected column to delete")
                 for var_key in keylist:
                     othervar = var_group.get_var_with_key(var_key)
                     if othervar is not None:
                         other_var_col = self.model.get_column_assigned_to_variable(othervar)
                         self.model.removeColumn(other_var_col)
-                
+
                 # Delete var group if it is empty now
                 if var_group.effects_empty():
                     self.model.remove_variable_group(var_group) # undoable
-                        
+    
                 self.undo_stack.endMacro()
                 return
-            
+
         self.model.removeColumn(column)
-        
-        
-        
-        
+
     def mark_column_as_label(self, col):
         ''' Should only occur for columns of CATEGORICAL type and only for a
         column which is not already the label column
@@ -857,14 +981,15 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
         redo = lambda: self.model.mark_column_as_label(col, overridden_study_labels)
         undo = lambda: self.model.unmark_column_as_label(col, original_study_labels)
         on_exit = lambda: self.model.emit_change_signals_for_col(col)
-        mark_column_as_label_cmd = GenericUndoCommand(redo_fn=redo, undo_fn=undo,
-                                                  on_redo_exit=on_exit,
-                                                  on_undo_exit=on_exit,
-                                                  description="Mark column '%s' as label" % variable_name)
+        mark_column_as_label_cmd = GenericUndoCommand(
+            redo_fn=redo,
+            undo_fn=undo,
+            on_redo_exit=on_exit,
+            on_undo_exit=on_exit,
+            description="Mark column '%s' as label" % variable_name,
+        )
         self.undo_stack.push(mark_column_as_label_cmd)
         self.model.set_dirty_bit()
-
-
 
     def unmark_column_as_label(self, col):
         ''' Unmarks column as label and makes it a CATEGORICAL variable '''
@@ -876,14 +1001,21 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
         undo = lambda: self.model.mark_column_as_label(col)
         on_exit = lambda: self.model.emit_change_signals_for_col(col)
         unmark_column_as_label_cmd = GenericUndoCommand(
-                                            redo_fn=redo, undo_fn=undo,
-                                            on_redo_exit=on_exit,
-                                            on_undo_exit=on_exit,
-                                            description="Unmark column '%s' as label" % label_column_name)
+            redo_fn=redo,
+            undo_fn=undo,
+            on_redo_exit=on_exit,
+            on_undo_exit=on_exit,
+            description="Unmark column '%s' as label" % label_column_name,
+        )
         self.undo_stack.push(unmark_column_as_label_cmd)
         self.model.set_dirty_bit()
 
-    def make_new_variable_at_col(self, col, var_type=CATEGORICAL,var_name=None):
+    def make_new_variable_at_col(
+        self,
+        col,
+        var_type=CATEGORICAL,
+        var_name=None,
+    ):
         if var_name is None:
             name = self.model.get_default_header(col)
         else:
@@ -891,19 +1023,26 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
 
         self.undo_stack.beginMacro(QString("Make a new variable at col %d" % col))
         resize_columns = self.tableView.resizeColumnsToContents if not self.model.big_paste_mode else do_nothing
-        start_cmd = GenericUndoCommand(redo_fn=do_nothing,
-                                       undo_fn=lambda: self.model.emit_change_signals_for_col(col),
-                                       on_undo_exit=resize_columns)
+        start_cmd = GenericUndoCommand(
+            redo_fn=do_nothing,
+            undo_fn=lambda: self.model.emit_change_signals_for_col(col),
+            on_undo_exit=resize_columns,
+        )
         self.undo_stack.push(start_cmd)
 
         make_new_variable_cmd = ee_model.MakeNewVariableCommand(
-                        model=self.model, var_name=name, col=col,
-                        var_type=var_type)
+            model=self.model,
+            var_name=name,
+            col=col,
+            var_type=var_type,
+        )
         self.undo_stack.push(make_new_variable_cmd)
 
-        end_cmd = GenericUndoCommand(undo_fn=do_nothing,
-                                     redo_fn=lambda: self.model.emit_change_signals_for_col(col),
-                                     on_redo_exit=resize_columns)
+        end_cmd = GenericUndoCommand(
+            undo_fn=do_nothing,
+            redo_fn=lambda: self.model.emit_change_signals_for_col(col),
+            on_redo_exit=resize_columns,
+        )
         self.undo_stack.push(end_cmd)
         self.undo_stack.endMacro()
 
@@ -917,9 +1056,11 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
             var = self.model.get_variable_assigned_to_column(col)
             initial_name = var.get_label()
 
-        rename_column_dlg = useful_dialogs.InputForm(message="Please enter a new %s name" % 'column' if is_label_column else 'variable',
-                                                     initial_text=initial_name,
-                                                     parent=self)
+        rename_column_dlg = useful_dialogs.InputForm(
+            message="Please enter a new %s name" % 'column' if is_label_column else 'variable',
+            initial_text=initial_name,
+            parent=self,
+        )
 
         # Open dialog to rename column
         if not rename_column_dlg.exec_():
@@ -933,7 +1074,7 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
             return False
         current_var_names = [x.get_label() for x in self.model.get_variables()]
         if proposed_name in current_var_names:
-            QMessageBox.warning(self,"Bad name", "That variable name is already present in the dataset, duplicates not allowed.")
+            QMessageBox.warning(self, "Bad name", "That variable name is already present in the dataset, duplicates not allowed.")
             return False
        
         # check for disallowed chars that will cause problems on the R side
@@ -960,42 +1101,61 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
             undo = partial(self.model.change_label_column_name, initial_name)
             description = "Renamed label column '%s' to '%s'" % (initial_name, proposed_name)
         else:
-            redo = partial(self.model.change_variable_name, var, new_name=proposed_name)
-            undo = partial(self.model.change_variable_name, var, new_name=initial_name)
+            redo = partial(
+                self.model.change_variable_name, var,
+                new_name=proposed_name,
+            )
+            undo = partial(
+                self.model.change_variable_name, var,
+                new_name=initial_name,
+            )
             description = "Renamed variable '%s' to '%s'" % (initial_name, proposed_name)
 
         resize_columns = self.tableView.resizeColumnsToContents if not self.model.big_paste_mode else do_nothing
-        rename_column_command = GenericUndoCommand(redo_fn=redo, undo_fn=undo,
-                                                   on_redo_exit=resize_columns,
-                                                   description=description)
+        rename_column_command = GenericUndoCommand(
+            redo_fn=redo,
+            undo_fn=undo,
+            on_redo_exit=resize_columns,
+            description=description,
+        )
         self.undo_stack.push(rename_column_command)
         self.model.set_dirty_bit()
 
     def prompt_user_about_unsaved_data(self):
-        ''' Prompts user to save if data as has changed. Returns true if user
-        chose to save or discard their changes to the data, False if cancelled'''
+        '''
+        Prompts user to save if data as has changed. Returns true if user
+        chose to save or discard their changes to the data, False if cancelled
+        '''
 
         # If nothing has changed, just leave
         if not self.model.dirty:
             return True
 
-        choice = QMessageBox.warning(self, "Warning",
-                        "Changes have been made to the data. Do you want to save your changes, discard them, or cancel?",
-                        QMessageBox.Save | QMessageBox.Discard | QMessageBox.Cancel)
+        choice = QMessageBox.warning(
+            self,
+            "Warning",
+            "Changes have been made to the data. Do you want to save your changes, discard them, or cancel?",
+            QMessageBox.Save | QMessageBox.Discard | QMessageBox.Cancel,
+        )
         if choice == QMessageBox.Save:
             return self.save() # true of save was successful, false if cancelled
 
         return choice != QMessageBox.Cancel
 
     def what_to_do_about_unsaved_data_prompt(self):
-        choices = {QMessageBox.Save:'SAVE',
-                   QMessageBox.Discard:'DISCARD',
-                   QMessageBox.Cancel:'CANCEL',
-                   QMessageBox.Close:'CANCEL'}
+        choices = {
+            QMessageBox.Save: 'SAVE',
+            QMessageBox.Discard: 'DISCARD',
+            QMessageBox.Cancel: 'CANCEL',
+            QMessageBox.Close: 'CANCEL',
+        }
         
-        choice = QMessageBox.warning(self, "Warning",
-                        "Changes have been made to the data. Do you want to save your changes, discard them, or cancel?",
-                        QMessageBox.Save | QMessageBox.Discard | QMessageBox.Cancel)
+        choice = QMessageBox.warning(
+            self,
+            "Warning",
+            "Changes have been made to the data. Do you want to save your changes, discard them, or cancel?",
+            QMessageBox.Save | QMessageBox.Discard | QMessageBox.Cancel,
+        )
         
         return choices[choice]
 
@@ -1003,7 +1163,9 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
         return self.model.dirty
 
     def open(self, file_path=None):
-        ''' Prompts user to open a file and then opens it (picked data model) '''
+        '''
+        Prompts user to open a file and then opens it (picked data model)
+        '''
         
         # What to do if current dataset is unsaved
         if self.model_has_unsaved_data():
@@ -1080,13 +1242,21 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
             disallowed_chars_quoted = ["'%s'" % char for char in VARIABLE_LABEL_DISALLOWED_CHARS]
             charlist = ", ".join(disallowed_chars_quoted)
             msg = "The characters: %s are not allowed in variable names. The following variables names have these disallowed characters:\n%s\n\nIf it's ok to just remove the bad characters, click 'Ok' otherwise, click cancel and remove the characters manually. This action is not undoable." % (charlist, "\n".join(labels_with_forbidden_chars)) 
-            choice = QMessageBox.warning(self, "Forbidden characters in variable names", msg, buttons=QMessageBox.Ok|QMessageBox.Cancel)
+            choice = QMessageBox.warning(
+                self,
+                "Forbidden characters in variable names",
+                msg,
+                buttons=QMessageBox.Ok|QMessageBox.Cancel,
+            )
             if choice == QMessageBox.Ok:
                 self.remove_disallowed_chars_from_var_labels(variables)
                 occupied_cols = self.model.get_occupied_columns()
-                self.model.headerDataChanged.emit(Qt.Horizontal,min(occupied_cols), max(occupied_cols))
-    
-                
+                self.model.headerDataChanged.emit(
+                    Qt.Horizontal,
+                    min(occupied_cols),
+                    max(occupied_cols),
+                )
+
     def remove_disallowed_chars_from_var_labels(self, variables):
         for v in variables:
             label = v.get_label()
@@ -1204,19 +1374,30 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
             variable_type_str = VARIABLE_TYPE_STRING_REPS[target_conversion]
             
             action = change_format_menu.addAction("--> %s" % variable_type_str)
-            action.triggered.connect(partial(self.change_var_format, var=var, target_type=target_conversion))                                   
+            action.triggered.connect(partial(
+                self.change_var_format,
+                var=var,
+                target_type=target_conversion),
+            )                                   
                                                                    
-            QObject.connect(change_format_menu, SIGNAL("hovered(QAction*)"), self.status_from_action)
+            QObject.connect(
+                change_format_menu,
+                SIGNAL("hovered(QAction*)"),
+                self.status_from_action,
+            )
 
         if var.get_type() == CONTINUOUS and var.get_subtype() is None:
             for target in EFFECT_TYPES:
                 subtype_str = VARIABLE_SUBTYPE_STRING_REPS[target]
-                set_subtype_cmd = ee_model.SetVariableSubTypeCommand(model=self.model,
-                                                                     variable=var,
-                                                                     new_subtype=target)
+                set_subtype_cmd = ee_model.SetVariableSubTypeCommand(
+                    model=self.model,
+                    variable=var,
+                    new_subtype=target,
+                )
                 action = change_format_menu.addAction("----> %s" % subtype_str)
-                action.triggered.connect(partial(self.undo_stack.push,set_subtype_cmd))
-
+                action.triggered.connect(
+                    partial(self.undo_stack.push,set_subtype_cmd),
+                )
 
 #         # profiling fun
 #         pr.disable()
@@ -1244,9 +1425,12 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
                 variable=var,
                 target_type=target_type,
                 precision=self.model.get_precision(),
-                description="Change format of '%s' from '%s' to '%s'" % (var.get_label(),
-                                                                         VARIABLE_TYPE_STRING_REPS[var.get_type()],
-                                                                         VARIABLE_TYPE_STRING_REPS[target_type]))
+                description="Change format of '%s' from '%s' to '%s'" % (
+                    var.get_label(),
+                    VARIABLE_TYPE_STRING_REPS[var.get_type()],
+                    VARIABLE_TYPE_STRING_REPS[target_type],
+                ),
+        )
         self.undo_stack.push(convert_to_target)
         
 
@@ -1271,7 +1455,11 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
                     if event:
                         event.accept()
                 else:
-                    QMessageBox.information(self, "Saving failed", "Saving the dataset failed for some reason")
+                    QMessageBox.information(
+                        self,
+                        "Saving failed",
+                        "Saving the dataset failed for some reason",
+                    )
                     if event:
                         event.ignore()
                     return True
@@ -1304,18 +1492,15 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
             col_indices_of_cols_in_grp = [get_pos(col) for col in columns]
             column_indices.append(col_indices_of_cols_in_grp)
         return column_indices
-    
-#    def paintEvent(self, event):
-#        QtGui.QMainWindow.paintEvent(self, event)
-#        #self.update_vargroup_graphic()
 
     def resizeEvent(self, event):  
         QtGui.QMainWindow.resizeEvent(self, event)
         self.update_vargroup_graphic()
-        
 
     def update_vargroup_graphic(self):
-        self.vargroup_graphic.set_column_coordinates(self.get_variable_group_column_indices())
+        self.vargroup_graphic.set_column_coordinates(
+            self.get_variable_group_column_indices(),
+        )
 
 ############### COPY & PASTE ###############################
 
@@ -1333,13 +1518,16 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
     def cut(self):
         # copy the data onto the clipboard
         selected_indexes = self.tableView.selectionModel().selectedIndexes()
-        upper_left_index  = self._upper_left(selected_indexes)
+        upper_left_index = self._upper_left(selected_indexes)
         lower_right_index = self._lower_right(selected_indexes)
         if upper_left_index is None: # leave if nothing is selected
             print("No selection")
             return False
-        self.copy_contents_in_range(upper_left_index, lower_right_index,
-                                    to_clipboard=True)  
+        self.copy_contents_in_range(
+            upper_left_index,
+            lower_right_index,
+            to_clipboard=True,
+        )  
 
         # create a matrix of Nones and then 'paste' that in to the space we
         # just copied from
@@ -1373,8 +1561,17 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
 
         self.paste_from_clipboard(upper_left_index)
 
-    def _matrix_to_str(self, m, col_delimiter="\t", row_delimiter="\n", append_new_line =False):
-        ''' takes a matrix of data (i.e., a nested list) and converts to a string representation '''
+    def _matrix_to_str(
+        self,
+        m,
+        col_delimiter="\t",
+        row_delimiter="\n",
+        append_new_line =False,
+    ):
+        '''
+        Takes a matrix of data (i.e., a nested list) and converts it to a
+        string representation
+        '''
         m_str = []
         for row in m:
             m_str.append(col_delimiter.join(row))
@@ -1383,8 +1580,16 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
             return_str += row_delimiter
         return return_str
 
-    def _str_to_matrix(self, text, col_delimiter="\t", row_delimiter="\n"):
-        ''' transforms raw text (e.g., from the clipboard) to a structured matrix '''
+    def _str_to_matrix(
+        self,
+        text,
+        col_delimiter="\t",
+        row_delimiter="\n",
+    ):
+        '''
+        Transforms raw text (e.g., from the clipboard) to a structured matrix
+        '''
+
         m = []
         rows = text.split(row_delimiter)
         for row in rows:
@@ -1414,12 +1619,19 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
     def _print_index(self, index):
         print "(%s, %s)" % (index.row(), index.column())
     
-    def copy_contents_in_range(self, upper_left_index, lower_right_index, to_clipboard):
+    def copy_contents_in_range(
+        self,
+        upper_left_index,
+        lower_right_index,
+        to_clipboard,
+    ):
         '''
-        copy the (textual) content of the cells in provided cell_range -- the copied contents will be
-        cast to python Unicode strings and returned. If the to_clipboard flag is true, the contents will
-        also be copied to the system clipboard
+        copy the (textual) content of the cells in provided cell_range -- the
+        copied contents will be cast to python Unicode strings and returned. If
+        the to_clipboard flag is true, the contents will also be copied to the
+        system clipboard
         '''
+
         print "upper left index: %s, upper right index: %s" % \
                 (self._print_index(upper_left_index), self._print_index(lower_right_index))
         text_matrix = []
@@ -1488,12 +1700,18 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
         #pr.print_stats(sort='cumulative')
     
 
-    def paste_contents(self, upper_left_index, source_content,
-                       progress_bar_title="Pasting"):
+    def paste_contents(
+        self,
+        upper_left_index,
+        source_content,
+        progress_bar_title="Pasting",
+    ):
         '''
-        paste the content in source_content into the matrix starting at the upper_left_coord
-        cell. new rows will be added as needed; existing data will be overwritten
+        paste the content in source_content into the matrix starting at the
+        upper_left_coord cell. new rows will be added as needed; existing data
+        will be overwritten.
         '''
+
         origin_row, origin_col = upper_left_index.row(), upper_left_index.column()
 
         if isinstance(source_content[-1], QtCore.QStringList) and \
@@ -1517,7 +1735,13 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
         ncols = len(source_content[0])
         end_row, end_col = origin_row+nrows-1, origin_col+ncols-1
         
-        progress_dlg = QProgressDialog(QString(progress_bar_title),QString("cancel"),0,(nrows-1)*(ncols-1),parent=self)
+        progress_dlg = QProgressDialog(
+            QString(progress_bar_title),
+            QString("cancel"),
+            0,
+            (nrows-1)*(ncols-1),
+            parent=self,
+        )
         progress_dlg.setWindowModality(Qt.WindowModal)
         
         def paste_loop(test=False):
@@ -1536,8 +1760,14 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
                     # note that we treat all of the data pasted as
                     # one event; i.e., when undo is called, it undos the
                     # whole paste
-                    print "index: {0}, {1}".format(origin_row+src_row, origin_col+src_col)
-                    index = self.model.createIndex(origin_row+src_row, origin_col+src_col)
+                    print "index: {0}, {1}".format(
+                        origin_row+src_row,
+                        origin_col+src_col,
+                    )
+                    index = self.model.createIndex(
+                        origin_row+src_row,
+                        origin_col+src_col,
+                    )
                     raw_value = source_content[src_row][src_col]
                     if raw_value in [None, QVariant(None),QVariant()]:
                         value = None
@@ -1547,7 +1777,10 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
                         value = str(in_ascii)
                         
                     if test:
-                        setdata_ok = self.model.test_value_for_setData(index, QVariant(value))
+                        setdata_ok = self.model.test_value_for_setData(
+                            index,
+                            QVariant(value),
+                        )
                         if not setdata_ok:
                             return False
                     else:
@@ -1576,10 +1809,18 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
             
             if not self.model.big_paste_mode:
                 self.undo_stack.beginMacro(QString("Pasting"))
-                self.undo_stack.push(GenericUndoCommand(redo_fn=do_nothing,
-                                     undo_fn=self.tableView.resizeColumnsToContents))
-                self.undo_stack.push(GenericUndoCommand(redo_fn=do_nothing,
-                                                        undo_fn=lambda: self.model.emit_change_signals_from_start_to_end(origin_row, origin_col, end_row, end_col)))
+                self.undo_stack.push(
+                    GenericUndoCommand(
+                        redo_fn=do_nothing,
+                        undo_fn=self.tableView.resizeColumnsToContents,
+                    ),
+                )
+                self.undo_stack.push(
+                    GenericUndoCommand(
+                        redo_fn=do_nothing,
+                        undo_fn=lambda: self.model.emit_change_signals_from_start_to_end(origin_row, origin_col, end_row, end_col),
+                    ),
+                ),
                 print("beginning pasting macro")
             
             #####################
@@ -1592,10 +1833,18 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
                 self.tableView.resizeColumnsToContents()
                 #self.model.emit_change_signals_from_start_to_end(origin_row, origin_col, end_row, end_col)
             else:
-                self.undo_stack.push(GenericUndoCommand(redo_fn=self.tableView.resizeColumnsToContents,
-                                                    undo_fn=do_nothing))
-                self.undo_stack.push(GenericUndoCommand(undo_fn=do_nothing,
-                                                        redo_fn=lambda: self.model.emit_change_signals_from_start_to_end(origin_row, origin_col, end_row, end_col)))
+                self.undo_stack.push(
+                    GenericUndoCommand(
+                        redo_fn=self.tableView.resizeColumnsToContents,
+                        undo_fn=do_nothing,
+                    ),
+                )
+                self.undo_stack.push(
+                    GenericUndoCommand(
+                        undo_fn=do_nothing,
+                        redo_fn=lambda: self.model.emit_change_signals_from_start_to_end(origin_row, origin_col, end_row, end_col),
+                    ),
+                ),
                 self.undo_stack.endMacro()
                 print("ended paste macro")
             
@@ -1627,7 +1876,10 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
         return qstr_text.replace(newlines_re, "\n")
         
     def paste_from_clipboard(self, upper_left_index):
-        ''' pastes the data in the clipboard starting at the currently selected cell.'''
+        '''
+        Pastes the data in the clipboard starting at the currently selected
+        cell.
+        '''
 
         clipboard = QApplication.clipboard()
         clipboard_text = clipboard.text()
@@ -1659,7 +1911,11 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
             if what_to_do_about_unsaved_data == 'SAVE':
                 save_successful = self.save()
                 if not save_successful:
-                    QMessageBox.information(self, "Saving failed", "Saving the dataset failed for some reason")
+                    QMessageBox.information(
+                        self,
+                        "Saving failed",
+                        "Saving the dataset failed for some reason",
+                    ),
                     return False
                 elif save_successful == "CANCEL":
                     print("cancelling save")
@@ -1674,7 +1930,11 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
         if form.exec_():
             data = form.get_csv_data()
             if data is None:
-                QMessageBox.warning(self, "problem", "Couldn't import csv data for some reason")
+                QMessageBox.warning(
+                    self,
+                    "problem",
+                    "Couldn't import csv data for some reason",
+                )
                 return
             matrix = data['data']
             headers = data['headers']
@@ -1691,14 +1951,24 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
             self.model.big_paste_mode = big_paste_mode
             start_index = self.model.createIndex(0,0)
             
-            progress_dlg = QProgressDialog(QString("Making column headers"),QString("cancel"),0,len(headers)-1,parent=self)
+            progress_dlg = QProgressDialog(
+                QString("Making column headers"),
+                QString("cancel"),
+                0,
+                len(headers)-1,
+                parent=self,
+            )
             progress_dlg.setWindowModality(Qt.WindowModal)
             progress_dlg.raise_()
             QApplication.processEvents()
             if headers != []:
                 self.tableView_selection_model.blockSignals(True)
                 for col,header in enumerate(headers):
-                    self.make_new_variable_at_col(col, var_type=CATEGORICAL, var_name=str(header))
+                    self.make_new_variable_at_col(
+                        col,
+                        var_type=CATEGORICAL,
+                        var_name=str(header),
+                    ),
                     new_progress_val = col+1
                     if new_progress_val % 15 == 0:
                         progress_dlg.setValue(new_progress_val)
@@ -1712,12 +1982,21 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
             self.undo_stack.clear()
 
     def export_csv(self):
-        form = csv_export_dlg.CSVExportDialog(model=self.model, filepath=self.outpath, parent=self)
+        form = csv_export_dlg.CSVExportDialog(
+            model=self.model,
+            filepath=self.outpath,
+            parent=self,
+        )
 
         form.exec_()
 
 
-    def _writeout_test_parameters(self, fnc_name, make_dataset_in_r_str="", results=None, **parameter_args):
+    def _writeout_test_parameters(
+        self,
+        fnc_name,
+        make_dataset_in_r_str="",
+        results=None,
+        **parameter_args):
         with open('test_data.txt', 'a') as f:
             f.write("Test Data:\n")
             f.write("{\n")
@@ -1736,9 +2015,16 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
             f.flush()
             os.fsync(f)
 
-    def _covs_to_values_to_cols_to_values(self, covs_to_values_or_cols_to_values, reverse=False):
-        ''' Convert covs_to_values to cols_to_values in order to reproducibly store data for testing
-        If reverse is true the conversion happens in the opposite direction '''
+    def _covs_to_values_to_cols_to_values(
+        self,
+        covs_to_values_or_cols_to_values,
+        reverse=False,
+    ):
+        '''
+        Convert covs_to_values to cols_to_values in order to reproducibly store
+        data for testing.
+        If reverse is true the conversion happens in the opposite direction
+        '''
 
         get_col = self.model.get_column_assigned_to_variable
         get_var = self.model.get_variable_assigned_to_column
@@ -1756,8 +2042,10 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
             return covs_to_values
     
     def _selected_cov_to_select_col(self, cov_or_col, reverse=False):
-        ''' Converts selected covariate to a column if reverse is not True,
-        else convert selected col to covariate '''
+        '''
+        Converts selected covariate to a column if reverse is not True,
+        else convert selected col to covariate
+        '''
         
         if cov_or_col is None:
             return None
@@ -1792,8 +2080,11 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
         @TODO this needs to be made undoable
         '''
         
-        wizard = imputation.imputation_wizard.ImputationWizard(model=self.model, parent=self)
-        
+        wizard = imputation.imputation_wizard.ImputationWizard(
+            model=self.model,
+            parent=self,
+        )
+
         if wizard.exec_():
             # dict mapping covs --> {study --> values}
             imputed_values = wizard.get_imputed_values()
@@ -1809,7 +2100,7 @@ class MainForm(QtGui.QMainWindow, ui_main_window.Ui_MainWindow):
                     self.model.setData(index, QVariant(value))
             #####################################################################
             self.undo_stack.endMacro()
-            
+
 #################### not part of main_form ##########
 
 

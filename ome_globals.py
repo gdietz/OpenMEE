@@ -19,7 +19,10 @@ from PyQt4.QtCore import pyqtRemoveInputHook
 # from PyQt4.QtCore import pyqtRemoveInputHook
 # pyqtRemoveInputHook(), pdb.set_trace()
 
-######
+
+# Splash screen display time
+SPLASH_DISPLAY_TIME = 0
+
 HELP_URL = "http://www.cebm.brown.edu/open_mee/help"
 
 VARIABLE_LABEL_DISALLOWED_CHARS = ['(', ')']

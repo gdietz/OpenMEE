@@ -9,20 +9,12 @@ import os
 import sys
 import time
 
-#from PyQt4 import QtCore, QtGui
-#from PyQt4.Qt import *
 from PyQt4 import QtGui
 from PyQt4.Qt import QPixmap, QSplashScreen, QThread
-# from PyQt4 import QtGui
-# from PyQt4.Qt import *
 
 import python_to_R
 import main_form
-#import icons_rc
 import ome_globals
-from ome_globals import PROGRAM_NAME, ORGANIZATION_NAME
-
-SPLASH_DISPLAY_TIME = 0
 
 def load_R_libraries(app, splash=None):
     ''' Loads the R libraries while updating the splash screen'''
@@ -62,8 +54,8 @@ def load_R_libraries(app, splash=None):
 def start(open_file_path=None, reset_settings=False):
     ###### Setup directories ######
     app = QtGui.QApplication(sys.argv)
-    app.setApplicationName(PROGRAM_NAME)
-    app.setOrganizationName(ORGANIZATION_NAME)
+    app.setApplicationName(ome_globals.PROGRAM_NAME)
+    app.setOrganizationName(ome_globals.ORGANIZATION_NAME)
     
     # Make working directory for python and R and sets up r_tmp (where R does
     # its calculations. Also clears r_tmp
@@ -76,21 +68,17 @@ def start(open_file_path=None, reset_settings=False):
     
     splash_pixmap = QPixmap(":/splash/splash.png")
     splash = QSplashScreen(splash_pixmap)
-    #splash = QSplashScreen( QPixmap(300, 200) )
     splash.show()
-    #app.processEvents()
-    
-    #time.sleep(1)
     
     splash_starttime = time.time()
     load_R_libraries(app, splash)
     
-    # Show splash screen for at least SPLASH_DISPLAY_TIME seconds
+    # Show splash screen for at least ome_globals.SPLASH_DISPLAY_TIME seconds
     time_elapsed  = time.time() - splash_starttime
     print("It took %s seconds to load the R libraries" % str(time_elapsed))
-    if time_elapsed < SPLASH_DISPLAY_TIME: # seconds
-        print("Going to sleep for %f seconds" % float(SPLASH_DISPLAY_TIME-time_elapsed))
-        QThread.sleep(int(SPLASH_DISPLAY_TIME-time_elapsed))
+    if time_elapsed < ome_globals.SPLASH_DISPLAY_TIME: # seconds
+        print("Going to sleep for %f seconds" % float(ome_globals.SPLASH_DISPLAY_TIME-time_elapsed))
+        QThread.sleep(int(ome_globals.SPLASH_DISPLAY_TIME-time_elapsed))
         print("woke up")
 
     # create and show the main window
