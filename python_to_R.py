@@ -186,10 +186,10 @@ def set_conf_level_in_R(conf_lev):
 
 
 def generate_forest_plot(
-        file_path,
-        side_by_side=False,
-        params_name="plot.data",
-        ):
+    file_path,
+    side_by_side=False,
+    params_name="plot.data",
+):
 
     if side_by_side:
         print "generating a side-by-side forest plot..."
@@ -204,13 +204,13 @@ def generate_forest_plot(
 
 
 def regenerate_phylo_forest_plot(
-        img_path,
-        params_name="params",
-        data_name="data",
-        res_name="res",
-        params_path="NULL",
-        level_name="level",
-        ):
+    img_path,
+    params_name="params",
+    data_name="data",
+    res_name="res",
+    params_path="NULL",
+    level_name="level",
+):
 
     r_str = '''
         regenerate_phylo_forest_plot(
@@ -252,11 +252,11 @@ def regenerate_funnel_plot(params_path, file_path, edited_funnel_params=None):
 
 
 def regenerate_exploratory_plot(
-        params_path,
-        file_path,
-        plot_type,
-        edited_params=None,
-        ):
+    params_path,
+    file_path,
+    plot_type,
+    edited_params=None,
+):
 
     if plot_type == "histogram":
         params_r = histogram_params_toR(
@@ -330,8 +330,11 @@ def gather_data_for_single_study(data_location, study):
 
 
 def None_to_NA(value, value_type):
-    ''' Convert None value to an R NA object of the appropriate type.
-        Returns the value unchanged if it is not none'''
+    '''
+    Convert None value to an R NA object of the appropriate type.
+
+    Returns the value unchanged if it is not none
+    '''
 
     if value is not None:
         return value
@@ -351,12 +354,12 @@ def keys_in_dictionary(keys, dictionary):
 
 
 def studies_have_raw_data(
-        studies,
-        data_type,
-        data_location,
-        model,
-        first_arm_only=False,
-        ):
+    studies,
+    data_type,
+    data_location,
+    model,
+    first_arm_only=False,
+):
 
     '''
     True iff all the studies in 'studies' have 'raw' data for the currently
@@ -438,15 +441,15 @@ def studies_have_point_estimates(studies, data_location, model):
 
 
 def dataset_to_simple_binary_robj(
-        model,
-        included_studies,
-        data_location,
-        var_name="tmp_obj",
-        include_raw_data=True,
-        covs_to_include=[],
-        covariate_reference_values={},
-        one_arm=False,
-        ):
+    model,
+    included_studies,
+    data_location,
+    var_name="tmp_obj",
+    include_raw_data=True,
+    covs_to_include=[],
+    covariate_reference_values={},
+    one_arm=False,
+):
     '''
     This converts an EETableModel to an OpenMetaData (OMData) R object. We use
     type EETableModel rather than a Dataset model directly to access the
@@ -604,16 +607,16 @@ def dataset_to_simple_binary_robj(
 
 
 def dataset_to_simple_cont_robj(
-        model,
-        included_studies,
-        data_location,
-        data_type,
-        var_name="tmp_obj",
-        covs_to_include=[],
-        covariate_reference_values={},
-        one_arm=False,
-        generic_effect=False,
-    ):
+    model,
+    included_studies,
+    data_location,
+    data_type,
+    var_name="tmp_obj",
+    covs_to_include=[],
+    covariate_reference_values={},
+    one_arm=False,
+    generic_effect=False,
+):
     '''
         Convert the dataset into a simple continuous R object
     '''
@@ -795,13 +798,13 @@ def sort_covariates_by_type(covs, sort_method=NUMERIC_AND_CATEGORICAL):
 
 
 def dataset_to_dataframe(
-        model,
-        included_studies,
-        data_location,
-        covariates=[],
-        cov_ref_values={},
-        var_name="tmp_obj",
-        ):
+    model,
+    included_studies,
+    data_location,
+    covariates=[],
+    cov_ref_values={},
+    var_name="tmp_obj",
+):
 
     '''
     Creates an R dataframe with the portion of the dataset of interest as
@@ -889,23 +892,24 @@ def dataset_to_dataframe(
 
 
 def dataset_to_simple_fsn_data_robj(
-        model,
-        included_studies,
-        data_location,
-        var_name="tmp_obj",
-        ):
+    model,
+    included_studies,
+    data_location,
+    var_name="tmp_obj",
+):
     '''
     Package dataset for use with failsafe.wrapper() in R
     '''
 
     ests_variable = model.get_variable_assigned_to_column(
         data_location['effect_size'])
-    variance_variable = model.get_variable_assigned_to_column(data_location[
-                                                              'variance'])
+    variance_variable = model.get_variable_assigned_to_column(
+        data_location['variance'],
+    )
 
     ests = [study.get_var(ests_variable) for study in included_studies]
-    variances = [study.get_var(variance_variable)
-                 for study in included_studies]
+    variances = [
+        study.get_var(variance_variable) for study in included_studies]
 
     ests_str = joiner(_to_strs(ests))
     variances_str = joiner(_to_strs(variances))
@@ -924,13 +928,13 @@ def dataset_to_simple_fsn_data_robj(
 
 
 def run_failsafe_analysis(
-        model,
-        included_studies,
-        data_location,
-        failsafe_params,
-        res_name="result",
-        var_name="tmp_obj",
-        ):
+    model,
+    included_studies,
+    data_location,
+    failsafe_params,
+    res_name="result",
+    var_name="tmp_obj",
+):
 
     make_dataset_r_str = dataset_to_simple_fsn_data_robj(
         model,
@@ -960,13 +964,13 @@ def run_failsafe_analysis(
 
 
 def run_dynamic_data_exploration_analysis(
-        model,
-        included_studies,
-        data_location,
-        analysis_details,
-        res_name="result",
-        var_name="tmp_obj",
-        ):
+    model,
+    included_studies,
+    data_location,
+    analysis_details,
+    res_name="result",
+    var_name="tmp_obj",
+):
 
     dataset_to_dataframe(
         model=model,
@@ -982,13 +986,13 @@ def run_dynamic_data_exploration_analysis(
 
 
 def run_histogram(
-        model,
-        var,
-        params,
-        res_name="result",
-        var_name="tmp_obj",
-        summary="",
-        ):
+    model,
+    var,
+    params,
+    res_name="result",
+    var_name="tmp_obj",
+    summary="",
+):
     var_type = var.get_type()
 
     # get data
@@ -1042,14 +1046,14 @@ def cols_to_data_frame(model):
 
 
 def run_scatterplot(
-        model,
-        xvar,
-        yvar,
-        params,
-        label_points_with_study_names,
-        res_name="result",
-        var_name="tmp_obj",
-        ):
+    model,
+    xvar,
+    yvar,
+    params,
+    label_points_with_study_names,
+    res_name="result",
+    var_name="tmp_obj",
+):
 
     xvar_type = xvar.get_type()
     yvar_type = yvar.get_type()
@@ -1118,18 +1122,19 @@ def scatterplot_params_to_R(params):
 
 
 def run_funnelplot_analysis(
-        model,
-        included_studies,
-        data_type,
-        metric,
-        data_location,
-        ma_params,
-        funnel_params,
-        fname,
-        res_name="result",
-        var_name="tmp_obj",
-        summary="",
-        ):
+    model,
+    included_studies,
+    data_type,
+    metric,
+    data_location,
+    ma_params,
+    funnel_params,
+    fname,
+    res_name="result",
+    var_name="tmp_obj",
+    summary="",
+):
+
     # also add the metric to the parameters
     # -- this is for scaling
     ma_params["measure"] = METRIC_TO_ESCALC_MEASURE[metric]
@@ -1211,16 +1216,16 @@ def prepare_funnel_params_for_R(params):
 
 
 def unpack_r_parameters(params_dict):
-    ''' takes a dictionary of parameters and returns a string suitable for use
-    in an r-function call '''
+    '''
+    Takes a dictionary of parameters and returns a string suitable for use
+    in an r-function call
+    '''
 
     params_strs = ["%s=%s" % (k, v) for k, v in params_dict.items()]
     return ", ".join(params_strs)
 
-
 def _to_strs(v):
     return [str(x) for x in v]
-
 
 def joiner(alist, sep=", ", line_length=80):
     '''
@@ -1252,7 +1257,6 @@ def joiner(alist, sep=", ", line_length=80):
         current_line_length += len(str_to_add)
     return result_string
 
-
 def _sanitize_for_R(a_str):
     # may want to do something fancier in the future...
     return a_str.encode('latin-1', 'ignore')
@@ -1261,7 +1265,6 @@ def _sanitize_for_R(a_str):
     # when non-latin characters are given. Maybe this was fixed in R at some
     # point by a 3rd party.
     # return a_str
-
 
 def NA_to_None(value):
     '''
@@ -1483,11 +1486,11 @@ def dataframe_to_pydict(dataframe):
 
 
 def get_available_methods(
-        for_data_type=None,
-        data_obj_name=None,
-        metric=None,
-        funnel_mode=False,
-        ):
+    for_data_type=None,
+    data_obj_name=None,
+    metric=None,
+    funnel_mode=False,
+):
     '''
     Returns a list of methods available in OpenMetaR for the particular
     data_type (if one is given). Excludes "*.parameters" methods
@@ -1874,11 +1877,11 @@ def make_weights_str(results):
 
 
 def run_binary_ma(
-        function_name,
-        params,
-        res_name="result",
-        bin_data_name="tmp_obj",
-        ):
+    function_name,
+    params,
+    res_name="result",
+    bin_data_name="tmp_obj",
+):
 
     params_df = ro.r['data.frame'](**params)
     r_str = "%s<-%s(%s, %s)" % (res_name, function_name, bin_data_name,
@@ -1890,11 +1893,11 @@ def run_binary_ma(
 
 
 def run_continuous_ma(
-        function_name,
-        params,
-        res_name="result",
-        cont_data_name="tmp_obj",
-        ):
+    function_name,
+    params,
+    res_name="result",
+    cont_data_name="tmp_obj",
+):
 
     params_df = ro.r['data.frame'](**params)
     r_str = "%s<-%s(%s, %s)" % (res_name, function_name,
@@ -1906,12 +1909,12 @@ def run_continuous_ma(
 
 
 def run_meta_method(
-        meta_function_name,
-        function_name,
-        params,
-        res_name="result",
-        data_name="tmp_obj",
-        ):
+    meta_function_name,
+    function_name,
+    params,
+    res_name="result",
+    data_name="tmp_obj",
+):
     '''
     Runs a binary `meta` method over the data in the bin_data_name argument
     (on the R side). The meta-method called is specified by the
@@ -1939,17 +1942,17 @@ def run_meta_method(
 
 
 def run_gmeta_regression(
-        metric,
-        covariates=[],
-        interactions=[],
-        data_name="tmp_obj",
-        fixed_effects=False,
-        random_effects_method="DL",
-        digits=4,
-        conf_level=DEFAULT_CONFIDENCE_LEVEL,
-        btt=None,
-        results_name="results_obj",
-        ):
+    metric,
+    covariates=[],
+    interactions=[],
+    data_name="tmp_obj",
+    fixed_effects=False,
+    random_effects_method="DL",
+    digits=4,
+    conf_level=DEFAULT_CONFIDENCE_LEVEL,
+    btt=None,
+    results_name="results_obj",
+):
 
     # Set fixed-effects vs. random effects
     method_str = "FE" if fixed_effects else random_effects_method
@@ -2111,18 +2114,18 @@ def get_btt_indices(data, mods, choice, choice_type):
 
 
 def run_gmeta_regression_cond_means(
-        selected_cov,
-        covs_to_values,
-        covariates=[],
-        interactions=[],
-        data_name="tmp_obj",
-        fixed_effects=False,
-        random_effects_method="DL",
-        digits=4,
-        conf_level=DEFAULT_CONFIDENCE_LEVEL,
-        btt=None,
-        results_name="results_obj",
-        ):
+    selected_cov,
+    covs_to_values,
+    covariates=[],
+    interactions=[],
+    data_name="tmp_obj",
+    fixed_effects=False,
+    random_effects_method="DL",
+    digits=4,
+    conf_level=DEFAULT_CONFIDENCE_LEVEL,
+    btt=None,
+    results_name="results_obj",
+):
 
     # Set fixed-effects vs. random effects
     method_str = "FE" if fixed_effects else random_effects_method
@@ -2182,17 +2185,18 @@ def _make_conditional_data_listVector(covs_to_values):
 
 
 def run_gmeta_regression_bootstrapped(
-        num_replicates,
-        covariates=[],
-        interactions=[],
-        data_name="tmp_obj",
-        fixed_effects=False,
-        random_effects_method="DL",
-        digits=4,
-        histogram_title="",
-        conf_level=DEFAULT_CONFIDENCE_LEVEL,
-        btt=None,
-        results_name="results_obj"):
+    num_replicates,
+    covariates=[],
+    interactions=[],
+    data_name="tmp_obj",
+    fixed_effects=False,
+    random_effects_method="DL",
+    digits=4,
+    histogram_title="",
+    conf_level=DEFAULT_CONFIDENCE_LEVEL,
+    btt=None,
+    results_name="results_obj",
+):
 
     # TODO: Set this to be some timestamped file path later?
     # save bootstrap outout data on R side for 'save-as png + pdf functions'
@@ -2231,19 +2235,20 @@ def run_gmeta_regression_bootstrapped(
 
 
 def run_gmeta_regression_bootstrapped_cond_means(
-        selected_cov,
-        covs_to_values,
-        num_replicates,
-        covariates=[],
-        interactions=[],
-        data_name="tmp_obj",
-        fixed_effects=False,
-        random_effects_method="DL",
-        digits=4,
-        histogram_title="",
-        conf_level=DEFAULT_CONFIDENCE_LEVEL,
-        btt=None,
-        results_name="results_obj"):
+    selected_cov,
+    covs_to_values,
+    num_replicates,
+    covariates=[],
+    interactions=[],
+    data_name="tmp_obj",
+    fixed_effects=False,
+    random_effects_method="DL",
+    digits=4,
+    histogram_title="",
+    conf_level=DEFAULT_CONFIDENCE_LEVEL,
+    btt=None,
+    results_name="results_obj",
+):
 
     # TODO: Set this to be some timestamped file path later?
     # save bootstrap outout data on R side for 'save-as png + pdf functions'
@@ -2287,14 +2292,15 @@ def run_gmeta_regression_bootstrapped_cond_means(
 
 
 def run_meta_regression(
-        metric,
-        fixed_effects=False,
-        data_name="tmp_obj",
-        results_name="results_obj",
-        conf_level=DEFAULT_CONFIDENCE_LEVEL,
-        random_effects_method="DL",
-        selected_cov=None,
-        covs_to_values=None):  # for meta-reg cond means
+    metric,
+    fixed_effects=False,
+    data_name="tmp_obj",
+    results_name="results_obj",
+    conf_level=DEFAULT_CONFIDENCE_LEVEL,
+    random_effects_method="DL",
+    selected_cov=None,
+    covs_to_values=None,   # for meta-reg cond means
+):
 
     if conf_level is None:
         raise ValueError("Confidence level must be specified")
@@ -2340,15 +2346,16 @@ def run_meta_regression(
 
 
 def run_bootstrap_meta_regression(
-        metric,
-        fixed_effects=False,
-        data_name="tmp_obj",
-        results_name="results_obj",
-        conf_level=DEFAULT_CONFIDENCE_LEVEL,
-        random_effects_method="DL",
-        selected_cov=None, covs_to_values=None,
-        data_type="binary",
-        bootstrap_params={}):
+    metric,
+    fixed_effects=False,
+    data_name="tmp_obj",
+    results_name="results_obj",
+    conf_level=DEFAULT_CONFIDENCE_LEVEL,
+    random_effects_method="DL",
+    selected_cov=None, covs_to_values=None,
+    data_type="binary",
+    bootstrap_params={},
+):
 
     # Set fixed-effects vs. random effects
     method_str = "FE" if fixed_effects else random_effects_method
@@ -2527,10 +2534,10 @@ class R_parse_tools:
 
 
 def load_vars_for_plot(
-        params_path,
-        return_params_dict=False,
-        var_suffixes=("data", "params", "res"),
-        ):
+    params_path,
+    return_params_dict=False,
+    var_suffixes=("data", "params", "res"),
+):
     '''
     loads the three necessary (for plot generation) variables
     into R. we assume a naming convention in which params_path
@@ -2554,10 +2561,11 @@ def load_vars_for_plot(
 
 
 def regenerate_plot_data(
-        om_data_name="om.data",
-        res_name="res",
-        plot_params_name="params",
-        plot_data_name="plot.data"):
+    om_data_name="om.data",
+    res_name="res",
+    plot_params_name="params",
+    plot_data_name="plot.data",
+):
 
     ####
     # this is crude, but works for now, and easier than making
@@ -2584,8 +2592,12 @@ def regenerate_plot_data(
     print("executed: %s" % r_str)
 
 
-def update_plot_params(plot_params, plot_params_name="params",
-                       write_them_out=False, outpath=None):
+def update_plot_params(
+    plot_params,
+    plot_params_name="params",
+    write_them_out=False,
+    outpath=None,
+):
     # first cast the params to an R data frame to make it
     # R-palatable
     params_df = ro.r['data.frame'](**plot_params)
@@ -2717,13 +2729,14 @@ def get_exploratory_params(params_path, plot_type=None):
 
 
 def run_model_building(
-        model_info,
-        data_name="tmp_obj",
-        fixed_effects=False,
-        random_effects_method="DL",
-        digits=4,
-        conf_level=DEFAULT_CONFIDENCE_LEVEL,
-        results_name="results_obj"):
+    model_info,
+    data_name="tmp_obj",
+    fixed_effects=False,
+    random_effects_method="DL",
+    digits=4,
+    conf_level=DEFAULT_CONFIDENCE_LEVEL,
+    results_name="results_obj",
+):
 
     # Set fixed-effects vs. random effects
     method_str = "FE" if fixed_effects else random_effects_method
@@ -2761,19 +2774,20 @@ def run_model_building(
 
 
 def run_phylo_ma(
-        tree_path,
-        tree_format,
-        evo_model,
-        random_effects_method,
-        lambda_,
-        alpha,
-        include_species,
-        plot_params,
-        data_name="tmp_obj",
-        fixed_effects=False,
-        digits=4,
-        conf_level=DEFAULT_CONFIDENCE_LEVEL,
-        results_name="results_obj"):
+    tree_path,
+    tree_format,
+    evo_model,
+    random_effects_method,
+    lambda_,
+    alpha,
+    include_species,
+    plot_params,
+    data_name="tmp_obj",
+    fixed_effects=False,
+    digits=4,
+    conf_level=DEFAULT_CONFIDENCE_LEVEL,
+    results_name="results_obj",
+):
 
     # Set fixed-effects vs. random effects
     method_str = "FE" if fixed_effects else random_effects_method
@@ -2895,8 +2909,9 @@ def dataframe_to_ordered_dict(dataframe, covariates):
 
 
 def imputation_dataframes_to_pylist_of_ordered_dicts(
-        imputations_list,
-        covariates):
+    imputations_list,
+    covariates,
+):
     # 'imputations_list' is an R-list of imputations(data frames) with the
     # order of covariates given in by the order of 'covariates'
     # Converts the R list of dataframes to a python list of ordered dicts
@@ -2908,14 +2923,15 @@ def imputation_dataframes_to_pylist_of_ordered_dicts(
 
 
 def impute(
-        model,
-        studies,
-        covariates,
-        m,
-        maxit,
-        defaultMethod_rstring,
-        input_df_name="mice.source.df",
-        result_name="impute.results"):
+    model,
+    studies,
+    covariates,
+    m,
+    maxit,
+    defaultMethod_rstring,
+    input_df_name="mice.source.df",
+    result_name="impute.results",
+):
     '''
     Here is a start at issue #86
     '''
@@ -2943,19 +2959,26 @@ def impute(
     # put dataframe in to R workspace
     exR.execute_in_R("%s<-%s" % (input_df_name, data_f.r_repr()))
 
-    mice_r_str = rstr_for_rfn("impute",
-                              data=input_df_name,
-                              m=m,
-                              maxit=maxit,
-                              defaultMethod=defaultMethod_rstring)
+    mice_r_str = rstr_for_rfn(
+        "impute",
+        data=input_df_name,
+        m=m,
+        maxit=maxit,
+        defaultMethod=defaultMethod_rstring,
+    )
     mice_result = exR.execute_in_R(
-        "{result_name} <- {cmd}".format(result_name=result_name,
-                                        cmd=mice_r_str))
+        "{result_name} <- {cmd}".format(
+            result_name=result_name,
+            cmd=mice_r_str,
+        ),
+    )
 
     # parse out result
-    toReturn = dict(summary=mice_result.rx2('Summary')[0],
-                    imputations=mice_result.rx2('imputations'),
-                    source_data=source_data)
+    toReturn = dict(
+        summary=mice_result.rx2('Summary')[0],
+        imputations=mice_result.rx2('imputations'),
+        source_data=source_data,
+    )
 
     return toReturn
 
@@ -2970,9 +2993,10 @@ def rstr_for_rfn(fname, **kargs):
 
 
 def make_imputed_datasets(
-        original_dataset,
-        imputations,
-        imputed_datasets_name):
+    original_dataset,
+    imputations,
+    imputed_datasets_name,
+):
     '''
     Makes R list of datasets with imputated values and put it in the R
     workspace as imputed_datasets_name
@@ -3005,11 +3029,12 @@ def make_imputed_datasets(
 # Runs a meta analysis/regression depending on whether covariates are chosen
 # or not
 def run_multiple_imputation_meta_analysis(
-        ma_params,
-        covariates=[],
-        interactions=[],
-        imputed_datasets_name="tmp_obj",
-        results_name="results_obj"):
+    ma_params,
+    covariates=[],
+    interactions=[],
+    imputed_datasets_name="tmp_obj",
+    results_name="results_obj",
+):
 
     # build ma_params and evaluate it in R workspace
     params = params_dict_to_Robject(ma_params, "list")
@@ -3051,9 +3076,10 @@ def params_dict_to_Robject(params, robject_type="list"):
 
 
 def regenerate_forest_plot_of_coefficients(
-        file_path,
-        params_path,
-        img_fmt="png"):
+    file_path,
+    params_path,
+    img_fmt="png",
+):
     # fix file_path
     if file_path[-4] != '.':
         file_path = file_path + "." + img_fmt
@@ -3065,10 +3091,11 @@ def regenerate_forest_plot_of_coefficients(
 
 
 def run_permutation_analysis(
-        parameters,
-        meta_reg_mode,
-        data_name="tmp_obj",
-        results_name="results_obj"):
+    parameters,
+    meta_reg_mode,
+    data_name="tmp_obj",
+    results_name="results_obj",
+):
 
     print("Parameters: %s" % parameters)
 
@@ -3083,9 +3110,12 @@ def run_permutation_analysis(
 
         # get btt indices for omnibus test of moderators
         choice, choice_type = parameters['btt']
-        btt_indices = get_btt_indices(data=ro.r(data_name),
-                                      mods=mods,
-                                      choice=choice, choice_type=choice_type)
+        btt_indices = get_btt_indices(
+            data=ro.r(data_name),
+            mods=mods,
+            choice=choice,
+            choice_type=choice_type,
+        )
         if len(btt_indices) > 0:
             btt_indices_vector_str = ro.IntVector(btt_indices).r_repr()
         else:
