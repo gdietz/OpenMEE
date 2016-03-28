@@ -10,6 +10,7 @@ import math
 from collections import OrderedDict
 
 from ome_globals import *
+import ome_globals
 
 import rpy2
 import rpy2.robjects
@@ -21,6 +22,7 @@ from rpy2_helper import *
 
 base = importr('base')
 
+debug = False
 
 # Need this class to deal with logging R output
 class RExecutor:
@@ -47,8 +49,9 @@ class RExecutor:
         '''.strip()
 
         try:
-            print("\n" + r_cmd_header)
-            print("R STATEMENT:\n%s\n" % r_str)
+            if (debug):
+                print("\n" + r_cmd_header)
+                print("R STATEMENT:\n%s\n" % r_str)
 
             # send R string to logger
             if self.R_log_dialog:
@@ -65,7 +68,8 @@ class RExecutor:
 
             raise CrazyRError("Some crazy R error occurred: %s" % str(e))
         finally:
-            print(r_cmd_footer + "\n")
+            if (debug):
+                print(r_cmd_footer + "\n")
 
 exR = RExecutor()
 
@@ -159,15 +163,16 @@ def reset_Rs_working_dir():
     print("resetting R working dir")
 
     # Fix paths issue in windows
-    base_path = get_base_path()
-    base_path = to_posix_path(base_path)
+    base_path = ome_globals.get_base_path()
+    base_path = ome_globals.to_posix_path(base_path)
 
     print("Trying to set base_path to %s" % base_path)
     r_str = "setwd('%s')" % base_path
     # Executing r call with escaped backslashes
-    exR.execute_in_R(r_str)
+    result = exR.execute_in_R(r_str)
 
     print("Set R's working directory to %s" % base_path)
+    return result
 
 
 def set_conf_level_in_R(conf_lev):
@@ -180,9 +185,11 @@ def set_conf_level_in_R(conf_lev):
 
     r_str = "set.global.conf.level(" + str(float(conf_lev)) + ")"
     new_cl_in_R = exR.execute_in_R(r_str)[0]
-    print("Set confidence level in R to: %f" % new_cl_in_R)
+   
+    if (debug):
+        print("Set confidence level in R to: %f" % new_cl_in_R)
 
-    return conf_lev
+    return new_cl_in_R
 
 
 def generate_forest_plot(
@@ -602,6 +609,8 @@ def dataset_to_simple_binary_robj(
     # print("Inspecting R object time")
     # pyqtRemoveInputHook()
     # import pdb; pdb.set_trace()
+
+    print "Executed: %s" % r_str
 
     return r_str
 
@@ -1882,14 +1891,27 @@ def run_binary_ma(
     res_name="result",
     bin_data_name="tmp_obj",
 ):
+    print '''
+        function_name: %s
+        params: %s
+        res_name: %s
+        bin_data_name: %s
+    ''' % (
+        function_name,
+        params,
+        res_name,
+        bin_data_name,
+    )
 
     params_df = ro.r['data.frame'](**params)
     r_str = "%s<-%s(%s, %s)" % (res_name, function_name, bin_data_name,
                                 params_df.r_repr())
-    print "\n\n(run_binary_ma): executing:\n %s\n" % r_str
+    if (debug):
+        print "\n\n(run_binary_ma): executing:\n %s\n" % r_str
     exR.execute_in_R(r_str)
     result = exR.execute_in_R("%s" % res_name)
-    return parse_out_results(result, function_name=function_name)
+    parsed_results = parse_out_results(result, function_name=function_name)
+    return parsed_results
 
 
 def run_continuous_ma(
@@ -3256,3 +3278,32 @@ def dynamic_save_plot(rfunction, plot_data_path, file_path, format):
         'plot.data', file_path, format)
     r_str = "%s(%s)" % (rfunction, rarguments)
     result = exR.execute_in_R(r_str)
+
+def setup_directories():
+    '''
+    Makes temporary data directory, r_tmp within that
+    Sets python and R working directories to temporary data directory
+    clears r_tmp
+    '''
+    
+    # make base path and r_tmp
+    base_path = ome_globals.make_base_path()
+    ome_globals.make_r_tmp()
+    
+    reset_Rs_working_dir() # set working directory on R side
+    os.chdir(os.path.normpath(base_path)) # set working directory on python side
+    
+    clear_r_tmp() # clear r_tmp
+
+def clear_r_tmp():
+    r_tmp_dir = os.path.join(ome_globals.get_base_path(), "r_tmp")
+    print("Clearing %s" % r_tmp_dir)
+    for file_p in os.listdir(r_tmp_dir):
+        file_path = os.path.join(r_tmp_dir, file_p)
+        try:
+            if os.path.isfile(file_path):
+                print("deleting %s" % file_path)
+                os.unlink(file_path) # same as remove
+        except Exception, e:
+            print e
+

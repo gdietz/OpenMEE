@@ -148,7 +148,11 @@ class TestCompute2x2Table(unittest.TestCase):
 
 class TestBinaryCalculatorFunctions(unittest.TestCase):
     def setUp(self):
-        self.form = binary_calculator.BinaryCalculator(conf_level=DEFAULT_CONFIDENCE_LEVEL)
+        app = QApplication(sys.argv)
+        self.form = binary_calculator.BinaryCalculator(
+            conf_level=DEFAULT_CONFIDENCE_LEVEL,
+            digits=4,
+        )
 
     def test_isconsistent_true_empty(self):
         '''
@@ -191,6 +195,7 @@ class TestBinaryCalculatorFunctions(unittest.TestCase):
 
 
 if __name__ == '__main__':
-    # unittest.main(verbosity=2)
-    app = QApplication(sys.argv)
-    unittest.main()
+    # # unittest.main(verbosity=2)
+    # app = QApplication(sys.argv)
+    # unittest.main()
+    pass

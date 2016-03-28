@@ -60,6 +60,12 @@ class Analyzer:
 
     # #### META ANALYSIS & META-REGRESSION ####
     def cum_ma(self):
+        '''
+        Cumulative Meta Analysis
+
+        uses run_ma
+        '''
+
         model = self._get_model()
         wizard = CumulativeMetaAnalysisWizard(
             model=model,
@@ -185,7 +191,8 @@ class Analyzer:
             try:
                 result = self.run_ma(
                     included_studies,
-                    data_type, metric,
+                    data_type,
+                    metric,
                     data_location,
                     current_param_vals,
                     chosen_method,
@@ -235,7 +242,8 @@ class Analyzer:
             try:
                 result = self.run_ma(
                     included_studies,
-                    data_type, metric,
+                    data_type,
+                    metric,
                     data_location,
                     current_param_vals,
                     chosen_method,
@@ -249,6 +257,11 @@ class Analyzer:
             self._display_results(result, summary)
 
     def meta_analysis(self, meta_f_str=None, mode=MA_MODE):
+        '''
+        Spawns a wizard to get information in order to run a standard
+        meta-analysis
+        '''
+
         model = self._get_model()
 
         wizard = RegularMetaAnalysisWizard(model=model, parent=self.main_form)
@@ -276,14 +289,17 @@ class Analyzer:
                 model.update_previously_included_studies(set(included_studies))
 
             try:
+                covs_to_include = []
+
                 result = self.run_ma(
                     included_studies,
-                    data_type, metric,
+                    data_type,
+                    metric,
                     data_location,
                     current_param_vals,
                     chosen_method,
                     meta_f_str,
-                    covs_to_include=[],
+                    covs_to_include=covs_to_include,
                 )
             except CrazyRError as e:
                 if SOUND_EFFECTS:

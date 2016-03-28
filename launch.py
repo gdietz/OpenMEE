@@ -61,7 +61,7 @@ def start(open_file_path=None, reset_settings=False):
     # its calculations. Also clears r_tmp
     ## N.B. This MUST come after setting the app name and stuff in order for the
     # paths and subsequent calls to get_base_path() to work correctly
-    setup_directories()
+    python_to_R.setup_directories()
     
     if reset_settings:
         ome_globals.reset_settings()
@@ -103,22 +103,7 @@ def clear_r_tmp():
                 print("deleting %s" % file_path)
                 os.unlink(file_path) # same as remove
         except Exception, e:
-            print e
-            
-def setup_directories():
-    '''Makes temporary data directory, r_tmp within that
-    Sets python and R working directories to temporary data directory
-    clears r_tmp '''
-    
-    # make base path and r_tmp
-    base_path = ome_globals.make_base_path()
-    ome_globals.make_r_tmp()
-    
-    python_to_R.reset_Rs_working_dir() # set working directory on R side
-    os.chdir(os.path.normpath(base_path)) # set working directory on python side
-    
-    clear_r_tmp() # clear r_tmp
-    
+            print e    
 
 if __name__ == "__main__":
     start()
