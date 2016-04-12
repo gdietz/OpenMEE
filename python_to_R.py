@@ -2218,38 +2218,42 @@ def run_gmeta_regression_bootstrapped(
     conf_level=DEFAULT_CONFIDENCE_LEVEL,
     btt=None,
     results_name="results_obj",
+    r_str=None 
 ):
+    
+    if r_str is None:
+        # TODO: Set this to be some timestamped file path later?
+        # save bootstrap outout data on R side for 'save-as png + pdf functions'
+        bootstrap_plot_path = "./r_tmp/bootstrap.png"
 
-    # TODO: Set this to be some timestamped file path later?
-    # save bootstrap outout data on R side for 'save-as png + pdf functions'
-    bootstrap_plot_path = "./r_tmp/bootstrap.png"
+        # Set fixed-effects vs. random effects
+        method_str = "FE" if fixed_effects else random_effects_method
 
-    # Set fixed-effects vs. random effects
-    method_str = "FE" if fixed_effects else random_effects_method
+        # Mods is a Listvector (see description in _make_mods_listVector)
+        mods = _make_mods_listVector(covariates, interactions)
 
-    # Mods is a Listvector (see description in _make_mods_listVector)
-    mods = _make_mods_listVector(covariates, interactions)
+        r_str = '''
+        {results} <- g.bootstrap.meta.regression(
+            data={data},
+            mods={mods},
+            method=\"{method}\",
+            level={level},
+            digits={digits},
+            n.replicates={num_replicates},
+            histogram.title=\"{histogram_title}\",
+            bootstrap.plot.path=\"{bootstrap_plot_path}\")
+        '''.format(
+            results=results_name,
+            data=data_name,
+            mods=mods.r_repr(),
+            method=random_effects_method,
+            level=conf_level,
+            digits=digits,
+            num_replicates=num_replicates,
+            histogram_title=histogram_title,
+            bootstrap_plot_path=bootstrap_plot_path)
 
-    r_str = '''
-    {results} <- g.bootstrap.meta.regression(
-        data={data},
-        mods={mods},
-        method=\"{method}\",
-        level={level},
-        digits={digits},
-        n.replicates={num_replicates},
-        histogram.title=\"{histogram_title}\",
-        bootstrap.plot.path=\"{bootstrap_plot_path}\")
-    '''.format(
-        results=results_name,
-        data=data_name,
-        mods=mods.r_repr(),
-        method=random_effects_method,
-        level=conf_level,
-        digits=digits,
-        num_replicates=num_replicates,
-        histogram_title=histogram_title,
-        bootstrap_plot_path=bootstrap_plot_path)
+    
 
     result = exR.execute_in_R(r_str)
     parsed_results = parse_out_results(result)
