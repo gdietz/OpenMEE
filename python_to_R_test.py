@@ -293,8 +293,6 @@ class TestContinuousMetaAnalysis(unittest.TestCase):
         res_name = 'result'
         cont_data_name = 'tmp_obj'
 
-        #import pdb; pdb.set_trace()
-
         # expected result
         full_expected_result = {
             'image_order': None,
@@ -359,6 +357,43 @@ class TestContinuousMetaAnalysis(unittest.TestCase):
                 self.assertAlmostEqual(observed_val, expected_val)
 
 
+
+class TestBootstrapMetaRegression(unittest.TestCase):
+    '''
+    bcw: ok so how to get pass of the proper 'covariates' variables to
+    run_gmeta_regression_bootstrapped ??? Here i actually attempted to
+    bypass the massaging and giving the data directly to the routine
+    but it still fails, and this seems kind of hacky anyway. 
+    '''
+    def setUp(self):
+        python_to_R.set_conf_level_in_R(95)
+
+        r_str = '''tmp_obj<-structure(list(
+                    yi = c(-0.09452415852033, -0.277355866265512, -0.366544429515919, -0.664385099891136, -0.461806281287715, -0.185164437399104), 
+                    vi = c(0.0333705617355999, 0.0310651010636611, 0.0508397176175572, 0.0105517594511967, 0.0433446698087316, 0.0236302525555215), 
+                    STATE = structure(c(1L, 1L, 1L, 2L, 2L, 2L), .Label = c("MA", 
+                    "RI"), class = "factor"), slab = structure(c("Carroll, 1997", 
+                    "Grant, 1981", "Peck, 1987", "Donat, 2003", "Stewart, 1990", 
+                    "Young, 1995"), class = "AsIs")), .Names = c("yi", "vi", 
+                    "STATE", "slab"), row.names = c(NA, -6L), class = "data.frame")
+        '''
+        
+
+    def test_run_bootstrap_ma(self):
+        r_str = '''results_obj <- g.bootstrap.meta.regression(
+            data=tmp_obj,
+            mods=structure(list(interactions = list(), numeric = character(0), 
+                categorical = "STATE"), .Names = c("interactions", "numeric", "categorical")),
+            method="REML",
+            level=95.0,
+            digits=4,
+            n.replicates=100,
+            histogram.title="Bootstrap Histogram",
+            bootstrap.plot.path="./r_tmp/bootstrap.png")'''
+
+        # this fails.
+        result = python_to_R.run_gmeta_regression_bootstrapped(100, r_str=r_str)
+        
 # TODO: FUNCTIONS THAT WE STILL NEED TO WRITE UNIT TESTS FOR
 
 # def run_bootstrap_meta_regression(
