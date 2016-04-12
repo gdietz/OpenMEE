@@ -222,18 +222,147 @@ class TestBinaryMetaAnalysis(unittest.TestCase):
             res_name=res_name,
             bin_data_name=bin_data_name,
         )
-        b_row = result['results_data'][0]
-        b_value = b_row[1]['value']
+        
+        #b_row = result['results_data'][0]
+        #b_value = b_row[1]['value']
 
-        expected_b_row = full_expected_result['results_data'][0]
-        expected_b_value = expected_b_row[1]['value']
+        #expected_b_row = full_expected_result['results_data'][0]
+        #expected_b_value = expected_b_row[1]['value']
 
-        self.assertEqual(b_value, expected_b_value)
+        # should not do a strict equality I don't think; 
+        # instead fely on 'almost' equality from unittest
+        #self.assertAlmostEqual(b_value, expected_b_value)
+        for j in range(len(result['results_data'])):
+            print "checking %s" % result['results_data'][j][0]
+
+            observed_val = result['results_data'][j][1]['value']
+            expected_val = full_expected_result['results_data'][j][1]['value']
+
+            if type(observed_val) == type([]):
+                for idx in range(len(observed_val)):
+                    self.assertAlmostEqual(observed_val[idx], expected_val[idx])
+            else:
+                self.assertAlmostEqual(observed_val, expected_val)
+            print "ok!"
+
+
+class TestContinuousMetaAnalysis(unittest.TestCase):
+    def setUp(self):
+        python_to_R.set_conf_level_in_R(95)
+
+        r_str = '''tmp_obj <- new(
+            'ContinuousData',
+            N1=c(60, 65, 40, 200, 45, 85),
+            mean1=c(92.0, 92.0, 88.0, 82.0, 88.0, 92.0),
+            sd1=c(20.0, 22.0, 26.0, 17.0, 22.0, 22.0),
+            N2=c(60, 65, 40, 200, 50, 85),
+            mean2=c(94.0, 98.0, 98.0, 94.0, 98.0, 96.0),
+            sd2=c(22.0, 21.0, 28.0, 19.0, 21.0, 21.0),
+            y=c(-0.0945241585203, -0.277355866266, -0.366544429516, -0.664385099891, -0.461806281288, -0.185164437399),
+            SE=c(0.182676111563, 0.176252946255, 0.225476645393, 0.102721757438, 0.208193827499, 0.153721347104),
+            study.names=c("Carroll, 1997", "Grant, 1981", "Peck, 1987", "Donat, 2003", "Stewart, 1990", "Young, 1995"),
+            years=c(as.integer(), as.integer(), as.integer(), as.integer(), as.integer(), as.integer()),
+            covariates=list())'''
+        python_to_R.exR.execute_in_R(r_str)
+
+    def test_run_cont_ma(self):
+
+        # run_binary_ma() parameters:
+        function_name = 'continuous.random'
+        params = {
+            'conf.level': 95.0,
+            'digits': 3,
+            'fp_col2_str': u'[default]',
+            'fp_show_col4': True,
+            'fp_col4_str': u'Ev/Ctrl',
+            'fp_xticks': '[default]',
+            'fp_col3_str': u'Ev/Trt',
+            'fp_show_col3': True,
+            'fp_show_col2': True,
+            'fp_show_col1': True,
+            'fp_plot_lb': '[default]',
+            'fp_outpath': u'./r_tmp/forest.png',
+            'rm.method': 'DL',
+            'adjust': 0.5,
+            'fp_plot_ub': '[default]',
+            'fp_col1_str': u'Studies',
+            'measure': 'OR',
+            'fp_xlabel': u'[default]',
+            'fp_show_summary_line': True,
+        }
+        res_name = 'result'
+        cont_data_name = 'tmp_obj'
+
+        #import pdb; pdb.set_trace()
+
+        # expected result
+        full_expected_result = {
+            'image_order': None,
+            'image_var_names': {
+                'Forest Plot': 'r_tmp/1459137190.84989',
+            },
+            'save_plot_functions': {},
+            'texts': {
+                'References': '1. this is a placeholder for binary random reference\n2. metafor: Viechtbauer, Wolfgang. "Conducting meta-analyses in R with the metafor package." Journal of 36 (2010).\n3. OpenMetaAnalyst: Wallace, Byron C., Issa J. Dahabreh, Thomas A. Trikalinos, Joseph Lau, Paul Trow, and Christopher H. Schmid. "Closing the Gap between Methodologists and End-Users: R as a Computational Back-End." Journal of Statistical Software 49 (2012): 5."\n',
+            'weights': 'study names    weights\nStorm        : 12.565%\nRogue        : 12.641%\nWolverine    : 12.277%\nGambit       : 12.685%\nSpiderman    : 12.593%\nMr. Fantastic: 12.462%\nThe Flash    : 12.000%\nThor         : 12.776%\n',
+            'Summary': 'Binary Random-Effects Model\n\nMetric: Odds Ratio\n\n Model Results\n\n Estimate  Lower bound   Upper bound   p-Value  \n\n 0.698        0.249         1.955       0.494   \n\n\n Heterogeneity\n\n tau^2  Q(df=7)   Het. p-Value    I^2    \n\n 2.096  152.959     < 0.001      95.424  \n\n\n Results (log scale)\n\n Estimate  Lower bound   Upper bound   Std. error  \n\n -0.359      -1.388         0.670         0.525    \n\n'},
+            'image_params_paths': {},
+            'results_data': [
+                ('b', {'type': 'vector', 'description': 'estimated coefficients of the model.', 'value': [-0.35849725582231884]}),
+                ('se', {'type': 'vector', 'description': 'standard errors of the coefficients.', 'value': [0.10545381861892394]}),
+                ('zval', {'type': 'vector', 'description': 'test statistics of the coefficients.', 'value': [-3.3995663743369238]}),
+                ('pval', {'type': 'vector', 'description': 'p-values for the test statistics.', 'value': [0.0006749279631807598]}),
+                ('ci.lb', {'type': 'vector', 'description': 'lower bound of the confidence intervals for the coefficients.', 'value': [-0.5651829423476291]}),
+                ('ci.ub', {'type': 'vector', 'description': 'upper bound of the confidence intervals for the coefficients.', 'value': [-0.15181156929700854]}),
+                ('vb', {'type': 'vector', 'description': 'variance-covariance matrix of the estimated coefficients.', 'value': [0.011120507861312912]}),
+                ('tau2', {'type': 'vector', 'description': 'estimated amount of (residual) heterogeneity. Always 0 when method="FE".', 'value': [0.03723543730128847]}),
+                ('se.tau2', {'type': 'vector', 'description': 'estimated standard error of the estimated amount of (residual) heterogeneity.', 'value': [0.04211456580908173]}),
+                ('k', {'type': 'vector', 'description': 'number of outcomes included in the model fitting.', 'value': [6]}),
+                ('p', {'type': 'vector', 'description': 'number of coefficients in the model (including the intercept).', 'value': [1]}),
+                ('m', {'type': 'vector', 'description': 'number of coefficients included in the omnibus test of coefficients.', 'value': [1]}),
+                ('QE', {'type': 'vector', 'description': 'test statistic for the test of (residual) heterogeneity.', 'value': [11.913847853272866]}),
+                ('QEp', {'type': 'vector', 'description': 'p-value for the test of (residual) heterogeneity.', 'value': [0.0359875242819107]}),
+                ('QM', {'type': 'vector', 'description': 'test statistic for the omnibus test of coefficients.', 'value': [11.557051533522298]}),
+                ('QMp', {'type': 'vector', 'description': 'p-value for the omnibus test of coefficients.', 'value': [0.0006749279631807591]}),
+                ('I2', {'type': 'vector', 'description': 'value of I2. See print.rma.uni for more details.', 'value': [58.03203077982531]}),
+                ('H2', {'type': 'vector', 'description': 'value of H2. See print.rma.uni for more details.', 'value': [2.382769570654573]}),
+                ('R2', {'type': 'vector', 'description': 'value of R2. See print.rma.uni for more details.', 'value': 'NULL'}),
+                ('int.only', {'type': 'vector', 'description': 'logical that indicates whether the model is an intercept-only model.', 'value': [True]}),
+                ('yi', {'type': 'vector', 'description': 'the vector of outcomes', 'value': [-0.0945241585203, -0.277355866266, -0.366544429516, -0.664385099891, -0.461806281288, -0.185164437399]}),
+                ('vi', {'type': 'vector', 'description': 'the corresponding sample variances', 'value': [0.033370561735777626, 0.031065101063567913, 0.05083971761768067, 0.010551759451151306, 0.04334466980868337, 0.023630252555468453]}),
+                ('X', {'type': 'matrix', 'description': 'the model matrix of the model', 'value': '     intrcpt\n[1,]       1\n[2,]       1\n[3,]       1\n[4,]       1\n[5,]       1\n[6,]       1\n'}),
+                ('fit.stats', {'type': 'data.frame', 'description': 'a list with the log-likelihood, deviance, AIC, BIC, and AICc values under the unrestricted and restricted likelihood.', 'value': '            ML       REML\nll   0.7136296  0.2789657\ndev  8.8315690 -0.5579313\nAIC  2.5727409  3.4420687\nBIC  2.1562598  2.6609445\nAICc 6.5727409  9.4420687\n'}),
+                ('weights', {'type': 'vector', 'description': 'weights in % given to the observed effects', 'value': [15.750089245922242, 16.28172797395532, 12.626157594095625, 23.270893915209935, 13.800562272939368, 18.270568997877515]})
+            ],
+            'images': {'Forest Plot': './r_tmp/forest.png'},
+        }
+        
+        # calculate result
+        result = python_to_R.run_continuous_ma(
+            function_name,
+            params,
+            res_name=res_name,
+            cont_data_name=cont_data_name,
+        )
+
+
+        for j in range(len(result['results_data'])):
+            print "checking %s" % result['results_data'][j][0]
+
+            observed_val = result['results_data'][j][1]['value']
+            expected_val = full_expected_result['results_data'][j][1]['value']
+            
+            if type(observed_val) == type([]):
+                for idx in range(len(observed_val)):
+                    self.assertAlmostEqual(observed_val[idx], expected_val[idx])
+            else:
+                self.assertAlmostEqual(observed_val, expected_val)
+
 
 # TODO: FUNCTIONS THAT WE STILL NEED TO WRITE UNIT TESTS FOR
 
 # def run_bootstrap_meta_regression(
-# def run_continuous_ma(
+
 # def run_dynamic_data_exploration_analysis(
 # def run_failsafe_analysis(
 # def run_funnelplot_analysis(
