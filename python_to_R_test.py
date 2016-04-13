@@ -351,6 +351,61 @@ class TestContinuousMetaAnalysis(unittest.TestCase):
                 self.assertAlmostEqual(observed_val, expected_val)
 
 
+class TestMetaRegression(unittest.TestCase):
+    def setUp(self):
+        python_to_R.set_conf_level_in_R(95)
+
+
+        r_str = '''tmp_obj<-structure(list(
+                    yi = c(-0.09452415852033, -0.277355866265512, -0.366544429515919, -0.664385099891136, -0.461806281287715, -0.185164437399104), 
+                    vi = c(0.0333705617355999, 0.0310651010636611, 0.0508397176175572, 0.0105517594511967, 0.0433446698087316, 0.0236302525555215), 
+                    STATE = structure(c(1L, 1L, 1L, 2L, 2L, 2L), .Label = c("MA", 
+                    "RI"), class = "factor"), slab = structure(c("Carroll, 1997", 
+                    "Grant, 1981", "Peck, 1987", "Donat, 2003", "Stewart, 1990", 
+                    "Young, 1995"), class = "AsIs")), .Names = c("yi", "vi", 
+                    "STATE", "slab"), row.names = c(NA, -6L), class = "data.frame")'''
+        
+        python_to_R.exR.execute_in_R(r_str)
+
+
+    def test_run_meta_reg(self): 
+        r_str = '''results_obj <- g.meta.regression(
+                    data=tmp_obj,
+                    mods=structure(list(interactions = list(), numeric = character(0), categorical = "STATE"), .Names = c("interactions", "numeric", "categorical")),
+                    method="REML",
+                    level=95.0,
+                    digits=3,
+                    measure="SMD",
+                    btt=NULL,
+                    make.coeff.forest.plot=FALSE,
+                    exclude.intercept=FALSE)'''
+        metric = 0
+        
+
+        expected_result = {'image_order': None, 'image_var_names': {}, 'save_plot_functions': {}, 'texts': {'Summary': u'\n\nModel Summary:\n---------------\n         SOURCE    Q DF     P\n          model 1.36  1 0.244\n residual error 3.27  4 0.514\n          total 4.62  5 0.463\n\nEffect Tests Summary:\n----------------------\n SOURCE    Q DF     P\n  STATE 1.36  1 0.244\n\n\nMixed-Effects Model (k = 6; tau^2 estimator: REML)\n\ntau^2 (estimated amount of residual heterogeneity):     0.026 (SE = 0.039)\ntau (square root of estimated tau^2 value):             0.161\nI^2 (residual heterogeneity / unaccounted variability): 48.01%\nH^2 (unaccounted variability / sampling variability):   1.92\nR^2 (amount of heterogeneity accounted for):            19.60%\n\nTest for Residual Heterogeneity: \nQE(df = 4) = 7.766, p-val = 0.101\n\nTest of Moderators (coefficient(s) 2): \nQM(df = 1) = 1.358, p-val = 0.244\n\nModel Results:\n\n         estimate     se    zval   pval   ci.lb  ci.ub   \nintrcpt    -0.237  0.145  -1.633  0.103  -0.521  0.047   \nSTATERI    -0.225  0.193  -1.165  0.244  -0.602  0.153   \n\n---\nSignif. codes:  0 \u2018***\u2019 0.001 \u2018**\u2019 0.01 \u2018*\u2019 0.05 \u2018.\u2019 0.1 \u2018 \u2019 1 \n\n\nRegression model formula: yi ~ STATE\nRegression model equation: -0.237 + -0.225*STATERI'}, 'image_params_paths': {}, 'results_data': [('b', {'type': 'vector', 'description': 'estimated coefficients of the model.', 'value': [-0.236836247249815, -0.2245733962144813]}), ('se', {'type': 'vector', 'description': 'standard errors of the coefficients.', 'value': [0.1450665837035122, 0.19268622774116997]}), ('zval', {'type': 'vector', 'description': 'test statistics of the coefficients.', 'value': [-1.6326037410094534, -1.1654875330070007]}), ('pval', {'type': 'vector', 'description': 'p-values for the test statistics.', 'value': [0.10255236393127247, 0.24382170374572817]}), ('ci.lb', {'type': 'vector', 'description': 'lower bound of the confidence intervals for the coefficients.', 'value': [-0.521161526668964, -0.602231462904057]}), ('ci.ub', {'type': 'vector', 'description': 'upper bound of the confidence intervals for the coefficients.', 'value': [0.04748903216933398, 0.15308467047509444]}), ('vb', {'type': 'vector', 'description': 'variance-covariance matrix of the estimated coefficients.', 'value': [0.021044313707408106, -0.021044313707408103, -0.021044313707408103, 0.037127982361122025]}), ('tau2', {'type': 'vector', 'description': 'estimated amount of (residual) heterogeneity. Always 0 when method="FE".', 'value': [0.025819695129668186]}), ('se.tau2', {'type': 'vector', 'description': 'estimated standard error of the estimated amount of (residual) heterogeneity.', 'value': [0.038789582156374396]}), ('k', {'type': 'vector', 'description': 'number of outcomes included in the model fitting.', 'value': [6]}), ('p', {'type': 'vector', 'description': 'number of coefficients in the model (including the intercept).', 'value': [2]}), ('m', {'type': 'vector', 'description': 'number of coefficients included in the omnibus test of coefficients.', 'value': [1]}), ('QE', {'type': 'vector', 'description': 'test statistic for the test of (residual) heterogeneity.', 'value': [7.766127079511218]}), ('QEp', {'type': 'vector', 'description': 'p-value for the test of (residual) heterogeneity.', 'value': [0.10053083905164525]}), ('QM', {'type': 'vector', 'description': 'test statistic for the omnibus test of coefficients.', 'value': [1.358361189594745]}), ('QMp', {'type': 'vector', 'description': 'p-value for the omnibus test of coefficients.', 'value': [0.2438217037457282]}), ('I2', {'type': 'vector', 'description': 'value of I2. See print.rma.uni for more details.', 'value': [48.00592969486093]}), ('H2', {'type': 'vector', 'description': 'value of H2. See print.rma.uni for more details.', 'value': [1.9232962415353745]}), ('R2', {'type': 'vector', 'description': 'value of R2. See print.rma.uni for more details.', 'value': [19.6]}), ('int.only', {'type': 'vector', 'description': 'logical that indicates whether the model is an intercept-only model.', 'value': [False]}), ('yi', {'type': 'vector', 'description': 'the vector of outcomes', 'value': [-0.09452415852033, -0.277355866265512, -0.366544429515919, -0.664385099891136, -0.461806281287715, -0.185164437399104]}), ('vi', {'type': 'vector', 'description': 'the corresponding sample variances', 'value': [0.0333705617355999, 0.0310651010636611, 0.0508397176175572, 0.0105517594511967, 0.0433446698087316, 0.0236302525555215]}), ('X', {'type': 'matrix', 'description': 'the model matrix of the model', 'value': '  intrcpt STATERI\n1       1       0\n2       1       0\n3       1       0\n4       1       1\n5       1       1\n6       1       1\n'}), ('fit.stats', {'type': 'data.frame', 'description': 'a list with the log-likelihood, deviance, AIC, BIC, and AICc values under the unrestricted and restricted likelihood.', 'value': '            ML       REML\nll    1.480225  0.4211768\ndev   7.298377 -0.8423536\nAIC   3.039549  5.1576464\nBIC   2.414828  3.3165295\nAICc 15.039549 29.1576464\n'}), ('weights', {'type': 'vector', 'description': 'weights in % given to the observed effects', 'value': 'NULL'}), ('residuals', {'type': 'blob', 'description': 'Standardized residuals for fitted models', 'value': '               resid    se      z\nCarroll, 1997  0.142 0.195  0.729\nGrant, 1981   -0.041 0.189 -0.214\nPeck, 1987    -0.130 0.236 -0.550\nDonat, 2003   -0.203 0.142 -1.425\nStewart, 1990 -0.000 0.230 -0.002\nYoung, 1995    0.276 0.183  1.512\n'})], 'images': {}}["results_data"]
+
+        observed_result = python_to_R.run_gmeta_regression(metric, r_str=r_str)['results_data']
+
+        print "checking coefficient estimates"
+        observed_coefs = observed_result[0]
+        expected_coefs = expected_result[0]
+
+        # sanity check the formatting
+        self.assertEqual(observed_coefs[0], "b")
+        for j, observed_val in enumerate(observed_coefs[1]['value']):
+            self.assertAlmostEqual(observed_val, expected_coefs[1]['value'][j])
+        print "ok."
+
+
+        print "checking standard errors"
+        observed_SEs = observed_result[1]
+        expected_SEs = expected_result[1]
+        self.assertEqual(observed_SEs[0], "se")
+        for j, observed_SE in enumerate(observed_SEs[1]['value']):
+            self.assertAlmostEqual(observed_SE, expected_SEs[1]['value'][j])
+        print "done."
+
+        
 
 class TestBootstrapMetaRegression(unittest.TestCase):
     '''
@@ -376,7 +431,7 @@ class TestBootstrapMetaRegression(unittest.TestCase):
         python_to_R.exR.execute_in_R(r_str)
 
 
-    def test_run_bootstrap_ma(self):
+    def test_run_bootstrap_meta_reg(self):
         r_str = '''results_obj <- g.bootstrap.meta.regression(
             data=tmp_obj,
             mods=structure(list(interactions = list(), numeric = character(0), 
@@ -407,13 +462,15 @@ class TestBootstrapMetaRegression(unittest.TestCase):
             row = [s for s in result_rows[i].split(" ") if len(s.strip())>1]
             return [row[0]] + [float(r_j) for r_j in row[1:]]
 
-        def check_row(observed, expected, theta=.01):
-            # note that we allow a fair amount of divergence (0.01)
+        def check_row(observed, expected, theta=.05):
+            # note that we allow a fair amount of divergence (0.05)
             # here because the bootstrap method is stochastic.
             for j, expected_val in enumerate(expected):
                 observed_val = observed[j]
                 #self.assertAlmostEqual(observed_val, expected_val)
-                self.assertTrue(abs(observed_val-expected_val) <= theta)
+                diff = abs(observed_val-expected_val)
+                print "difference: %s" % diff
+                self.assertTrue(diff <= theta)
 
         ''' check the intercept numbers '''
         intercept_row_expected = [-0.2368, -0.3838, -0.0802]
@@ -436,7 +493,7 @@ class TestBootstrapMetaRegression(unittest.TestCase):
 # def run_failsafe_analysis(
 # def run_funnelplot_analysis(
 # def run_gmeta_regression(
-# def run_gmeta_regression_bootstrapped(
+
 # def run_gmeta_regression_bootstrapped_cond_means(
 # def run_gmeta_regression_cond_means(
 # def run_histogram(

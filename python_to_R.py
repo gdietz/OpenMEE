@@ -1974,50 +1974,60 @@ def run_gmeta_regression(
     conf_level=DEFAULT_CONFIDENCE_LEVEL,
     btt=None,
     results_name="results_obj",
+    r_str=None,
 ):
+    
+    ''' 
+    Note that we optionally accept the R string (r_str) to execute
+    directly as a compromise to facilitate unit-testing.
+    This is plainly not ideal, as, for example, if the code
+    below is modified the unittest may still pass. 
+    '''
+    
+    if r_str is None:
+        # Set fixed-effects vs. random effects
+        method_str = "FE" if fixed_effects else random_effects_method
+        # Get measure i.e. OR etc.
+        measure_str = METRIC_TO_ESCALC_MEASURE[metric]
 
-    # Set fixed-effects vs. random effects
-    method_str = "FE" if fixed_effects else random_effects_method
-    # Get measure i.e. OR etc.
-    measure_str = METRIC_TO_ESCALC_MEASURE[metric]
+        # Mods is a Listvector (see description in _make_mods_listVector)
+        mods = _make_mods_listVector(covariates, interactions)
 
-    # Mods is a Listvector (see description in _make_mods_listVector)
-    mods = _make_mods_listVector(covariates, interactions)
+        # get btt indices for omnibus test of moderators
+        choice, choice_type = btt
+        btt_indices = get_btt_indices(data=ro.r(data_name),
+                                      mods=mods,
+                                      choice=choice, choice_type=choice_type)
+        if len(btt_indices) > 0:
+            btt_indices_vector_str = ro.IntVector(btt_indices).r_repr()
+        else:
+            btt_indices_vector_str = str(ro.NULL)
 
-    # get btt indices for omnibus test of moderators
-    choice, choice_type = btt
-    btt_indices = get_btt_indices(data=ro.r(data_name),
-                                  mods=mods,
-                                  choice=choice, choice_type=choice_type)
-    if len(btt_indices) > 0:
-        btt_indices_vector_str = ro.IntVector(btt_indices).r_repr()
-    else:
-        btt_indices_vector_str = str(ro.NULL)
+        r_str = '''
+        {results} <- g.meta.regression(
+            data={data},
+            mods={mods},
+            method=\"{method}\",
+            level={level},
+            digits={digits},
+            measure=\"{measure}\",
+            btt={btt},
+            make.coeff.forest.plot={make_coeff_fp},
+            exclude.intercept={exclude_intercept})
+        '''.format(
+            results=results_name,
+            data=data_name,
+            mods=mods.r_repr(),
+            method=random_effects_method,
+            level=conf_level,
+            digits=digits,
+            measure=measure_str,
+            btt=btt_indices_vector_str,
+            make_coeff_fp=bool_to_rstr(get_setting("reg_coeff_forest_plot")),
+            exclude_intercept=bool_to_rstr(
+                get_setting("exclude_intercept_coeff_fp"))
+        )
 
-    r_str = '''
-    {results} <- g.meta.regression(
-        data={data},
-        mods={mods},
-        method=\"{method}\",
-        level={level},
-        digits={digits},
-        measure=\"{measure}\",
-        btt={btt},
-        make.coeff.forest.plot={make_coeff_fp},
-        exclude.intercept={exclude_intercept})
-    '''.format(
-        results=results_name,
-        data=data_name,
-        mods=mods.r_repr(),
-        method=random_effects_method,
-        level=conf_level,
-        digits=digits,
-        measure=measure_str,
-        btt=btt_indices_vector_str,
-        make_coeff_fp=bool_to_rstr(get_setting("reg_coeff_forest_plot")),
-        exclude_intercept=bool_to_rstr(
-            get_setting("exclude_intercept_coeff_fp"))
-    )
 
     exR.execute_in_R(r_str)
     result = exR.execute_in_R("%s" % results_name)
@@ -2220,12 +2230,6 @@ def run_gmeta_regression_bootstrapped(
     results_name="results_obj",
     r_str=None 
 ):
-    ''' 
-    Note that we accept, optionally, the r_str to execute
-    directly as a compromise to facilitate unit-testing.
-    This is plainly not ideal, as, for example, if the code
-    below is modified the unittest may still pass. 
-    '''
     if r_str is None:
         # TODO: Set this to be some timestamped file path later?
         # save bootstrap outout data on R side for 'save-as png + pdf functions'
