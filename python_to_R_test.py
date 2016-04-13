@@ -3,7 +3,7 @@ import python_to_R
 
 import unittest
 import ome_globals
-import os.path
+import os, os.path
 
 
 # RExecutor:
@@ -483,8 +483,71 @@ class TestBootstrapMetaRegression(unittest.TestCase):
         check_row(coef_row_observed, coef_row_expected)
 
 
+class TestHistogram(unittest.TestCase):
+    pass 
 
-       
+    
+class TestFunnelPlot(unittest.TestCase):
+    def setUp(self):
+        r_str = '''tmp_obj <- new(
+                    'BinaryData',
+                    g1O1=c(9, 7, 5, 13, 2, 49, 6, 0, 11, 3, 6, 4, 16, 8, 0, 2, 3, 0, 1),
+                    g1O2=c(18, 57, 25, 139, 34, 96, 29, 70, 20, 73, 87, 23, 56, 64, 19, 28, 22, 20, 55),
+                    g2O1=c(6, 3, 0, 19, 0, 26, 8, 1, 2, 6, 0, 3, 16, 10, 0, 0, 11, 0, 0),
+                    g2O2=c(21, 56, 30, 145, 36, 129, 24, 73, 26, 74, 92, 26, 55, 59, 19, 30, 14, 19, 58),
+                    y=c(0.559615787935, 0.829598283288, 2.57694350425, -0.337229812415, 1.66579084899, 
+                        0.929187972983, -0.47692407209, -1.05693959227, 1.96711235671, 
+                        -0.679541528504, 2.62051920862, 0.410284394544, -0.0180185055027, 
+                        -0.304489190768, 0.0, 1.67726050877, -1.75126810787, -0.0500104205747, 
+                        1.15125602215),
+                    SE=c(0.617213399848, 0.715256232896, 1.50127304423, 0.379005873568, 1.56728515833, 
+                        0.27755775323, 0.606478434863, 1.64147997429, 0.824239424785, 0.726093756791, 
+                        1.47515610567, 0.815642772704, 0.401296599835, 0.507517637666, 2.02547873417, 
+                        1.57094704066, 0.735612357921, 2.024861116, 1.64370882512),
+                    study.names=c("Gonzalez", "Prins", "Giamarellou", "Maller", "Sturm", "Marik", "Muijsken", 
+                        "Vigano", "Hansen", "De Vries", "Mauracher", "Nordstrom", "Rozdzinski", 
+                        "Ter Braak", "Tulkens", "Van der Auwera", "Klastersky", "Vanhaeverbeek", 
+                        "Hollender"),
+                    years=c(as.integer(), as.integer(), as.integer(), as.integer(), as.integer(), 
+                        as.integer(), as.integer(), as.integer(), as.integer(), as.integer(), 
+                        as.integer(), as.integer(), as.integer(), as.integer(), as.integer(), 
+                        as.integer(), as.integer(), as.integer(), as.integer()),
+                    covariates=list())'''
+        
+        python_to_R.exR.execute_in_R(r_str)
+
+    def test_generate_funnel_plot(self):
+        r_str = '''result<-funnel.wrapper('binary.random', tmp_obj,
+                    structure(list(conf.level = 95, digits = 3L, 
+                    fp_col2_str = structure(1L, .Label = "[default]", class = "factor"), 
+                    fp_show_col4 = TRUE, to = structure(1L, .Label = "only0", class = "factor"), 
+                    fp_col4_str = structure(1L, .Label = "Ev/Ctrl", class = "factor"), 
+                    fp_xticks = structure(1L, .Label = "[default]", class = "factor"), 
+                    fp_col3_str = structure(1L, .Label = "Ev/Trt", class = "factor"), 
+                    fp_show_col3 = TRUE, fp_show_col2 = TRUE, fp_show_col1 = TRUE, 
+                    fp_plot_lb = structure(1L, .Label = "[default]", class = "factor"), 
+                    fp_outpath = structure(1L, .Label = "./r_tmp/forest.png", class = "factor"), 
+                    rm.method = structure(1L, .Label = "DL", class = "factor"), 
+                    adjust = 0.5, fp_plot_ub = structure(1L, .Label = "[default]", class = "factor"), 
+                    fp_col1_str = structure(1L, .Label = "Studies", class = "factor"), 
+                    measure = structure(1L, .Label = "OR", class = "factor"), 
+                    fp_xlabel = structure(1L, .Label = "[default]", class = "factor"), 
+                    fp_show_summary_line = TRUE), .Names = c("conf.level", "digits", 
+                "fp_col2_str", "fp_show_col4", "to", "fp_col4_str", "fp_xticks", 
+                "fp_col3_str", "fp_show_col3", "fp_show_col2", "fp_show_col1", 
+                "fp_plot_lb", "fp_outpath", "rm.method", "adjust", "fp_plot_ub", 
+                "fp_col1_str", "measure", "fp_xlabel", "fp_show_summary_line"
+                ), row.names = c(NA, -1L), class = "data.frame"), digits=5, steps=5, addtau2=FALSE)'''
+
+        results = python_to_R.run_funnelplot_analysis(*[None]*8, r_str=r_str)
+        
+        # we are basically just asserting that the plot exists here!
+        image_name, image_path =  results['images'].items()[0]
+        self.assertTrue(image_name == "Funnel Plot")
+        self.assertTrue( os.path.isfile(image_path))
+
+
+
 # TODO: FUNCTIONS THAT WE STILL NEED TO WRITE UNIT TESTS FOR
 
 
@@ -498,7 +561,7 @@ class TestBootstrapMetaRegression(unittest.TestCase):
 # def run_gmeta_regression_cond_means(
 # def run_histogram(
 # def run_meta_method(
-# def run_meta_regression(
+
 # def run_model_building(
 # def run_multiple_imputation_meta_analysis(
 # def run_permutation_analysis(

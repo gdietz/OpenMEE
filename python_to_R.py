@@ -606,12 +606,7 @@ def dataset_to_simple_binary_robj(
     exR.execute_in_R(r_str)
     print "ok."
 
-    # print("Inspecting R object time")
-    # pyqtRemoveInputHook()
-    # import pdb; pdb.set_trace()
-
     print "Executed: %s" % r_str
-
     return r_str
 
 
@@ -1142,39 +1137,49 @@ def run_funnelplot_analysis(
     res_name="result",
     var_name="tmp_obj",
     summary="",
+    r_str=None
 ):
+    
+    if r_str is None:
+        # also add the metric to the parameters
+        # -- this is for scaling
+        ma_params["measure"] = METRIC_TO_ESCALC_MEASURE[metric]
 
-    # also add the metric to the parameters
-    # -- this is for scaling
-    ma_params["measure"] = METRIC_TO_ESCALC_MEASURE[metric]
+        # dispatch on type; build an R object, then run the analysis
+        if OMA_CONVENTION[data_type] == "binary":
+            make_dataset_r_str = dataset_to_simple_binary_robj(
+                model=model,
+                included_studies=included_studies,
+                data_location=data_location,
+                var_name=var_name,
+            )
 
-    # dispatch on type; build an R object, then run the analysis
-    if OMA_CONVENTION[data_type] == "binary":
-        make_dataset_r_str = dataset_to_simple_binary_robj(
-            model=model,
-            included_studies=included_studies,
-            data_location=data_location,
-            var_name=var_name,
+        elif OMA_CONVENTION[data_type] == "continuous":
+            make_dataset_r_str = dataset_to_simple_cont_robj(
+                model=model,
+                included_studies=included_studies,
+                data_location=data_location,
+                data_type=data_type,
+                var_name=var_name,
+            )
+
+        print "\n\n\n\n R STR for object!!!: "
+        print make_dataset_r_str
+        print "\n\n"
+
+        # build up funnel parameters
+        ma_params_df = ro.DataFrame(ma_params)
+        funnel_params_r_str = unpack_r_parameters(
+            prepare_funnel_params_for_R(funnel_params))
+        r_str = "%s<-funnel.wrapper('%s',%s,%s, %s)" % (
+            res_name,
+            fname,
+            var_name,
+            ma_params_df.r_repr(),
+            funnel_params_r_str,
         )
-    elif OMA_CONVENTION[data_type] == "continuous":
-        make_dataset_r_str = dataset_to_simple_cont_robj(
-            model=model,
-            included_studies=included_studies,
-            data_location=data_location,
-            data_type=data_type,
-            var_name=var_name,
-        )
-    # build up funnel parameters
-    ma_params_df = ro.DataFrame(ma_params)
-    funnel_params_r_str = unpack_r_parameters(
-        prepare_funnel_params_for_R(funnel_params))
-    r_str = "%s<-funnel.wrapper('%s',%s,%s, %s)" % (
-        res_name,
-        fname,
-        var_name,
-        ma_params_df.r_repr(),
-        funnel_params_r_str,
-    )
+        print "\n\n r_str!"
+        print r_str 
 
     result = exR.execute_in_R(r_str)
     return parse_out_results(result)
@@ -1983,7 +1988,7 @@ def run_gmeta_regression(
     This is plainly not ideal, as, for example, if the code
     below is modified the unittest may still pass. 
     '''
-    
+
     if r_str is None:
         # Set fixed-effects vs. random effects
         method_str = "FE" if fixed_effects else random_effects_method
