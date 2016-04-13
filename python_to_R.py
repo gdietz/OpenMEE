@@ -938,30 +938,36 @@ def run_failsafe_analysis(
     failsafe_params,
     res_name="result",
     var_name="tmp_obj",
+    r_str=None
 ):
 
-    make_dataset_r_str = dataset_to_simple_fsn_data_robj(
-        model,
-        included_studies,
-        data_location,
-        var_name=var_name,
-    )
-    # build-up failsafe parameters string
-    params_as_strs = []
-    for param, val in failsafe_params.items():
-        rkey, rval = param, str(val)
-        if param == "method":
-            rkey = "type"
-            rval = '"%s"' % val
-        if param == "target" and val == "":
-            rval = 'NULL'
-        params_as_strs.append("%s=%s" % (rkey, rval))
+    if r_str is None:
+        make_dataset_r_str = dataset_to_simple_fsn_data_robj(
+            model,
+            included_studies,
+            data_location,
+            var_name=var_name,
+        )
 
-    r_str = "%s <- failsafe.wrapper(%s, %s)" % (
-        res_name,
-        var_name,
-        ", ".join(params_as_strs),
-    )
+
+        # build-up failsafe parameters string
+        params_as_strs = []
+        for param, val in failsafe_params.items():
+            rkey, rval = param, str(val)
+            if param == "method":
+                rkey = "type"
+                rval = '"%s"' % val
+            if param == "target" and val == "":
+                rval = 'NULL'
+            params_as_strs.append("%s=%s" % (rkey, rval))
+
+        r_str = "%s <- failsafe.wrapper(%s, %s)" % (
+            res_name,
+            var_name,
+            ", ".join(params_as_strs),
+        )
+
+
     exR.execute_in_R(r_str)
     result = exR.execute_in_R("%s" % res_name)
     return parse_out_results(result)

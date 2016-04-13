@@ -483,10 +483,29 @@ class TestBootstrapMetaRegression(unittest.TestCase):
         check_row(coef_row_observed, coef_row_expected)
 
 
-class TestHistogram(unittest.TestCase):
-    pass 
+class TestFailSafeN(unittest.TestCase):
+    def setUp(self):
+        r_str = '''tmp_obj <- data.frame(yi=c(0.559615787935, 0.829598283288, 2.57694350425, -0.337229812415, 1.66579084899, 
+                0.929187972983, -0.47692407209, -1.05693959227, 1.96711235671, -0.679541528504, 2.62051920862, 0.410284394544, 
+                -0.0180185055027, -0.304489190768, 0.0, 1.67726050877, -1.75126810787, -0.0500104205747, 
+                1.15125602215), vi=c(0.380952380952, 0.511591478697, 2.25382075334, 0.143645452199, 2.45638276752, 
+                0.077038306378, 0.367816091954, 2.69445650601, 0.679370629371, 0.52721214365, 
+                2.17608553609, 0.665273132664, 0.161038961039, 0.257574152542, 4.10256410256, 
+                2.46787460454, 0.541125541126, 4.10006253909, 2.70177870178))'''
+        python_to_R.exR.execute_in_R(r_str)
 
-    
+
+    def test_fail_safe_n_plot(self):
+        r_str = '''result <- failsafe.wrapper(tmp_obj, digits=4, alpha=0.05, type="Rosenthal")'''
+        result = python_to_R.exR.execute_in_R(r_str)
+        
+        to_dict = lambda rv : dict(zip(rv.names, list(rv)))
+        result = to_dict(result)
+        summary = to_dict(result["Summary"])
+        expected_p_val = 0.028124971427696127
+        self.assertAlmostEqual(summary['pval'][0],expected_p_val)
+
+
 class TestFunnelPlot(unittest.TestCase):
     def setUp(self):
         r_str = '''tmp_obj <- new(
@@ -554,8 +573,6 @@ class TestFunnelPlot(unittest.TestCase):
 
 # def run_dynamic_data_exploration_analysis(
 # def run_failsafe_analysis(
-# def run_funnelplot_analysis(
-# def run_gmeta_regression(
 
 # def run_gmeta_regression_bootstrapped_cond_means(
 # def run_gmeta_regression_cond_means(
