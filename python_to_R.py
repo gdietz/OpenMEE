@@ -2220,7 +2220,12 @@ def run_gmeta_regression_bootstrapped(
     results_name="results_obj",
     r_str=None 
 ):
-    
+    ''' 
+    Note that we accept, optionally, the r_str to execute
+    directly as a compromise to facilitate unit-testing.
+    This is plainly not ideal, as, for example, if the code
+    below is modified the unittest may still pass. 
+    '''
     if r_str is None:
         # TODO: Set this to be some timestamped file path later?
         # save bootstrap outout data on R side for 'save-as png + pdf functions'
@@ -2231,6 +2236,7 @@ def run_gmeta_regression_bootstrapped(
 
         # Mods is a Listvector (see description in _make_mods_listVector)
         mods = _make_mods_listVector(covariates, interactions)
+
 
         r_str = '''
         {results} <- g.bootstrap.meta.regression(
@@ -2252,8 +2258,6 @@ def run_gmeta_regression_bootstrapped(
             num_replicates=num_replicates,
             histogram_title=histogram_title,
             bootstrap_plot_path=bootstrap_plot_path)
-
-    
 
     result = exR.execute_in_R(r_str)
     parsed_results = parse_out_results(result)

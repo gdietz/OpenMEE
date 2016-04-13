@@ -223,15 +223,7 @@ class TestBinaryMetaAnalysis(unittest.TestCase):
             bin_data_name=bin_data_name,
         )
         
-        #b_row = result['results_data'][0]
-        #b_value = b_row[1]['value']
 
-        #expected_b_row = full_expected_result['results_data'][0]
-        #expected_b_value = expected_b_row[1]['value']
-
-        # should not do a strict equality I don't think; 
-        # instead fely on 'almost' equality from unittest
-        #self.assertAlmostEqual(b_value, expected_b_value)
         for j in range(len(result['results_data'])):
             print "checking %s" % result['results_data'][j][0]
 
@@ -263,7 +255,9 @@ class TestContinuousMetaAnalysis(unittest.TestCase):
             study.names=c("Carroll, 1997", "Grant, 1981", "Peck, 1987", "Donat, 2003", "Stewart, 1990", "Young, 1995"),
             years=c(as.integer(), as.integer(), as.integer(), as.integer(), as.integer(), as.integer()),
             covariates=list())'''
+    
         python_to_R.exR.execute_in_R(r_str)
+
 
     def test_run_cont_ma(self):
 
@@ -360,13 +354,15 @@ class TestContinuousMetaAnalysis(unittest.TestCase):
 
 class TestBootstrapMetaRegression(unittest.TestCase):
     '''
-    bcw: ok so how to get pass of the proper 'covariates' variables to
-    run_gmeta_regression_bootstrapped ??? Here i actually attempted to
-    bypass the massaging and giving the data directly to the routine
-    but it still fails, and this seems kind of hacky anyway. 
+    @TODO this test currently relies on passing along the assembled
+    R string to run the bootstrap analysis directly, which is a 
+    tad hacky. The reason we have done this for now is to avoid
+    re-constructing the list of Covariate objects, which presently come
+    from the UI. 
     '''
     def setUp(self):
         python_to_R.set_conf_level_in_R(95)
+
 
         r_str = '''tmp_obj<-structure(list(
                     yi = c(-0.09452415852033, -0.277355866265512, -0.366544429515919, -0.664385099891136, -0.461806281287715, -0.185164437399104), 
@@ -375,9 +371,10 @@ class TestBootstrapMetaRegression(unittest.TestCase):
                     "RI"), class = "factor"), slab = structure(c("Carroll, 1997", 
                     "Grant, 1981", "Peck, 1987", "Donat, 2003", "Stewart, 1990", 
                     "Young, 1995"), class = "AsIs")), .Names = c("yi", "vi", 
-                    "STATE", "slab"), row.names = c(NA, -6L), class = "data.frame")
-        '''
+                    "STATE", "slab"), row.names = c(NA, -6L), class = "data.frame")'''
         
+        python_to_R.exR.execute_in_R(r_str)
+
 
     def test_run_bootstrap_ma(self):
         r_str = '''results_obj <- g.bootstrap.meta.regression(
@@ -387,16 +384,53 @@ class TestBootstrapMetaRegression(unittest.TestCase):
             method="REML",
             level=95.0,
             digits=4,
-            n.replicates=100,
+            n.replicates=1000,
             histogram.title="Bootstrap Histogram",
             bootstrap.plot.path="./r_tmp/bootstrap.png")'''
 
-        # this fails.
-        result = python_to_R.run_gmeta_regression_bootstrapped(100, r_str=r_str)
-        
+        result = python_to_R.run_gmeta_regression_bootstrapped(1000, r_str=r_str)
+        '''
+        The result will look as below. We extract the numbers from this
+        and check against observed.
+
+        # Bootstrap replicates: 1000
+        # of failures: 0
+
+                estimate Lower.Bound Upper.Bound
+        intrcpt  -0.2368     -0.3818     -0.0889
+        STATERI  -0.2246     -0.5474      0.0923
+        '''
+
+        result_rows = result['texts']['Bootstrapped Meta Regression Summary'].split("\n")
+
+        def _extract_res(i):
+            row = [s for s in result_rows[i].split(" ") if len(s.strip())>1]
+            return [row[0]] + [float(r_j) for r_j in row[1:]]
+
+        def check_row(observed, expected, theta=.01):
+            # note that we allow a fair amount of divergence (0.01)
+            # here because the bootstrap method is stochastic.
+            for j, expected_val in enumerate(expected):
+                observed_val = observed[j]
+                #self.assertAlmostEqual(observed_val, expected_val)
+                self.assertTrue(abs(observed_val-expected_val) <= theta)
+
+        ''' check the intercept numbers '''
+        intercept_row_expected = [-0.2368, -0.3838, -0.0802]
+        intercept_row_observed = _extract_res(-2)[1:] # skip var name
+        check_row(intercept_row_observed, intercept_row_expected)
+
+        ''' and the coef estimate '''
+        coef_row_expected = [-0.2246, -0.5449, 0.0898]
+        coef_row_observed = _extract_res(-1)[1:]
+        check_row(coef_row_observed, coef_row_expected)
+
+
+
+       
 # TODO: FUNCTIONS THAT WE STILL NEED TO WRITE UNIT TESTS FOR
 
-# def run_bootstrap_meta_regression(
+
 
 # def run_dynamic_data_exploration_analysis(
 # def run_failsafe_analysis(
