@@ -579,7 +579,26 @@ class TestScatterPlot(unittest.TestCase):
         pass
 
     def test__run_scatterplot(self):
-        data_r_str = '''structure(list(y = c(10L, 20L, 40L, 100L, 38L, 588L, 2910L, 302L, 101L, 101L, 48L, 48L, 1670L, 1816L, 1601L, 1034L, 1404L, 1246L, 646L, 541L, 1046L, 1895L, 1162L, 14L, 906L, 1188L, 1990L, 2188L, 635L), x = c(40, 65, 2000, 47, 199, 348, 40, 18, 49, 44, 18, 584, 35, 107, 101, 50, 79, 48, 75, 41, 53, 24, 54, 33, 102, 87, 118, 60, 106)), .Names = c("y", "x"), row.names = c(NA, -29L), class = "data.frame")'''
+        data_r_str = '''
+            structure(
+                list(
+                    y = c(
+                        10L, 20L, 40L, 100L, 38L, 588L, 2910L, 302L, 101L, 101L,
+                        48L, 48L, 1670L, 1816L, 1601L, 1034L, 1404L, 1246L,
+                        646L, 541L, 1046L, 1895L, 1162L, 14L, 906L, 1188L,
+                        1990L, 2188L, 635L
+                    ),
+                    x = c(
+                        40, 65, 2000, 47, 199, 348, 40, 18, 49, 44, 18, 584, 35,
+                        107, 101, 50, 79, 48, 75, 41, 53, 24, 54, 33, 102, 87,
+                        118, 60, 106
+                    )
+                ),
+                .Names = c("y", "x"),
+                row.names = c(NA, -29L),
+                class = "data.frame"
+            )
+        '''
         params_r_str = '''structure(list(xlab = "Age", ylab = "sample size"), .Names = c("xlab", "ylab"))'''
         res_name = 'result'
         var_name = 'tmp_obj'
@@ -595,17 +614,57 @@ class TestScatterPlot(unittest.TestCase):
         self.assertTrue(image_name == "Scatterplot")
         self.assertTrue( os.path.isfile(image_path))
 
+class TestHistogram(unittest.TestCase):
+    def test_run_histogram(self):
+        # Not actually testing run_histogram() since it's basically just a
+        # passthrough to _run_histogram()
+        pass
+
+    def test__get_histogram_data_rstr(self):
+        # TODO
+        pass
+
+    def test__run_histogram(self):
+        data_r_str = '''
+            c(
+                "US", "US", "US", "US", "CANADA", "CANADA", "CANADA", "CANADA",
+                "CANADA", "CANADA", "CHINA", "CHINA", "US", "US", "US", "US",
+                "CANADA", "CANADA", "CANADA", "CANADA", "CANADA", "CANADA",
+                "CHINA", "CHINA", "US", "US", "US", "US", "CANADA"
+            )
+        '''
+        params_r_str = '''
+            structure(
+                list(
+                    GRADIENT = FALSE,
+                    xlab = "Country",
+                    color = "#000000",
+                    fill = "#FFFFFF"
+                ),
+                .Names = c("GRADIENT", "xlab", "color", "fill")
+            )
+        '''
+        res_name = 'result'
+        var_name = 'tmp_obj'
+
+        results = python_to_R._run_histogram(
+            data_rstr=data_r_str,
+            params_rstr=params_r_str,
+            res_name=res_name,
+            var_name=var_name,
+        )
+        # we are basically just asserting that the plot exists here!
+        image_name, image_path = results['images'].items()[0]
+        self.assertTrue(image_name == "Histogram")
+        self.assertTrue( os.path.isfile(image_path))
 
 # TODO: FUNCTIONS THAT WE STILL NEED TO WRITE UNIT TESTS FOR
-
-
 
 # def run_dynamic_data_exploration_analysis(
 # def run_failsafe_analysis(
 
 # def run_gmeta_regression_bootstrapped_cond_means(
 # def run_gmeta_regression_cond_means(
-# def run_histogram(
 # def run_meta_method(
 
 # def run_model_building(

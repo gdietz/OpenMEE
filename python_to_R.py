@@ -994,14 +994,9 @@ def run_dynamic_data_exploration_analysis(
     result = exR.execute_in_R("%s" % res_name)
     return parse_out_results(result)
 
-
-def run_histogram(
+def _get_histogram_data_rstr(
     model,
     var,
-    params,
-    res_name="result",
-    var_name="tmp_obj",
-    summary="",
 ):
     var_type = var.get_type()
 
@@ -1017,17 +1012,44 @@ def run_histogram(
     elif var_type == CATEGORICAL:
         data_r = ro.StrVector(data)
 
-    # params in R format
-    params_r = histogram_params_toR(params)
+    return data_r.r_repr()
+
+def run_histogram(
+    model,
+    var,
+    params,
+    res_name="result",
+    var_name="tmp_obj",
+):
+    data_r_str = _get_histogram_data_rstr(
+        model=model,
+        var=var,
+    )
+
+    params_r_str = histogram_params_toR(params).r_repr()
+
+    return _run_histogram(
+        data_rstr=data_r_str,
+        params_rstr=params_r_str,
+        res_name=res_name,
+        var_name=var_name,
+    )
+
+def _run_histogram(
+    data_rstr,
+    params_rstr,
+    res_name,
+    var_name,
+):  
     # exploratory.plotter <- function(data, params, plot.type)
     r_str = "%s<-exploratory.plotter(%s, %s, plot.type=\"HISTOGRAM\")" % (
-        res_name, data_r.r_repr(), params_r.r_repr())
+        res_name,
+        data_rstr,
+        params_rstr,
+    )
 
     result = exR.execute_in_R(r_str)
     return parse_out_results(result)
-
-# put data into R format
-
 
 def col_data_to_R_fmt(col_data, data_type):
     if data_type == COUNT:

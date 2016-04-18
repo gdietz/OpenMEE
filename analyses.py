@@ -881,7 +881,6 @@ class Analyzer:
                     params=params,
                     res_name="result",
                     var_name="tmp_obj",
-                    summary="",
                 )
             except CrazyRError as e:
                 if SOUND_EFFECTS:
