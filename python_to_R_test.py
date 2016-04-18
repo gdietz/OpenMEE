@@ -561,10 +561,39 @@ class TestFunnelPlot(unittest.TestCase):
         results = python_to_R.run_funnelplot_analysis(*[None]*8, r_str=r_str)
         
         # we are basically just asserting that the plot exists here!
-        image_name, image_path =  results['images'].items()[0]
+        image_name, image_path = results['images'].items()[0]
         self.assertTrue(image_name == "Funnel Plot")
         self.assertTrue( os.path.isfile(image_path))
 
+class TestScatterPlot(unittest.TestCase):
+    def test_run_scatterplot(self):
+        # Not actually testing run_scatterplot() since it's basically just a
+        # passthrough to _run_scatterplot()
+        pass
+
+    def test__get_scatterplot_data_rstr(self):
+        # TODO
+        pass
+    def test__get_scatterplot_params_rstr(self):
+        # TODO
+        pass
+
+    def test__run_scatterplot(self):
+        data_r_str = '''structure(list(y = c(10L, 20L, 40L, 100L, 38L, 588L, 2910L, 302L, 101L, 101L, 48L, 48L, 1670L, 1816L, 1601L, 1034L, 1404L, 1246L, 646L, 541L, 1046L, 1895L, 1162L, 14L, 906L, 1188L, 1990L, 2188L, 635L), x = c(40, 65, 2000, 47, 199, 348, 40, 18, 49, 44, 18, 584, 35, 107, 101, 50, 79, 48, 75, 41, 53, 24, 54, 33, 102, 87, 118, 60, 106)), .Names = c("y", "x"), row.names = c(NA, -29L), class = "data.frame")'''
+        params_r_str = '''structure(list(xlab = "Age", ylab = "sample size"), .Names = c("xlab", "ylab"))'''
+        res_name = 'result'
+        var_name = 'tmp_obj'
+
+        results = python_to_R._run_scatterplot(
+            data_rstr=data_r_str,
+            params_rstr=params_r_str,
+            res_name=res_name,
+            var_name=var_name,
+        )
+        # we are basically just asserting that the plot exists here!
+        image_name, image_path = results['images'].items()[0]
+        self.assertTrue(image_name == "Scatterplot")
+        self.assertTrue( os.path.isfile(image_path))
 
 
 # TODO: FUNCTIONS THAT WE STILL NEED TO WRITE UNIT TESTS FOR
@@ -583,7 +612,6 @@ class TestFunnelPlot(unittest.TestCase):
 # def run_multiple_imputation_meta_analysis(
 # def run_permutation_analysis(
 # def run_phylo_ma(
-# def run_scatterplot(
 
 # def _gen_cov_vals_obj_str(cov, studies, ref_var=None):
 # def _is_grouped_result(res_info):

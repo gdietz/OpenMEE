@@ -1054,15 +1054,11 @@ def cols_to_data_frame(model):
     data_r = ro.DataFrame(var_col_d)
     return data_r
 
-
-def run_scatterplot(
+def _get_scatterplot_data_rstr(
     model,
     xvar,
     yvar,
-    params,
     label_points_with_study_names,
-    res_name="result",
-    var_name="tmp_obj",
 ):
 
     xvar_type = xvar.get_type()
@@ -1086,12 +1082,49 @@ def run_scatterplot(
     if label_points_with_study_names:
         data['slab'] = labels
     data_r = ro.DataFrame(data)
+    return data_r.r_repr()
 
-    # params in R format
+def _get_scatterplot_params_rstr(params):
     params_r = scatterplot_params_to_R(params)
+    return params_r.r_repr()
+
+def run_scatterplot(
+    model,
+    xvar,
+    yvar,
+    params,
+    label_points_with_study_names,
+    res_name="result",
+    var_name="tmp_obj",
+):
+    data_r_str = _get_scatterplot_data_rstr(
+        model=model,
+        xvar=xvar,
+        yvar=yvar,
+        label_points_with_study_names=label_points_with_study_names
+    )
+
+    params_r_str = _get_scatterplot_params_rstr(params)
+
+    return _run_scatterplot(
+        data_rstr=data_r_str,
+        params_rstr=params_r_str,
+        res_name=res_name,
+        var_name=var_name,
+    )
+
+def _run_scatterplot(
+    data_rstr,
+    params_rstr,
+    res_name,
+    var_name,
+):
     # exploratory.plotter <- function(data, params, plot.type)
     r_str = "%s<-exploratory.plotter(%s, %s, plot.type=\"SCATTERPLOT\")" % (
-            res_name, data_r.r_repr(), params_r.r_repr())
+        res_name,
+        data_rstr,
+        params_rstr,
+    )
 
     result = exR.execute_in_R(r_str)
     return parse_out_results(result)
