@@ -2237,49 +2237,51 @@ def run_gmeta_regression_cond_means(
     conf_level=DEFAULT_CONFIDENCE_LEVEL,
     btt=None,
     results_name="results_obj",
+    r_str=None,
 ):
+    
+    if r_str is None:
+        # Set fixed-effects vs. random effects
+        method_str = "FE" if fixed_effects else random_effects_method
 
-    # Set fixed-effects vs. random effects
-    method_str = "FE" if fixed_effects else random_effects_method
+        # Mods is a Listvector (see description in _make_mods_listVector)
+        mods = _make_mods_listVector(covariates, interactions)
 
-    # Mods is a Listvector (see description in _make_mods_listVector)
-    mods = _make_mods_listVector(covariates, interactions)
+        # get btt indices for omnibus test of moderators
+        choice, choice_type = btt
+        btt_indices = get_btt_indices(
+            data=ro.r(data_name),
+            mods=mods,
+            choice=choice,
+            choice_type=choice_type)
 
-    # get btt indices for omnibus test of moderators
-    choice, choice_type = btt
-    btt_indices = get_btt_indices(
-        data=ro.r(data_name),
-        mods=mods,
-        choice=choice,
-        choice_type=choice_type)
+        if len(btt_indices) > 0:
+            btt_indices_vector_str = ro.IntVector(btt_indices).r_repr()
+        else:
+            btt_indices_vector_str = str(ro.NULL)
 
-    if len(btt_indices) > 0:
-        btt_indices_vector_str = ro.IntVector(btt_indices).r_repr()
-    else:
-        btt_indices_vector_str = str(ro.NULL)
+        cond_data = _make_conditional_data_listVector(covs_to_values)
 
-    cond_data = _make_conditional_data_listVector(covs_to_values)
-
-    r_str = '''
-    {results} <- g.meta.regression.cond.means(
-        data={data},
-        mods={mods},
-        method=\"{method}\",
-        level={level},
-        digits={digits},
-        strat.cov=\"{strat_cov}\",
-        cond.means.data={cond_means_data},
-        btt={btt})
-    '''.format(
-        results=results_name,
-        data=data_name,
-        mods=mods.r_repr(),
-        method=random_effects_method,
-        level=conf_level,
-        digits=digits,
-        strat_cov=selected_cov.get_label(),
-        cond_means_data=cond_data.r_repr(),
-        btt=btt_indices_vector_str)
+        r_str = '''
+        {results} <- g.meta.regression.cond.means(
+            data={data},
+            mods={mods},
+            method=\"{method}\",
+            level={level},
+            digits={digits},
+            strat.cov=\"{strat_cov}\",
+            cond.means.data={cond_means_data},
+            btt={btt})
+        '''.format(
+            results=results_name,
+            data=data_name,
+            mods=mods.r_repr(),
+            method=random_effects_method,
+            level=conf_level,
+            digits=digits,
+            strat_cov=selected_cov.get_label(),
+            cond_means_data=cond_data.r_repr(),
+            btt=btt_indices_vector_str)
 
     result = exR.execute_in_R(r_str)
 
