@@ -417,6 +417,52 @@ class TestMetaRegression(unittest.TestCase):
         print "done."
 
 
+    def test_run_meta_regression_cond_means(self):
+        r_str = '''results_obj <- g.meta.regression.cond.means(
+                    data=tmp_obj,
+                    mods=structure(list(interactions = list(), numeric = character(0), 
+                            categorical = "STATE"), .Names = c("interactions", "numeric", "categorical")),
+                    method="REML",
+                    level=95.0,
+                    digits=4,
+                    strat.cov="STATE",
+                    cond.means.data=list(),
+                    btt=NULL)'''
+
+        metric = 0
+        result_rows = python_to_R.run_gmeta_regression(metric, r_str=r_str)['texts']['Conditional Means Summary'].split("\n")
+
+        def _extract_res(i):
+            row = [s for s in result_rows[i].split(" ") if len(s.strip())>1]
+            return [float(r_j) for r_j in row[1:]]
+
+        def check_row(observed, expected, theta=.01):
+            # note that we allow a fair amount of divergence (0.05)
+            # here because the bootstrap method is stochastic.
+            for j, expected_val in enumerate(expected):
+                observed_val = observed[j]
+                #self.assertAlmostEqual(observed_val, expected_val)
+                diff = abs(observed_val-expected_val)
+                print "difference: %s" % diff
+                self.assertTrue(diff <= theta)
+
+        metric = 0
+        
+
+        '''
+            cond.mean     se    var   ci.lb   ci.ub
+        MA   -0.2368 0.1451 0.0210 -0.5212  0.0475
+        RI   -0.4614 0.1268 0.0161 -0.7100 -0.2128
+        '''
+        expected_MA = [-0.2368, 0.1451, 0.0210, -0.5212, 0.0475]
+        observed_MA = _extract_res(4)
+        check_row(observed_MA, expected_MA)
+
+        expected_RI = [ -0.4614, 0.1268, 0.0161, -0.7100, -0.2128]
+        observed_RI = _extract_res(5)
+        check_row(observed_RI, expected_RI)
+
+
 
 class TestBootstrapMetaRegression(unittest.TestCase):
     '''
@@ -1002,7 +1048,6 @@ class TestPermutationAnalysis(BaseTestCase):
 
 # def run_failsafe_analysis(
 
-# def run_gmeta_regression_cond_means(
 # def run_meta_method(
 
 # def run_model_building(
