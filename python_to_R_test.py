@@ -669,6 +669,108 @@ class TestHistogram(unittest.TestCase):
         self.assertTrue(image_name == "Histogram")
         self.assertTrue( os.path.isfile(image_path))
 
+class TestDynamicDataExplorationAnalysis(unittest.TestCase):
+    def test__run_dynamic_data_exploration_analysis(self):
+        data_rstr = '''
+        tmp_obj<-structure(
+            list(
+                yi = c(
+                    0.251222927, 0.359662774, 0.365604284,
+                    0.132471994, 0.413560041, 0.351011661, 0.29080727, 0.220697921,
+                    0.314726091, 0.299664236, 0.309915434, 0.018196837, 0.220769991,
+                    0.288105953, 0.082563839, 0.199795575, 0.280285088, 0.375566345,
+                    0.138447493, 0.304502484, 0.268833813, 0.353074827, 0.420422366,
+                    0.221994369, 0.357595146, 0.286467997, 0.395542146, 0.335632696,
+                    0.120763021, 0.351163226, 0.38844754, 0.268362539, 0.351484633,
+                    0.24250489, 0.255221155, 0.204200073, 0.433802537, 0.278007089,
+                    0.377414447, 0.194480138, 0.344467919, 0.345545078, 0.367696705,
+                    0.252591178, 0.319385547, 0.2557075, 0.266361608, 0.377689832,
+                    0.377093453, 0.245424913, 0.152421443, 0.394352217, 0.215269482,
+                    0.365345905, 0.301902019, 0.126634986, 0.439153487, 0.291032036,
+                    0.274961532, 0.423477194, 0.235710702, 0.297293615, 0.296571162,
+                    0.297957025, 0.293439342, 0.300234828, 0.320274922, 0.139814023,
+                    0.272618472, 0.331860825, 0.029592308, 0.266549972, 0.275775005,
+                    0.255888575, 0.338694662, 0.250091707, 0.223141687, 0.324536035,
+                    0.244416143, 0.134387143, 0.146982837, 0.421676602, 0.236608408,
+                    0.105958044, 0.453174952, 0.256437724, 0.363988393, 0.263553561,
+                    0.451273894, 0.359168445, 0.394039486, 0.462775113, 0.297986878,
+                    0.316844753, 0.177924634, 0.277252993, 0.282120994, 0.299782482,
+                    0.373713129, 0.438260456
+                ),
+                vi = c(
+                    0.009049045, 0.0069543, 0.012720911,
+                    0.015320798, 0.005453874, 0.006199695, 0.006348592, 0.015338259,
+                    0.006149291, 0.009633331, 0.008786344, 0.020819539, 0.00923364,
+                    0.014752276, 0.006165081, 0.010718104, 0.011958481, 0.006707227,
+                    0.014358686, 0.012663905, 0.006940967, 0.004328909, 0.004772763,
+                    0.007469964, 0.003674412, 0.012211691, 0.012937646, 0.00729066,
+                    0.009427624, 0.008445885, 0.006999857, 0.004160144, 0.006455291,
+                    0.017035408, 0.009103826, 0.018741701, 0.003414737, 0.006978668,
+                    0.005836558, 0.00477209, 0.018064267, 0.010339385, 0.009010573,
+                    0.004951786, 0.021220821, 0.01247861, 0.007846697, 0.003223902,
+                    0.003053202, 0.010640497, 0.011224413, 0.017828929, 0.015414671,
+                    0.017461884, 0.007059981, 0.00405098, 0.011429505, 0.004296281,
+                    0.021362706, 0.012026686, 0.009195544, 0.010012586, 0.010802949,
+                    0.010125912, 0.015758511, 0.009739335, 0.007670188, 0.014564942,
+                    0.011425092, 0.007133926, 0.009786758, 0.011063464, 0.004589678,
+                    0.009492713, 0.008249802, 0.019104788, 0.005573425, 0.003510727,
+                    0.014984581, 0.010043816, 0.020809974, 0.003595715, 0.016814473,
+                    0.009052517, 0.014032017, 0.008081517, 0.005190192, 0.007871853,
+                    0.00696897, 0.0090314, 0.013463654, 0.012602923, 0.009654563,
+                    0.009991322, 0.004883791, 0.006086932, 0.021721806, 0.009979969,
+                    0.005140155, 0.009460106
+                ),
+                slab = structure(c(
+                    "study label 01",
+                    "study label 02", "study label 03", "study label 04", "study label 05",
+                    "study label 06", "study label 07", "study label 08", "study label 09",
+                    "study label 10", "study label 11", "study label 12", "study label 13",
+                    "study label 14", "study label 15", "study label 16", "study label 17",
+                    "study label 18", "study label 19", "study label 20", "study label 21",
+                    "study label 22", "study label 23", "study label 24", "study label 25",
+                    "study label 26", "study label 27", "study label 28", "study label 29",
+                    "study label 30", "study label 31", "study label 32", "study label 33",
+                    "study label 34", "study label 35", "study label 36", "study label 37",
+                    "study label 38", "study label 39", "study label 40", "study label 41",
+                    "study label 42", "study label 43", "study label 44", "study label 45",
+                    "study label 46", "study label 47", "study label 48", "study label 49",
+                    "study label 50", "study label 51", "study label 52", "study label 53",
+                    "study label 54", "study label 55", "study label 56", "study label 57",
+                    "study label 58", "study label 59", "study label 60", "study label 61",
+                    "study label 62", "study label 63", "study label 64", "study label 65",
+                    "study label 66", "study label 67", "study label 68", "study label 69",
+                    "study label 70", "study label 71", "study label 72", "study label 73",
+                    "study label 74", "study label 75", "study label 76", "study label 77",
+                    "study label 78", "study label 79", "study label 80", "study label 81",
+                    "study label 82", "study label 83", "study label 84", "study label 85",
+                    "study label 86", "study label 87", "study label 88", "study label 89",
+                    "study label 90", "study label 91", "study label 92", "study label 93",
+                    "study label 94", "study label 95", "study label 96", "study label 97",
+                    "study label 98", "study label 99", "study label 100"), class = "AsIs")
+            ),
+            .Names = c("yi", "vi", "slab"),
+            row.names = c(NA, -100L),
+            class = "data.frame"
+        )
+        '''
+
+        python_to_R.exR.execute_in_R(data_rstr)
+
+        analysis_details = {
+            'MAIN': 'weighted.histogram'
+        }
+
+        results = python_to_R._run_dynamic_data_exploration_analysis(
+            analysis_details=analysis_details,
+            res_name="result",
+            var_name="tmp_obj",
+        )
+
+        # we are basically just asserting that the plot exists here!
+        image_name, image_path = results['images'].items()[0]
+        self.assertTrue(image_name == "Weighted Histogram of Correlations")
+        self.assertTrue( os.path.isfile(image_path))
+
 class TestPhyloMA(BaseTestCase):
     def test_run_phylo_ma(self):
 
@@ -853,7 +955,6 @@ class TestPermutationAnalysis(BaseTestCase):
 
 # TODO: FUNCTIONS THAT WE STILL NEED TO WRITE UNIT TESTS FOR
 
-# def run_dynamic_data_exploration_analysis(
 # def run_failsafe_analysis(
 
 # def run_gmeta_regression_bootstrapped_cond_means(
