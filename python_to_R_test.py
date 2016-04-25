@@ -670,7 +670,7 @@ class TestHistogram(unittest.TestCase):
         self.assertTrue( os.path.isfile(image_path))
 
 class TestPhyloMA(BaseTestCase):
-    def test__run_histogram(self):
+    def test_run_phylo_ma(self):
 
         # Prepare data
         data_rstr = '''
@@ -766,6 +766,90 @@ class TestPhyloMA(BaseTestCase):
             observed_result=results,
         )
 
+class TestPermutationAnalysis(BaseTestCase):
+    def test_run_permutation_analysis_ma_mode(self):
+        # prepare data
+        data_rstr = '''
+        tmp_obj <- structure(
+            list(
+                yi = c(-0.09452415852033,
+                -0.277355866265512,
+                -0.366544429515919,
+                -0.664385099891136,
+                -0.461806281287715,
+                -0.185164437399104
+            ),
+            vi = c(
+                0.0333705617355999,
+                0.0310651010636611,
+                0.0508397176175572,
+                0.0105517594511967,
+                0.0433446698087316,
+                0.0236302525555215
+            ),
+            slab = structure(c(
+                "Carroll, 1997", "Grant, 1981", "Peck, 1987", "Donat, 2003",
+                "Stewart, 1990", "Young, 1995"
+            ), class = "AsIs")),
+            .Names = c("yi", "vi", "slab"),
+            row.names = c(NA, -6L), class = "data.frame")
+        '''
+
+        python_to_R.exR.execute_in_R(data_rstr)
+
+        parameters = {
+            'digits': 4,
+            'weighted': True,
+            'level': 95.0,
+            'data_type_and_metric': (0, 0),
+            'exact': False,
+            'knha': False,
+            'retpermdist': False,
+            'iter': 100,
+            'intercept': True,
+            'make_histograms': False,
+            #'studies': [<dataset.study.Study instance at 0x11993ed88>, <dataset.study.Study instance at 0x11e9be098>, <dataset.study.Study instance at 0x11e9be0e0>, <dataset.study.Study instance at 0x11e9be128>, <dataset.study.Study instance at 0x11e9be170>, <dataset.study.Study instance at 0x11e9be1b8>],
+            'method': 'REML',
+            'data_location': {
+                'experimental_mean': 5,
+                'effect_size': 8,
+                'experimental_std_dev': 6,
+                'experimental_sample_size': 4,
+                'control_std_dev': 3,
+                'control_sample_size': 1,
+                'variance': 9,
+                'control_mean': 2
+            }
+        }
+
+        result = python_to_R.run_permutation_analysis(
+            parameters=parameters,
+            meta_reg_mode=False,
+        )
+
+        full_expected_result = {
+            'image_order': None,
+            'image_var_names': {},
+            'save_plot_functions': {},
+            'texts': {
+                'Summary': u'\nModel Results:\n\n         estimate      se     zval   pval*    ci.lb    ci.ub   \nintrcpt   -0.3607  0.1011  -3.5664  0.0312  -0.5589  -0.1624  *\n\n---\nSignif. codes:  0 \u2018***\u2019 0.001 \u2018**\u2019 0.01 \u2018*\u2019 0.05 \u2018.\u2019 0.1 \u2018 \u2019 1 \n'
+            },
+            'image_params_paths': {},
+            'results_data': [
+                ('pval', {'type': 'vector', 'description': 'p-value(s) based on the permutation test.', 'value': [0.03125]}),
+                ('QMp', {'type': 'vector', 'description': 'p-value for the omnibus test of coefficients based on the permutation test.', 'value': [0.03125]})
+            ],
+            'images': {}
+        }
+
+        self.ObservedResultsDataMatchesExpected(
+            expected_result=full_expected_result,
+            observed_result=result,
+        )
+
+    def test_run_permutation_analysis_meta_reg_mode(self):
+        # not implmented yet
+        pass
 
 # TODO: FUNCTIONS THAT WE STILL NEED TO WRITE UNIT TESTS FOR
 
@@ -778,7 +862,6 @@ class TestPhyloMA(BaseTestCase):
 
 # def run_model_building(
 # def run_multiple_imputation_meta_analysis(
-# def run_permutation_analysis(
 
 # def _gen_cov_vals_obj_str(cov, studies, ref_var=None):
 # def _is_grouped_result(res_info):
