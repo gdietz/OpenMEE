@@ -5,6 +5,7 @@ import unittest
 import ome_globals
 import os, os.path
 
+base_dir = os.getcwd()
 
 # RExecutor:
 #     def __init__(self):
@@ -36,6 +37,12 @@ import os, os.path
 #     def _isListable(element, exclude_strings=True):
 #     def haskeys(r_object):
 
+# This is awful but we need it for now to determine how to find some sample data
+# This should def. be refactored way in the future.
+# If you get a utest failing, make sure you set this string correctly according
+# to your path
+open_mee_base_dir = '/Users/idahabreh/git/OpenMEE'
+
 
 def SetupForAllTests():
     # setup r_tmp and working directory
@@ -51,6 +58,26 @@ def SetupForAllTests():
     rloader.load_mice()
 
 SetupForAllTests()
+
+
+
+class BaseTestCase(unittest.TestCase):
+    def ObservedResultsDataMatchesExpected(
+        self,
+        expected_result, # expected output from analysis function
+        observed_result, # actual output from analysis function
+    ):
+        for j in range(len(expected_result['results_data'])):
+            print "checking %s" % expected_result['results_data'][j][0]
+
+            observed_val = expected_result['results_data'][j][1]['value']
+            expected_val = observed_result['results_data'][j][1]['value']
+
+            if type(observed_val) == type([]):
+                for idx in range(len(observed_val)):
+                    self.assertAlmostEqual(observed_val[idx], expected_val[idx])
+            else:
+                self.assertAlmostEqual(observed_val, expected_val)
 
 class TestXMethods(unittest.TestCase):
     def setUp(self):
@@ -89,7 +116,7 @@ class TestSetConfidenceLevelinR(unittest.TestCase):
         new_conf_level = python_to_R.set_conf_level_in_R(80)
         self.assertEqual(new_conf_level, 80)
 
-class TestBinaryMetaAnalysis(unittest.TestCase):
+class TestBinaryMetaAnalysis(BaseTestCase):
     def setUp(self):
         python_to_R.set_conf_level_in_R(95)
 
@@ -222,23 +249,15 @@ class TestBinaryMetaAnalysis(unittest.TestCase):
             res_name=res_name,
             bin_data_name=bin_data_name,
         )
-        
 
-        for j in range(len(result['results_data'])):
-            print "checking %s" % result['results_data'][j][0]
-
-            observed_val = result['results_data'][j][1]['value']
-            expected_val = full_expected_result['results_data'][j][1]['value']
-
-            if type(observed_val) == type([]):
-                for idx in range(len(observed_val)):
-                    self.assertAlmostEqual(observed_val[idx], expected_val[idx])
-            else:
-                self.assertAlmostEqual(observed_val, expected_val)
-            print "ok!"
+        self.ObservedResultsDataMatchesExpected(
+            expected_result=full_expected_result,
+            observed_result=result,
+        )
 
 
-class TestContinuousMetaAnalysis(unittest.TestCase):
+#class TestContinuousMetaAnalysis(unittest.TestCase):
+class TestContinuousMetaAnalysis(BaseTestCase):
     def setUp(self):
         python_to_R.set_conf_level_in_R(95)
 
@@ -337,18 +356,10 @@ class TestContinuousMetaAnalysis(unittest.TestCase):
             cont_data_name=cont_data_name,
         )
 
-
-        for j in range(len(result['results_data'])):
-            print "checking %s" % result['results_data'][j][0]
-
-            observed_val = result['results_data'][j][1]['value']
-            expected_val = full_expected_result['results_data'][j][1]['value']
-            
-            if type(observed_val) == type([]):
-                for idx in range(len(observed_val)):
-                    self.assertAlmostEqual(observed_val[idx], expected_val[idx])
-            else:
-                self.assertAlmostEqual(observed_val, expected_val)
+        self.ObservedResultsDataMatchesExpected(
+            expected_result=full_expected_result,
+            observed_result=result,
+        )
 
 
 class TestMetaRegression(unittest.TestCase):
@@ -658,6 +669,104 @@ class TestHistogram(unittest.TestCase):
         self.assertTrue(image_name == "Histogram")
         self.assertTrue( os.path.isfile(image_path))
 
+class TestPhyloMA(BaseTestCase):
+    def test__run_histogram(self):
+
+        # Prepare data
+        data_rstr = '''
+            tmp_obj <- structure(
+                list(
+                    yi = c(0.5, 0.2, 0.2, 0.1, 0.8, 0.9, 1),
+                    vi = c(0.2, 0.1, 0.4, 0.8, 0.9, 0.2, 0.1),
+                    slab = structure(c("study 1", "study 2", "study 3", "study 4", "study 5", "study 6", "study 7"), class = "AsIs"),
+                    species = structure(c(1L, 1L, 2L, 3L, 4L, 5L, 5L), .Label = c("A", "B", "C", "D", "E"), class = "factor")
+                ),
+                .Names = c("yi", "vi", "slab", "species"),
+                row.names = c(NA, -7L),
+                class = "data.frame"
+            )
+        '''
+        python_to_R.exR.execute_in_R(data_rstr)
+
+        # Parameters:
+        params = {
+            'tree_path': open_mee_base_dir + '/sample_data/someTree.txt',
+            'tree_format': 'newick',
+            'evo_model': 'BM',
+            'random_effects_method': 'ML',
+            'lambda_': 1.0,
+            'alpha': 1.0,
+            'include_species': True,
+            'plot_params': {
+                'digits': 4,
+                'fp_show_summary_line': True,
+                'fp_col2_str': u'[default]',
+                'fp_show_col4': True,
+                'fp_xlabel': u'[default]',
+                'fp_col4_str': u'Ev/Ctrl',
+                'fp_xticks': '[default]',
+                'fp_col3_str': u'Ev/Trt',
+                'fp_show_col3': True,
+                'fp_show_col2': True,
+                'fp_show_col1': True,
+                'fp_plot_lb': '[default]',
+                'fp_outpath': u'./r_tmp/forest.png',
+                'fp_plot_ub': '[default]',
+                'fp_col1_str': u'Studies',
+                'measure': 'OR',
+            },
+            'data_name': 'tmp_obj',
+            'fixed_effects': False,
+            'digits': 4,
+            'conf_level': 95.0,
+            'results_name': 'results_obj',
+        }
+
+        full_expected_result = {
+            'image_order': None,
+            'image_var_names': {'Forest Plot__phylo': 'r_tmp/1461548676.0349'},
+            'save_plot_functions': {},
+            'texts': {'Summary': u'\nMultivariate Meta-Analysis Model (k = 7; method: ML)\n\nVariance Components: \n\n            estim    sqrt  nlvls  fixed                factor    R\nsigma^2.1  0.0000  0.0000      7     no  betweenStudyVariance   no\nsigma^2.2  0.0340  0.1845      5     no     phylogenyVariance  yes\n\nTest for Heterogeneity: \nQ(df = 6) = 4.4523, p-val = 0.6157\n\nModel Results:\n\nestimate       se     zval     pval    ci.lb    ci.ub          \n  0.5789   0.2091   2.7691   0.0056   0.1692   0.9887       ** \n\n---\nSignif. codes:  0 \u2018***\u2019 0.001 \u2018**\u2019 0.01 \u2018*\u2019 0.05 \u2018.\u2019 0.1 \u2018 \u2019 1 \n'},
+            'image_params_paths': {},
+            'results_data': [
+                ('b', {'type': 'matrix', 'description': 'estimated coefficients of the model.', 'value': '             [,1]\nintrcpt 0.5789494\n'}),
+                ('se', {'type': 'vector', 'description': 'standard errors of the coefficients.', 'value': [0.2090765126869899]}),
+                ('zval', {'type': 'vector', 'description': 'test statistics of the coefficients.', 'value': [2.7690793177618054]}),
+                ('pval', {'type': 'vector', 'description': 'p-values for the test statistics.', 'value': [0.005621494796307728]}),
+                ('ci.lb', {'type': 'vector', 'description': 'lower bound of the confidence intervals for the coefficients.', 'value': [0.16916701223157565]}),
+                ('ci.ub', {'type': 'vector', 'description': 'upper bound of the confidence intervals for the coefficients.', 'value': [0.9887318819910393]}),
+                ('vb', {'type': 'matrix', 'description': 'variance-covariance matrix of the estimated coefficients.', 'value': '           intrcpt\nintrcpt 0.04371299\n'}),
+                ('sigma2', {'type': 'vector', 'description': 'estimated sigma^2 value(s)', 'value': [8.690201786983326e-11, 0.03402342057707157]}),
+                ('tau2', {'type': 'vector', 'description': 'estimated taU^2 values', 'value': [0.0]}),
+                ('rho', {'type': 'vector', 'description': 'estimated \xcf\x81 value(s).', 'value': [0.0]}),
+                ('k', {'type': 'vector', 'description': 'number of studies included in the model.', 'value': [7]}),
+                ('p', {'type': 'vector', 'description': 'number of coefficients in the model (including the intercept).', 'value': [1]}),
+                ('m', {'type': 'vector', 'description': 'number of coefficients included in the omnibus test of coefficients.', 'value': [1]}),
+                ('QE', {'type': 'matrix', 'description': 'test statistic for the test of (residual) heterogeneity.', 'value': '[1] 4.452291\n'}),
+                ('QEp', {'type': 'matrix', 'description': 'p-value for the test of (residual) heterogeneity.', 'value': '[1] 0.6157117\n'}),
+                ('QM', {'type': 'vector', 'description': 'test statistic for the omnibus test of coefficients.', 'value': [7.667800268056186]}),
+                ('QMp', {'type': 'vector', 'description': 'p-value for the omnibus test of coefficients.', 'value': [0.005621494796307731]}),
+                ('int.only', {'type': 'vector', 'description': 'logical that indicates whether the model is an intercept-only model.', 'value': [True]}),
+                ('yi', {'type': 'vector', 'description': 'the vector of outcomes', 'value': [0.5, 0.2, 0.2, 0.1, 0.8, 0.9, 1.0]}),
+                ('V', {'type': 'matrix', 'description': 'the corresponding variance-covariance matrix of the sampling errors', 'value': '     [,1] [,2] [,3] [,4] [,5] [,6] [,7]\n[1,]  0.2  0.0  0.0  0.0  0.0  0.0  0.0\n[2,]  0.0  0.1  0.0  0.0  0.0  0.0  0.0\n[3,]  0.0  0.0  0.4  0.0  0.0  0.0  0.0\n[4,]  0.0  0.0  0.0  0.8  0.0  0.0  0.0\n[5,]  0.0  0.0  0.0  0.0  0.9  0.0  0.0\n[6,]  0.0  0.0  0.0  0.0  0.0  0.2  0.0\n[7,]  0.0  0.0  0.0  0.0  0.0  0.0  0.1\n'}), ('X', {'type': 'matrix', 'description': 'and the model matrix of the model.', 'value': '     intrcpt\n[1,]       1\n[2,]       1\n[3,]       1\n[4,]       1\n[5,]       1\n[6,]       1\n[7,]       1\n'}),
+                ('fit.stats', {'type': 'data.frame', 'description': 'a list with the log-likelihood, deviance, AIC, BIC, and AICc values', 'value': '            ML     REML\nll   -3.996878 -3.67004\ndev   4.197458  7.34008\nAIC  13.993757 13.34008\nBIC  13.831487 12.71536\nAICc 21.993757 25.34008\n'})
+            ],
+            'images': {'Forest Plot__phylo': './r_tmp/forest.png'}
+        }
+
+        results = python_to_R.run_phylo_ma(**params)
+
+        # we are basically just asserting that the plot exists here!
+        image_name, image_path = results['images'].items()[0]
+        self.assertTrue(image_name == "Forest Plot__phylo")
+        self.assertTrue( os.path.isfile(image_path))
+
+        self.ObservedResultsDataMatchesExpected(
+            expected_result=full_expected_result,
+            observed_result=results,
+        )
+
+
 # TODO: FUNCTIONS THAT WE STILL NEED TO WRITE UNIT TESTS FOR
 
 # def run_dynamic_data_exploration_analysis(
@@ -670,7 +779,6 @@ class TestHistogram(unittest.TestCase):
 # def run_model_building(
 # def run_multiple_imputation_meta_analysis(
 # def run_permutation_analysis(
-# def run_phylo_ma(
 
 # def _gen_cov_vals_obj_str(cov, studies, ref_var=None):
 # def _is_grouped_result(res_info):
