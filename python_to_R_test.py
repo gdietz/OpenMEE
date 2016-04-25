@@ -416,7 +416,7 @@ class TestMetaRegression(unittest.TestCase):
             self.assertAlmostEqual(observed_SE, expected_SEs[1]['value'][j])
         print "done."
 
-        
+
 
 class TestBootstrapMetaRegression(unittest.TestCase):
     '''
@@ -443,6 +443,7 @@ class TestBootstrapMetaRegression(unittest.TestCase):
 
 
     def test_run_bootstrap_meta_reg(self):
+        ''' Vanilla bootstrap meta-regression. '''
         r_str = '''results_obj <- g.bootstrap.meta.regression(
             data=tmp_obj,
             mods=structure(list(interactions = list(), numeric = character(0), 
@@ -492,6 +493,48 @@ class TestBootstrapMetaRegression(unittest.TestCase):
         coef_row_expected = [-0.2246, -0.5449, 0.0898]
         coef_row_observed = _extract_res(-1)[1:]
         check_row(coef_row_observed, coef_row_expected)
+
+    def test_run_cond_means_bootstrap_meta_reg(self):
+        r_str = '''results_obj <- g.bootstrap.meta.regression.cond.means(
+                    data=tmp_obj,
+                    mods=structure(list(interactions = list(), numeric = character(0), 
+                                    categorical = "STATE"), 
+                                    .Names = c("interactions", "numeric", "categorical")),
+                    method="REML",
+                    level=95.0,
+                    digits=4,
+                    n.replicates=1000,
+                    histogram.title="Bootstrap Histogram",
+                    bootstrap.plot.path="./r_tmp/bootstrap.png",
+                    strat.cov="STATE",
+                    cond.means.data=list())'''
+        def _extract_res(i):
+            row = [s for s in result_rows[i].split(" ") if len(s.strip())>1]
+            return [row[0]] + [float(r_j) for r_j in row[1:]]
+
+        def check_row(observed, expected, theta=.05):
+            # note that we allow a fair amount of divergence (0.05)
+            # here because the bootstrap method is stochastic.
+            for j, expected_val in enumerate(expected):
+                observed_val = observed[j]
+                #self.assertAlmostEqual(observed_val, expected_val)
+                diff = abs(observed_val-expected_val)
+                print "difference: %s" % diff
+                self.assertTrue(diff <= theta)
+
+        result = python_to_R.run_gmeta_regression_bootstrapped(1000, r_str=r_str)
+        result_rows = result['texts']['Bootstrapped Conditional Means Meta Regression Summary'].split("\n")
+
+        ''' check MA estimate '''
+        MA_row_expected = [-0.2368, -0.3693, -0.1011]
+        MA_row_observed = _extract_res(-2)[1:]
+        check_row(MA_row_observed, MA_row_expected)
+
+        ''' check RI estimate '''
+        RI_row_expected = [-0.4614, -0.7474, -0.1839]
+        RI_row_observed = _extract_res(-1)[1:]
+        check_row(RI_row_observed, RI_row_expected)
+        #import pdb; pdb.set_trace()
 
 
 class TestFailSafeN(unittest.TestCase):
@@ -953,11 +996,12 @@ class TestPermutationAnalysis(BaseTestCase):
         # not implmented yet
         pass
 
+
+
 # TODO: FUNCTIONS THAT WE STILL NEED TO WRITE UNIT TESTS FOR
 
 # def run_failsafe_analysis(
 
-# def run_gmeta_regression_bootstrapped_cond_means(
 # def run_gmeta_regression_cond_means(
 # def run_meta_method(
 
