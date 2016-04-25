@@ -988,11 +988,25 @@ def run_dynamic_data_exploration_analysis(
         data_location=data_location,
         var_name=var_name,
     )
+
+    return _run_dynamic_data_exploration_analysis(
+        analysis_details=analysis_details,
+        res_name="result",
+        var_name="tmp_obj",
+    )
+
+def _run_dynamic_data_exploration_analysis(
+    analysis_details,
+    res_name="result",
+    var_name="tmp_obj",
+):
+
     ranalysis_function_name = analysis_details['MAIN']
     r_str = "%s <- %s(data=%s)" % (res_name, ranalysis_function_name, var_name)
     exR.execute_in_R(r_str)
     result = exR.execute_in_R("%s" % res_name)
     return parse_out_results(result)
+
 
 def _get_histogram_data_rstr(
     model,
@@ -2838,6 +2852,14 @@ def run_model_building(
     results_name="results_obj",
 ):
 
+    print "model_info: %s" % str(model_info)
+    print "data_name : %s" % data_name
+    print "fixed_effects: %s" % fixed_effects
+    print "random_effects_method: %s" % random_effects_method
+    print "digits      : %s" % digits
+    print "conf_level  : %s" % conf_level
+    print "results_name: %s" % results_name
+
     # Set fixed-effects vs. random effects
     method_str = "FE" if fixed_effects else random_effects_method
 
@@ -2888,7 +2910,6 @@ def run_phylo_ma(
     conf_level=DEFAULT_CONFIDENCE_LEVEL,
     results_name="results_obj",
 ):
-
     # Set fixed-effects vs. random effects
     method_str = "FE" if fixed_effects else random_effects_method
 
@@ -3197,7 +3218,7 @@ def run_permutation_analysis(
     results_name="results_obj",
 ):
 
-    print("Parameters: %s" % parameters)
+    print "Parameters: %s" % parameters
 
     # Get measure i.e. OR etc.
     _, metric = parameters['data_type_and_metric']
