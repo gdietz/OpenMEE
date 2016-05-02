@@ -42,20 +42,5 @@ pyqt4  : 4.10.1
 Unit tests
 -------------
 
-### Python tests
-
-1. Navigate to the OpenMEE directory
-2. Run: 
-> python -m unittest2 python_to_R_test.py
-
-### R tests
-
-in R:
-    -Navigate to the openmeer source directory (OpenMEE/R/openmeer)
-    -Launch R:
-        > R
-    - load devtools:
-        > library(devtools)
-    - run unit tests:
-        > devtools::test()
+See https://github.com/gdietz/OpenMEE/wiki/Unit-Testing. 
 
