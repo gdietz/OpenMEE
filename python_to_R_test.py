@@ -76,6 +76,9 @@ class BaseTestCase(unittest.TestCase):
             if type(observed_val) == type([]):
                 for idx in range(len(observed_val)):
                     self.assertAlmostEqual(observed_val[idx], expected_val[idx])
+            elif type(observed_val) == str:
+                # not checking equality of string values in results data
+                continue
             else:
                 self.assertAlmostEqual(observed_val, expected_val)
 
@@ -1042,13 +1045,493 @@ class TestPermutationAnalysis(BaseTestCase):
         # not implmented yet
         pass
 
+# tests run_meta_method for continuous data
+#   cumulative
+#   leave-one-out
+#   subgroup
+#   bootstrap
+class TestMetaMethod(BaseTestCase):
+    def setUp(self):
+        python_to_R.set_conf_level_in_R(95)
+
+    def _setup_cum_data(self):
+        r_str = '''
+        tmp_obj <- new(
+            'ContinuousData',
+            N1=c(60, 65, 40, 200, 45, 85),
+            mean1=c(92.0, 92.0, 88.0, 82.0, 88.0, 92.0),
+            sd1=c(20.0, 22.0, 26.0, 17.0, 22.0, 22.0),
+            N2=c(60, 65, 40, 200, 50, 85),
+            mean2=c(94.0, 98.0, 98.0, 94.0, 98.0, 96.0),
+            sd2=c(22.0, 21.0, 28.0, 19.0, 21.0, 21.0),
+            y=c(
+                -0.0945241585203, -0.277355866266, -0.366544429516,
+                -0.664385099891, -0.461806281288, -0.185164437399
+            ),
+            SE=c(
+                0.182676111563, 0.176252946255, 0.225476645393, 0.102721757438,
+                0.208193827499, 0.153721347104
+            ),
+            study.names=c(
+                "Carroll, 1997",
+                "Grant, 1981",
+                "Peck, 1987",
+                "Donat, 2003",
+                "Stewart, 1990",
+                "Young, 1995"
+            ),
+            years=c(
+                as.integer(),
+                as.integer(),
+                as.integer(),
+                as.integer(),
+                as.integer(),
+                as.integer()
+            ),
+            covariates=list()
+        )
+        '''
+
+        python_to_R.exR.execute_in_R(r_str)
+
+    def _setup_loo_data(self):
+        r_str = '''
+        tmp_obj <- new(
+            'ContinuousData',
+            N1=c(60, 65, 40, 200, 45, 85),
+            mean1=c(92.0, 92.0, 88.0, 82.0, 88.0, 92.0),
+            sd1=c(20.0, 22.0, 26.0, 17.0, 22.0, 22.0),
+            N2=c(60, 65, 40, 200, 50, 85),
+            mean2=c(94.0, 98.0, 98.0, 94.0, 98.0, 96.0),
+            sd2=c(22.0, 21.0, 28.0, 19.0, 21.0, 21.0),
+            y=c(
+                -0.0945241585203, -0.277355866266, -0.366544429516,
+                -0.664385099891, -0.461806281288, -0.185164437399
+            ),
+            SE=c(
+                0.182676111563, 0.176252946255, 0.225476645393, 0.102721757438,
+                0.208193827499, 0.153721347104
+            ),
+            study.names=c(
+                "Carroll, 1997", "Grant, 1981", "Peck, 1987", "Donat, 2003",
+                "Stewart, 1990", "Young, 1995"
+            ),
+            years=c(
+                as.integer(), as.integer(), as.integer(), as.integer(),
+                as.integer(), as.integer()
+            ),
+            covariates=list())
+        '''
+
+        python_to_R.exR.execute_in_R(r_str)
+
+    def _setup_subgroup_data(self):
+        r_str = '''
+        tmp_obj <- new(
+            'ContinuousData',
+            N1=c(60, 65, 40, 200, 45, 85),
+            mean1=c(92.0, 92.0, 88.0, 82.0, 88.0, 92.0),
+            sd1=c(20.0, 22.0, 26.0, 17.0, 22.0, 22.0),
+            N2=c(60, 65, 40, 200, 50, 85),
+            mean2=c(94.0, 98.0, 98.0, 94.0, 98.0, 96.0),
+            sd2=c(22.0, 21.0, 28.0, 19.0, 21.0, 21.0),
+            y=c(
+                -0.0945241585203, -0.277355866266, -0.366544429516,
+                -0.664385099891, -0.461806281288, -0.185164437399
+            ),
+            SE=c(
+                0.182676111563, 0.176252946255, 0.225476645393, 0.102721757438,
+                0.208193827499, 0.153721347104
+            ),
+            study.names=c(
+                "Carroll, 1997", "Grant, 1981", "Peck, 1987", "Donat, 2003",
+                "Stewart, 1990", "Young, 1995"
+            ),
+            years=c(
+                as.integer(), as.integer(), as.integer(), as.integer(),
+                as.integer(), as.integer()
+            ),
+            covariates=list(
+                new(
+                    'CovariateValues',
+                    cov.name='STATE',
+                    cov.vals=c("MA", "MA", "MA", "RI", "RI", "RI"),
+                    cov.type='factor',
+                    ref.var='MA'
+                )
+            )
+        )
+        '''
+
+        python_to_R.exR.execute_in_R(r_str)
+
+    def _setup_bootstrap_data(self):
+        r_str = '''
+        tmp_obj <- new(
+            'ContinuousData',
+            N1=c(60, 65, 40, 200, 45, 85),
+            mean1=c(92.0, 92.0, 88.0, 82.0, 88.0, 92.0),
+            sd1=c(20.0, 22.0, 26.0, 17.0, 22.0, 22.0),
+            N2=c(60, 65, 40, 200, 50, 85),
+            mean2=c(94.0, 98.0, 98.0, 94.0, 98.0, 96.0),
+            sd2=c(22.0, 21.0, 28.0, 19.0, 21.0, 21.0),
+            y=c(
+                -0.0945241585203, -0.277355866266, -0.366544429516,
+                -0.664385099891, -0.461806281288, -0.185164437399
+            ),
+            SE=c(
+                0.182676111563, 0.176252946255, 0.225476645393, 0.102721757438,
+                0.208193827499, 0.153721347104
+            ),
+            study.names=c(
+                "Carroll, 1997", "Grant, 1981", "Peck, 1987", "Donat, 2003",
+                "Stewart, 1990", "Young, 1995"
+            ),
+            years=c(
+                as.integer(), as.integer(), as.integer(), as.integer(),
+                as.integer(), as.integer()
+            ),
+            covariates=list())
+        '''
+
+        python_to_R.exR.execute_in_R(r_str)
+
+    def _cum_full_expected_results(self):
+        results = {
+            'image_order': None,
+            'image_var_names': {'Cumulative Forest Plot': 'r_tmp/1462159028.22232'},
+            'save_plot_functions': {},
+            'texts': {'References': '1. Cumulative Meta-Analysis: Lau, Joseph, et al. "Cumulative meta-analysis of therapeutic trials for myocardial infarction." New England Journal of Medicine 327.4 (1992): 248-254.)\n2. OpenMetaAnalyst: Wallace, Byron C., Issa J. Dahabreh, Thomas A. Trikalinos, Joseph Lau, Paul Trow, and Christopher H. Schmid. "Closing the Gap between Methodologists and End-Users: R as a Computational Back-End." Journal of Statistical Software 49 (2012): 5."\n3. metafor: Viechtbauer, Wolfgang. "Conducting meta-analyses in R with the metafor package." Journal of 36 (2010).\n4. this is a placeholder for continuous random reference\n', 'Cumulative Summary': 'Continuous Random-Effects Model\n\nMetric: Standardized Mean Difference\n\n Model Results\n\n Studies          Estimate   Lower bound   Upper bound   Std. error    p-Val   \n\n Carroll, 1997     -0.095      -0.453         0.264         0.183        NA    \n\n + Grant, 1981     -0.189      -0.438         0.059         0.127      0.136   \n\n + Peck, 1987      -0.232      -0.449        -0.015         0.111      0.036   \n\n + Donat, 2003     -0.376      -0.660        -0.091         0.145      0.010   \n\n + Stewart, 1990   -0.397      -0.626        -0.169         0.116     < 0.001  \n\n + Young, 1995     -0.358      -0.565        -0.152         0.105     < 0.001  \n\n\n'},
+            'image_params_paths': {},
+            'results_data': [
+                ('summary.table', {
+                    'type': 'data.frame',
+                    'description': '',
+                    'value': '     estimate        se      zval         pval      ci.lb       ci.ub         QE        QEp       tau2       I2       H2\n1 -0.09452416 0.1826761        NA           NA -0.4525628  0.26351444         NA         NA         NA       NA       NA\n2 -0.18921080 0.1268396 -1.491732 0.1357692977 -0.4378119  0.05939032  0.5187722 0.47136588 0.00000000  0.00000 1.000000\n3 -0.23183863 0.1105484 -2.097168 0.0359787158 -0.4485096 -0.01516768  0.9886385 0.60998601 0.00000000  0.00000 1.000000\n4 -0.37551497 0.1449767 -2.590174 0.0095927422 -0.6596641 -0.09136579  9.2044548 0.02669251 0.05510402 67.40709 3.068152\n5 -0.39732795 0.1164982 -3.410594 0.0006482153 -0.6256602 -0.16899574  9.2045498 0.05618519 0.03707059 56.54323 2.301137\n6 -0.35849726 0.1054538 -3.399566 0.0006749280 -0.5651829 -0.15181157 11.9138479 0.03598752 0.03723544 58.03203 2.382770\n'}
+                )],
+            'images': {'Cumulative Forest Plot': './r_tmp/forest.png'}
+        }
+
+        return results
+
+    def _loo_full_expected_results(self):
+        results = {
+            'image_order': None,
+            'image_var_names': {'Leave-one-out Forest Plot': 'r_tmp/1462159093.92416'},
+            'save_plot_functions': {},
+            'texts': {
+                'Leave-one-out Summary': 'Continuous Random-Effects Model\n\nMetric: Standardized Mean Difference\n\n Model Results\n\n Studies          Estimate   Lower bound   Upper bound   Std. error    p-Val   \n\n Overall           -0.358      -0.565        -0.152         0.105     < 0.001  \n\n - Carroll, 1997   -0.411      -0.621        -0.202         0.107     < 0.001  \n\n - Grant, 1981     -0.370      -0.615        -0.126         0.125      0.003   \n\n - Peck, 1987      -0.353      -0.593        -0.113         0.122      0.004   \n\n - Donat, 2003     -0.254      -0.416        -0.093         0.082      0.002   \n\n - Stewart, 1990   -0.337      -0.580        -0.094         0.124      0.007   \n\n - Young, 1995     -0.397      -0.626        -0.169         0.116     < 0.001  \n\n\n', 'References': '1. metafor: Viechtbauer, Wolfgang. "Conducting meta-analyses in R with the metafor package." Journal of 36 (2010).\n2. Leave-one-out Meta-Analysis: LOO ma reference placeholder\n3. OpenMetaAnalyst: Wallace, Byron C., Issa J. Dahabreh, Thomas A. Trikalinos, Joseph Lau, Paul Trow, and Christopher H. Schmid. "Closing the Gap between Methodologists and End-Users: R as a Computational Back-End." Journal of Statistical Software 49 (2012): 5."\n4. this is a placeholder for continuous random reference\n'
+            },
+            'image_params_paths': {},
+            'results_data': [
+                ('summary.table', {
+                        'type': 'data.frame',
+                        'description': '',
+                        'value': '    estimate         se      zval         pval      ci.lb       ci.ub         Q         Qp       tau2       I2       H2\n1 -0.3584973 0.10545382 -3.399566 0.0006749280 -0.5651829 -0.15181157 11.913848 0.03598752 0.03723544 58.03203 2.382770\n2 -0.4114342 0.10699571 -3.845333 0.0001203888 -0.6211419 -0.20172642  8.401100 0.07794237 0.02895657 52.38719 2.100275\n3 -0.3704578 0.12473111 -2.970052 0.0029774957 -0.6149263 -0.12598937 11.210371 0.02429874 0.04813708 64.31876 2.802593\n4 -0.3534015 0.12249925 -2.884928 0.0039150302 -0.5934957 -0.11330741 11.863574 0.01839513 0.04831155 66.28335 2.965894\n5 -0.2544609 0.08241803 -3.087443 0.0020188677 -0.4159973 -0.09292457  2.225595 0.69434623 0.00000000  0.00000 1.000000\n6 -0.3370921 0.12416044 -2.714972 0.0066281404 -0.5804421 -0.09374211 11.857982 0.01843919 0.04938846 66.26745 2.964495\n7 -0.3973279 0.11649816 -3.410594 0.0006482153 -0.6256602 -0.16899574  9.204550 0.05618519 0.03707059 56.54323 2.301137\n'}
+                )],
+            'images': {'Leave-one-out Forest Plot': './r_tmp/forest.png'}
+        }
+
+        return results
+
+    def _subgroup_full_expected_results(self):
+        results = {
+            'image_order': None,
+            'image_var_names': {'Subgroups Forest Plot': 'r_tmp/1462159148.32582'},
+            'save_plot_functions': {},
+            'texts': {
+                'Subgroup Summary': 'Continuous Random-Effects Model\n\nMetric: Standardized Mean Difference\n\n Model Results\n\n Studies      Estimate   Lower bound   Upper bound   Std. error    p-Val   \n\n Subgroup MA   -0.232      -0.449        -0.015         0.111      0.036   \n\n Subgroup RI   -0.451      -0.765        -0.137         0.160      0.005   \n\n Overall       -0.358      -0.565        -0.152         0.105     < 0.001  \n\n\n', 'References': '1. Subgroup Meta-Analysis: subgroup ma reference placeholder\n2. OpenMetaAnalyst: Wallace, Byron C., Issa J. Dahabreh, Thomas A. Trikalinos, Joseph Lau, Paul Trow, and Christopher H. Schmid. "Closing the Gap between Methodologists and End-Users: R as a Computational Back-End." Journal of Statistical Software 49 (2012): 5."\n3. metafor: Viechtbauer, Wolfgang. "Conducting meta-analyses in R with the metafor package." Journal of 36 (2010).\n4. this is a placeholder for continuous random reference\n'
+            },
+            'image_params_paths': {},
+            'results_data': [
+                ('__Subgroup MA', {'type': 'label', 'description': '', 'value': '######################################'}),
+                ('b', {'type': 'vector', 'description': 'estimated coefficients of the model.', 'value': [-0.23183862796808252]}),
+                ('se', {'type': 'vector', 'description': 'standard errors of the coefficients.', 'value': [0.11054843486383627]}),
+                ('zval', {'type': 'vector', 'description': 'test statistics of the coefficients.', 'value': [-2.0971678907407485]}),
+                ('pval', {'type': 'vector', 'description': 'p-values for the test statistics.', 'value': [0.035978715810442374]}),
+                ('ci.lb', {'type': 'vector', 'description': 'lower bound of the confidence intervals for the coefficients.', 'value': [-0.44850957884847364]}),
+                ('ci.ub', {'type': 'vector', 'description': 'upper bound of the confidence intervals for the coefficients.', 'value': [-0.0151676770876914]}),
+                ('vb', {'type': 'vector', 'description': 'variance-covariance matrix of the estimated coefficients.', 'value': [0.01222095645084385]}),
+                ('tau2', {'type': 'vector', 'description': 'estimated amount of (residual) heterogeneity. Always 0 when method="FE".', 'value': [0.0]}),
+                ('se.tau2', {'type': 'vector', 'description': 'estimated standard error of the estimated amount of (residual) heterogeneity.', 'value': [0.03741085701470231]}),
+                ('k', {'type': 'vector', 'description': 'number of outcomes included in the model fitting.', 'value': [3]}),
+                ('p', {'type': 'vector', 'description': 'number of coefficients in the model (including the intercept).', 'value': [1]}),
+                ('m', {'type': 'vector', 'description': 'number of coefficients included in the omnibus test of coefficients.', 'value': [1]}),
+                ('QE', {'type': 'vector', 'description': 'test statistic for the test of (residual) heterogeneity.', 'value': [0.9886385060531218]}),
+                ('QEp', {'type': 'vector', 'description': 'p-value for the test of (residual) heterogeneity.', 'value': [0.6099860121211939]}),
+                ('QM', {'type': 'vector', 'description': 'test statistic for the omnibus test of coefficients.', 'value': [4.398113161954]}),
+                ('QMp', {'type': 'vector', 'description': 'p-value for the omnibus test of coefficients.', 'value': [0.03597871581044249]}),
+                ('I2', {'type': 'vector', 'description': 'value of I2. See print.rma.uni for more details.', 'value': [0.0]}),
+                ('H2', {'type': 'vector', 'description': 'value of H2. See print.rma.uni for more details.', 'value': [1.0]}),
+                ('R2', {'type': 'vector', 'description': 'value of R2. See print.rma.uni for more details.', 'value': 'NULL'}),
+                ('int.only', {'type': 'vector', 'description': 'logical that indicates whether the model is an intercept-only model.', 'value': [True]}),
+                ('yi', {'type': 'vector', 'description': 'the vector of outcomes', 'value': [-0.0945241585203, -0.277355866266, -0.366544429516]}),
+                ('vi', {'type': 'vector', 'description': 'the corresponding sample variances', 'value': [0.033370561735777626, 0.031065101063567913, 0.05083971761768067]}),
+                ('X', {'type': 'matrix', 'description': 'the model matrix of the model', 'value': '     intrcpt\n[1,]       1\n[2,]       1\n[3,]       1\n'}),
+                ('fit.stats', {'type': 'data.frame', 'description': 'a list with the log-likelihood, deviance, AIC, BIC, and AICc values under the unrestricted and restricted likelihood.', 'value': '             ML       REML\nll    1.6742795  0.9402227\ndev   0.9886385 -1.8804454\nAIC   0.6514409  2.1195546\nBIC  -1.1513345 -0.4941510\nAICc 12.6514409 14.1195546\n'}),
+                ('weights', {'type': 'vector', 'description': 'weights in % given to the observed effects', 'value': [36.62196803160608, 39.33982518143542, 24.038206786958504]}),
+                ('__Subgroup RI', {'type': 'label', 'description': '', 'value': '######################################'}),
+                ('b', {'type': 'vector', 'description': 'estimated coefficients of the model.', 'value': [-0.4509453099130886]}),
+                ('se', {'type': 'vector', 'description': 'standard errors of the coefficients.', 'value': [0.1601494603147735]}),
+                ('zval', {'type': 'vector', 'description': 'test statistics of the coefficients.', 'value': [-2.8157778928930286]}),
+                ('pval', {'type': 'vector', 'description': 'p-values for the test statistics.', 'value': [0.004865929397759372]}),
+                ('ci.lb', {'type': 'vector', 'description': 'lower bound of the confidence intervals for the coefficients.', 'value': [-0.7648324842735713]}),
+                ('ci.ub', {'type': 'vector', 'description': 'upper bound of the confidence intervals for the coefficients.', 'value': [-0.13705813555260593]}),
+                ('vb', {'type': 'vector', 'description': 'variance-covariance matrix of the estimated coefficients.', 'value': [0.025647849639113214]}),
+                ('tau2', {'type': 'vector', 'description': 'estimated amount of (residual) heterogeneity. Always 0 when method="FE".', 'value': [0.05333381843718102]}),
+                ('se.tau2', {'type': 'vector', 'description': 'estimated standard error of the estimated amount of (residual) heterogeneity.', 'value': [0.07817603127010604]}),
+                ('k', {'type': 'vector', 'description': 'number of outcomes included in the model fitting.', 'value': [3]}),
+                ('p', {'type': 'vector', 'description': 'number of coefficients in the model (including the intercept).', 'value': [1]}),
+                ('m', {'type': 'vector', 'description': 'number of coefficients included in the omnibus test of coefficients.', 'value': [1]}),
+                ('QE', {'type': 'vector', 'description': 'test statistic for the test of (residual) heterogeneity.', 'value': [6.777488573474647]}),
+                ('QEp', {'type': 'vector', 'description': 'p-value for the test of (residual) heterogeneity.', 'value': [0.03375103191953712]}),
+                ('QM', {'type': 'vector', 'description': 'test statistic for the omnibus test of coefficients.', 'value': [7.928605142105104]}),
+                ('QMp', {'type': 'vector', 'description': 'p-value for the omnibus test of coefficients.', 'value': [0.00486592939775937]}),
+                ('I2', {'type': 'vector', 'description': 'value of I2. See print.rma.uni for more details.', 'value': [70.49054412533447]}),
+                ('H2', {'type': 'vector', 'description': 'value of H2. See print.rma.uni for more details.', 'value': [3.3887442867373236]}),
+                ('R2', {'type': 'vector', 'description': 'value of R2. See print.rma.uni for more details.', 'value': 'NULL'}),
+                ('int.only', {'type': 'vector', 'description': 'logical that indicates whether the model is an intercept-only model.', 'value': [True]}),
+                ('yi', {'type': 'vector', 'description': 'the vector of outcomes', 'value': [-0.664385099891, -0.461806281288, -0.185164437399]}),
+                ('vi', {'type': 'vector', 'description': 'the corresponding sample variances', 'value': [0.010551759451151306, 0.04334466980868337, 0.023630252555468453]}),
+                ('X', {'type': 'matrix', 'description': 'the model matrix of the model', 'value': '     intrcpt\n[1,]       1\n[2,]       1\n[3,]       1\n'}),
+                ('fit.stats', {'type': 'data.frame', 'description': 'a list with the log-likelihood, deviance, AIC, BIC, and AICc values under the unrestricted and restricted likelihood.', 'value': '             ML       REML\nll    0.2528357 -0.1105674\ndev   5.4159592  0.2211349\nAIC   3.4943287  4.2211349\nBIC   1.6915532  1.6074292\nAICc 15.4943287 16.2211349\n'}),
+                ('weights', {'type': 'vector', 'description': 'weights in % given to the observed effects', 'value': [40.14654087334693, 26.529013955915225, 33.324445170737846]}),
+                ('__Overall', {'type': 'label', 'description': '', 'value': '######################################'}),
+                ('b', {'type': 'vector', 'description': 'estimated coefficients of the model.', 'value': [-0.35849725582231895]}),
+                ('se', {'type': 'vector', 'description': 'standard errors of the coefficients.', 'value': [0.1054538186189239]}),
+                ('zval', {'type': 'vector', 'description': 'test statistics of the coefficients.', 'value': [-3.399566374336926]}),
+                ('pval', {'type': 'vector', 'description': 'p-values for the test statistics.', 'value': [0.0006749279631807544]}),
+                ('ci.lb', {'type': 'vector', 'description': 'lower bound of the confidence intervals for the coefficients.', 'value': [-0.5651829423476291]}),
+                ('ci.ub', {'type': 'vector', 'description': 'upper bound of the confidence intervals for the coefficients.', 'value': [-0.15181156929700873]}),
+                ('vb', {'type': 'vector', 'description': 'variance-covariance matrix of the estimated coefficients.', 'value': [0.011120507861312903]}),
+                ('tau2', {'type': 'vector', 'description': 'estimated amount of (residual) heterogeneity. Always 0 when method="FE".', 'value': [0.03723543730128842]}),
+                ('se.tau2', {'type': 'vector', 'description': 'estimated standard error of the estimated amount of (residual) heterogeneity.', 'value': [0.042114565809081704]}),
+                ('k', {'type': 'vector', 'description': 'number of outcomes included in the model fitting.', 'value': [6]}),
+                ('p', {'type': 'vector', 'description': 'number of coefficients in the model (including the intercept).', 'value': [1]}),
+                ('m', {'type': 'vector', 'description': 'number of coefficients included in the omnibus test of coefficients.', 'value': [1]}),
+                ('QE', {'type': 'vector', 'description': 'test statistic for the test of (residual) heterogeneity.', 'value': [11.913847853272857]}),
+                ('QEp', {'type': 'vector', 'description': 'p-value for the test of (residual) heterogeneity.', 'value': [0.03598752428191084]}),
+                ('QM', {'type': 'vector', 'description': 'test statistic for the omnibus test of coefficients.', 'value': [11.557051533522314]}),
+                ('QMp', {'type': 'vector', 'description': 'p-value for the omnibus test of coefficients.', 'value': [0.0006749279631807537]}),
+                ('I2', {'type': 'vector', 'description': 'value of I2. See print.rma.uni for more details.', 'value': [58.03203077982528]}),
+                ('H2', {'type': 'vector', 'description': 'value of H2. See print.rma.uni for more details.', 'value': [2.3827695706545713]}),
+                ('R2', {'type': 'vector', 'description': 'value of R2. See print.rma.uni for more details.', 'value': 'NULL'}),
+                ('int.only', {'type': 'vector', 'description': 'logical that indicates whether the model is an intercept-only model.', 'value': [True]}),
+                ('yi', {'type': 'vector', 'description': 'the vector of outcomes', 'value': [-0.0945241585203, -0.277355866266, -0.366544429516, -0.664385099891, -0.461806281288, -0.185164437399]}),
+                ('vi', {'type': 'vector', 'description': 'the corresponding sample variances', 'value': [0.033370561735777626, 0.031065101063567913, 0.05083971761768067, 0.010551759451151306, 0.04334466980868337, 0.023630252555468453]}),
+                ('X', {'type': 'matrix', 'description': 'the model matrix of the model', 'value': '     intrcpt\n[1,]       1\n[2,]       1\n[3,]       1\n[4,]       1\n[5,]       1\n[6,]       1\n'}),
+                ('fit.stats', {'type': 'data.frame', 'description': 'a list with the log-likelihood, deviance, AIC, BIC, and AICc values under the unrestricted and restricted likelihood.', 'value': '            ML       REML\nll   0.7136296  0.2789657\ndev  8.8315690 -0.5579313\nAIC  2.5727409  3.4420687\nBIC  2.1562598  2.6609445\nAICc 6.5727409  9.4420687\n'}),
+                ('weights', {'type': 'vector', 'description': 'weights in % given to the observed effects', 'value': [15.750089245922238, 16.28172797395532, 12.626157594095625, 23.270893915209943, 13.800562272939368, 18.27056899787751]})
+            ],
+            'images': {'Subgroups Forest Plot': './r_tmp/forest.png'}
+        }
+
+        return results
+
+    def _bootstrap_full_expected_results(self):
+        results = {
+            'image_order': None,
+            'image_var_names': {},
+            'save_plot_functions': {},
+            'texts': {
+                'Summary': 'The 95% Confidence Interval: [-0.554, -0.19]\nThe observed value of the effect size was -0.358, while the mean over the replicates was -0.345.'},
+                'image_params_paths': {},
+                'results_data': [
+                    ('Summary', {'type': 'blob', 'description': '', 'value': '[1] "The 95% Confidence Interval: [-0.554, -0.19]\\nThe observed value of the effect size was -0.358, while the mean over the replicates was -0.345."\n'}),
+                    ('t', {'type': 'matrix', 'description': 'A matrix with #replicates rows, each of which is a bootstrap replicate', 'value': '             [,1]\n  [1,] -0.2302012\n  [2,] -0.4184438\n  [3,] -0.4347124\n  [4,] -0.2585689\n  [5,] -0.3396847\n  [6,] -0.4347124\n  [7,] -0.2771395\n  [8,] -0.3594981\n  [9,] -0.3001969\n [10,] -0.3937101\n [11,] -0.3805454\n [12,] -0.4482880\n [13,] -0.3735779\n [14,] -0.4284900\n [15,] -0.3132265\n [16,] -0.2248503\n [17,] -0.2606362\n [18,] -0.2461854\n [19,] -0.3912389\n [20,] -0.2047695\n [21,] -0.5052002\n [22,] -0.2729712\n [23,] -0.4392815\n [24,] -0.3396847\n [25,] -0.2204164\n [26,] -0.2214600\n [27,] -0.3115000\n [28,] -0.2477373\n [29,] -0.1896892\n [30,] -0.3584973\n [31,] -0.3396847\n [32,] -0.1907797\n [33,] -0.4289649\n [34,] -0.2439954\n [35,] -0.3854014\n [36,] -0.3718429\n [37,] -0.3990686\n [38,] -0.4223145\n [39,] -0.2745522\n [40,] -0.3873510\n [41,] -0.2676714\n [42,] -0.3216578\n [43,] -0.2816691\n [44,] -0.2274112\n [45,] -0.3805454\n [46,] -0.4111363\n [47,] -0.3092504\n [48,] -0.2092832\n [49,] -0.3584973\n [50,] -0.3448428\n [51,] -0.3805454\n [52,] -0.3599910\n [53,] -0.2389887\n [54,] -0.2816752\n [55,] -0.3718429\n [56,] -0.6000563\n [57,] -0.3584973\n [58,] -0.3249589\n [59,] -0.3735779\n [60,] -0.3013142\n [61,] -0.3854014\n [62,] -0.4794101\n [63,] -0.3126637\n [64,] -0.2878125\n [65,] -0.4614713\n [66,] -0.2955435\n [67,] -0.4458280\n [68,] -0.3594981\n [69,] -0.3112254\n [70,] -0.3285209\n [71,] -0.5547973\n [72,] -0.1615770\n [73,] -0.2825526\n [74,] -0.1609691\n [75,] -0.4794101\n [76,] -0.4478744\n [77,] -0.3072409\n [78,] -0.5893392\n [79,] -0.3594534\n [80,] -0.3255938\n [81,] -0.1761371\n [82,] -0.3813762\n [83,] -0.4165194\n [84,] -0.5167383\n [85,] -0.3255938\n [86,] -0.3309089\n [87,] -0.3735779\n [88,] -0.3192089\n [89,] -0.2461854\n [90,] -0.3264070\n [91,] -0.4165194\n [92,] -0.5222913\n [93,] -0.3013142\n [94,] -0.3072409\n [95,] -0.4615603\n [96,] -0.1739143\n [97,] -0.3982769\n [98,] -0.3990686\n [99,] -0.4239174\n[100,] -0.3731900\n'})],
+                    #'images': {'Histogram': '/Users/george/Library/Application Support/CEBM/OpenMEE/r_tmp/bootstrap.png'}
+                    'images': {'Histogram': './r_tmp/bootstrap.png'}
+        }
+
+        return results
+
+    def test_run_meta_method_cumulative(self):
+        self._setup_cum_data()
+
+        # prepare parameters
+        meta_function_name = 'cum.ma.continuous'
+        function_name = 'continuous.random'
+        params = {
+            'conf.level': 95.0,
+            'digits': 3,
+            'fp_col2_str': u'[default]',
+            'fp_show_col4': False,
+            'fp_xlabel': u'[default]',
+            'fp_col4_str': u'Ev/Ctrl',
+            'fp_xticks': '[default]',
+            'fp_col3_str': u'Ev/Trt',
+            'fp_show_col3': False,
+            'fp_show_col2': True,
+            'fp_show_col1': True,
+            'fp_plot_lb': '[default]',
+            'fp_outpath': u'./r_tmp/forest.png',
+            'rm.method': 'DL',
+            'fp_plot_ub': '[default]',
+            'fp_col1_str': u'Studies',
+            'measure': 'SMD',
+            'fp_show_summary_line': True
+        }
+        res_name = 'result'
+        data_name = 'tmp_obj'
+
+        result = python_to_R.run_meta_method(
+            meta_function_name=meta_function_name,
+            function_name=function_name,
+            params=params,
+            res_name="result",
+            data_name="tmp_obj",
+        )
+
+        expected_result = self._cum_full_expected_results()
+
+        self.ObservedResultsDataMatchesExpected(
+            expected_result=expected_result,
+            observed_result=result,
+        )
+
+    def test_run_meta_method_loo(self):
+        self._setup_loo_data()
+
+        # prepare parameters
+        meta_function_name = 'loo.ma.continuous'
+        function_name = 'continuous.random'
+        params = {
+            'conf.level': 95.0,
+            'digits': 3,
+            'fp_col2_str': u'[default]',
+            'fp_show_col4': False,
+            'fp_xlabel': u'[default]',
+            'fp_col4_str': u'Ev/Ctrl',
+            'fp_xticks': '[default]',
+            'fp_col3_str': u'Ev/Trt',
+            'fp_show_col3': False,
+            'fp_show_col2': True,
+            'fp_show_col1': True,
+            'fp_plot_lb': '[default]',
+            'fp_outpath': u'./r_tmp/forest.png',
+            'rm.method': 'DL',
+            'fp_plot_ub': '[default]',
+            'fp_col1_str': u'Studies',
+            'measure': 'SMD',
+            'fp_show_summary_line': True
+        }
+        res_name = 'result'
+        data_name = 'tmp_obj'
+
+        result = python_to_R.run_meta_method(
+            meta_function_name=meta_function_name,
+            function_name=function_name,
+            params=params,
+            res_name="result",
+            data_name="tmp_obj",
+        )
+
+        expected_result = self._loo_full_expected_results()
+
+        self.ObservedResultsDataMatchesExpected(
+            expected_result=expected_result,
+            observed_result=result,
+        )
+
+    def test_run_meta_method_subgroup(self):
+        self._setup_subgroup_data()
+
+        # prepare parameters
+        meta_function_name = 'subgroup.ma.continuous'
+        function_name = 'continuous.random'
+        params = {
+            'conf.level': 95.0,
+            'digits': 3,
+            'fp_col2_str': u'[default]',
+            'fp_show_col4': False,
+            'fp_xlabel': u'[default]',
+            'fp_col4_str': u'Ev/Ctrl',
+            'fp_xticks': '[default]',
+            'fp_col3_str': u'Ev/Trt',
+            'fp_show_col3': False,
+            'fp_show_col2': True,
+            'fp_show_col1': True,
+            'fp_plot_lb': '[default]',
+            'fp_outpath': u'./r_tmp/forest.png',
+            'rm.method': 'DL',
+            'fp_plot_ub': '[default]',
+            'fp_col1_str': u'Studies',
+            'cov_name': 'STATE',
+            'measure': 'SMD',
+            'fp_show_summary_line': True
+        }
+        res_name = 'result'
+        data_name = 'tmp_obj'
+
+        result = python_to_R.run_meta_method(
+            meta_function_name=meta_function_name,
+            function_name=function_name,
+            params=params,
+            res_name="result",
+            data_name="tmp_obj",
+        )
+
+        expected_result = self._subgroup_full_expected_results()
+
+        self.ObservedResultsDataMatchesExpected(
+            expected_result=expected_result,
+            observed_result=result,
+        )
+
+    def test_run_meta_method_bootstrap(self):
+        self._setup_bootstrap_data()
+
+        # prepare parameters
+        meta_function_name = 'bootstrap.continuous'
+        function_name = 'continuous.random'
+        params = {
+            'conf.level': 95.0,
+            'histogram.xlab': 'Effect Size',
+            'fp_xticks': '[default]',
+            'fp_show_col4': False,
+            'fp_show_col3': False,
+            'fp_xlabel': u'[default]',
+            'fp_show_col1': True,
+            'fp_show_col2': True,
+            'fp_outpath': u'./r_tmp/forest.png',
+            'rm.method': 'DL',
+            'fp_plot_ub': '[default]',
+            'fp_col1_str': u'Studies',
+            'measure': 'SMD',
+            'fp_plot_lb': '[default]',
+            'bootstrap.plot.path': './r_tmp/bootstrap.png',
+            'digits': 3,
+            'fp_col2_str': u'[default]',
+            'num.bootstrap.replicates': 100,
+            'fp_col4_str': u'Ev/Ctrl',
+            'histogram.title': 'Bootstrap Histogram',
+            'fp_col3_str': u'Ev/Trt',
+            'fp_show_summary_line': True,
+            'bootstrap.type': 'boot.ma'
+        }
+        res_name = 'result'
+        data_name = 'tmp_obj'
+
+        result = python_to_R.run_meta_method(
+            meta_function_name=meta_function_name,
+            function_name=function_name,
+            params=params,
+            res_name="result",
+            data_name="tmp_obj",
+        )
+
+        expected_result = self._bootstrap_full_expected_results()
+
+        self.ObservedResultsDataMatchesExpected(
+            expected_result=expected_result,
+            observed_result=result,
+        )
+
 
 
 # TODO: FUNCTIONS THAT WE STILL NEED TO WRITE UNIT TESTS FOR
 
 # def run_failsafe_analysis(
-
-# def run_meta_method(
 
 # def run_model_building(
 # def run_multiple_imputation_meta_analysis(
