@@ -38,8 +38,7 @@ load.ape.file <- function(ape.path, tree.format) {
 }
 
 phylo.meta.analysis <- function(
-	treepath, # path to tree file
-	treeformat, # tree file format
+	tree,
 	evo.model,
 	data,
 	method,
@@ -50,12 +49,8 @@ phylo.meta.analysis <- function(
 	btt=NULL,
 	lambda=1.0,
 	alpha=1.0,
-	include.species=TRUE) {
-
-	# Get tree object
-	tree <- load.ape.file(treepath, treeformat)
-
-
+	include.species=TRUE
+) {
 	# data: should be a dataframe of the type that metafor likes ie
 	#   yi and vi for the effect and variance columns
 	#   slab holds study names
@@ -137,7 +132,14 @@ phylo.meta.analysis <- function(
 	)
 }
 
-regenerate_phylo_forest_plot <- function(plot.params, data, res, level, params.out.path=NULL, out.path=NULL) {
+regenerate_phylo_forest_plot <- function(
+	plot.params,
+	data,
+	res,
+	level,
+	params.out.path=NULL,
+	out.path=NULL
+) {
 	#### Set confidence level, then unset it later on.
 	old.global.conf.level <- get.global.conf.level(NA.if.missing=TRUE)
 	set.global.conf.level(level)
@@ -148,7 +150,12 @@ regenerate_phylo_forest_plot <- function(plot.params, data, res, level, params.o
 		forest.path <- paste(out.path, sep="")
 	}
 	
-	plot.data <- create.phylogenetic.ma.plot.data(data, res, params=plot.params, conf.level=level)
+	plot.data <- create.phylogenetic.ma.plot.data(
+		data,
+		res,
+		params=plot.params,
+		conf.level=level
+	)
 	## dump the forest plot params to disk; return path to
 	## this .Rdata for later use
 	forest.plot.params.path <- save.plot.data.and.params(
@@ -164,8 +171,10 @@ regenerate_phylo_forest_plot <- function(plot.params, data, res, level, params.o
 	##### Revert confidence level
 	set.global.conf.level(old.global.conf.level)
 	
-	list("img.path"=forest.path,
-		 "params.path"=forest.plot.params.path)
+	list(
+		"img.path"=forest.path,
+		"params.path"=forest.plot.params.path
+	)
 }
 
 create.phylogenetic.ma.plot.data <- function (data, res, params, conf.level) {

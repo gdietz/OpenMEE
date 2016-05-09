@@ -2853,15 +2853,6 @@ def run_model_building(
     conf_level=DEFAULT_CONFIDENCE_LEVEL,
     results_name="results_obj",
 ):
-
-    print "model_info: %s" % str(model_info)
-    print "data_name : %s" % data_name
-    print "fixed_effects: %s" % fixed_effects
-    print "random_effects_method: %s" % random_effects_method
-    print "digits      : %s" % digits
-    print "conf_level  : %s" % conf_level
-    print "results_name: %s" % results_name
-
     # Set fixed-effects vs. random effects
     method_str = "FE" if fixed_effects else random_effects_method
 
@@ -2911,6 +2902,43 @@ def run_phylo_ma(
     digits=4,
     conf_level=DEFAULT_CONFIDENCE_LEVEL,
     results_name="results_obj",
+    tree_name="tree",
+):
+    tree_rstr = "{treename} <- load.ape.file(\"{treepath}\", \"{treeformat}\")".format(
+        treename=tree_name,
+        treepath=tree_path,
+        treeformat=tree_format,
+    )
+    tree = exR.execute_in_R(tree_rstr)
+
+    return _run_phylo_ma(
+        tree_name=tree_name,
+        evo_model=evo_model,
+        random_effects_method=random_effects_method,
+        lambda_=lambda_,
+        alpha=alpha,
+        include_species=include_species,
+        plot_params=plot_params,
+        data_name=data_name,
+        fixed_effects=fixed_effects,
+        digits=digits,
+        conf_level=conf_level,
+        results_name=results_name,
+    )
+
+def _run_phylo_ma(
+    tree_name,
+    evo_model,
+    random_effects_method,
+    lambda_,
+    alpha,
+    include_species,
+    plot_params,
+    data_name,
+    fixed_effects,
+    digits,
+    conf_level,
+    results_name,
 ):
     # Set fixed-effects vs. random effects
     method_str = "FE" if fixed_effects else random_effects_method
@@ -2919,8 +2947,7 @@ def run_phylo_ma(
 
     r_str = '''
     {results} <- phylo.meta.analysis(
-        treepath=\"{treepath}\",
-        treeformat=\"{treeformat}\",
+        tree={tree_name},
         evo.model=\"{evo_model}\",
         data={data},
         method=\"{method}\",
@@ -2933,8 +2960,7 @@ def run_phylo_ma(
         plot.params={plot_params})
     '''.format(
         results=results_name,
-        treepath=tree_path,
-        treeformat=tree_format,
+        tree_name=tree_name,
         evo_model=evo_model,
         data=data_name,
         method=method_str,

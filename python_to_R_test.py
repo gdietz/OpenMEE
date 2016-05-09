@@ -41,7 +41,7 @@ base_dir = os.getcwd()
 # This should def. be refactored way in the future.
 # If you get a utest failing, make sure you set this string correctly according
 # to your path
-open_mee_base_dir = '/Users/idahabreh/git/OpenMEE'
+open_mee_base_dir = '/Users/george/git/OpenMEE'
 
 
 def SetupForAllTests():
@@ -864,7 +864,7 @@ class TestDynamicDataExplorationAnalysis(unittest.TestCase):
         self.assertTrue( os.path.isfile(image_path))
 
 class TestPhyloMA(BaseTestCase):
-    def test_run_phylo_ma(self):
+    def test__run_phylo_ma(self):
 
         # Prepare data
         data_rstr = '''
@@ -882,10 +882,27 @@ class TestPhyloMA(BaseTestCase):
         '''
         python_to_R.exR.execute_in_R(data_rstr)
 
+        tree_rstr = '''
+            tree <- structure(
+                list(
+                    edge = structure(
+                        c(6L, 7L, 7L, 6L, 8L, 8L, 9L, 9L, 7L, 1L, 2L, 8L, 3L, 9L, 4L, 5L),
+                        .Dim = c(8L, 2L)
+                    ),
+                    Nnode = 4L,
+                    tip.label = c("A", "B", "C", "D", "E"),
+                    edge.length = c(1, 1, 1, 1, 1, 0.5, 0.5, 0.5)
+                ),
+                .Names = c("edge", "Nnode", "tip.label", "edge.length"),
+                class = "phylo", order = "cladewise"
+            )
+        '''
+
+        python_to_R.exR.execute_in_R(tree_rstr)
+
         # Parameters:
         params = {
-            'tree_path': open_mee_base_dir + '/sample_data/someTree.txt',
-            'tree_format': 'newick',
+            'tree_name': 'tree',
             'evo_model': 'BM',
             'random_effects_method': 'ML',
             'lambda_': 1.0,
@@ -948,7 +965,7 @@ class TestPhyloMA(BaseTestCase):
             'images': {'Forest Plot__phylo': './r_tmp/forest.png'}
         }
 
-        results = python_to_R.run_phylo_ma(**params)
+        results = python_to_R._run_phylo_ma(**params)
 
         # we are basically just asserting that the plot exists here!
         image_name, image_path = results['images'].items()[0]
