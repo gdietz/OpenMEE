@@ -39,14 +39,8 @@ R      : 3.0.1 (2013-05-16) -- "Good Sport"
 metafor: 1.6.0
 pyqt4  : 4.10.1
 
-Unit testing:
-in python: run: FINISH LATER
-in R:
-    -Navigate to the openmeer source directory (OpenMEE/R/openmeer)
-    -Launch R:
-        > R
-    - load devtools:
-        > library(devtools)
-    - run unit tests:
-        > devtools::test()
+Unit tests
+-------------
+
+See https://github.com/gdietz/OpenMEE/wiki/Unit-Testing. 
 
