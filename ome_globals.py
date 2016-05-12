@@ -23,7 +23,7 @@ from PyQt4.QtCore import pyqtRemoveInputHook
 # Splash screen display time
 SPLASH_DISPLAY_TIME = 0
 
-HELP_URL = "http://www.cebm.brown.edu/open_mee/help"
+HELP_URL = "http://www.cebm.brown.edu/openmee/help.html"
 
 VARIABLE_LABEL_DISALLOWED_CHARS = ['(', ')']
 

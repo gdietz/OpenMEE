@@ -2,8 +2,7 @@
 
 # Form implementation generated from reading ui file 'about.ui'
 #
-# Created: Sun Feb 15 19:47:50 2015
-#      by: PyQt4 UI code generator 4.11.3
+# Created by: PyQt4 UI code generator 4.11.4
 #
 # WARNING! All changes made in this file will be lost!
 
@@ -91,7 +90,7 @@ class Ui_Dialog(object):
         Dialog.setWindowTitle(_translate("Dialog", "About", None))
         self.label_2.setText(_translate("Dialog", "<html><head/><body><p><span style=\" font-size:16pt; font-weight:600;\">About OpenMEE</span></p></body></html>", None))
         self.versionLabel.setText(_translate("Dialog", "version: some version", None))
-        self.contents.setText(_translate("Dialog", "<html><head/><body><p><a href=\"http://www.cebm.brown.edu/open_mee\"><span style=\" text-decoration: underline; color:#0000ff;\">OpenMEE</span></a> is a cross-platform tool for performing Meta-Analysis suited to the needs of ecologists and evolutionary biologists.</p><p>OpenMEE was developed at the Brown University <a href=\"http://www.cebm.brown.edu/\"><span style=\" text-decoration: underline; color:#0000ff;\">Center for Evidence-Based Medicine</span></a> by George Dietz and Byron Wallace.</p><p>OpenMEE is based on the earlier meta-analysis program <a href=\"http://www.cebm.brown.edu/open_meta\"><span style=\" text-decoration: underline; color:#0000ff;\">OpenMetaAnalyst</span></a> developed by Byron Wallace, George Dietz, Paul Trow, and Issa Dahabreh also at the Brown CEBM.</p><p>OpenMEE heavily leverages and can largely be considered as a GUI to the <a href=\"http://www.metafor-project.org/\"><span style=\" text-decoration: underline; color:#0000ff;\">metafor</span></a> R package by Wolfgang Viechtbauer.</p></body></html>", None))
+        self.contents.setText(_translate("Dialog", "<html><head/><body><p><a href=\"http://www.cebm.brown.edu/openmee\"><span style=\" text-decoration: underline; color:#0000ff;\">OpenMEE</span></a> is a cross-platform tool for performing Meta-Analysis suited to the needs of ecologists and evolutionary biologists.</p><p>OpenMEE was developed at the Brown University <a href=\"http://www.cebm.brown.edu/\"><span style=\" text-decoration: underline; color:#0000ff;\">Center for Evidence-Based Medicine</span></a> by George Dietz and Byron Wallace.</p><p>OpenMEE is based on the earlier meta-analysis program <a href=\"http://www.cebm.brown.edu/open_meta\"><span style=\" text-decoration: underline; color:#0000ff;\">OpenMetaAnalyst</span></a> developed by Byron Wallace, George Dietz, Paul Trow, and Issa Dahabreh also at the Brown CEBM.</p><p>OpenMEE heavily leverages and can largely be considered as a GUI to the <a href=\"http://www.metafor-project.org/\"><span style=\" text-decoration: underline; color:#0000ff;\">metafor</span></a> R package by Wolfgang Viechtbauer.</p></body></html>", None))
         self.ok_btn.setText(_translate("Dialog", "OK", None))
 
 import icons_rc
