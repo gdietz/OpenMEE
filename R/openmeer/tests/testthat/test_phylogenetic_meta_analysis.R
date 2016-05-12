@@ -46,9 +46,10 @@ plot.params <- data.frame(
 )
 
 test_that("Phylogenetic Meta-Analysis Runs", {
+  tree <- load.ape.file(phylo.tree.path, "newick")
+
   results <- phylo.meta.analysis(
-    treepath=phylo.tree.path,
-    treeformat="newick",
+    tree=tree,
     evo.model="BM",
     data=tmp_obj,
     method="ML",
