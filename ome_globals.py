@@ -104,13 +104,18 @@ VARIABLE_TYPE_STRING_LC = {
     COUNT: "count",
 }
 
+# issue #212; renamed "Trans. Var" below to "User Defined Effect (Transformed)", and
+# "Trans. Var" to "User Defined Variance (Transformed)". Furthermore, spelled out
+# "lb and "ub". 
 # How variable subtypes are represented as normal length strings
 VARIABLE_SUBTYPE_STRING_REPS = {
-    TRANS_EFFECT: "Trans. Effect",
-    TRANS_VAR: "Trans. Var",
+    TRANS_EFFECT: "User Defined Effect (Transformed)",
+    TRANS_VAR: "User Defined Variance (Transformed)",
     RAW_EFFECT: "Raw Effect",
-    RAW_LOWER: "Raw lb.",
-    RAW_UPPER: "Raw ub.",
+    #RAW_LOWER: "Raw lb.",
+    RAW_LOWER: "Raw Lower Bound",
+    #RAW_UPPER: "Raw ub.",
+    RAW_UPPER: "Raw Upper Bound"
 }
 
 # same as above but for indexing into qsettings
@@ -1047,7 +1052,6 @@ def get_build_date():
     except ImportError:
         print 'No version module detected'
         return 'Unknown'
-
 
 def write_build_date():
     '''
