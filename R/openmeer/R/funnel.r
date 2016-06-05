@@ -38,10 +38,11 @@ funnel.wrapper <- function(fname, data, params, ...) {
 	plot.path = paste(funnel.plot.data.path, ".png", sep="")
 	make.funnel.plot(plot.path, res, funnel.params)
 
+	# as per issue #206, just removing all refs for now. 
 	results <- list(
 		images=c("Funnel Plot"=plot.path),
-		plot_params_paths=c("Funnel Plot"=funnel.plot.data.path),
-		References="funnel plot reference placeholder"
+		plot_params_paths=c("Funnel Plot"=funnel.plot.data.path)#,
+		#References='''Funnel plot: Egger, Matthias, George Davey Smith, Martin Schneider, and Christoph Minder. "Bias in meta-analysis detected by a simple, graphical test." BMJ 315, no. 7109 (1997): 629-634.'''
 	)
 }
 
