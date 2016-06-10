@@ -294,6 +294,7 @@ class EETableModel(QAbstractTableModel):
         self,
         studies,
         missing_data=[None, "", QString("")],
+        exclude_effect_sizes=False,
     ):
         ''' 
         Returns a dictionary:
@@ -313,7 +314,11 @@ class EETableModel(QAbstractTableModel):
 
         isValidValue = lambda x: x not in missing_data
         for var in variables:
-             # generator expression
+            isEffect = var.get_subtype() in (TRANS_EFFECT, TRANS_VAR)
+            if isEffect and exclude_effect_sizes:
+                continue
+
+            # generator expression
             values = (isValidValue(study.get_var(var)) for study in studies)
             if all(values):
                 valid_list.append(var)

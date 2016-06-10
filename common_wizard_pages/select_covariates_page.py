@@ -230,7 +230,11 @@ class SelectCovariatesPage(QWizardPage, ui_select_covariates_page.Ui_WizardPage)
         if self.allow_covs_with_missing_data:
             self.available_covariates = self.model.get_variables()
         else:
-            valid_and_invalid_covariates = self.model.get_variables_with_data(studies=included_studies)
+            valid_and_invalid_covariates = self.model.get_variables_with_data(
+                studies=included_studies,
+                exclude_effect_sizes=True,
+            )
+
             self.available_covariates = valid_and_invalid_covariates['valid']
             self.unavailable_covariates = valid_and_invalid_covariates['invalid']
         
