@@ -13,15 +13,23 @@ from PyQt4.Qt import *
 from ome_globals import *
 
 class DataLocationPage(QWizardPage):
-    def __init__(self, model, show_raw_data = True, linkage_checkbox=False, 
-                 effect_size = True, need_full_raw_data = False, parent=None):
+    def __init__(
+        self,
+        model,
+        show_raw_data=True,
+        enable_raw_correlation_data=False,
+        linkage_checkbox=False, 
+        effect_size=True,
+        need_full_raw_data=False,
+        parent=None,
+    ):
         super(DataLocationPage, self).__init__(parent)
 
-        
         self.model = model
         self.data_type = None
         self.metric = None
         self.raw_data = show_raw_data
+        self.enable_raw_correlation_data = enable_raw_correlation_data
         self.linkage_checkbox = linkage_checkbox
         self.effect_size = effect_size
         self.need_full_raw_data = need_full_raw_data
@@ -38,6 +46,8 @@ class DataLocationPage(QWizardPage):
         self.box_names_to_boxes = {}
 
         print "Raw data: %s" % self.raw_data
+
+
         
     def set_show_raw_data(self, show_raw_data):
         self.raw_data = show_raw_data
@@ -84,15 +94,27 @@ class DataLocationPage(QWizardPage):
         if self.raw_data:
             if self.data_type == MEANS_AND_STD_DEVS:
                 if self.metric != GENERIC_EFFECT:
-                    self._setup_MEAN_AND_STD_DEV_table(layout, startrow=layout.rowCount())
+                    self._setup_MEAN_AND_STD_DEV_table(
+                        layout,
+                        startrow=layout.rowCount(),
+                    )
                 else:
                     pass # don't choose data location columns for generic effect
             elif self.data_type == TWO_BY_TWO_CONTINGENCY_TABLE:
-                self._setup_TWO_BY_TWO_CONTINGENCY_table(layout, startrow=layout.rowCount())
+                self._setup_TWO_BY_TWO_CONTINGENCY_table(
+                    layout,
+                    startrow=layout.rowCount(),
+                )
             elif self.data_type == PROPORTIONS:
-                self._setup_PROPORTIONS_table(layout, startrow=layout.rowCount())
+                self._setup_PROPORTIONS_table(
+                    layout,
+                    startrow=layout.rowCount(),
+                )
             elif self.data_type == CORRELATION_COEFFICIENTS:
-                self._setup_CORRELATION_COEFFICIENTS_table(layout, startrow=layout.rowCount())
+                self._setup_CORRELATION_COEFFICIENTS_table(
+                    layout,
+                    startrow=layout.rowCount(),
+                )
             else:
                 raise Exception("Unrecognized Data type")
         
@@ -112,19 +134,29 @@ class DataLocationPage(QWizardPage):
             rowcount = layout.rowCount()
             layout.addLayout(eff_var_layout, rowcount, 0, 1, 2)
             
-            self.box_names_to_boxes.update({'effect_size': self.effect_size_combo_box,
-                                            'variance'   : self.variance_combo_box})
+            self.box_names_to_boxes.update({
+                'effect_size': self.effect_size_combo_box,
+                'variance'   : self.variance_combo_box,
+            })
             
-            self._populate_combo_boxes([self.effect_size_combo_box,],
-                                       self.effect_columns,
-                                       preselect_only_one=True)
-            self._populate_combo_boxes([self.variance_combo_box,],
-                                       self.variance_columns,
-                                       preselect_only_one=True)
+            self._populate_combo_boxes(
+                [self.effect_size_combo_box,],
+                self.effect_columns,
+                preselect_only_one=True,
+            )
+            self._populate_combo_boxes(
+                [self.variance_combo_box,],
+                self.variance_columns,
+                preselect_only_one=True,
+            )
             
             # connect boxes to update of selections
             for box in [self.effect_size_combo_box, self.variance_combo_box]:
-                QObject.connect(box, SIGNAL("currentIndexChanged(int)"), self._update_current_selections)
+                QObject.connect(
+                    box,
+                    SIGNAL("currentIndexChanged(int)"),
+                    self._update_current_selections,
+                )
         
 
         # add clear selections button
@@ -192,12 +224,17 @@ class DataLocationPage(QWizardPage):
         layout.addWidget(self.experimental_std_dev_combo_box    , startrow+2, 2)
         layout.addWidget(self.experimental_sample_size_combo_box, startrow+3, 2)
         
-        self.continuous_combo_boxes = [self.control_mean_combo_box,
-                                       self.control_std_dev_combo_box,
-                                       self.experimental_mean_combo_box,
-                                       self.experimental_std_dev_combo_box,]
-        self.counts_combo_boxes = [self.control_sample_size_combo_box,
-                                   self.experimental_sample_size_combo_box,]
+        self.continuous_combo_boxes = [
+            self.control_mean_combo_box,
+            self.control_std_dev_combo_box,
+            self.experimental_mean_combo_box,
+            self.experimental_std_dev_combo_box,
+        ]
+
+        self.counts_combo_boxes = [
+            self.control_sample_size_combo_box,
+            self.experimental_sample_size_combo_box,
+        ]
         
         
         self.box_names_to_boxes = {             
@@ -206,15 +243,26 @@ class DataLocationPage(QWizardPage):
             'control_sample_size'     : self.control_sample_size_combo_box,
             'experimental_mean'       : self.experimental_mean_combo_box,
             'experimental_std_dev'    : self.experimental_std_dev_combo_box,
-            'experimental_sample_size': self.experimental_sample_size_combo_box
-            }
+            'experimental_sample_size': self.experimental_sample_size_combo_box,
+        }
         
-        self._populate_combo_boxes(self.continuous_combo_boxes, self.continuous_columns)
-        self._populate_combo_boxes(self.counts_combo_boxes, self.count_columns)
+        self._populate_combo_boxes(
+            self.continuous_combo_boxes,
+            self.continuous_columns,
+        )
+
+        self._populate_combo_boxes(
+            self.counts_combo_boxes,
+            self.count_columns,
+        )
         
         # connect boxes to update of selections
         for box in self.continuous_combo_boxes + self.counts_combo_boxes:
-            QObject.connect(box, SIGNAL("currentIndexChanged(int)"), self._update_current_selections)
+            QObject.connect(
+                box,
+                SIGNAL("currentIndexChanged(int)"),
+                self._update_current_selections,
+            )
 
     def _setup_TWO_BY_TWO_CONTINGENCY_table(self, layout, startrow=0):
         # top row labels
@@ -304,16 +352,33 @@ class DataLocationPage(QWizardPage):
             'sample_size': self.sample_size_combo_box}
         
         
-        self._populate_combo_boxes([self.correlation_combo_box,], self.continuous_columns)
-        self._populate_combo_boxes([self.sample_size_combo_box,], self.count_columns)
+        self._populate_combo_boxes(
+            [self.correlation_combo_box,],
+            self.continuous_columns,
+        )
+        self._populate_combo_boxes(
+            [self.sample_size_combo_box,],
+            self.count_columns,
+        )
         
         for box in [self.correlation_combo_box, self.sample_size_combo_box]:
-            QObject.connect(box, SIGNAL("currentIndexChanged(int)"), self._update_current_selections)
-            
+            QObject.connect(
+                box,
+                SIGNAL("currentIndexChanged(int)"),
+                self._update_current_selections,
+            )
 
-                  
+        # issue #202. Our current continuous data object on the R side doesn't
+        # support correlation coeffectient raw data i.e. correlation coefficient
+        # + sample size. Workaround is to force user to pre-calculate
+        # effect size + variance using the calculation tool and then use these
+        # in the meta-analysis
+        if not self.enable_raw_correlation_data:
+            for box in [self.correlation_combo_box, self.sample_size_combo_box]:
+                box.setCurrentIndex(0) # empty choice
+                box.setEnabled(False)
 
-            
+
     def _populate_combo_boxes(self, combo_boxes, columns, preselect_only_one=False):
         ''' Populates combo boxes that are 'continuous' with list of continuous
         -type columns'''
@@ -336,8 +401,10 @@ class DataLocationPage(QWizardPage):
                 combo_boxes_in_need_of_default_choice.append(box)
             box.blockSignals(False)
             
-        self._set_default_choices_for_combo_boxes(combo_boxes_in_need_of_default_choice,
-                                                  columns)
+        self._set_default_choices_for_combo_boxes(
+            combo_boxes_in_need_of_default_choice,
+            columns,
+        )
             
     def _set_default_choices_for_combo_boxes(self, combo_boxes, columns):
         ''' Sets the default choice for the combo boxes from the last time the
@@ -389,12 +456,13 @@ class DataLocationPage(QWizardPage):
             if self.data_type == MEANS_AND_STD_DEVS:
                 if self.metric != GENERIC_EFFECT:
                     current_selections = {
-                            'control_mean'            : selected_column(self.control_mean_combo_box),
-                            'control_std_dev'         : selected_column(self.control_std_dev_combo_box),
-                            'control_sample_size'     : selected_column(self.control_sample_size_combo_box),
-                            'experimental_mean'       : selected_column(self.experimental_mean_combo_box),
-                            'experimental_std_dev'    : selected_column(self.experimental_std_dev_combo_box),
-                            'experimental_sample_size': selected_column(self.experimental_sample_size_combo_box),}
+                        'control_mean'            : selected_column(self.control_mean_combo_box),
+                        'control_std_dev'         : selected_column(self.control_std_dev_combo_box),
+                        'control_sample_size'     : selected_column(self.control_sample_size_combo_box),
+                        'experimental_mean'       : selected_column(self.experimental_mean_combo_box),
+                        'experimental_std_dev'    : selected_column(self.experimental_std_dev_combo_box),
+                        'experimental_sample_size': selected_column(self.experimental_sample_size_combo_box),
+                    }
                 else: # metric is generic effect
                     current_selections = {}
             elif self.data_type == TWO_BY_TWO_CONTINGENCY_TABLE:
@@ -414,8 +482,10 @@ class DataLocationPage(QWizardPage):
                     'sample_size': selected_column(self.sample_size_combo_box),
                 }
             elif self.data_type == CORRELATION_COEFFICIENTS:
-                current_selections = {'correlation': selected_column(self.correlation_combo_box),
-                                      'sample_size': selected_column(self.sample_size_combo_box),}
+                current_selections = {
+                    'correlation': selected_column(self.correlation_combo_box),
+                    'sample_size': selected_column(self.sample_size_combo_box),
+                }
             
         if self.effect_size and self.effect_and_var_boxes_exist:
             current_selections['effect_size'] = selected_column(self.effect_size_combo_box)

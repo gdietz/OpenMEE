@@ -674,6 +674,8 @@ def dataset_to_simple_cont_robj(
             )):
         print "we have raw data... parsing, parsing, parsing"
 
+        print "data_location: %s" % str(data_location)
+
         Ns1_col = data_location['experimental_sample_size']
         means1_col = data_location['experimental_mean']
         SDs1_col = data_location['experimental_std_dev']
